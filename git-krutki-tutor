@@ -7,3 +7,17 @@ urzywanie gita:
 	git push origin master
 * ściąganie zmian z servera
 	git pull origin master
+
+==================================================
+
+odpowiedzi na pytania:
+
+* kompilacja rozłączna
+	utworzenie fragmętu
+		dodaj "-c" do opcji kompilatora
+	złączenie
+		g++ -o <wynik> czemść1.o czemść2.o ...
+* kompilacja z urzyciem niestandardowych bibliotek
+	dodaj do opcji kompilatora -l<nazwa_biblioteki>
+
+
