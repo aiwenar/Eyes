@@ -1,10 +1,13 @@
 #include <QtGui>
 #include <QApplication>
-#include <QDebug>
-#include <QIODevice>
+
+#include <iostream>
+#include <string>
 
 #include "eyes_view.h"
 #include "eyes_info.h"
+
+using namespace std;
 
 int main ( int argc, char ** argv )
 {
@@ -14,16 +17,21 @@ int main ( int argc, char ** argv )
   win.resize ( EYES_W, EYES_H );
   win.setWindowTitle( "!Eyesy" );
   win.setAttribute ( Qt::WA_TranslucentBackground, true );
+  win.setAttribute ( Qt::WA_TransparentForMouseEvents, true );
+  win.setWindowFlags ( Qt::FramelessWindowHint );
   win.show ();
-
-  //QIODevice _iod = new QIODevice ();
-  //QDebug dbg = new QDebug( _iod );
 
   QStringList arg = app.arguments ();
   QString folder ( "green" );
+  string help ( "" );
+
   for ( int i = 0 ; i < arg.size () ; i++ )
   {
-      if ( arg.at ( i ) == "--color" )
+      if ( arg.at ( i ) == "-h" or arg.at ( i ) == "--help" )
+      {
+          cout << help;
+      }
+      else if ( arg.at ( i ).split ( "=" )[0] == "--color" )
       {
           folder = arg.at ( i ).split ( "=" )[1];
       }
@@ -34,7 +42,7 @@ int main ( int argc, char ** argv )
       }
   }
 
-  qDebug () << folder;
+  cout << folder.toStdString () << '\n';
 
   eyes_view eyes ( &win );
   eyes.show();
