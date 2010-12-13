@@ -17,7 +17,6 @@ int main ( int argc, char ** argv )
   win.resize ( EYES_W, EYES_H );
   win.setWindowTitle( "!Eyesy" );
   win.setAttribute ( Qt::WA_TranslucentBackground, true );
-  win.setAttribute ( Qt::WA_TransparentForMouseEvents, true );
   win.setWindowFlags ( Qt::FramelessWindowHint );
   win.show ();
 
@@ -45,7 +44,9 @@ int main ( int argc, char ** argv )
   cout << folder.toStdString () << '\n';
 
   eyes_view eyes ( &win );
+  eyes.open_images ( folder );
   eyes.show();
+  eyes.update ();
 
   return app.exec ();
 }
