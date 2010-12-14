@@ -18,16 +18,24 @@ public:
                 ~eyes_view      ();
     void        open_images     ( QString folder );
     void        paintEvent      ( QPaintEvent * );
+    void        update_bulwers  ( bulwers_s nbulwers );
 signals:
 public slots:
         void    mousePressEvent ( QMouseEvent * ev );
         void    mouseMoveEvent  ( QMouseEvent * ev );
 private:
-    QGraphicsScene    * g_scene;
-    QVector <QPixmap>   images;
-    bulwers_enum        bulwers;
+    void        null_protect    ( QPixmap * pix, QString pix_name );
+    QPixmap           * out,
+                      * shadow,
+                      * mirror,
+                      * eyein,
+                      * eye,
+                      * spec;
+    bulwers_s           bulwers;
     int                 px,
-                        py;
+                        py,
+                        epx,
+                        epy;
 };
 
 #endif // EYES_VIEW_H
