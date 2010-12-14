@@ -4,9 +4,9 @@ urzywanie gita:
 * uaktualnianie pliku ( po tym jak go zmodyfikujesz i chcesz zeby te zmiany zostały zachowane )
 	git commit <PLIK> -m 'wiadomość'
 * wrzycanie zmian na server
-	git push origin master
+	git push origin lapsio
 * ściąganie zmian z servera
-	git pull origin master
+	git pull origin lapsio
 
 ==================================================
 
