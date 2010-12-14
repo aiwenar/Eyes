@@ -13,22 +13,27 @@ int main ( int argc, char ** argv )
 {
   QApplication app ( argc, argv );
 
-  QWidget win;
-  win.resize ( EYES_W, EYES_H );
-  win.setWindowTitle( "!Eyesy" );
-  win.setAttribute ( Qt::WA_TranslucentBackground, true );
-  win.setWindowFlags ( Qt::FramelessWindowHint );
-  win.show ();
-
   QStringList arg = app.arguments ();
   QString folder ( "green" );
-  string help ( "" );
+  QString help (
+"usage: eyes [--help -h] [--version -v] [--color=COLOR -c COLOR]\n\n"
+"Arguments:\n"
+"\t--help -h\t\tPrint this text ang exit.\n"
+"\t--version -v\t\tPrint version and exit.\n"
+"\t--color=COLOR -c COLOR\tSet eyes color to COLOR.\n"
+);
 
   for ( int i = 0 ; i < arg.size () ; i++ )
   {
       if ( arg.at ( i ) == "-h" or arg.at ( i ) == "--help" )
       {
-          cout << help;
+          cout << help.toStdString ();
+          exit ( 0 );
+      }
+      else if ( arg.at ( i ) == "-v" or arg.at ( i ) == "--version" )
+      {
+          cout << "Wersyjka\n";
+          exit ( 0 );
       }
       else if ( arg.at ( i ).split ( "=" )[0] == "--color" )
       {
@@ -41,12 +46,20 @@ int main ( int argc, char ** argv )
       }
   }
 
-  cout << folder.toStdString () << '\n';
+  QWidget win ( 0, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint );
+  win.resize ( EYES_W, EYES_H );
+  win.setWindowTitle( "!Eyesy" );
+  win.setAttribute ( Qt::WA_TranslucentBackground, true );
+  win.show ();
 
   eyes_view eyes ( &win );
   eyes.open_images ( folder );
   eyes.show();
   eyes.update ();
+
+  bulwers_s tmp;
+  tmp.type = normal;
+  eyes.update_bulwers ( tmp );
 
   return app.exec ();
 }
