@@ -1,6 +1,5 @@
-
-#ifndef HARDWARE
-#define
+#ifndef HARDWARE_h
+#define HARDWARE_H
 
 #include <glibtop.h>
 #include <glibtop/cpu.h>
@@ -14,4 +13,4 @@ int M_LOAD ();
 int U_TIME ();
 int P_LIST ();
 
-#endif
+#endif //HARDWARE_H
