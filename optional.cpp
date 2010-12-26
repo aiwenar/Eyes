@@ -13,7 +13,7 @@
 struct sdate
 {
     int day;
-    int mounth;
+    int month;
     int day_num;
     int hour;
     int year;
@@ -32,7 +32,7 @@ int main ()
     int i=0;
     while (i<7){
     cout <<get_time ().day << endl << get_time ().day_num <<
-            endl << get_time().hour << endl << get_time().mounth << endl;
+            endl << get_time().hour << endl << get_time().month << endl;
     //cout << endl << "temp " << temperatura () << endl << bat_plugged () << " " << bateria << endl;
 i++;
 sleep (1);
@@ -53,31 +53,32 @@ sdate get_time ()
     QString tmp1 = asctime ( localtime ( &timer ) );
     QStringList l_date = tmp1.split ( ' ' );
     if ( l_date[1] == "Mon" )get_date.day = 1;
-    if ( strcmp ( "Tue", l_date[1].toStdString () ) == 0 )get_date.day = 1;
-    if ( strcmp ( "Wed", l_date[1].toStdString () ) == 0 )get_date.day = 1;
-    if ( strcmp ( "Thu", l_date[1].toStdString () ) == 0 )get_date.day = 1;
-    if ( strcmp ( "Fri", l_date[1].toStdString () ) == 0 )get_date.day = 1;
-    if ( strcmp ( "Sat", l_date[1].toStdString () ) == 0 )get_date.day = 1;
-    if ( strcmp ( "San", l_date[1].toStdString () ) == 0 )get_date.day = 1;
-    if ( strcmp ( "Jan", l_date[1].toStdString () ) == 0 )get_date.mounth = 1;
-    if ( strcmp ( "Feb", l_date[1].toStdString () ) == 0 )get_date.mounth = 2;
-    if ( strcmp ( "Mar", l_date[1].toStdString () ) == 0 )get_date.mounth = 3;
-    if ( strcmp ( "Apr", l_date[1].toStdString () ) == 0 )get_date.mounth = 4;
-    if ( strcmp ( "May", l_date[1].toStdString () ) == 0 )get_date.mounth = 5;
-    if ( strcmp ( "Jun", l_date[1].toStdString () ) == 0 )get_date.mounth = 6;
-    if ( strcmp ( "Jul", l_date[1].toStdString () ) == 0 )get_date.mounth = 7;
-    if ( strcmp ( "Aug", l_date[1].toStdString () ) == 0 )get_date.mounth = 8;
-    if ( strcmp ( "Sep", l_date[1].toStdString () ) == 0 )get_date.mounth = 9;
-    if ( strcmp ( "Oct", l_date[1].toStdString () ) == 0 )get_date.mounth = 10;
-    if ( strcmp ( "Nov", l_date[1].toStdString () ) == 0 )get_date.mounth = 11;
-    if ( strcmp ( "Dec", l_date[1].toStdString () ) == 0 )get_date.mounth = 12;
+    if ( l_date[1] == "Tue" )get_date.day = 2;
+    if ( l_date[1] == "Wed" )get_date.day = 3;
+    if ( l_date[1] == "Thu" )get_date.day = 4;
+    if ( l_date[1] == "Fri" )get_date.day = 5;
+    if ( l_date[1] == "Sat" )get_date.day = 6;
+    if ( l_date[1] == "Sun" )get_date.day = 7;
+
+    if ( l_date[1] == "Jan" )get_date.month = 1;
+    if ( l_date[1] == "Feb" )get_date.month = 2;
+    if ( l_date[1] == "Mar" )get_date.month = 3;
+    if ( l_date[1] == "Apr" )get_date.month = 4;
+    if ( l_date[1] == "May" )get_date.month = 5;
+    if ( l_date[1] == "Jun" )get_date.month = 6;
+    if ( l_date[1] == "Jul" )get_date.month = 7;
+    if ( l_date[1] == "Aug" )get_date.month = 8;
+    if ( l_date[1] == "Sep" )get_date.month = 9;
+    if ( l_date[1] == "Oct" )get_date.month = 10;
+    if ( l_date[1] == "Nov" )get_date.month = 11;
+    if ( l_date[1] == "Dec" )get_date.month = 12;
 
     get_date.day_num = (int)l_date[3];
-    QVector<QString> tmp2 = l_date[4].split ( ':' );
+    QStringList tmp2 = l_date[4].split ( ':' );
     get_date.hour = (3600*((int)tmp2[0]) + (60*((int)tmp2[1])) + ((int)tmp2[2]));
     get_date.year = (int)l_date[5];
 
-    return date;
+    return get_date;
 }
 
 //--------------------------
