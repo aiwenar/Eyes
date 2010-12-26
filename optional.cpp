@@ -76,8 +76,8 @@ sdate get_time ()
 
     get_date.day_num = (int)l_date[3];
     QStringList tmp2 ( l_date[4].split ( ':' ) );
-    get_date.hour = (3600*((int)tmp2[0]) + (60*((int)tmp2[1])) + ((int)tmp2[2]));
-    get_date.year = (int)l_date[5];
+    get_date.hour = ( 3600 * ( tmp2[0].toInt () ) + ( 60 * ( tmp2[1].toInt() ) ) + tmp2[2].toInt () );
+    get_date.year = l_date[5].toInt ();
 
     return get_date;
 }
