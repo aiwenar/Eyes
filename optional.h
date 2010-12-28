@@ -1,4 +1,3 @@
-
 #ifndef OPTIONAL
 #define OPTIONAL
 
@@ -20,4 +19,4 @@ int temperatura ();
 int bat_plugged ();
 int bateria ();
 
-#endif
+#endif // OPTIONAL
