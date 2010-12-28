@@ -1,6 +1,5 @@
-
 #ifndef OPTIONAL
-#define
+#define OPTIONAL
 
 #include <string.h>
 #include <time.h>
@@ -20,4 +19,4 @@ int temperatura ();
 int bat_plugged ();
 int bateria ();
 
-#endif
+#endif // OPTIONAL
