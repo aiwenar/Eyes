@@ -1,13 +1,5 @@
 #include "optional.h"
 
-struct sdate
-{
-    int day;
-    int month;
-    int day_num;
-    int hour;
-    int year;
-};
 
 sdate get_time ();
 int temperatura ();
