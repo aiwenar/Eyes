@@ -1,6 +1,6 @@
 
 #ifndef OPTIONAL
-#define
+#define OPTIONAL
 
 #include <string.h>
 #include <time.h>
