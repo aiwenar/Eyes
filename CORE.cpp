@@ -1,4 +1,5 @@
-/*
+/*  copyrights © 2010 2011 Damian Chilinski and Krzysztof Mędrzycki
+    
    _______         ______      ______________      _______________
   /       \\     _/      \\_   \     ____    \\   /              //
  /    __   \\   /   ____   \\   |   ||   \    || |     _________//
@@ -14,11 +15,6 @@
 Art by Chiliński Damian
 GBS copyright 2010 *all rights reserved.
 
-Eyes project:
-Chiliński Damian
-Mędrzycki Krzysztof
-GBS 2010
-
 
 */
 //-------------------------------------------------------------------
@@ -31,6 +27,7 @@ GBS 2010
 #include </usr/include/qt4/Qt/qregexp.h>
 #include </usr/include/qt4/Qt/qstringlist.h>
 #include <cstdlib>
+#include <ctime>
 #include <unistd.h>
 #include <fstream>
 #include <cmath>
@@ -60,38 +57,89 @@ struct bulwers_core
     int longev;
 };
 
-sdate get_time ();
-int temperatura ();
-int bat_plugged ();
-int bateria ();
-int C_LOAD ();
-int M_LOAD ();
-int P_LIST ();
-int U_TIME ();
-int intro();
+sdate       get_time    ();
+static void print       ( char * str );
+static void print       ( char * str, int pos );
+static void print_gui   ();
+int         temperatura ();
+int         bat_plugged ();
+int         bateria     ();
+int         C_LOAD      ();
+int         M_LOAD      ();
+int         P_LIST      ();
+int         U_TIME      ();
+int         intro       ();
 bulwers_core bulwers_init ();
 
 
 int main ()
 {
-
     int f=0;
     int a;
-    cout << "give number of stages" << endl;
+    cout << "\033[2J\033[0;0H";
+    print ( " Welcome in eyes project!\nPlease give number of stages: " );
     cin >> a;
-    cout << endl;
+    cout << "\033[2J";
+    print_gui ();
     intro ();
+    cout << "\033[1;33m";
     while (f<a){
 
-        cout << endl << endl << endl << endl << "stage: " << f << " (" << (100*f)/a << "%)" << endl;
+        cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
         bulwers_init ();
 
 f++;
-sleep (1);
+sleep (3);
 }
-    cout << "\033[0m";
+    cout << "\033[0m \033[2J \033[0;0H";
 }
 
+//===========================
+
+static void print ( char * str )
+{
+  print ( str, 0 );
+}
+
+static void print ( char * str, int pos )
+{
+  cout << "\033[0m \033[1;32m";
+  int plus = pos+1;
+  for ( int i=0 ; i<strlen(str) ; i++ )
+  {
+    cout << str[i] << '\n';
+    if ( str[i] == '\n' )
+    {
+      usleep ( 50000 );
+      plus = pos+1;
+    }
+    else if ( str[i] == '.' or str[i] == '!' or str[i] == '?' )
+      usleep ( 30000 );
+    else
+      usleep ( 20000 );
+    cout << "\033[1A \033[" << plus << "C";
+    plus++;
+  }
+}
+
+inline void print_gui ()
+{
+  cout  << "\033[2J \033[0m \033[0;0H";
+  print ( " stage:\ncurrent cpu probe:" );
+  cout  << "\033[0;35H";
+  print ( " cpu probes table:", 35 );
+  cout << "\033[3;40H";
+  print ( " cpu:\nmemory:\nproclist:\nuptime:", 40 );
+  cout << "\033[4;75H";
+  print ( " day of week:\nday of month:\nmonth:\nyear:\ntime:\n", 75 );
+  cout << "\033[10;0H";
+  print ( " batery state:\nbatery power:\ntemperature:\nenergy:" );
+  cout << "\033[10;35H";
+  print ( " specjal:\nlongev:\nhappy:\nbulwers:", 35 );
+  cout << "\033[10;60H";
+  print ( " o\nt\nh\ne\nr\ns", 60 );
+  cout << "\033[8m";
+}
 
 //---------------------------
 int C_LOAD ()
@@ -289,63 +337,9 @@ int bateria ()
 int intro()
 {
     cout << "\033[37m" << "\033[40m";
-    int i= 95;
-    while (i>0)
-    {
-        SDL_Delay (50);
-        cout << endl;
-        i--;
-    }
+    int i= 95;/*
     cout << "\033[37m";
     cout << "\033[92A";
-    SDL_Delay (200);
-    cout << "W" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[1C" << "e" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[2C" << "l" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[3C" << "c" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[4C" << "o" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[5C" << "m" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[6C" << "e" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[7C" << " " << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[8C" << "i" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[9C" << "n" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[10C" << " " << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[11C" << "E" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[12C" << "y" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[13C" << "e" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[14C" << "s" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[15C" << " " << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[16C" << "p" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[17C" << "r" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[18C" << "o" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[19C" << "j" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[20C" << "e" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[21C" << "c" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[22C" << "t" << endl;
-    SDL_Delay (200);
-    cout << "\033[1A" << "\033[23C" << "!" << endl << endl << endl;
     SDL_Delay (2000);
     cout << "\033[1;30m";
     cout << "  _______________  ___       ___    _______________   ____________" << endl
@@ -381,7 +375,7 @@ int intro()
     SDL_Delay (100);
     cout << "#####################################################################" << endl << endl << endl << endl;
     cout << "\033[1;33m";
-    SDL_Delay (5000);
+    SDL_Delay (5000);*/
 return 1;
 }
 
@@ -499,6 +493,13 @@ Version 0.0.1a-01
  */
 //----------------------------------------------------------------------
 
+int pos;
+
+void print_event ( char * ev_text )
+{
+  cout << "\033[" << 10+pos << ";66H" << ev_text << '\n';
+  pos++;
+}
 
 //----------------------------------------
 
@@ -553,69 +554,39 @@ bulwers_core bulwers_init()
 
     //----first sector
 
-    cout << "First sector" << endl << endl
-         << "current cpu probe: " << current_probe << endl << endl
-         << "cpu probes table:" << endl << endl
-         << cpu_probes [0] << endl
-         << cpu_probes [1] << endl
-         << cpu_probes [2] << endl
-         << cpu_probes [3] << endl
-         << cpu_probes [4] << endl
-         << cpu_probes [5] << endl
-         << cpu_probes [6] << endl
-         << cpu_probes [7] << endl
-         << cpu_probes [8] << endl
-         << cpu_probes [9] << endl << endl;
+    cout << "\033[2;22H" << current_probe << "\033[1;55H"
+         << cpu_probes [0] << ' '
+         << cpu_probes [1] << ' '
+         << cpu_probes [2] << ' '
+         << cpu_probes [3] << ' '
+         << cpu_probes [4] << ' '
+         << cpu_probes [5] << ' '
+         << cpu_probes [6] << ' '
+         << cpu_probes [7] << ' '
+         << cpu_probes [8] << ' '
+         << cpu_probes [9] << '\n';
     if (cpu_probes[9] == 0)
     {
-         if (bajer)
-         {
-            cout << "cpu: filling buffer... please wait." << endl;
-         }
-         else
-         {
-             cout << "                                       "<< endl;
-         }
-     }
-    else cout << "cpu filling buffer... DONE!" << endl;
-    cout << endl << endl
-         << "Glibtop values:" << endl << endl;
+    }
+    
     if (cpu_probes[9] == 0)
     {
-         if (bajer)
-         {
-            bajer = false;
-            cout << "cpu: please wait..." << endl;
-         }
-         else
-         {
-             bajer = true;
-             cout << "cpu:                   " << endl;
-         }
-     }
-    else cout << "cpu: " << core_cpu_load << "%" << endl;
-    cout << "memory: " << core_memory << "%" << endl
-         << "proclist: " << core_proclist << endl
-         << "uptime: " << core_uptime << " seconds" <<endl
-         << "that is: " << endl
-         << core_uptime/3600 << " hours" << " and "
-         << (core_uptime/60) - ((core_uptime/3600)*60) << "minutes" << endl
-         << "Time values:" << endl << endl
-         << "day of week: " << core_day << endl
-         << "day of month: " << core_dnum << endl
-         << "month: " << core_month << endl
-         << "year: " << core_year << endl
-         << "time: " << core_time << " seconds" << endl
-         << "that is:" << endl
-         << core_time/3600 << ":" << (core_time/60) - ((core_time/3600)*60) << ":" << core_time - ((core_time/60)*60)  << endl << endl
-         << "Other values" << endl << endl
-         << "battery plugged state: " << core_battery_plugged << endl
-         << "temperature: " << core_temperature << "ºC" << endl
-         << "batery power" << core_battery << "MAh" << endl
-         << "energy: " << energy << " units (" << (100*energy)/54000 << "%)" << endl
-         << "once plugged: " << once_plugged << endl
-         << "prev battery plug: " << prev_bat_plug << endl << endl
-         << "end of first sector" << endl << endl;
+    }
+    
+    else cout << "\033[3;53H" << core_cpu_load;
+    cout << "\033[4;53H" << core_memory << "%"
+         << "\033[5;53H" << core_proclist
+         << "\033[6;53H" << core_uptime << " seconds" //<< "that is: " << core_uptime/3600 << " hours" << " and " << (core_uptime/60) - ((core_uptime/3600)*60) << "minutes"
+         << "\033[4;92H" << core_day
+         << "\033[5;92H" << core_dnum
+         << "\033[6;92H" << core_month
+         << "\033[7;92H" << core_year
+         << "\033[8;92H" << core_time << " seconds that is:" << core_time/3600 << ":" << (core_time/60) - ((core_time/3600)*60) << ":" << core_time - ((core_time/60)*60)
+         << "\033[10;17H" << ( core_battery_plugged == 1 ? "just pluged" : ( core_battery_plugged == 2 ? "just unpluged" : ( core_battery_plugged == 3 ? "pluged" : "unpluged" ) ) )
+         << "\033[11;17H" << core_battery << "MAh"
+         << "\033[12;17H" << core_temperature << "ºC"
+         << "\033[13;17H" << energy << " units (" << (100*energy)/54000 << "%)"
+         << '\n';
 
     //--Proggramer Manual
     /*
@@ -700,40 +671,39 @@ bulwers_core bulwers_init()
 
     //--space for others events
 
-    cout << "bulwers.special: " << bulwers.special << endl
-         << "bulwers.longev before checking: " << bulwers.longev << endl;
+    cout << "\033[10;46H" << bulwers.special;
 
-
+    pos = 0;
     //--long events checking
 
     if (core_battery <= 2500 && bulwers.longev < 1 && core_battery_plugged == 4)
     {
         bulwers.longev = 1;
-        cout << "ev1 (battery <=2500 MAh)" << endl;
+        print_event ( "ev1 (battery <=2500 MAh)" );
     }
 
     if (core_battery <= 1500 && bulwers.longev < 2 && core_battery_plugged == 4)
     {
         bulwers.longev = 2;
-        cout << "ev2 (battery <= 1500 MAh)" << endl;
+        print_event ( "ev2 (battery <= 1500 MAh)" );
     }
 
     if (core_time >= 75600 && bulwers.longev < 3)
     {
         bulwers.longev = 3;
-        cout << "ev3 (it's late)" << endl;
+        print_event ( "ev3 (it's late)" );
     }
 
     if (core_temperature >= 56 && bulwers.longev < 4)
     {
         bulwers.longev = 4;
-        cout << "ev4 (temperature goes up to 56ºC)" << endl;
+        print_event ( "ev4 (temperature goes up to 56ºC)" );
     }
 
     if (core_time >= 82800 && bulwers.longev < 5)
     {
         bulwers.longev = 5;
-        cout << "ev5 (it's very late)" << endl;
+        print_event ( "ev5 (it's very late)" );
     }
 
     if (core_temperature >= 58)
@@ -743,13 +713,13 @@ bulwers_core bulwers_init()
         if(bulwers.longev < 6)
             bulwers.longev = 6;
 
-        cout << "ev6 (temperature goes up to 58ºC)" << endl;
+        print_event ( "ev6 (temperature goes up to 58ºC)" );
     }
 
     if ((core_uptime >= 21600 || energy < 25200) && bulwers.longev < 7)
     {
         bulwers.longev = 7;
-        cout << "ev7 (they're tired)" << endl;
+        print_event ( "ev7 (they're tired)" );
     }
 
     if (core_temperature >= 60)
@@ -759,13 +729,13 @@ bulwers_core bulwers_init()
         if (bulwers.longev < 8)
             bulwers.longev = 8;
 
-        cout << "ev8 (temperature goes up to 60ºC)" << endl;
+        print_event ( "ev8 (temperature goes up to 60ºC)" );
     }
 
     if ((core_uptime >= 28800 || energy < 14400) && bulwers.longev < 9)
     {
         bulwers.longev = 9;
-        cout << "ev9 (they're very tired)" << endl;
+        print_event ( "ev9 (they're very tired)" );
     }
     if (core_battery <= 500 && bulwers.longev < 10 && core_battery_plugged == 4)
     {
@@ -774,7 +744,7 @@ bulwers_core bulwers_init()
         if (bulwers.state < 5)
             bulwers.state = 5;
 
-        cout << "ev10 (battery critical low)" << endl;
+        print_event ( "ev10 (battery critical low)" );
     }
     if ((core_uptime >= 39600 || energy < 7200 )&& bulwers.longev < 11)
     {
@@ -783,7 +753,7 @@ bulwers_core bulwers_init()
         if (bulwers.state < 6)
             bulwers.state = 6;
 
-        cout << "ev11 (they've just slept...)" << endl;
+        print_event ( "ev11 (they've just slept...)" );
     }
     if (core_temperature >= 62)
     {
@@ -795,7 +765,7 @@ bulwers_core bulwers_init()
         if (bulwers.state < 10)
             bulwers.state = 10;
 
-        cout << "ev12 (temperature goes up to 62ºC)" << endl;
+        print_event ( "ev12 (temperature goes up to 62ºC)" );
     }
     if (core_temperature >= 64)
     {
@@ -807,7 +777,7 @@ bulwers_core bulwers_init()
         if (bulwers.state < 14)
             bulwers.state = 14;
 
-        cout << "ev13 (temperature goes up to 64ºC)" << endl;
+        print_event ( "ev13 (temperature goes up to 64ºC)" );
     }
     if ((core_uptime >= 50400 || energy < 3600) && bulwers.longev < 14)
     {
@@ -816,18 +786,17 @@ bulwers_core bulwers_init()
         if (bulwers.state < 16)
             bulwers.state = 16;
 
-        cout << "ev14 (they cant' stand)" << endl;
+        print_event ( "ev14 (they cant' stand)" );
     }
     if (energy <= 0)
     {
         bulwers.state = 17;
-        cout << "idiot... <.:zzZ:.>" << endl;
+        print_event ( "idiot... <.:zzZ:.>" );
     }
     //if (core_battery <= 2500 && bulwers.longev < 1) bulwers.longev = 1;
     //if (core_battery <= 2500 && bulwers.longev < 2) bulwers.longev = 2;
 
-    cout << "bulwers.longev: " << bulwers.longev << endl
-         << "bulwers before cpu: " << bulwers.state << endl;
+    cout << "\033[11;46H" << bulwers.longev << '\n';
 
 
     //--loads checking
@@ -839,7 +808,6 @@ bulwers_core bulwers_init()
 
     if (core_cpu_load >= 40)
     {
-        cout << "cpu40" << endl;
         if(bulwers.state < 6 && bulwers.longev < 9)
         {
             bulwers.state = 6;
@@ -863,7 +831,6 @@ bulwers_core bulwers_init()
 
     if (core_cpu_load >= 50)
     {
-        cout << "cpu50" << endl;
         if (bulwers.state < 8 && bulwers.longev < 8)
         {
             bulwers.state = 8;
@@ -887,7 +854,6 @@ bulwers_core bulwers_init()
 
     if (core_cpu_load >= 60)
     {
-        cout << "cpu60" << endl;
         if (bulwers.state < 10 && bulwers.longev < 7)
         {
             bulwers.state = 10;
@@ -911,7 +877,6 @@ bulwers_core bulwers_init()
 
     if (core_cpu_load >= 70)
     {
-        cout << "cpu70" << endl;
         if(bulwers.state < 12 && bulwers.longev < 6)
         {
             bulwers.state = 12;
@@ -935,7 +900,6 @@ bulwers_core bulwers_init()
 
     if (core_cpu_load >= 80)
     {
-        cout << "cpu80" << endl;
         if(bulwers.state < 14 && bulwers.longev < 5)
         {
             bulwers.state = 14;
@@ -959,7 +923,6 @@ bulwers_core bulwers_init()
 
     if (core_cpu_load >= 90)
     {
-        cout << "cpu90" << endl;
         if(bulwers.state < 15 && bulwers.longev < 4)
         {
             bulwers.state = 15;
@@ -979,8 +942,6 @@ bulwers_core bulwers_init()
         }
     }
 
-    cout << "bulwers after cpu (before memory): " << bulwers.state << endl;
-
 
     //----MEM----
 
@@ -988,7 +949,6 @@ bulwers_core bulwers_init()
 
     if (core_memory >= 40)
     {
-        cout << "memory40" << endl;
         if(bulwers.state < 4 && bulwers.longev < 9)
         {
             bulwers.state = 4;
@@ -1010,7 +970,6 @@ bulwers_core bulwers_init()
 
     if (core_memory >= 50)
     {
-        cout << "memory50" << endl;
         if(bulwers.state < 5 && bulwers.longev < 8)
         {
             bulwers.state = 5;
@@ -1032,7 +991,6 @@ bulwers_core bulwers_init()
 
     if (core_memory >= 60)
     {
-        cout << "memory60" << endl;
         if(bulwers.state < 6 && bulwers.longev < 7)
         {
             bulwers.state = 6;
@@ -1056,7 +1014,6 @@ bulwers_core bulwers_init()
 
     if (core_memory >= 70)
     {
-        cout << "memory70" << endl;
         if(bulwers.state < 6 && bulwers.longev < 6)
         {
             bulwers.state = 7;
@@ -1080,7 +1037,6 @@ bulwers_core bulwers_init()
 
     if (core_memory >= 80)
     {
-        cout << "memory80" << endl;
         if(bulwers.state < 8 && bulwers.longev < 5)
         {
             bulwers.state = 8;
@@ -1100,8 +1056,7 @@ bulwers_core bulwers_init()
         }
     }
 
-    cout << "bulwers after memory: " << bulwers.state << endl
-         << "happy before checking: " << bulwers.happy << endl;
+    cout << "\033[13;46H" << bulwers.state << '\n';
 
 
     //----events checking
@@ -1109,31 +1064,31 @@ bulwers_core bulwers_init()
 
     if (once_plugged)
     {
-        cout << "once plugged = 1" << endl;
+//        cout << "once plugged = 1" << endl;
         if (core_battery_plugged == 2 && prev_bat_plug != 2)
         {
             if (bulwers.state < 3)
             {
                 bulwers.state = 3;
-                cout << "surpriced" << endl;
+  //              cout << "surpriced" << endl;
             }
 
             if (prev_bat_plug == 3)
             {
                 bulwers.happy--;
-                cout << "prev bat plug = 3" << endl;
+    //            cout << "prev bat plug = 3" << endl;
             }
 
             if (prev_bat_plug == 1)
             {
                 bulwers.happy-=2;
-                cout << "prev bat plug = 1" << endl;
+      //          cout << "prev bat plug = 1" << endl;
             }
         }
         if (core_battery_plugged == 1 && prev_bat_plug != 1)
         {
             bulwers.happy+=2;
-            cout << "battery has been just plugged, happy +2" << endl;
+        //    cout << "battery has been just plugged, happy +2" << endl;
         }
         if (core_battery_plugged == 3 && prev_bat_plug != 3)
         {
@@ -1142,25 +1097,22 @@ bulwers_core bulwers_init()
     }
     if (!once_plugged)
     {
-        cout << "once plugged = 0" << endl;
+        //cout << "once plugged = 0" << endl;
         if (core_battery_plugged == 1)
         {
             once_plugged = true;
             bulwers.happy +=2;
-            cout << "plugged = 1" << endl;
+//            cout << "plugged = 1" << endl;
         }
         if (core_battery_plugged == 3)
         {
             once_plugged = true;
             bulwers.happy ++;
-            cout << "pluged = 3" << endl;
+  //          cout << "pluged = 3" << endl;
         }
     }
     prev_bat_plug = core_battery_plugged;
-    cout << "happy: " << bulwers.happy << endl;
-
-    cout << endl << endl << endl << "###################" << endl
-         << "Version 0.0.1a-01" << endl;
+    cout << "\033[12;46H" << bulwers.happy << '\n';
 
 return bulwers;
 }
