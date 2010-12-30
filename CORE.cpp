@@ -82,11 +82,12 @@ int main ()
     intro ();
     cout << "\033[2J\033[0;0H";
     cout << "\033[32m" << endl;
-    print ( " Welcome in eyes project!\nPlease give number of stages: " );
+    print ( " Welcome in eyes project!\nPlease give number of stages (0 for infinitive): " );
     cin >> a;
     cout << "\033[2J";
     print_gui ();
     cout << "\033[1;33m";
+    if (a != 0){
     while (f<a){
 
         cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
@@ -95,6 +96,17 @@ int main ()
 f++;
 sleep (1);
 }
+}
+    else
+    {
+        while (true)
+        {
+            cout << "\033[0;22H" << f << '\n';
+            bulwers_init ();
+            sleep(1);
+            f++;
+        }
+    }
     cout << "\033[0m \033[2J \033[0;0H";
 }
 
@@ -648,7 +660,7 @@ bulwers_core bulwers_init()
 
     //----first sector
 
-    cout << "\033[2;22H" << current_probe << "\033[1;55H"
+    cout << "\033[2;22H" << current_probe+1 << " " << "\033[1;55H"
          << cpu_probes [0] << ' '
          << cpu_probes [1] << ' '
          << cpu_probes [2] << ' '
