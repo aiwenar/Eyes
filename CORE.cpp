@@ -69,6 +69,8 @@ int         M_LOAD      ();
 int         P_LIST      ();
 int         U_TIME      ();
 int         intro       ();
+int         felltext    (char*downgrade);
+int pulsetext (char*text, int delay, int repeat, int position);
 bulwers_core bulwers_init ();
 
 
@@ -76,12 +78,14 @@ int main ()
 {
     int f=0;
     int a;
+    cout << "\033[40m" << endl;
+    intro ();
     cout << "\033[2J\033[0;0H";
+    cout << "\033[32m" << endl;
     print ( " Welcome in eyes project!\nPlease give number of stages: " );
     cin >> a;
     cout << "\033[2J";
     print_gui ();
-    intro ();
     cout << "\033[1;33m";
     while (f<a){
 
@@ -89,21 +93,21 @@ int main ()
         bulwers_init ();
 
 f++;
-sleep (3);
+sleep (1);
 }
     cout << "\033[0m \033[2J \033[0;0H";
 }
 
 //===========================
 
-static void print ( char * str )
+inline static void print ( char * str )
 {
   print ( str, 0 );
 }
 
 static void print ( char * str, int pos )
 {
-  cout << "\033[0m \033[1;32m";
+  cout << "\033[1;32m";
   int plus = pos+1;
   for ( int i=0 ; i<strlen(str) ; i++ )
   {
@@ -124,7 +128,7 @@ static void print ( char * str, int pos )
 
 inline void print_gui ()
 {
-  cout  << "\033[2J \033[0m \033[0;0H";
+  cout  << "\033[2J \033[0;0H";
   print ( " stage:\ncurrent cpu probe:" );
   cout  << "\033[0;35H";
   print ( " cpu probes table:", 35 );
@@ -334,13 +338,109 @@ int bateria ()
 }
 //-----------------------------
 
+int pulsetext (char * text, int delay, int repeat, int position)
+{
+    while (repeat>0)
+    {
+        if (repeat%2 == 1)
+        cout << text << endl;
+        else
+        cout << "                    " << endl;
+
+     cout << "\033[1A" << "\033[" << position << "C";
+     SDL_Delay(delay);
+     repeat--;
+    }
+    return 1;
+}
+
+
+int felltext (char*downgrade)
+{
+    cout << "\033[40m" << endl;
+
+    int leng = strlen(downgrade);
+    cout << endl << endl;
+     for ( int i=0 ; i<(leng+2) ; i++ )
+    {
+        SDL_Delay (50);
+        if (i > 0 && i<leng)
+        {
+            cout << "\033[32m" << downgrade[i] << endl;
+            cout << "\033[1;30m" << "\033[2A" << downgrade[i-1] << endl;
+            cout << "\033[2A" << " " << endl;
+            cout << "\033[1B" << endl;
+        }
+        if (i==0)
+        {
+            cout << "\033[1;32m" << downgrade[i] << endl;
+        }
+        if (i==leng)
+        {
+            cout << " " << endl;
+            cout << "\033[32m" << "\033[2A" << downgrade[i-1] << endl;
+            cout << "\033[2A" << " " << endl;
+            cout << "\033[1B" << endl;
+        }
+        if(i==(leng+1))
+        {
+            cout << " " << endl;
+            cout << "\033[2A" << " " << endl;
+            cout << "\033[2A" << " " << endl;
+            cout << "\033[1B" << endl;
+        }
+    }
+return 1;
+}
+
 int intro()
 {
     cout << "\033[37m" << "\033[40m";
-    int i= 95;/*
+    int i= 95;
+    while (i>0)
+    {
+        SDL_Delay (10);
+        cout << endl;
+        i--;
+    }
+
+    felltext ("Eyes");
+    cout << endl;
+    felltext ("open");
+    cout << endl;
+    felltext ("project");
+    cout << endl;
+    SDL_Delay (500);
+    print ( " Eyes open project " );
+    pulsetext ("...", 500, 8, 19);
+    cout << "\033[90D";
+    print ( "                               " );
+    felltext ("by");
+    cout << endl;
+    felltext ("Chilinski");
+    cout << endl;
+    felltext ("Damian");
+    cout << endl;
+    felltext ("and");
+    cout << endl;
+    felltext ("Medrzycki");
+    cout << endl;
+    felltext ("Krzysztof");
+    cout << endl;
+    print ( " by Chilinski Damian " );
+    cout << endl;
+    SDL_Delay (200);
+    print ( "     and Medrzycki Krzysztof ");
+    pulsetext ("...", 500, 8, 29);
+    cout << "\033[90D" << "\033[1A";
+    print ( "                      \n                                   " );
+
+
+
+
     cout << "\033[37m";
     cout << "\033[92A";
-    SDL_Delay (2000);
+    SDL_Delay (1000);
     cout << "\033[1;30m";
     cout << "  _______________  ___       ___    _______________   ____________" << endl
             << " /              //|   ||    |   || /              // /            \\\\" << endl
@@ -362,20 +462,14 @@ int intro()
          << "|    ||_______         |   ||     |    ||________   |   \\\\___\\     ||" << endl
          << "|             \\\\       |   ||     |             \\\\  |              ||" << endl
          << " \\_____________\\\\      |___||      \\_____________\\\\  \\____________//" << endl;
-    cout << endl << endl << "Eyes project by:" << endl;
-    SDL_Delay (500);
-    cout << "Phoenix |Medrzycki Krzysztof|" << endl;
+
+    cout << endl << endl << endl;
+    print ( " (C)2010/2011 GBS");
+    cout << endl;
     SDL_Delay (200);
-    cout << "Lapsio  |Chilinski Damian   |" << endl << endl;
-    SDL_Delay (500);
-    cout << "GBS 2010" << endl;
-    SDL_Delay (200);
-    cout << "www.eyesproject.pl" << endl << endl;
-    cout << "\033[1;31m" << "#####################################################################" << endl << endl;
-    SDL_Delay (100);
-    cout << "#####################################################################" << endl << endl << endl << endl;
+    print ( "    www.eyesproject.pl");
+    pulsetext (".", 500, 12, 23);
     cout << "\033[1;33m";
-    SDL_Delay (5000);*/
 return 1;
 }
 
@@ -550,7 +644,7 @@ bulwers_core bulwers_init()
     static bool once_plugged = false;
     static int prev_bat_plug = core_battery_plugged;
     first_play = false;
-    static bool bajer = true;
+
 
     //----first sector
 
@@ -565,14 +659,7 @@ bulwers_core bulwers_init()
          << cpu_probes [7] << ' '
          << cpu_probes [8] << ' '
          << cpu_probes [9] << '\n';
-    if (cpu_probes[9] == 0)
-    {
-    }
-    
-    if (cpu_probes[9] == 0)
-    {
-    }
-    
+    if (cpu_probes[9] == 0){}
     else cout << "\033[3;53H" << core_cpu_load;
     cout << "\033[4;53H" << core_memory << "%"
          << "\033[5;53H" << core_proclist
@@ -583,7 +670,7 @@ bulwers_core bulwers_init()
          << "\033[7;92H" << core_year
          << "\033[8;92H" << core_time << " seconds that is:" << core_time/3600 << ":" << (core_time/60) - ((core_time/3600)*60) << ":" << core_time - ((core_time/60)*60)
          << "\033[10;17H" << ( core_battery_plugged == 1 ? "just pluged" : ( core_battery_plugged == 2 ? "just unpluged" : ( core_battery_plugged == 3 ? "pluged      " : "unpluged     " ) ) )
-         << "\033[11;17H" << core_battery << "MAh"
+         << "\033[11;17H" << core_battery << "MAh   "
          << "\033[12;17H" << core_temperature << "ºC"
          << "\033[13;17H" << energy << " units (" << (100*energy)/54000 << "%)"
          << '\n';
@@ -676,13 +763,18 @@ bulwers_core bulwers_init()
     pos = 0;
     //--long events checking
 
-    if (core_battery <= 2500 && bulwers.longev < 1 && core_battery_plugged == 4)
+
+    static int battery_buffer = 0;
+    if (core_battery_plugged == 2) battery_buffer = 0;
+    if (core_battery_plugged == 4 && battery_buffer < 15) battery_buffer++;
+
+    if (core_battery <= 2500 && bulwers.longev < 1 && core_battery_plugged == 4 && battery_buffer == 15)
     {
         bulwers.longev = 1;
         print_event ( "ev1 (battery <=2500 MAh)" );
     }
 
-    if (core_battery <= 1500 && bulwers.longev < 2 && core_battery_plugged == 4)
+    if (core_battery <= 1500 && bulwers.longev < 2 && core_battery_plugged == 4 && battery_buffer == 15)
     {
         bulwers.longev = 2;
         print_event ( "ev2 (battery <= 1500 MAh)" );
@@ -737,7 +829,7 @@ bulwers_core bulwers_init()
         bulwers.longev = 9;
         print_event ( "ev9 (they're very tired)" );
     }
-    if (core_battery <= 500 && bulwers.longev < 10 && core_battery_plugged == 4)
+    if (core_battery <= 500 && bulwers.longev < 10 && core_battery_plugged == 4 && battery_buffer == 15)
     {
         bulwers.longev = 10;
 
@@ -820,7 +912,7 @@ bulwers_core bulwers_init()
             energy -=1;
         }
 
-        if(bulwers.state < 12 && bulwers.longev < 11)
+        if(bulwers.state < 12 && bulwers.longev > 11)
         {
             bulwers.state = 12;
             energy -=2;
@@ -843,7 +935,7 @@ bulwers_core bulwers_init()
             energy -=1;
         }
 
-        if (bulwers.state < 13 && bulwers.longev < 10)
+        if (bulwers.state < 13 && bulwers.longev > 10)
         {
             bulwers.state = 13;
             energy -=2;
@@ -866,7 +958,7 @@ bulwers_core bulwers_init()
             energy -=2;
         }
 
-        if (bulwers.state < 14 && bulwers.longev < 9)
+        if (bulwers.state < 14 && bulwers.longev > 9)
         {
             bulwers.state = 14;
             energy -=3;
@@ -889,7 +981,7 @@ bulwers_core bulwers_init()
             energy -=2;
         }
 
-        if(bulwers.state < 15 && bulwers.longev < 8)
+        if(bulwers.state < 15 && bulwers.longev > 8)
         {
             bulwers.state = 15;
             energy -=3;
@@ -912,7 +1004,7 @@ bulwers_core bulwers_init()
             energy -=3;
         }
 
-        if(bulwers.state < 16 && bulwers.longev < 7)
+        if(bulwers.state < 16 && bulwers.longev > 7)
         {
             bulwers.state = 16;
             energy -=4;
@@ -935,7 +1027,7 @@ bulwers_core bulwers_init()
             energy -=3;
         }
 
-        if(bulwers.state < 16 && bulwers.longev < 6)
+        if(bulwers.state < 16 && bulwers.longev > 6)
         {
             bulwers.state = 16;
             energy -=4;
@@ -959,7 +1051,7 @@ bulwers_core bulwers_init()
             bulwers.state = 5;
         }
 
-        if(bulwers.state < 7 && bulwers.longev < 11)
+        if(bulwers.state < 7 && bulwers.longev > 11)
         {
             bulwers.state = 7;
             energy -=1;
@@ -980,7 +1072,7 @@ bulwers_core bulwers_init()
             bulwers.state = 6;
         }
 
-        if(bulwers.state < 8 && bulwers.longev < 10)
+        if(bulwers.state < 8 && bulwers.longev > 10)
         {
             bulwers.state = 8;
             energy -=1;
@@ -1003,7 +1095,7 @@ bulwers_core bulwers_init()
             energy -=1;
         }
 
-        if(bulwers.state < 9 && bulwers.longev < 9)
+        if(bulwers.state < 9 && bulwers.longev > 9)
         {
             bulwers.state = 9;
             energy -=2;
@@ -1026,7 +1118,7 @@ bulwers_core bulwers_init()
             energy -=1;
         }
 
-        if(bulwers.state < 10 && bulwers.longev < 8)
+        if(bulwers.state < 10 && bulwers.longev > 8)
         {
             bulwers.state = 10;
             energy -=2;
@@ -1049,7 +1141,7 @@ bulwers_core bulwers_init()
             energy -=2;
         }
 
-        if(bulwers.state < 11 && bulwers.longev < 7)
+        if(bulwers.state < 11 && bulwers.longev > 7)
         {
             bulwers.state = 11;
             energy -=3;
