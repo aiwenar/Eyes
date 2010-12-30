@@ -582,7 +582,7 @@ bulwers_core bulwers_init()
          << "\033[6;92H" << core_month
          << "\033[7;92H" << core_year
          << "\033[8;92H" << core_time << " seconds that is:" << core_time/3600 << ":" << (core_time/60) - ((core_time/3600)*60) << ":" << core_time - ((core_time/60)*60)
-         << "\033[10;17H" << ( core_battery_plugged == 1 ? "just pluged" : ( core_battery_plugged == 2 ? "just unpluged" : ( core_battery_plugged == 3 ? "pluged" : "unpluged" ) ) )
+         << "\033[10;17H" << ( core_battery_plugged == 1 ? "just pluged" : ( core_battery_plugged == 2 ? "just unpluged" : ( core_battery_plugged == 3 ? "pluged      " : "unpluged     " ) ) )
          << "\033[11;17H" << core_battery << "MAh"
          << "\033[12;17H" << core_temperature << "ºC"
          << "\033[13;17H" << energy << " units (" << (100*energy)/54000 << "%)"
