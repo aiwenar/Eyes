@@ -3,14 +3,31 @@
 
 #define IMG_NORMAL  0
 
-enum bulwers_enum
+bool wake_up;
+bool get_flu;
+
+struct pict_layers
 {
+int bulwers;
+int outline;
+int eye;
+int tired;
+int hot;
+int shy;
+int layer2;
+int layer3;
+int layer4;
+
+friend int operator== (pict_layers& left, int& right );
 
 };
 
-struct s_bulwers
+int operator== (pict_layers& left, int& right )
 {
-    bulwers_enum    typ;
-};
+    if ( left.bulwers == right )
+        return true;
+    else
+        return false;
+}
 
 #endif // bulwers_h
