@@ -9,7 +9,7 @@ bool get_flu;
 struct pict_layers
 {
 int bulwers;
-int outline;
+char * outline;
 int eye;
 int tired;
 int hot;

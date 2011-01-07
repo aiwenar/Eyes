@@ -79,6 +79,8 @@ int         felltext    (char*downgrade);
 int pulsetext (char*text, int delay, int repeat, int position);
 pict_layers bulwers_init ();
 
+static bool event_now;
+
 //------------------
 
 
@@ -87,6 +89,7 @@ pict_layers bulwers_init ();
 
 int main ()
 {
+    event_now = false;
     wake_up = false;
     int f=0;
     int a;
@@ -102,16 +105,30 @@ int main ()
     cout << "\033[2J";
     print_gui ();
     cout << "\033[1;33m";
-    if (a != 0){
-    while (f<a){
-
-        cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
-        bulwers_init ();
-
-f++;
-sleep (1);
-}
-}
+    if (a != 0)
+    {
+        while (f<a)
+        {
+            if (evs->poll ( ev& ) && !event_now)
+            {
+                cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
+                bulwers_init ();
+                event_now = true;
+                usleep (200000);
+            }
+            if (!evs->poll ( ev& ))
+            {
+                event_now = false;
+            }
+            if (!event_now)
+            {
+                cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
+                bulwers_init ();
+                sleep (1);
+                f++;
+            }
+        }
+    }
     else
     {
         while (true)
@@ -567,83 +584,6 @@ v.0.0.1a-06
  \_____________\\      |___||      \_____________\\  \____________//
 
 
-Eyes project by:
-Phoenix |Medrzycki Krzysztof|
-Lapsio  |Chilinski Damian   |
-
-GBS 2010
-www.eyesproject.pl
-
-#####################################################################
-
-#####################################################################
-
-
-
-stage: 18 (90%)
-First sector
-
-current cpu probe: 9
-
-cpu probes table:
-
-22
-28
-22
-26
-35
-28
-19
-31
-28
-23
-
-cpu filling buffer... DONE!
-
-
-Glibtop values:
-
-cpu: 26%
-memory: 3%
-proclist: 195
-uptime: 420 seconds
-that is:
-0 hours and 7minutes
-Time values:
-
-day of week: 3
-day of month: 29
-month: 12
-year: 2010
-time: 70504 seconds
-that is:
-19:35:4
-
-Other values
-
-battery plugged state: 4
-temperature: 46ºC
-batery power4608MAh
-energy: 54000 units (100%)
-once plugged: 0
-prev battery plug: 4
-
-end of first sector
-
-bulwers.special: 0
-bulwers.longev before checking: 0
-bulwers.longev: 0
-bulwers before cpu: 0
-bulwers after cpu (before memory): 0
-bulwers after memory: 0
-happy before checking: 0
-once plugged = 0
-happy: 0
-
-
-
-###################
-Version 0.0.1a-01
 */
 
 
@@ -660,8 +600,8 @@ Version 0.0.1a-01
   /   //   |    //   |   || |      \\  |  \_/   //  /   //   |    //
  /___//    |___//    |___|| |_______\\  \______//  /___//    |___// Art by Chiliński Damian 2010
 
- *FUCK YEAH*
- NIEpospolicie!
+
+
 
  */
 //----------------------------------------------------------------------
@@ -705,10 +645,21 @@ pict_layers bulwers_init()
     int core_battery = bateria();
     static int cpu_probes[10];
     static int current_probe = 0;
-    cpu_probes[current_probe] = C_LOAD ();
-    if (first_play) cpu_probes[current_probe] = 20;
+    if (evs->poll ( ev& ) && !event_now)
+    {
+        current_probe--;
+    }
+    else
+        cpu_probes[current_probe] = C_LOAD ();
+
+    if (first_play)
+        cpu_probes[current_probe] = 20;
+
     current_probe++;
-    if (current_probe == 10) current_probe = 0;
+
+    if (current_probe == 10)
+        current_probe = 0;
+
     int core_cpu_load = (cpu_probes[0] +
                          cpu_probes[1] +
                          cpu_probes[2] +
@@ -802,6 +753,14 @@ pict_layers bulwers_init()
         13 - OMG what a temperature!!!
         14 - they can't stand
         15 - they're sleepping
+
+
+
+        animations list:
+
+        to_picture_bulwers x
+        to_picture_happy 1-2
+        to_picture_sleeppy 1-3
 
     */
 
@@ -1297,34 +1256,34 @@ if (wake_up)
 
     //----events checking
 
+    if (core_battery_plugged == 0)
+    {
+        pics.outline = "to_shocked 2";
+        print_event ("No battery !");
+    }
 
     if (once_plugged)
     {
-//        cout << "once plugged = 1" << endl;
         if (core_battery_plugged == 2 && prev_bat_plug != 2)
         {
             if (pics.bulwers < 3)
             {
                 pics.bulwers = 3;
-  //              cout << "surpriced" << endl;
             }
 
             if (prev_bat_plug == 3)
             {
                 bulwers.happy--;
-    //            cout << "prev bat plug = 3" << endl;
             }
 
             if (prev_bat_plug == 1)
             {
                 bulwers.happy-=2;
-      //          cout << "prev bat plug = 1" << endl;
             }
         }
         if (core_battery_plugged == 1 && prev_bat_plug != 1)
         {
             bulwers.happy+=2;
-        //    cout << "battery has been just plugged, happy +2" << endl;
         }
         if (core_battery_plugged == 3 && prev_bat_plug != 3)
         {
@@ -1333,18 +1292,15 @@ if (wake_up)
     }
     if (!once_plugged)
     {
-        //cout << "once plugged = 0" << endl;
         if (core_battery_plugged == 1)
         {
             once_plugged = true;
             bulwers.happy +=2;
-//            cout << "plugged = 1" << endl;
         }
         if (core_battery_plugged == 3)
         {
             once_plugged = true;
             bulwers.happy ++;
-  //          cout << "pluged = 3" << endl;
         }
     }
     prev_bat_plug = core_battery_plugged;
@@ -1354,7 +1310,60 @@ if (wake_up)
 
     //---Calming
 
+    static bool last_kill = false;
+    static bool last_plask = false;
+    static bool last_pet = false;
+    static bool pet_success = false;
+    if (evs->poll ( ev& ) && !event_now)
+    {
+        if (ev.type == plask)
+        {
+            if (pics.bulwers <= 10)
+                pics.bulwers++;
+            bulwers.step += 20;
+            pics.hot = 2;
+            last_pet = false;
+            last_kill = false;
+            last_plask = true;
+        }
+        if (ev.type == pet)
+        {
 
+            if (pics.bulwers <= 10)
+            {
+                if (!last_pet && pics.bulwers <= 10)
+                {
+                    bulwers.happy++;
+                    pet_success = true;
+                    if (pics.bulwers <=6)
+                        pics.outline = "to_happy 2";
+                    else
+                        pics.outline = "to_happy 1";
+                }
+            }
+
+            if (pics.bulwers > 10)
+            {
+                bulwers.step += 5;
+                pics.outline = "to_bulwers 16";
+            }
+
+
+            last_plask = false;
+            last_kill = false;
+            last_pet = true;
+        }
+        if (last_pet && ev.type != pet && pet_success)
+            bulwers.happy--;
+    }
+
+    else
+    {
+
+     last_kill = false;
+     last_plask = false;
+     last_pet = false;
+     pet_success = false;
 
 
     //---bulwers state
@@ -1633,10 +1642,29 @@ if (wake_up)
         }
     }
 
+//---bulwers happyness modifications
+
+
+    if (bulwers.happy == 1)
+        if (bulwers.step >=1)
+            bulwers.step--;
+
+    if (bulwers.happy == 2)
+        if (bulwers.step >=2)
+            bulwers.step-=2;
+
+    if (bulwers.happy == 3)
+        if (bulwers.step >=5)
+            bulwers.step-=5;
+
+    if (bulwers.happy >= 4)
+        if (bulwers.step >=10)
+            bulwers.step -=10;
+
 
 if (energy > 0)
     energy--;
-
+}
 
 //----END OF BULWERS MANAGING
 
@@ -1683,18 +1711,36 @@ if (core_day != 7)
     if (core_time < 18000 || core_time > 82800 || energy < 3600 )
         pics.tired = 3;
     else
-        pics.tired = 0;
+    {
+        if (pics.tired > 0)
+            pics.tired--;
+    }
 }
 else
 {
     if (core_time < 36000 || core_time > 82800 || energy < 18000)
+    {
         pics.tired = 1;
+        if (pics.bulwers <=6)
+            pics.outline = "to_sleeppy 1";
+    }
     if ((core_time < 28800 && core_time > 3600) || energy < 10800)
+    {
         pics.tired = 2;
+        if (pics.bulwers <=6)
+            pics.outline = "to_sleeppy 2";
+    }
     if ((core_time < 25200 && core_time > 10800) || energy < 3600 )
+    {
         pics.tired = 3;
+        if (pics.bulwers <=6)
+            pics.outline = "to_sleeppy 3";
+    }
     else
-        pics.tired = 0;
+    {
+        if (pics.tired > 0)
+            pics.tired--;
+    }
 }
 /*
 56ºC
@@ -1744,7 +1790,10 @@ if (core_temperature >= 64)
 }
 
 else
-    pics.hot = 0;
+{
+    if (pics.hot > 0)
+        pics.hot--;
+}
 
 if (temp_t > 0)
     temp_t--;
@@ -1781,6 +1830,7 @@ if (get_flu)
         pics.tired = 3;
         if (pics.bulwers < 10)
             pics.bulwers = 10;
+        energy--;
     }
 }
 
