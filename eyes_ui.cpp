@@ -1,5 +1,6 @@
 #include <QtGui>
 #include <QApplication>
+#include <QtConcurrentRun>
 
 #include <iostream>
 #include <string>
@@ -9,25 +10,28 @@
 
 using namespace std;
 
+void core_main ( eyes_view );
+
+const char help [] = {
+    "usage: eyes [--help -h] [--version -v] [--color=COLOR -c COLOR]\n\n"
+    "Arguments:\n"
+    "\t--help -h\t\tPrint this text ang exit.\n"
+    "\t--version -v\t\tPrint version and exit.\n"
+    "\t--color=COLOR -c COLOR\tSet eyes color to COLOR.\n"
+};
+
 int main ( int argc, char ** argv )
 {
   QApplication app ( argc, argv );
 
   QStringList arg = app.arguments ();
   QString folder ( "green" );
-  QString help (
-"usage: eyes [--help -h] [--version -v] [--color=COLOR -c COLOR]\n\n"
-"Arguments:\n"
-"\t--help -h\t\tPrint this text ang exit.\n"
-"\t--version -v\t\tPrint version and exit.\n"
-"\t--color=COLOR -c COLOR\tSet eyes color to COLOR.\n"
-);
 
   for ( int i = 0 ; i < arg.size () ; i++ )
   {
       if ( arg.at ( i ) == "-h" or arg.at ( i ) == "--help" )
       {
-          cout << help.toStdString ();
+          cout << help;
           exit ( 0 );
       }
       else if ( arg.at ( i ) == "-v" or arg.at ( i ) == "--version" )
@@ -57,9 +61,7 @@ int main ( int argc, char ** argv )
   eyes.show();
   eyes.update ();
 
-  bulwers_s tmp;
-  tmp.type = normal;
-  eyes.update_bulwers ( tmp );
+  QFuture<void> c_main = QtConcurrent::run ( core_main, *eyes );
 
   return app.exec ();
 }
