@@ -37,6 +37,7 @@ GBS copyright 2010 *all rights reserved.
 #include <glibtop/proclist.h>
 #include <glibtop/uptime.h>
 #include "bulwers.h"
+#include "eyes_view.h"
 
 
 using namespace std;
@@ -87,7 +88,7 @@ static bool event_now;
 
 
 
-int main ()
+extern void core_main (eyes_view*)
 {
     event_now = false;
     wake_up = false;
