@@ -7,10 +7,9 @@
 
 #include "eyes_view.h"
 #include "eyes_info.h"
+#include "event.hxx"
 
 using namespace std;
-
-void core_main ( eyes_view );
 
 const char help [] = {
     "usage: eyes [--help -h] [--version -v] [--color=COLOR -c COLOR]\n\n"
@@ -19,6 +18,9 @@ const char help [] = {
     "\t--version -v\t\tPrint version and exit.\n"
     "\t--color=COLOR -c COLOR\tSet eyes color to COLOR.\n"
 };
+
+void core_main ();
+EventQueue * evs;
 
 int main ( int argc, char ** argv )
 {
@@ -56,12 +58,14 @@ int main ( int argc, char ** argv )
   win.setAttribute ( Qt::WA_TranslucentBackground, true );
   win.show ();
 
-  eyes_view eyes ( &win );
-  eyes.open_images ( folder );
-  eyes.show();
-  eyes.update ();
+  eyes_view * eyes = new eyes_view ( &win );
+  eyes->open_images ( folder );
+  eyes->show();
+  eyes->update ();
 
-  QFuture<void> c_main = QtConcurrent::run ( core_main, *eyes );
+  evs = new EventQueue ();
+  
+  QFuture<void> c_main = QtConcurrent::run ( core_main );
 
   return app.exec ();
 }
