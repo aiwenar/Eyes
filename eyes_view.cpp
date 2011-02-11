@@ -9,7 +9,6 @@
 
 eyes_view::eyes_view ( QWidget * parent ) : QWidget ( parent )
 {
-    bulwers.type = normal;
     px = MM_NO_MOTION;
     px = MM_NO_MOTION;
     epx = ( EYES_W/2 ) - ( EYE_S/2 );
@@ -20,21 +19,22 @@ eyes_view::eyes_view ( QWidget * parent ) : QWidget ( parent )
 
 eyes_view::~eyes_view ()
 {
+		delete out, shadow, mirror, eyein, eye, spec, &px, &py, &epx, &epy;
 }
 
 void eyes_view::open_images ( QString folder )
 {
-    out = new QPixmap ( "pics/out.png" );
+    out = new QPixmap ( "out.png" );
     null_protect ( out, "out" );
-    shadow = new QPixmap ( "pics/shadow.png" );
+    shadow = new QPixmap ( "shadow.png" );
     null_protect ( shadow, "shadow" );
-    mirror = new QPixmap ( "pics/mirror.png" );
+    mirror = new QPixmap ( "mirror.png" );
     null_protect ( mirror, "mirror" );
-    eyein = new QPixmap ( "pics/eyein.png" );
+    eyein = new QPixmap ( "eyein.png" );
     null_protect ( eyein, "eye in" );
-    eye = new QPixmap ( QString ( "pics/" ) + folder + "_eye.png" );
+    eye = new QPixmap ( QString ( "00_eye_01.png" ) );
     null_protect ( eye, "eye" );
-    spec = new QPixmap ( "pics/spec.png" );
+    spec = new QPixmap ( "spec.png" );
     null_protect ( spec, "spec" );
 }
 
@@ -67,16 +67,35 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
     move ( dx, dy );
 }
 
-void eyes_view::update_bulwers ( bulwers_s nbulwers )
-{
-    bulwers = nbulwers;
-    update ();
-}
-
 void eyes_view::null_protect ( QPixmap * pix, QString pix_name )
 {
     if ( pix->isNull () )
     {
         std::cout << pix_name.toStdString () << " to null.\n";
     }
+}
+
+void eyes_view::closeEvent ( QCloseEvent * ev )
+{
+	ev->accept ();
+}
+
+int eyes_view::heightForWidth ( int w ) const
+{
+		return ( EYES_H );
+}
+
+bool eyes_view::event ( QEvent * ev )
+{
+	return ( false );
+}
+
+QVariant eyes_view::inputMethodQuery ( Qt::InputMethodQuery query ) const
+{
+	return ( nil );
+}
+
+QSize eyes_view::sizeHint () const
+{
+	return ( QSize ( EYES_W, EYES_H ) );
 }
