@@ -9,6 +9,7 @@
 #include <QMouseEvent>
 
 #include "bulwers.h"
+#include "defines.hxx"
 
 class eyes_view : public QWidget
 {
