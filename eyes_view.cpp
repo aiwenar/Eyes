@@ -4,6 +4,7 @@
 #include <QPainter>
 
 #include <iostream>
+using namespace std;
 
 #define MM_NO_MOTION 10000
 
@@ -11,10 +12,11 @@ eyes_view::eyes_view ( QWidget * parent ) : QWidget ( parent )
 {
     px = MM_NO_MOTION;
     px = MM_NO_MOTION;
-    epx = ( EYES_W/2 ) - ( EYE_S/2 );
-    epy = ( EYES_H/2 ) - ( EYE_S/2 );
+    epx = 30;
+    epy = (EYES_H/2)+(EYE_S/2);
     setMinimumSize ( EYES_W, EYES_H );
     setMaximumSize ( EYES_W, EYES_H );
+    cout << "[eyes_view::eyes_view QWidget]\n";
 }
 
 eyes_view::~eyes_view ()
@@ -32,10 +34,11 @@ void eyes_view::open_images ( QString folder )
     null_protect ( mirror, "mirror" );
     eyein = new QPixmap ( "eyein.png" );
     null_protect ( eyein, "eye in" );
-    eye = new QPixmap ( QString ( "00_eye_01.png" ) );
+    eye = new QPixmap ( QString ( "pics/00_eye_01.png" ) );
     null_protect ( eye, "eye" );
     spec = new QPixmap ( "spec.png" );
     null_protect ( spec, "spec" );
+    cout << "[eyes_view::open_images QString]\n";
 }
 
 void eyes_view::paintEvent ( QPaintEvent * event )
@@ -46,11 +49,13 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *shadow );
     //paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *spec );
     paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *out );
+    cout << "[eyes_view::paintEvent QPaintEvent]\n";
 }
 
 void eyes_view::mousePressEvent ( QMouseEvent * ev )
 {
     ev->ignore ();
+    cout << "[eyes_view::mousePressEvent QMouseEvent]\n";
 }
 
 void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
@@ -65,6 +70,7 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
     int dx = ( ( px > ev->x () ? -1 : 1 ) * px ) + ev->x ();
     int dy = ( ( py > ev->y () ? -1 : 1 ) * py ) + ev->y ();
     move ( dx, dy );
+    cout << "[eyes_view::mouseMoveEvent QMouseEvent]\n";
 }
 
 void eyes_view::null_protect ( QPixmap * pix, QString pix_name )
@@ -73,29 +79,29 @@ void eyes_view::null_protect ( QPixmap * pix, QString pix_name )
     {
         std::cout << pix_name.toStdString () << " to null.\n";
     }
+    cout << "[eyes_view::nill_protect QPixmap QString]\n";
 }
 
 void eyes_view::closeEvent ( QCloseEvent * ev )
 {
-	ev->accept ();
+    ev->accept ();
+    cout << "[eyes_view::closeEvent QCloseEvent]\n";
 }
 
 int eyes_view::heightForWidth ( int w ) const
 {
-		return ( EYES_H );
-}
-
-bool eyes_view::event ( QEvent * ev )
-{
-	return ( false );
+    cout << "[eyes_view::heightForWidth int] → int\n";
+    return ( EYES_H );
 }
 
 QVariant eyes_view::inputMethodQuery ( Qt::InputMethodQuery query ) const
 {
-	return ( nil );
+    cout << "[eyes_view::inputMethodQuery Qt::InputMethodQuery] → QVariant\n";
+    return ( nil );
 }
 
 QSize eyes_view::sizeHint () const
 {
-	return ( QSize ( EYES_W, EYES_H ) );
+    cout << "[eyes_view::sizeHint] → QSize\n";
+    return ( QSize ( EYES_W, EYES_H ) );
 }
