@@ -22,7 +22,6 @@ public:
     void                closeEvent          ( QCloseEvent * ev );
     void                update_bulwers      ();
     int                 heightForWidth      ( int w )                               const;
-    bool                event               ( QEvent * event );
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            () 															const;
 signals:
