@@ -1,0 +1,44 @@
+  ________________     _________________   ___________
+ /   _________   ||   |    /   _______// /     ___   \\
+|   ||______  \   \\_/   /|   ||______  |    //___\___||
+|     _____||  \     ___//|     _____||  \_______    \\
+|   ||______    \   \\    |   ||________|   \\___\    ||
+|           \\   \   \\   |             |             ||
+ \___________\\   \___||   \_____________\___________//
+
+Fajl z mesydżami od programistow (forum wymiany)
+#################################################
+
+#Lapsio
+#sobota 12.02.2010 10:58
+----------------
+
+
+(wiadomosci czytaj od tych nizej)
+
+No więc poprawilem w corze ten blad z happy, nie wiem czemu jakos cos sie zwalilo ze przy kazdym obrocie petni przypisuje losowa wartosc bulwers.happy'owi wiec utworzylem static inta prev bulwers. Otrzymuje on wartosc bulwersa na koncu ustalania wartosci bulwersa i jego wartosc nadawana jest bulwers.happy'owi na poczatu kazdego obrotu. Dziala to, jednak na domyslnym przypisywaniu "0" dla kazdego static inta opieralem sie baaardzo wiele razy wiec nie wiem jakie moze to niesc za soba konsekwencje w przyszlosci.
+
+Poprawilem tez chorowanie, bo dzialalo zle, ale teraz to nie wiem jak dziala, bo nie mam jak wytworzyc tak sterylnych warunkow pracy.
+
+Napisz jak bedzie wygladac obsluga eventow, albo napisz czy to zalezy od tego jak mi pasuje.
+
+##################################################
+
+#Lapsio
+#sobota 12.02.2010 10:52
+----------------
+
+Ej, wiec u mnie sie juz prawie kompiluje tylko potem sie wypieprza i wywala:
+
+g++  -o eyes eyes_ui.o eyes_view.o event.o core.o moc_eyes_view.o    -L/usr/lib glib-2.0 <tab>gtop-2.0 -lQtGui -lQtCore -lpthread 
+/bin/sh: cannot open tab: No such file
+
+jesli to blad linkowania to sugerowalbym to pierdolic i zrobic w 1 pliku tak jak ja zrobilem cale core bo sie tez nie chcialo linkowac.
+
+P.S
+
+Zalozylem to po to zeby mozna bylo zostawiac wiadomosci jak nie ma nas na skypie, wez pisz tez tu wszystkie zmiany jakie zrobisz (tak szczegolowiej niz w commicie tak jak napisalem w poscie wyzej o naprawie happy)
+
+Wiadomosci pisz tak zeby najnowsze były na górze.
+
+##################################################
