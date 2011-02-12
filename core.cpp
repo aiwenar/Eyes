@@ -87,8 +87,12 @@ static bool event_now,
 
 //------------------
 
-
-
+void eyes_view::update_bulwers ()
+{
+    /*tu wrzuć liczenie bulwersa
+    na końcu daj
+    repaint () */
+}
 
 
 void core_main ()
