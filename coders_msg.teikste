@@ -9,6 +9,11 @@
 Fajl z mesydżami od programistow (forum wymiany)
 #################################################
 
+#phoenix
+#sobota 11.luty.2011 11:38
+----------------
+naprawiłem linkowanie i kompilacje. to był prosty błąd, napisałem '/usr/bin/...' zamiast '/usr/lib/...' :D. zamiast w tym pliku zeby było wygodniej morzemy urzywać bloga ( jest na codaset dla karzdego projektu ).
+
 #Lapsio
 #sobota 12.02.2010 10:58
 ----------------
