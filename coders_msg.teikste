@@ -22,6 +22,46 @@ Poprawilem tez chorowanie, bo dzialalo zle, ale teraz to nie wiem jak dziala, bo
 
 Napisz jak bedzie wygladac obsluga eventow, albo napisz czy to zalezy od tego jak mi pasuje.
 
+I powiedz jak mialo byc z obrazkami bo to wyglada tak:
+
+10 obrazkow zrenic na kolor
+4 warstwy na 1 minke
+mniej niz 40 min (na razie)
+
+one wszystkie maja byc w 1 folderze?
+nazywnictwo (takie jak ja uzywam i sugeruje):
+
+type_number_subtype
+
+przyklad:
+
+clap_04_o
+8 obrazek - mrugniecie - 4 obrazek z kolei w sekwencji mrugniecia - obwodka
+
+type:
+
+clap - mrugniecie
+cusual - zwykle
+bul - zbulwersowane
+slp - spiace
+sh - zszokowane
+eye - zrenica
+
+subtypetype:
+
+a - maska
+o - obwodka
+s - cien
+m - mirror
+-------- (type:eye)
+b - niebieskie
+g - zielone
+p - rozowe
+o - pomaranczowe
+a - aqua
+
+jest to mysle dosc uniwersalne nazywnictwo nawet jak dodamy nowe opcje i animki
+
 ##################################################
 
 #Lapsio
