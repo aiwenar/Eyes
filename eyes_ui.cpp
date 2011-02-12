@@ -11,8 +11,8 @@
 
 using namespace std;
 
-const char help [] = {
-    "usage: eyes [--help -h] [--version -v] [--color=COLOR -c COLOR]\n\n"
+static const char help [] = {
+    "usage: eyes [ARGUMENT [OPTION]]\n\n"
     "Arguments:\n"
     "\t--help -h\t\tPrint this text ang exit.\n"
     "\t--version -v\t\tPrint version and exit.\n"
@@ -60,7 +60,8 @@ int main ( int argc, char ** argv )
 
   eyes_view * eyes = new eyes_view ( &win );
   eyes->open_images ( folder );
-  eyes->show();
+  eyes->show ();
+  eyes->repaint ();
   eyes->update ();
 
   evs = new EventQueue ();
