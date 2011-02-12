@@ -81,7 +81,9 @@ int         felltext    (char*downgrade);
 int pulsetext (char*text, int delay, int repeat, int position);
 pict_layers bulwers_init ();
 
-static bool event_now;
+static bool event_now,
+            get_flu,
+            wake_up;
 
 //------------------
 
@@ -89,7 +91,7 @@ static bool event_now;
 
 
 
-int main ()
+void core_main ()
 {
     event_now = false;
     wake_up = false;
