@@ -1,5 +1,5 @@
 /*  copyrights © 2010 2011 Damian Chilinski and Krzysztof Mędrzycki
-    
+
    _______         ______      ______________      _______________
   /       \\     _/      \\_   \     ____    \\   /              //
  /    __   \\   /   ____   \\   |   ||   \    || |     _________//
@@ -81,9 +81,7 @@ int         felltext    (char*downgrade);
 int pulsetext (char*text, int delay, int repeat, int position);
 pict_layers bulwers_init ();
 
-static bool event_now,
-						wake_up,
-						get_flu;
+static bool event_now;
 
 //------------------
 
@@ -91,7 +89,7 @@ static bool event_now,
 
 
 
-extern void core_main ()
+int main ()
 {
     event_now = false;
     wake_up = false;
@@ -110,29 +108,29 @@ extern void core_main ()
     print_gui ();
     cout << "\033[1;33m";
 
-		Event ev;
+    //Event ev;
     if (a != 0)
     {
         while (f<a)
         {
-            if ( evs->poll ( &ev ) and not event_now)
-            {
+            //if ( evs->poll ( &ev ) and not event_now)
+            //{
                 cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
                 bulwers_init ();
                 event_now = true;
                 usleep (200000);
-            }
-            if ( not evs->poll ( &ev ) )
-            {
-                event_now = false;
-            }
-            if (!event_now)
-            {
-                cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
-                bulwers_init ();
-                sleep (1);
-                f++;
-            }
+            //}
+            //if ( not evs->poll ( &ev ) )
+            //{
+            //    event_now = false;
+            //}
+            //if (!event_now)
+            //{
+            //    cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
+            //    bulwers_init ();
+            //    sleep (1);
+            //    f++;
+            //}
         }
     }
     else
@@ -216,11 +214,11 @@ a_total = cpu.total;
         d_total = a_total - p_total;
         d_idle = a_idle - p_idle;
         cpu_load = (100*(d_total - d_idle)) / d_total;
-	p_idle = a_idle;
-	p_total = a_total;
+        p_idle = a_idle;
+        p_total = a_total;
 
 return cpu_load;
-} 
+}
 //-------------------------
 int M_LOAD ()
 {
@@ -548,7 +546,13 @@ int naglowek_out (char* version)
 
 }
 
+int pos;
 
+void print_event ( char * ev_text )
+{
+  cout << "\033[" << 10+pos << ";66H" << ev_text << '\n';
+  pos++;
+}
 
 /*
 
@@ -612,13 +616,7 @@ v.0.0.1a-06
  */
 //----------------------------------------------------------------------
 
-int pos;
 
-void print_event ( char * ev_text )
-{
-  cout << "\033[" << 10+pos << ";66H" << ev_text << '\n';
-  pos++;
-}
 
 //----------------------------------------
 
@@ -630,7 +628,7 @@ pict_layers bulwers_init()
     pict_layers pics;
 
     //----initializing values
-
+    static int prev_happy = 0;
     static bool first_play = true;
     if (first_play)
     {
@@ -652,13 +650,13 @@ pict_layers bulwers_init()
     static int cpu_probes[10];
     static int current_probe = 0;
 
-		Event ev;
-		
-    if ( evs->poll ( &ev ) and not event_now )
-    {
-        current_probe--;
-    }
-    else
+                //Event ev;
+
+    //if ( evs->poll ( &ev ) and not event_now )
+    //{
+    //    current_probe--;
+    //}
+    //else
         cpu_probes[current_probe] = C_LOAD ();
 
     if (first_play)
@@ -1271,6 +1269,8 @@ if (wake_up)
         print_event ("No battery !");
     }
 
+    bulwers.happy = prev_happy;
+
     if (once_plugged)
     {
         if (core_battery_plugged == 2 && prev_bat_plug != 2)
@@ -1314,7 +1314,7 @@ if (wake_up)
     }
     prev_bat_plug = core_battery_plugged;
     cout << "\033[12;46H" << bulwers.happy << '\n';
-
+    prev_happy = bulwers.happy;
 
 
     //---Calming
@@ -1324,8 +1324,8 @@ if (wake_up)
     static bool last_pet = false;
     static bool pet_success = false;
 
-		Event ev;
-		
+                //Event ev;
+/*
     if ( evs->poll ( &ev ) and not event_now )
     {
         if ( ev.type == plask )
@@ -1376,7 +1376,7 @@ if (wake_up)
      last_plask = false;
      last_pet = false;
      pet_success = false;
-
+*/
 
     //---bulwers state
 
@@ -1764,7 +1764,7 @@ else
 
 static int temp_t = 0;
 
-if (core_temperature >= 56)
+if (core_temperature >= 56 && core_temperature < 58)
 {
     pics.hot = 1;
     if (temp_t < 30)
@@ -1772,7 +1772,7 @@ if (core_temperature >= 56)
     if (temp_t > 60)
         get_flu = true;
 }
-if (core_temperature >= 58)
+if (core_temperature >= 58 && core_temperature < 60)
 {
     pics.hot = 2;
     if (temp_t < 60)
@@ -1780,7 +1780,7 @@ if (core_temperature >= 58)
     if (temp_t > 80)
         get_flu = true;
 }
-if (core_temperature >= 60)
+if (core_temperature >= 60 && core_temperature < 62)
 {
     pics.hot = 3;
     if (temp_t < 80)
@@ -1788,7 +1788,7 @@ if (core_temperature >= 60)
     if (temp_t > 120)
         get_flu = true;
 }
-if (core_temperature >= 62)
+if (core_temperature >= 62 && core_temperature < 64)
 {
     pics.hot = 4;
     if (temp_t < 120)
@@ -1849,7 +1849,7 @@ if (get_flu)
 
 
 
-}
+
 
 
 //---sleepping
@@ -1883,6 +1883,8 @@ if (!wake_up)
 first_play = false;
 return pics;
 }
+
+
 
 
 //Version 0.0.1a-01
