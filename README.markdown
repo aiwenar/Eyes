@@ -1,8 +1,8 @@
 ## eyes
 
-### The Eyes Project © 2010-2011 [GlassBallStudio](http://glass.ball.studio) ( Chiliński Damian and Mędrzycki Krzysztof )
+### The Eyes Project © 2010-2011 [GlassBallStudio](http://g.bs) ( Chiliński Damian and Mędrzycki Krzysztof )
 
-![eyes screenshot](http://glass.ball.studio/images/EyesScreenshot.png)
+![eyes screenshot](http://g.bs/images/EyesScreenshot.png)
 
 Content:
 
@@ -24,19 +24,19 @@ Eyes is currently developed only for Linux, but we are working about Windows sup
 
 jakisopis
 
-![eyes normal screenshot](http://glass.ball.studio/images/eyes-normal.png)
+![eyes normal screenshot](http://g.bs/images/eyes-normal.png)
 
 * tired
 
 jakisopis
 
-![eyes tired screenshot](http://glass.ball.studio/images/eyes-tired.png)
+![eyes tired screenshot](http://g.bs/images/eyes-tired.png)
 
 * angry
 
 jakisopis
 
-![eyes angry screenshot](http://glass.ball.studio/images/eyes-angry.png)
+![eyes angry screenshot](http://g.bs/images/eyes-angry.png)
 
 #### coś jeszcze
 
