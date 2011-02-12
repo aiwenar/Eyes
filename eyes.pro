@@ -21,6 +21,11 @@ OTHER_FILES += \
     dependences.pri
 
 INCLUDEPATH += /usr/include/glib-2.0 \
-    /usr/bin/glib-2.0/include \
+    /usr/lib/glib-2.0/include \
     /usr/include/libgtop-2.0 \
-    /usr/bin/libgtop-2.0/include
+    /usr/lib/libgtop-2.0/include
+
+LIBDIR = /usr/lib
+
+LIBS += $${LIBDIR}/libglib-2.0.so \
+    $${LIBDIR}/libgtop-2.0.so
