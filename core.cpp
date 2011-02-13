@@ -53,33 +53,23 @@ struct sdate
     int year;
 };
 
-
-struct bulwers_core
-{
-int special;
-int longev;
-int happy;
-int step;
-};
-
-
-sdate       get_time    ();
-static void print       ( char * str );
-static void print       ( char * str, int pos );
-static void print_gui   ();
-int         temperatura ();
-int         bat_plugged ();
-int         bateria     ();
-int         C_LOAD      ();
-int         M_LOAD      ();
-int         P_LIST      ();
-int         U_TIME      ();
-int         about       ();
-int         naglowek_in (char* version);
-int         naglowek_out(char* version);
-int         felltext    (char*downgrade);
-int pulsetext (char*text, int delay, int repeat, int position);
-pict_layers bulwers_init ();
+sdate       get_time        ();
+static void print           ( char * str );
+static void print           ( char * str, int pos );
+static void print_gui       ();
+int         temperatura     ();
+int         bat_plugged     ();
+int         bateria         ();
+int         C_LOAD          ();
+int         M_LOAD          ();
+int         P_LIST          ();
+int         U_TIME          ();
+int         about           ();
+int         naglowek_in     (char* version);
+int         naglowek_out    (char* version);
+int         felltext        (char*downgrade);
+int         pulsetext       (char*text, int delay, int repeat, int position);
+void        bulwers_init    ();
 
 static bool event_now;
 //            get_flu,
@@ -87,43 +77,34 @@ static bool event_now;
 
 //------------------
 
+bulwers_core * bulwers;
+
+void bulwers_init ()
+{
+    bulwers = new bulwers_core;
+    bulwers->happy = 0;
+    bulwers->longev = 0;
+    bulwers->special = 0;
+    bulwers->step = 0;
+}
+
+struct core_stats
+{
+    sint32  day,
+            dnum,
+            month,
+            year,
+            time,
+            battery_pluged,
+            temperature,
+            battery,
+            probe;
+    uint32  probes[10];
+};
+
 void eyes_view::update_bulwers ()
 {
-    //----create bulwers structure
-
-    bulwers_core bulwers;
-    pict_layers pics;
-
-    //----initializing values
-    static int prev_happy = 0;
-    static bool first_play = true;
-    if (first_play)
-    {
-        bulwers.happy = 0;
-        bulwers.longev = 0;
-        bulwers.special = 0;
-        pics.bulwers = 0;
-        bulwers.step = 0;
-    }
-    //critical values
-    static int core_day = get_time ().day;
-    static int core_dnum = get_time ().day_num;
-    static int core_month = get_time ().month;
-    static int core_year = get_time ().year;
-    int core_time = get_time ().hour;
-    int core_battery_plugged = bat_plugged ();
-    int core_temperature = temperatura ();
-    int core_battery = bateria();
-    static int cpu_probes[10];
     static int current_probe = 0;
-
-                //Event ev;
-
-    //if ( evs->poll ( &ev ) and not event_now )
-    //{
-    //    current_probe--;
-    //}
-    //else
         cpu_probes[current_probe] = C_LOAD ();
 
     if (first_play)
@@ -152,7 +133,7 @@ void eyes_view::update_bulwers ()
     static int prev_bat_plug = core_battery_plugged;
 
 
-    //----first sector
+    // updacenie debuga
 
     cout << "\033[2;22H" << current_probe+1 << " " << "\033[1;55H"
          << cpu_probes [0] << ' '
@@ -1350,8 +1331,6 @@ if (!wake_up)
 first_play = false;
 return pics;
 }
-
-
 
 void core_main ()
 {
