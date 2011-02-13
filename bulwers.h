@@ -5,9 +5,6 @@
 
 #include "defines.hxx"
 
-bool wake_up;
-bool get_flu;
-
 struct core_stats
 {
     uint32  core_day,                 //get_time ().day;
@@ -67,19 +64,5 @@ friend int operator== (pict_layers& left, int& right );
 friend int operator!= (pict_layers& a, pict_layers& b );
 
 };
-int operator!= (pict_layers& a, pict_layers& b )
-{
-    if ( a.bulwers == b.bulwers /* && strcmp ( x, y ) == 0*/ && a.eye == b.eye && a.tired == b.tired && a.hot == b.hot && a.shy == b.shy && /*a.layer1 == b.layer1 &&*/ a.layer2 == b.layer2 && a.layer3 == b.layer3 )
-        return true;
-    else
-        return false;
-}
-int operator== (pict_layers& left, int& right )
-{
-    if ( left.bulwers == right )
-        return true;
-    else
-        return false;
-}
 
 #endif // bulwers_h
