@@ -16,7 +16,6 @@ eyes_view::eyes_view ( QWidget * parent ) : QWidget ( parent )
     epy = (EYES_H/2)+(EYE_S/2);
     setMinimumSize ( EYES_W, EYES_H );
     setMaximumSize ( EYES_W, EYES_H );
-    cout << "[eyes_view::eyes_view QWidget]\n";
 }
 
 eyes_view::~eyes_view ()
@@ -38,7 +37,6 @@ void eyes_view::open_images ( QString folder )
     null_protect ( eye, "eye" );
     spec = new QPixmap ( "spec.png" );
     null_protect ( spec, "spec" );
-    cout << "[eyes_view::open_images QString]\n";
 }
 
 void eyes_view::paintEvent ( QPaintEvent * event )
@@ -47,15 +45,13 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *eyein );
     paint.drawPixmap ( epx-(EYE_S/2), epy-(EYE_S/2), EYE_S, EYE_S, *eye);
     paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *shadow );
-    //paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *spec );
+    paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *spec );
     paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *out );
-    cout << "[eyes_view::paintEvent QPaintEvent]\n";
 }
 
 void eyes_view::mousePressEvent ( QMouseEvent * ev )
 {
     ev->ignore ();
-    cout << "[eyes_view::mousePressEvent QMouseEvent]\n";
 }
 
 void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
@@ -70,7 +66,6 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
     int dx = ( ( px > ev->x () ? -1 : 1 ) * px ) + ev->x ();
     int dy = ( ( py > ev->y () ? -1 : 1 ) * py ) + ev->y ();
     move ( dx, dy );
-    cout << "[eyes_view::mouseMoveEvent QMouseEvent]\n";
 }
 
 void eyes_view::null_protect ( QPixmap * pix, QString pix_name )
@@ -79,29 +74,24 @@ void eyes_view::null_protect ( QPixmap * pix, QString pix_name )
     {
         std::cout << pix_name.toStdString () << " to null.\n";
     }
-    cout << "[eyes_view::nill_protect QPixmap QString]\n";
 }
 
 void eyes_view::closeEvent ( QCloseEvent * ev )
 {
     ev->accept ();
-    cout << "[eyes_view::closeEvent QCloseEvent]\n";
 }
 
 int eyes_view::heightForWidth ( int w ) const
 {
-    cout << "[eyes_view::heightForWidth int] → int\n";
     return ( EYES_H );
 }
 
 QVariant eyes_view::inputMethodQuery ( Qt::InputMethodQuery query ) const
 {
-    cout << "[eyes_view::inputMethodQuery Qt::InputMethodQuery] → QVariant\n";
     return ( nil );
 }
 
 QSize eyes_view::sizeHint () const
 {
-    cout << "[eyes_view::sizeHint] → QSize\n";
     return ( QSize ( EYES_W, EYES_H ) );
 }
