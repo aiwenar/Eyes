@@ -46,11 +46,11 @@ struct bulwers_core
     int longev;
     int happy;
     int step;
+    int level;
 };
 
 struct pict_layers
 {
-int bulwers;
 char * outline;
 int eye;
 int tired;
