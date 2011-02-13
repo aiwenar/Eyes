@@ -29,7 +29,6 @@ public slots:
         void            mousePressEvent     ( QMouseEvent * ev );
         void            mouseMoveEvent      ( QMouseEvent * ev );
 private:
-    void        	null_protect        ( QPixmap * pix, QString pix_name );
     QPixmap           * out,
                       * shadow,
                       * mirror,
@@ -38,7 +37,8 @@ private:
                       * spec;
     int                 px,
                         py,
-                        epx,
+                        epx1,
+                        epx2,
                         epy;
 };
 
