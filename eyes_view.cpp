@@ -30,7 +30,7 @@ void eyes_view::open_images ( QString folder )
     shadow = new QPixmap ( "shadow.png" );
     mirror = new QPixmap ( "mirror.png" );
     eyein = new QPixmap ( "eyein.png" );
-    eye = new QPixmap ( QString ( "pics/00_eye_01.png" ) );
+    eye = new QPixmap ( QString ( "pics/eye_01_n.png" ) );
     spec = new QPixmap ( "spec.png" );
 }
 
