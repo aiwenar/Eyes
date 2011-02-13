@@ -20,7 +20,7 @@ public:
     void        	open_images         ( QString folder );
     void        	paintEvent          ( QPaintEvent * );
     void                closeEvent          ( QCloseEvent * ev );
-    void                update_bulwers      ( core_stats );
+    void                update_bulwers      ( core_stats * input );
     int                 heightForWidth      ( int w )                               const;
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            () 															const;
@@ -41,5 +41,7 @@ private:
                         epx,
                         epy;
 };
+
+extern eyes_view * eyes;
 
 #endif // EYES_VIEW_H
