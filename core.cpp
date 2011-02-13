@@ -70,6 +70,8 @@ int         naglowek_out    (char* version);
 int         felltext        (char*downgrade);
 int         pulsetext       (char*text, int delay, int repeat, int _position);
 void        bulwers_init    ();
+core_stats  initialization  ();
+core_stats  reload_stats    (core_stats input);
 
 static bool event_now;
 //            get_flu,
@@ -97,6 +99,7 @@ void print_event ( char * ev_text )
 
 void eyes_view::update_bulwers (core_stats input)
 {
+    pict_layers pics;
     //static int input.current_probe = 0;
         //input.cpu_probes[input.current_probe] = C_LOAD ();
 
@@ -973,7 +976,7 @@ if (wake_up)
     }
     if (pics.bulwers == 16)
     {
-        if (((input.core_cpu_load < 80 && bulwers->longev > 7) || (input.input.core_cpu_load < 90 && bulwers->longev > 6)) && bulwers->longev < 14)
+        if (((input.core_cpu_load < 80 && bulwers->longev > 7) || (input.core_cpu_load < 90 && bulwers->longev > 6)) && bulwers->longev < 14)
         {
             if (bulwers->step == 0)
             {
@@ -1316,7 +1319,7 @@ if (!wake_up)
     cout << "\033[13;17H" << "Wake up Neo!" << endl;
 }
 
-return pics;
+//return pics;
 }
 
 void core_main ()
@@ -1376,7 +1379,8 @@ void core_main ()
     about();
     cout << "\033[0m \033[2J \033[0;0H";
 }*/
-    event_now = false;
+        event_now = false;
+        static int f;
         wake_up = false;
         cout << "\033[40m" << endl;
         cout << "\033[2J\033[0;0H";
@@ -1397,6 +1401,7 @@ while (1)
     input = reload_stats (input);
     input = update_bulwers (input);
     sleep (1);
+    f++;
 }
 
 
@@ -1408,7 +1413,7 @@ while (1)
 
 core_stats initialization()
 {
-    core_stats.input;
+    core_stats input;
 
                 input.core_day                 =get_time ().day;
                 input.core_dnum                =get_time ().day_num;
@@ -1434,7 +1439,7 @@ core_stats initialization()
                 input.core_proclist            =P_LIST ();
                 input.core_uptime              =U_TIME ();
                 input.energy                   =54000;
-                input.prev_bat_plug            =core_battery_plugged;
+                input.prev_bat_plug            =input.core_battery_plugged;
                 input.battery_buffer           =0;
                 input.temp_t                   =0;
                 input.flu_timer                =360;
@@ -1446,9 +1451,9 @@ core_stats initialization()
 }
 
 
-core_stats reload_stats (input)
+core_stats reload_stats (core_stats input)
 {
-    core_stats.input;
+
 
                 input.core_day                 =get_time ().day;
                 input.core_dnum                =get_time ().day_num;
@@ -1461,7 +1466,7 @@ core_stats reload_stats (input)
                 input.current_probe            ++;
                 if (input.current_probe == 10)
                     input.current_probe = 0;
-                input.cpu_probes[current_probe]=C_LOAD;
+                input.cpu_probes[input.current_probe]=C_LOAD ();
                 input.core_memory              =M_LOAD ();
                 input.core_proclist            =P_LIST ();
                 input.core_uptime              =U_TIME ();
