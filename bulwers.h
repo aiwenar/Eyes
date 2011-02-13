@@ -43,6 +43,14 @@ struct core_stats
 
 };
 
+struct bulwers_core
+{
+    int special;
+    int longev;
+    int happy;
+    int step;
+};
+
 struct pict_layers
 {
 int bulwers;
