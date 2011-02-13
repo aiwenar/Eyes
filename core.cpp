@@ -91,6 +91,7 @@ void eyes_view::update_bulwers ()
 {
     /*tu wrzuć liczenie bulwersa
     na końcu daj
+    zrób tak, że w miejscu gdzie trzeba zmienic stan oczek, wstaw komentarz co nalerzy zrobic, a ja już to sobie zakodze
     repaint () */
 }
 
