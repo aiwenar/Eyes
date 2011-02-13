@@ -20,7 +20,7 @@ public:
     void        	open_images         ( QString folder );
     void        	paintEvent          ( QPaintEvent * );
     void                closeEvent          ( QCloseEvent * ev );
-    void                update_bulwers      ();
+    void                update_bulwers      ( core_stats );
     int                 heightForWidth      ( int w )                               const;
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            () 															const;
