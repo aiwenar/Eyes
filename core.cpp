@@ -81,553 +81,13 @@ int         felltext    (char*downgrade);
 int pulsetext (char*text, int delay, int repeat, int position);
 pict_layers bulwers_init ();
 
-static bool event_now,
-            get_flu,
-            wake_up;
+static bool event_now;
+//            get_flu,
+//            wake_up;
 
 //------------------
 
 void eyes_view::update_bulwers ()
-{
-    /*tu wrzuć liczenie bulwersa
-    na końcu daj
-    zrób tak, że w miejscu gdzie trzeba zmienic stan oczek, wstaw komentarz co nalerzy zrobic, a ja już to sobie zakodze
-    repaint () */
-}
-
-
-void core_main ()
-{
-    event_now = false;
-    wake_up = false;
-    int f=0;
-    int a;
-    cout << "\033[40m" << endl;
-    cout << "\033[2J\033[0;0H";
-    cout << "\033[32m" << endl;
-    naglowek_in ("v.0.0.1a-01");
-    print ( " Welcome in eyes project!\nPlease give number of stages (0 for infinitive): " );
-    cin >> a;
-    naglowek_out ("v.0.0.1a-01");
-    cout << "\033[2J\033[0;0H";
-    cout << "\033[90A" << endl;
-    cout << "\033[2J";
-    print_gui ();
-    cout << "\033[1;33m";
-
-    //Event ev;
-    if (a != 0)
-    {
-        while (f<a)
-        {
-            //if ( evs->poll ( &ev ) and not event_now)
-            //{
-                cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
-                bulwers_init ();
-                event_now = true;
-                usleep (200000);
-            //}
-            //if ( not evs->poll ( &ev ) )
-            //{
-            //    event_now = false;
-            //}
-            //if (!event_now)
-            //{
-            //    cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
-            //    bulwers_init ();
-            //    sleep (1);
-            //    f++;
-            //}
-        }
-    }
-    else
-    {
-        while (true)
-        {
-            cout << "\033[0;22H" << f << '\n';
-            bulwers_init ();
-            sleep(1);
-            f++;
-        }
-    }
-    about();
-    cout << "\033[0m \033[2J \033[0;0H";
-}
-
-//===========================
-
-inline static void print ( char * str )
-{
-  print ( str, 0 );
-}
-
-static void print ( char * str, int pos )
-{
-  cout << "\033[1;32m";
-  int plus = pos+1;
-  for ( int i=0 ; i<strlen(str) ; i++ )
-  {
-    cout << str[i] << '\n';
-    if ( str[i] == '\n' )
-    {
-      usleep ( 50000 );
-      plus = pos+1;
-    }
-    else if ( str[i] == '.' or str[i] == '!' or str[i] == '?' )
-      usleep ( 30000 );
-    else
-      usleep ( 20000 );
-    cout << "\033[1A \033[" << plus << "C";
-    plus++;
-  }
-}
-
-inline void print_gui ()
-{
-  cout  << "\033[2J \033[0;0H";
-  print ( " stage:\ncurrent cpu probe:" );
-  cout  << "\033[0;35H";
-  print ( " cpu probes table:", 35 );
-  cout << "\033[3;40H";
-  print ( " cpu:\nmemory:\nproclist:\nuptime:", 40 );
-  cout << "\033[4;75H";
-  print ( " day of week:\nday of month:\nmonth:\nyear:\ntime:\n", 75 );
-  cout << "\033[10;0H";
-  print ( " batery state:\nbatery power:\ntemperature:\nenergy:" );
-  cout << "\033[10;35H";
-  print ( " specjal:\nlongev:\nhappy:\nbulwers:", 35 );
-  cout << "\033[10;60H";
-  print ( " o\nt\nh\ne\nr\ns", 60 );
-  cout << "\033[8m";
-}
-
-//---------------------------
-int C_LOAD ()
-{
-glibtop_init();
-glibtop_cpu cpu;
-glibtop_get_cpu (&cpu);
-
-static unsigned short cpu_load = 0;
-static unsigned long p_idle = 0;
-static unsigned long p_total = 0;
-static unsigned long a_idle = 0;
-static unsigned long a_total = 0;
-static unsigned short d_total = 0;
-static unsigned short d_idle = 0;
-a_idle = cpu.idle;
-a_total = cpu.total;
-
-        d_total = a_total - p_total;
-        d_idle = a_idle - p_idle;
-        cpu_load = (100*(d_total - d_idle)) / d_total;
-        p_idle = a_idle;
-        p_total = a_total;
-
-return cpu_load;
-}
-//-------------------------
-int M_LOAD ()
-{
-glibtop_init();
-glibtop_mem memory;
-glibtop_get_mem(&memory);
-
-unsigned int mem_total = memory.total;
-unsigned int mem_used = memory.used;
-unsigned int mem_load = (100*mem_used)/mem_total;
-
-return mem_load;
-}
-//-------------------------
-int P_LIST ()
-{
-int which,arg;
-
-glibtop_init();
-glibtop_proclist proclist;
-glibtop_get_proclist(&proclist,which,arg);
-
-return proclist.number;
-}
-//-------------------------
-int U_TIME ()
-{
-glibtop_init();
-glibtop_uptime uptime;
-glibtop_get_uptime(&uptime);
-
-return uptime.uptime;
-}
-
-//-------------------------
-
-sdate get_time ()
-{
-    //static int initialized = 0;
-    //if (initialized == 0){
-    time_t timer;
-
-    timer=time(NULL);
-
-    //initialized = 1;
-
-    sdate get_date;
-    QString tmp1 = asctime ( localtime ( &timer ) );
-    QStringList l_date ( tmp1.split ( ' ' ) );
-    if ( l_date[0] == "Mon" )get_date.day = 1;
-    if ( l_date[0] == "Tue" )get_date.day = 2;
-    if ( l_date[0] == "Wed" )get_date.day = 3;
-    if ( l_date[0] == "Thu" )get_date.day = 4;
-    if ( l_date[0] == "Fri" )get_date.day = 5;
-    if ( l_date[0] == "Sat" )get_date.day = 6;
-    if ( l_date[0] == "Sun" )get_date.day = 7;
-
-    if ( l_date[1] == "Jan" )get_date.month = 1;
-    if ( l_date[1] == "Feb" )get_date.month = 2;
-    if ( l_date[1] == "Mar" )get_date.month = 3;
-    if ( l_date[1] == "Apr" )get_date.month = 4;
-    if ( l_date[1] == "May" )get_date.month = 5;
-    if ( l_date[1] == "Jun" )get_date.month = 6;
-    if ( l_date[1] == "Jul" )get_date.month = 7;
-    if ( l_date[1] == "Aug" )get_date.month = 8;
-    if ( l_date[1] == "Sep" )get_date.month = 9;
-    if ( l_date[1] == "Oct" )get_date.month = 10;
-    if ( l_date[1] == "Nov" )get_date.month = 11;
-    if ( l_date[1] == "Dec" )get_date.month = 12;
-
-    if (l_date[2] == 0)
-    {
-        get_date.day_num = l_date[3].toInt ();
-        QStringList tmp2 ( l_date[4].split ( ':' ) );
-        get_date.hour = ( 3600 * ( tmp2[0].toInt () ) + ( 60 * ( tmp2[1].toInt() ) ) + tmp2[2].toInt () );
-        get_date.year = l_date[5].toInt ();
-    }
-    else
-    {
-        get_date.day_num = l_date[2].toInt ();
-        QStringList tmp2 ( l_date[3].split ( ':' ) );
-        get_date.hour = ( 3600 * ( tmp2[0].toInt () ) + ( 60 * ( tmp2[1].toInt() ) ) + tmp2[2].toInt () );
-        get_date.year = l_date[4].toInt ();
-    }
-
-    return get_date;
-}
-
-//--------------------------
-
-int temperatura ()
-{
-        fstream calosc ("/proc/acpi/thermal_zone/TZ00/temperature", fstream::in);
-
-        string texcik;
-        while (calosc.good())
-                texcik+=calosc.get();
-
-        int tempjuczer=texcik.find_first_of ("temperature");
-
-        int i=0;
-        int a=0;
-        char temp[27];
-
-        for (;i<27;i++) {
-                temp[a] = texcik[25+a];
-                a++;
-                }
-
-        int temperature;
-        temperature = atoi (temp);
-
-        return temperature;
-}
-
-//--------------------------
-
-int bat_plugged ()
-{
-        fstream calosc ("/proc/acpi/battery/BAT1/state", fstream::in);
-
-        string texcik;
-        while (calosc.good()){
-        texcik+=calosc.get();}
-
-        if (texcik[25] == 'n')
-        {
-                return 0;
-        }
-
-        static int pluged = 0;
-
-        if (texcik[82] == 'c' && pluged !=1) //battery has been just pluged
-        {
-                pluged = 1;
-                return 1;
-        }
-         if (texcik[82] != 'c' && pluged !=0) //battery has been just unpluged
-        {
-                pluged = 0;
-                return 2;
-        }
-        if (texcik[82] == 'c' && pluged == 1) //battery is still pluged
-                return 3;
-        if (texcik[82] != 'c' && pluged == 0) //battery is still unpluged
-                return 4;
-
-        else return 5;
-    }
-
-int bateria ()
-{
-        fstream calosc ("/proc/acpi/battery/BAT1/state", fstream::in);
-
-        string texcik;
-        while (calosc.good()){
-        texcik+=calosc.get();}
-
-        int baterry=texcik.find_first_of ("capacity:");
-
-
-        int i=0;
-        int a=0;
-        char bat[155];
-
-        for (;i<155;i++)
-        {
-                bat[a] = texcik[151+a];
-                a++;
-        }
-
-        static int powr;
-        powr = atoi (bat);
-
-        return powr;
-}
-//-----------------------------
-
-int pulsetext (char * text, int delay, int repeat, int position)
-{
-    while (repeat>0)
-    {
-        if (repeat%2 == 1)
-        cout << text << endl;
-        else
-        cout << "                    " << endl;
-
-     cout << "\033[1A" << "\033[" << position << "C";
-     usleep (100*delay);
-     repeat--;
-    }
-    return 1;
-}
-
-
-int felltext (char*downgrade)
-{
-    cout << "\033[40m" << endl;
-
-    int leng = strlen(downgrade);
-    cout << endl << endl;
-     for ( int i=0 ; i<(leng+2) ; i++ )
-    {
-        usleep (5000);
-        if (i > 0 && i<leng)
-        {
-            cout << "\033[32m" << downgrade[i] << endl;
-            cout << "\033[1;30m" << "\033[2A" << downgrade[i-1] << endl;
-            cout << "\033[2A" << " " << endl;
-            cout << "\033[1B" << endl;
-        }
-        if (i==0)
-        {
-            cout << "\033[1;32m" << downgrade[i] << endl;
-        }
-        if (i==leng)
-        {
-            cout << " " << endl;
-            cout << "\033[32m" << "\033[2A" << downgrade[i-1] << endl;
-            cout << "\033[2A" << " " << endl;
-            cout << "\033[1B" << endl;
-        }
-        if(i==(leng+1))
-        {
-            cout << " " << endl;
-            cout << "\033[2A" << " " << endl;
-            cout << "\033[2A" << " " << endl;
-            cout << "\033[1B" << endl;
-        }
-    }
-return 1;
-}
-
-int about()
-{
-    cout << "\033[37m" << "\033[40m";
-    int i= 95;
-    while (i>0)
-    {
-        usleep (500);
-        cout << endl;
-        i--;
-    }
-
-
-    cout << "\033[37m";
-    cout << "\033[1;1H";
-    cout << "\033[1;30m";
-    cout << "  ________________     _________________   ___________" << endl
-         << " /   _________   ||   |    /   _______// /     ___   \\\\" << endl
-         << "|   ||______  \\   \\\\_/   /|   ||______  |    //___\\___||" << endl
-         << "|     _____||  \\     ___//|     _____||  \\_______    \\\\" << endl
-         << "|   ||______    \\   \\\\    |   ||________|   \\\\___\\    ||" << endl
-         << "|           \\\\   \\   \\\\   |             |             ||" << endl
-         << " \\___________\\\\   \\___||   \\_____________\\___________//" << endl;
-    usleep (10000);
-    cout << "\033[37m" << "\033[9A";
-    cout << "  ________________     _________________   ___________" << endl
-         << " /   _________   ||   |    /   _______// /     ___   \\\\" << endl
-         << "|   ||______  \\   \\\\_/   /|   ||______  |    //___\\___||" << endl
-         << "|     _____||  \\     ___//|     _____||  \\_______    \\\\" << endl
-         << "|   ||______    \\   \\\\    |   ||________|   \\\\___\\    ||" << endl
-         << "|           \\\\   \\   \\\\   |             |             ||" << endl
-         << " \\___________\\\\   \\___||   \\_____________\\___________//" << endl;
-
-
-
-    cout << endl << endl << endl;
-    print ( " by Chilinski Damian and Medrzycki Krzysztof" );
-    pulsetext ("...", 500, 4, 45);
-    cout << "\033[90D";
-    print ( "                                                " );
-    cout << endl;
-    cout << "\033[37m";
-    cout << "\033[1;1H";
-    cout << "\033[1;30m";
-    cout << "  ________________     _________________   ___________" << endl
-         << " /   _________   ||   |    /   _______// /     ___   \\\\" << endl
-         << "|   ||______  \\   \\\\_/   /|   ||______  |    //___\\___||" << endl
-         << "|     _____||  \\     ___//|     _____||  \\_______    \\\\" << endl
-         << "|   ||______    \\   \\\\    |   ||________|   \\\\___\\    ||" << endl
-         << "|           \\\\   \\   \\\\   |             |             ||" << endl
-         << " \\___________\\\\   \\___||   \\_____________\\___________//" << endl;
-    usleep (10000);
-    cout << "\033[1;33m";
-return 1;
-}
-
-
-int naglowek_in (char* version)
-{
-    cout << "\033[37m";
-    cout << "\033[1;1H";
-    cout << "\033[1;30m";
-    cout << "  _______   _______  _____" << endl
-         << " |  ___  \\_/    ___|/  ___|" << endl
-         << " |  ___|\\   /|  ___|\\___  \\" << endl
-         << " |_____| |_| |____________/" << endl
-         << " ===============================" << endl
-         << " " << version << endl;
-    usleep (10000);
-    cout << "\033[37m" << "\033[9A";
-    cout << "  _______   _______  _____" << endl
-         << " |  ___  \\_/    ___|/  ___|" << endl
-         << " |  ___|\\   /|  ___|\\___  \\" << endl
-         << " |_____| |_| |____________/" << endl
-         << " ===============================" << endl
-         << " " << version << endl;
-
-    cout << endl << endl << endl;
-}
-
-int naglowek_out (char* version)
-{
-    cout << "\033[37m";
-    cout << "\033[1;1H";
-    cout << "\033[1;30m";
-    cout << "  _______   _______  _____" << endl
-         << " |  ___  \\_/    ___|/  ___|" << endl
-         << " |  ___|\\   /|  ___|\\___  \\" << endl
-         << " |_____| |_| |____________/" << endl
-         << " ===============================" << endl
-         << " " << version << endl;
-    usleep (10000);
-
-}
-
-int pos;
-
-void print_event ( char * ev_text )
-{
-  cout << "\033[" << 10+pos << ";66H" << ev_text << '\n';
-  pos++;
-}
-
-/*
-
-Welcome to Eyes project!
-
-  ________________     _________________   ___________
- /   _________   ||   |    /   _______// /     ___   \\
-|   ||______  \   \\_/   /|   ||______  |    //___\___||
-|     _____||  \     ___//|     _____||  \_______    \\
-|   ||______    \   \\    |   ||________|   \\___\    ||
-|           \\   \   \\   |             |             ||
- \___________\\   \___||   \_____________\___________//
-
-
- _______   _______  _____
-|  ___  \_/    ___|/  ___|
-|  ___|\   /|  ___|\___  \
-|_____| |_| |____________/
-===============================
-v.0.0.1a-06
-
-
- ______   _______  _____
-|  ___ \_/    ___|/  ___|
-|  ___\   /|  ___|\___  \
-|_____||_| |____________/
-===============================
-v.0.0.1a-06
-
-
-  _______________  ___       ___    _______________   ____________
- /              //|   ||    |   || /              // /            \\
-|     _________// |   \\    /   |||     _________// |     _____    ||
-|    ||_______     \   \\__/   // |    ||_______    |    //____\___||
-|            ||     \         //  |            ||   |             \\
-|      ______||      \_     _//   |      ______||    \_______      ||
-|    ||_______         |   ||     |    ||________   |   \\___\     ||
-|             \\       |   ||     |             \\  |              ||
- \_____________\\      |___||      \_____________\\  \____________//
-
-
-*/
-
-
-
-
-
-//---------------------------------------------------------------------
-/*
-       ________  _________   ________  __________        ________  _____
-      /       ||/        || |   ___//  \_____   ||      /       ||/   //
-     /   __   |/   __    || |  ||__          |  ||     /   __   |/   //
-    /   // |      // |   || |    __||        |  ||    /   // |      //
-   /   //  |     //  |   || |  ||__     __   |  ||   /   //  |     //
-  /   //   |    //   |   || |      \\  |  \_/   //  /   //   |    //
- /___//    |___//    |___|| |_______\\  \______//  /___//    |___// Art by Chiliński Damian 2010
-
-
-
-
- */
-//----------------------------------------------------------------------
-
-
-
-//----------------------------------------
-
-pict_layers bulwers_init()
 {
     //----create bulwers structure
 
@@ -1890,6 +1350,541 @@ if (!wake_up)
 first_play = false;
 return pics;
 }
+
+
+
+void core_main ()
+{
+    event_now = false;
+    wake_up = false;
+    int f=0;
+    int a;
+    cout << "\033[40m" << endl;
+    cout << "\033[2J\033[0;0H";
+    cout << "\033[32m" << endl;
+    naglowek_in ("v.0.0.1a-01");
+    print ( " Welcome in eyes project!\nPlease give number of stages (0 for infinitive): " );
+    cin >> a;
+    naglowek_out ("v.0.0.1a-01");
+    cout << "\033[2J\033[0;0H";
+    cout << "\033[90A" << endl;
+    cout << "\033[2J";
+    print_gui ();
+    cout << "\033[1;33m";
+
+    //Event ev;
+    if (a != 0)
+    {
+        while (f<a)
+        {
+            //if ( evs->poll ( &ev ) and not event_now)
+            //{
+                cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
+                bulwers_init ();
+                event_now = true;
+                usleep (200000);
+            //}
+            //if ( not evs->poll ( &ev ) )
+            //{
+            //    event_now = false;
+            //}
+            //if (!event_now)
+            //{
+            //    cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
+            //    bulwers_init ();
+            //    sleep (1);
+            //    f++;
+            //}
+        }
+    }
+    else
+    {
+        while (true)
+        {
+            cout << "\033[0;22H" << f << '\n';
+            bulwers_init ();
+            sleep(1);
+            f++;
+        }
+    }
+    about();
+    cout << "\033[0m \033[2J \033[0;0H";
+}
+
+//===========================
+
+inline static void print ( char * str )
+{
+  print ( str, 0 );
+}
+
+static void print ( char * str, int pos )
+{
+  cout << "\033[1;32m";
+  int plus = pos+1;
+  for ( int i=0 ; i<strlen(str) ; i++ )
+  {
+    cout << str[i] << '\n';
+    if ( str[i] == '\n' )
+    {
+      usleep ( 50000 );
+      plus = pos+1;
+    }
+    else if ( str[i] == '.' or str[i] == '!' or str[i] == '?' )
+      usleep ( 30000 );
+    else
+      usleep ( 20000 );
+    cout << "\033[1A \033[" << plus << "C";
+    plus++;
+  }
+}
+
+inline void print_gui ()
+{
+  cout  << "\033[2J \033[0;0H";
+  print ( " stage:\ncurrent cpu probe:" );
+  cout  << "\033[0;35H";
+  print ( " cpu probes table:", 35 );
+  cout << "\033[3;40H";
+  print ( " cpu:\nmemory:\nproclist:\nuptime:", 40 );
+  cout << "\033[4;75H";
+  print ( " day of week:\nday of month:\nmonth:\nyear:\ntime:\n", 75 );
+  cout << "\033[10;0H";
+  print ( " batery state:\nbatery power:\ntemperature:\nenergy:" );
+  cout << "\033[10;35H";
+  print ( " specjal:\nlongev:\nhappy:\nbulwers:", 35 );
+  cout << "\033[10;60H";
+  print ( " o\nt\nh\ne\nr\ns", 60 );
+  cout << "\033[8m";
+}
+
+//---------------------------
+int C_LOAD ()
+{
+glibtop_init();
+glibtop_cpu cpu;
+glibtop_get_cpu (&cpu);
+
+static unsigned short cpu_load = 0;
+static unsigned long p_idle = 0;
+static unsigned long p_total = 0;
+static unsigned long a_idle = 0;
+static unsigned long a_total = 0;
+static unsigned short d_total = 0;
+static unsigned short d_idle = 0;
+a_idle = cpu.idle;
+a_total = cpu.total;
+
+        d_total = a_total - p_total;
+        d_idle = a_idle - p_idle;
+        cpu_load = (100*(d_total - d_idle)) / d_total;
+        p_idle = a_idle;
+        p_total = a_total;
+
+return cpu_load;
+}
+//-------------------------
+int M_LOAD ()
+{
+glibtop_init();
+glibtop_mem memory;
+glibtop_get_mem(&memory);
+
+unsigned int mem_total = memory.total;
+unsigned int mem_used = memory.used;
+unsigned int mem_load = (100*mem_used)/mem_total;
+
+return mem_load;
+}
+//-------------------------
+int P_LIST ()
+{
+int which,arg;
+
+glibtop_init();
+glibtop_proclist proclist;
+glibtop_get_proclist(&proclist,which,arg);
+
+return proclist.number;
+}
+//-------------------------
+int U_TIME ()
+{
+glibtop_init();
+glibtop_uptime uptime;
+glibtop_get_uptime(&uptime);
+
+return uptime.uptime;
+}
+
+//-------------------------
+
+sdate get_time ()
+{
+    //static int initialized = 0;
+    //if (initialized == 0){
+    time_t timer;
+
+    timer=time(NULL);
+
+    //initialized = 1;
+
+    sdate get_date;
+    QString tmp1 = asctime ( localtime ( &timer ) );
+    QStringList l_date ( tmp1.split ( ' ' ) );
+    if ( l_date[0] == "Mon" )get_date.day = 1;
+    if ( l_date[0] == "Tue" )get_date.day = 2;
+    if ( l_date[0] == "Wed" )get_date.day = 3;
+    if ( l_date[0] == "Thu" )get_date.day = 4;
+    if ( l_date[0] == "Fri" )get_date.day = 5;
+    if ( l_date[0] == "Sat" )get_date.day = 6;
+    if ( l_date[0] == "Sun" )get_date.day = 7;
+
+    if ( l_date[1] == "Jan" )get_date.month = 1;
+    if ( l_date[1] == "Feb" )get_date.month = 2;
+    if ( l_date[1] == "Mar" )get_date.month = 3;
+    if ( l_date[1] == "Apr" )get_date.month = 4;
+    if ( l_date[1] == "May" )get_date.month = 5;
+    if ( l_date[1] == "Jun" )get_date.month = 6;
+    if ( l_date[1] == "Jul" )get_date.month = 7;
+    if ( l_date[1] == "Aug" )get_date.month = 8;
+    if ( l_date[1] == "Sep" )get_date.month = 9;
+    if ( l_date[1] == "Oct" )get_date.month = 10;
+    if ( l_date[1] == "Nov" )get_date.month = 11;
+    if ( l_date[1] == "Dec" )get_date.month = 12;
+
+    if (l_date[2] == 0)
+    {
+        get_date.day_num = l_date[3].toInt ();
+        QStringList tmp2 ( l_date[4].split ( ':' ) );
+        get_date.hour = ( 3600 * ( tmp2[0].toInt () ) + ( 60 * ( tmp2[1].toInt() ) ) + tmp2[2].toInt () );
+        get_date.year = l_date[5].toInt ();
+    }
+    else
+    {
+        get_date.day_num = l_date[2].toInt ();
+        QStringList tmp2 ( l_date[3].split ( ':' ) );
+        get_date.hour = ( 3600 * ( tmp2[0].toInt () ) + ( 60 * ( tmp2[1].toInt() ) ) + tmp2[2].toInt () );
+        get_date.year = l_date[4].toInt ();
+    }
+
+    return get_date;
+}
+
+//--------------------------
+
+int temperatura ()
+{
+        fstream calosc ("/proc/acpi/thermal_zone/TZ00/temperature", fstream::in);
+
+        string texcik;
+        while (calosc.good())
+                texcik+=calosc.get();
+
+        int tempjuczer=texcik.find_first_of ("temperature");
+
+        int i=0;
+        int a=0;
+        char temp[27];
+
+        for (;i<27;i++) {
+                temp[a] = texcik[25+a];
+                a++;
+                }
+
+        int temperature;
+        temperature = atoi (temp);
+
+        return temperature;
+}
+
+//--------------------------
+
+int bat_plugged ()
+{
+        fstream calosc ("/proc/acpi/battery/BAT1/state", fstream::in);
+
+        string texcik;
+        while (calosc.good()){
+        texcik+=calosc.get();}
+
+        if (texcik[25] == 'n')
+        {
+                return 0;
+        }
+
+        static int pluged = 0;
+
+        if (texcik[82] == 'c' && pluged !=1) //battery has been just pluged
+        {
+                pluged = 1;
+                return 1;
+        }
+         if (texcik[82] != 'c' && pluged !=0) //battery has been just unpluged
+        {
+                pluged = 0;
+                return 2;
+        }
+        if (texcik[82] == 'c' && pluged == 1) //battery is still pluged
+                return 3;
+        if (texcik[82] != 'c' && pluged == 0) //battery is still unpluged
+                return 4;
+
+        else return 5;
+    }
+
+int bateria ()
+{
+        fstream calosc ("/proc/acpi/battery/BAT1/state", fstream::in);
+
+        string texcik;
+        while (calosc.good()){
+        texcik+=calosc.get();}
+
+        int baterry=texcik.find_first_of ("capacity:");
+
+
+        int i=0;
+        int a=0;
+        char bat[155];
+
+        for (;i<155;i++)
+        {
+                bat[a] = texcik[151+a];
+                a++;
+        }
+
+        static int powr;
+        powr = atoi (bat);
+
+        return powr;
+}
+//-----------------------------
+
+int pulsetext (char * text, int delay, int repeat, int position)
+{
+    while (repeat>0)
+    {
+        if (repeat%2 == 1)
+        cout << text << endl;
+        else
+        cout << "                    " << endl;
+
+     cout << "\033[1A" << "\033[" << position << "C";
+     usleep (100*delay);
+     repeat--;
+    }
+    return 1;
+}
+
+
+int felltext (char*downgrade)
+{
+    cout << "\033[40m" << endl;
+
+    int leng = strlen(downgrade);
+    cout << endl << endl;
+     for ( int i=0 ; i<(leng+2) ; i++ )
+    {
+        usleep (5000);
+        if (i > 0 && i<leng)
+        {
+            cout << "\033[32m" << downgrade[i] << endl;
+            cout << "\033[1;30m" << "\033[2A" << downgrade[i-1] << endl;
+            cout << "\033[2A" << " " << endl;
+            cout << "\033[1B" << endl;
+        }
+        if (i==0)
+        {
+            cout << "\033[1;32m" << downgrade[i] << endl;
+        }
+        if (i==leng)
+        {
+            cout << " " << endl;
+            cout << "\033[32m" << "\033[2A" << downgrade[i-1] << endl;
+            cout << "\033[2A" << " " << endl;
+            cout << "\033[1B" << endl;
+        }
+        if(i==(leng+1))
+        {
+            cout << " " << endl;
+            cout << "\033[2A" << " " << endl;
+            cout << "\033[2A" << " " << endl;
+            cout << "\033[1B" << endl;
+        }
+    }
+return 1;
+}
+
+int about()
+{
+    cout << "\033[37m" << "\033[40m";
+    int i= 95;
+    while (i>0)
+    {
+        usleep (500);
+        cout << endl;
+        i--;
+    }
+
+
+    cout << "\033[37m";
+    cout << "\033[1;1H";
+    cout << "\033[1;30m";
+    cout << "  ________________     _________________   ___________" << endl
+         << " /   _________   ||   |    /   _______// /     ___   \\\\" << endl
+         << "|   ||______  \\   \\\\_/   /|   ||______  |    //___\\___||" << endl
+         << "|     _____||  \\     ___//|     _____||  \\_______    \\\\" << endl
+         << "|   ||______    \\   \\\\    |   ||________|   \\\\___\\    ||" << endl
+         << "|           \\\\   \\   \\\\   |             |             ||" << endl
+         << " \\___________\\\\   \\___||   \\_____________\\___________//" << endl;
+    usleep (10000);
+    cout << "\033[37m" << "\033[9A";
+    cout << "  ________________     _________________   ___________" << endl
+         << " /   _________   ||   |    /   _______// /     ___   \\\\" << endl
+         << "|   ||______  \\   \\\\_/   /|   ||______  |    //___\\___||" << endl
+         << "|     _____||  \\     ___//|     _____||  \\_______    \\\\" << endl
+         << "|   ||______    \\   \\\\    |   ||________|   \\\\___\\    ||" << endl
+         << "|           \\\\   \\   \\\\   |             |             ||" << endl
+         << " \\___________\\\\   \\___||   \\_____________\\___________//" << endl;
+
+
+
+    cout << endl << endl << endl;
+    print ( " by Chilinski Damian and Medrzycki Krzysztof" );
+    pulsetext ("...", 500, 4, 45);
+    cout << "\033[90D";
+    print ( "                                                " );
+    cout << endl;
+    cout << "\033[37m";
+    cout << "\033[1;1H";
+    cout << "\033[1;30m";
+    cout << "  ________________     _________________   ___________" << endl
+         << " /   _________   ||   |    /   _______// /     ___   \\\\" << endl
+         << "|   ||______  \\   \\\\_/   /|   ||______  |    //___\\___||" << endl
+         << "|     _____||  \\     ___//|     _____||  \\_______    \\\\" << endl
+         << "|   ||______    \\   \\\\    |   ||________|   \\\\___\\    ||" << endl
+         << "|           \\\\   \\   \\\\   |             |             ||" << endl
+         << " \\___________\\\\   \\___||   \\_____________\\___________//" << endl;
+    usleep (10000);
+    cout << "\033[1;33m";
+return 1;
+}
+
+
+int naglowek_in (char* version)
+{
+    cout << "\033[37m";
+    cout << "\033[1;1H";
+    cout << "\033[1;30m";
+    cout << "  _______   _______  _____" << endl
+         << " |  ___  \\_/    ___|/  ___|" << endl
+         << " |  ___|\\   /|  ___|\\___  \\" << endl
+         << " |_____| |_| |____________/" << endl
+         << " ===============================" << endl
+         << " " << version << endl;
+    usleep (10000);
+    cout << "\033[37m" << "\033[9A";
+    cout << "  _______   _______  _____" << endl
+         << " |  ___  \\_/    ___|/  ___|" << endl
+         << " |  ___|\\   /|  ___|\\___  \\" << endl
+         << " |_____| |_| |____________/" << endl
+         << " ===============================" << endl
+         << " " << version << endl;
+
+    cout << endl << endl << endl;
+}
+
+int naglowek_out (char* version)
+{
+    cout << "\033[37m";
+    cout << "\033[1;1H";
+    cout << "\033[1;30m";
+    cout << "  _______   _______  _____" << endl
+         << " |  ___  \\_/    ___|/  ___|" << endl
+         << " |  ___|\\   /|  ___|\\___  \\" << endl
+         << " |_____| |_| |____________/" << endl
+         << " ===============================" << endl
+         << " " << version << endl;
+    usleep (10000);
+
+}
+
+int pos;
+
+void print_event ( char * ev_text )
+{
+  cout << "\033[" << 10+pos << ";66H" << ev_text << '\n';
+  pos++;
+}
+
+/*
+
+Welcome to Eyes project!
+
+  ________________     _________________   ___________
+ /   _________   ||   |    /   _______// /     ___   \\
+|   ||______  \   \\_/   /|   ||______  |    //___\___||
+|     _____||  \     ___//|     _____||  \_______    \\
+|   ||______    \   \\    |   ||________|   \\___\    ||
+|           \\   \   \\   |             |             ||
+ \___________\\   \___||   \_____________\___________//
+
+
+ _______   _______  _____
+|  ___  \_/    ___|/  ___|
+|  ___|\   /|  ___|\___  \
+|_____| |_| |____________/
+===============================
+v.0.0.1a-06
+
+
+ ______   _______  _____
+|  ___ \_/    ___|/  ___|
+|  ___\   /|  ___|\___  \
+|_____||_| |____________/
+===============================
+v.0.0.1a-06
+
+
+  _______________  ___       ___    _______________   ____________
+ /              //|   ||    |   || /              // /            \\
+|     _________// |   \\    /   |||     _________// |     _____    ||
+|    ||_______     \   \\__/   // |    ||_______    |    //____\___||
+|            ||     \         //  |            ||   |             \\
+|      ______||      \_     _//   |      ______||    \_______      ||
+|    ||_______         |   ||     |    ||________   |   \\___\     ||
+|             \\       |   ||     |             \\  |              ||
+ \_____________\\      |___||      \_____________\\  \____________//
+
+
+*/
+
+
+
+
+
+//---------------------------------------------------------------------
+/*
+       ________  _________   ________  __________        ________  _____
+      /       ||/        || |   ___//  \_____   ||      /       ||/   //
+     /   __   |/   __    || |  ||__          |  ||     /   __   |/   //
+    /   // |      // |   || |    __||        |  ||    /   // |      //
+   /   //  |     //  |   || |  ||__     __   |  ||   /   //  |     //
+  /   //   |    //   |   || |      \\  |  \_/   //  /   //   |    //
+ /___//    |___//    |___|| |_______\\  \______//  /___//    |___// Art by Chiliński Damian 2010
+
+
+
+
+ */
+//----------------------------------------------------------------------
+
+
+
+//----------------------------------------
+
+//pict_layers bulwers_init()
 
 
 
