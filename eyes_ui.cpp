@@ -20,7 +20,9 @@ static const char help [] = {
 };
 
 void core_main ();
+
 EventQueue * evs;
+eyes_view * eyes;
 
 int main ( int argc, char ** argv )
 {
@@ -58,13 +60,11 @@ int main ( int argc, char ** argv )
   win.setAttribute ( Qt::WA_TranslucentBackground, true );
   win.show ();
 
-  eyes_view * eyes = new eyes_view ( &win );
+  eyes = new eyes_view ( &win );
   eyes->open_images ( folder );
   eyes->show ();
   eyes->repaint ();
   eyes->update ();
-
-  evs = new EventQueue ();
   
   QFuture<void> c_main = QtConcurrent::run ( core_main );
 
