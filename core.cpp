@@ -88,40 +88,7 @@ void bulwers_init ()
     bulwers->step = 0;
 }
 
-struct core_stats
-{
-    uint32  input.core_day,                 //get_time ().day;
-            input.core_dnum,                //get_time ().day_num;
-            input.core_month,               //get_time ().month;
-            input.core_year,                //get_time ().year;
-            input.core_time,                //get_time ().hour;
-            input.core_battery_plugged,     //bat_plugged ();
-            input.core_temperature,         //temperatura ();
-            input.core_battery,             //bateria();
-            input.core_cpu_load,            /* (cpu_probes[0] +
-                                                cpu_probes[1] +
-                                                cpu_probes[2] +
-                                                cpu_probes[3] +
-                                                cpu_probes[4] +
-                                                cpu_probes[5] +
-                                                cpu_probes[6] +
-                                                cpu_probes[7] +
-                                                cpu_probes[8] +
-                                                cpu_probes[9]) / 10;*/
-            input.current_probe,            //0
-            input.cpu_probes[10],           //20 / C_LOAD ();
-            input.core_memory,              //M_LOAD ();
-            input.core_proclist,            //P_LIST ();
-            input.core_uptime,              //U_TIME ();
-            input.energy,                   //54000
-            input.prev_bat_plug,            //core_battery_plugged
-            input.battery_buffer,           //0
-            input.temp_t,                   //0
-            input.flu_timer,                //360
-            input.prev_happy;               //0
-    bool    input.once_plugged;             //false
 
-};
 
 void eyes_view::update_bulwers (core_stats input)
 {
