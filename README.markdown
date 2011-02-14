@@ -1,5 +1,5 @@
 ## The Eyes Project
-### Copyrights © 2010 2011 [GlassBallStudio]([home]) (Chiliński Damian, Mędrzycki Krzysztof) asociated with: Paszke Adam
+### Copyrights © 2010 2011 [GlassBallStudio][home] (Chiliński Damian, Mędrzycki Krzysztof) asociated with: Paszke Adam
 
 Content:
 
@@ -26,38 +26,44 @@ Eyes states
 
 Nothing goes wrong.
 
-![normal screenshot]([home]/images/eyes-normal.png)
+![normal screenshot][normal]
 
 #### Sleeppy
 
 It's late or they'ra just tiried (eg. your computer has worked hard today)
 
-![spleeppy screenshot]([home]/images/eyes-sleeppy.png)
+![spleeppy screenshot][sleppy]
 
 #### Bulwers
 
 They're angy, propably your computer works very hard or it's boiling
 
-![bulwers screenshot]([home]/images/eyes-bulwers.png)
+![bulwers screenshot][bulwers]
 
 #### Flue
 
 Your computer just has got big difference between temperatures in 
 
-![flue screenshot]([home]/images/eyes-flue.png)
+![flue screenshot][flue]
 
 #### Shocked
 
 Something unexpected has been detected in your computer state (eg. get out battery in notebook)
 
-![shocked screenshot]([home]/images/eyes-shocked.png)
+![shocked screenshot][shocked]
 
 #### Hot
 
 Temperature goes up! Try cool your machine
 
-![hot screenshot]([home]/images/eyes-hot.png)
+![hot screenshot][hot]
 
 ¹ etnc - et non cetera
 
 [home]: http://gbs.org
+[normal]: http://gbs.org/images/eyes/normal.png "normal"
+[sleeppy]: http://gbs.org/images/eyes/sleppy.png "sleppy"
+[bulwers]: http://gbs.org/images/eyes/bulwers.png "bulwers"
+[flue]: http://gbs.org/images/eyes/flue.png "flue"
+[shocked]: http://gbs.org/images/eyes/shocked.png "shocked"
+[hot]: http://gbs.org/images/eyes/hot.png "hot"
