@@ -7,14 +7,6 @@ Content:
 
 - Features
 
-+ Eyes states
-
-* jakiś stan occzka
-
-* jakiś inny stan oczka
-
-+ itp
-
 - intp ( i nie tym podobne :D )
 
 ### Supported platform
@@ -23,7 +15,15 @@ Eyes is currently avalible for Linux, but we are working about Windows version.
 
 ### Features
 
+* eyes states
+
+* itp
+
 #### Eyes states
+
+* jakiś stan oczka
+
+* jakiś inny stan oczka
 
 jakis opis stanów oczków
 
