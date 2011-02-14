@@ -29,7 +29,7 @@ int main ( int argc, char ** argv )
   QApplication app ( argc, argv );
 
   QStringList arg = app.arguments ();
-  QString folder ( "green" );
+  QString color;
 
   for ( int i = 0 ; i < arg.size () ; i++ )
   {
@@ -45,12 +45,12 @@ int main ( int argc, char ** argv )
       }
       else if ( arg.at ( i ).split ( "=" )[0] == "--color" )
       {
-          folder = arg.at ( i ).split ( "=" )[1];
+          color = arg.at ( i ).split ( "=" )[1];
       }
       else if ( arg.at ( i ) == "-c" )
       {
           i++;
-          folder = arg.at ( i );
+          color = arg.at ( i );
       }
   }
 
@@ -61,11 +61,10 @@ int main ( int argc, char ** argv )
   win.show ();
 
   eyes = new eyes_view ( &win );
-  eyes->open_images ( folder );
+  eyes->open_images ( color );
   eyes->show ();
   eyes->repaint ();
   eyes->update ();
-  
   QFuture<void> c_main = QtConcurrent::run ( core_main );
 
   return app.exec ();
