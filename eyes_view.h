@@ -32,13 +32,17 @@ private:
     QString                 eye,
                             spec,
                             out,
-                            shadow;
+                            shadow,
+                            mirror;
     QMap<QString,QPixmap>   pics;
     int                     px,
                             py,
                             epx1,
                             epx2,
-                            epy;
+                            epy,
+                            emx1,
+                            emx2,
+                            emy;
 };
 
 extern eyes_view * eyes;

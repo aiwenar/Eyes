@@ -29,18 +29,22 @@ eyes_view::eyes_view ( QWidget * parent ) : QWidget ( parent )
     px = MM_NO_MOTION;
     epx1 = 46;
     epx2 = 213;
+    emx1 = 83;
+    emx2 = 252;
     epy = 10;
+    emy = 24;
     setMinimumSize ( EYES_W, EYES_H );
     setMaximumSize ( EYES_W, EYES_H );
     spec = "spec";
-    eye = "eye_06_n";
+    eye = "eye_04_n";
     out = "cusual_01_o";
     shadow = "cusual_01_s";
+    mirror = "cusual_01_m";
 }
 
 eyes_view::~eyes_view ()
 {
-                delete &eye, &pics, &px, &py, &epx1, &epx2, &epy;
+                delete &eye, &pics, &px, &py, &epx1, &epx2, &epy, &emx1, &emx2, &emy;
 }
 
 void eyes_view::open_images ( QString color )
@@ -61,7 +65,9 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     paint.drawPixmap ( epx1, epy, EYE_S, EYE_S, pics[eye] );
     paint.drawPixmap ( epx2, epy, EYE_S, EYE_S, pics[eye] );
     paint.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[shadow] );
-    //paint.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[spec] );
+    paint.drawPixmap ( emx1, emy, EYE_M, EYE_M, pics[spec] );
+    paint.drawPixmap ( emx2, emy, EYE_M, EYE_M, pics[spec] );
+    paint.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[mirror] );
     paint.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[out] );
 }
 

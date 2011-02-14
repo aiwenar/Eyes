@@ -2,6 +2,7 @@
 #define EYES_INFO_H
 
 #define EYE_S   60
+#define EYE_M   9
 
 #define EYES_W  320
 #define EYES_H  80
