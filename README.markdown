@@ -7,13 +7,13 @@ Content:
 
 - Features
 
--- Eyes states
++ Eyes states
 
---- jakiś stan occzka
+* jakiś stan occzka
 
---- jakiś inny stan oczka
+* jakiś inny stan oczka
 
--- itp
++ itp
 
 - intp ( i nie tym podobne :D )
 
