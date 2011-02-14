@@ -1,6 +1,5 @@
 #include <QtGui>
 #include <QApplication>
-#include <QtConcurrentRun>
 
 #include <iostream>
 #include <string>
@@ -19,7 +18,6 @@ static const char help [] = {
     "\t--color=COLOR -c COLOR\tSet eyes color to COLOR.\n"
 };
 
-void core_main ();
 EventQueue * evs;
 eyes_view * eyes;
 
@@ -64,7 +62,6 @@ int main ( int argc, char ** argv )
   eyes->show ();
   eyes->repaint ();
   eyes->update ();
-  QFuture<void> c_main = QtConcurrent::run ( core_main );
 
   return app.exec ();
 }

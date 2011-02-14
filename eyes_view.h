@@ -7,6 +7,7 @@
 #include <QPixmap>
 #include <QMap>
 #include <QMouseEvent>
+#include <QtConcurrentRun>
 
 #include "bulwers.h"
 #include "defines.hxx"
@@ -35,6 +36,7 @@ private:
                             shadow,
                             mirror;
     QMap<QString,QPixmap>   pics;
+    QFuture<void>           c_main;
     int                     px,
                             py,
                             epx1,

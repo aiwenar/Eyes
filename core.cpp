@@ -72,6 +72,7 @@ int         pulsetext       (char*text, int delay, int repeat, int _position);
 void        bulwers_init    ();
 void        initialization  ( core_stats * input );
 void        reload_stats    ( core_stats * input );
+void        cleanup         ();
 bool        identical       ( pict_layers, pict_layers);
 
 static bool event_now,
@@ -91,6 +92,11 @@ void bulwers_init ()
     bulwers->special = 0;
     bulwers->step = 0;
     bulwers->level = 0;
+}
+
+void cleanup ()
+{
+    // tu musisz dorobić usuwanie zmiennych itp
 }
 
 void print_event ( char * ev_text )
@@ -1410,6 +1416,11 @@ void core_main ()
         initialization ( &input );
 while (1)
 {
+    if ( is_finished )
+    {
+        cleanup ();
+        return;
+    }
     cout << "\033[0;22H" << f << '\n';
     reload_stats ( &input );
     eyes->update_bulwers ( &input );

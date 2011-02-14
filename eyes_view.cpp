@@ -23,6 +23,9 @@ static char * files[]     = {
     "spec"                                                      // 38
 };
 
+void core_main ();
+bool is_finished;
+
 eyes_view::eyes_view ( QWidget * parent ) : QWidget ( parent )
 {
     px = MM_NO_MOTION;
@@ -40,11 +43,13 @@ eyes_view::eyes_view ( QWidget * parent ) : QWidget ( parent )
     out = "cusual_01_o";
     shadow = "cusual_01_s";
     mirror = "cusual_01_m";
+    is_finished = false;
+    c_main = QtConcurrent::run ( core_main );
 }
 
 eyes_view::~eyes_view ()
 {
-                delete &eye, &pics, &px, &py, &epx1, &epx2, &epy, &emx1, &emx2, &emy;
+                delete &px, &py, &epx1, &epx2, &epy, &emx1, &emx2, &emy;
 }
 
 void eyes_view::open_images ( QString color )
@@ -94,6 +99,9 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
 void eyes_view::closeEvent ( QCloseEvent * ev )
 {
     ev->accept ();
+    is_finished = true;
+    c_main.waitForFinished ();
+    cout << "\033[0m";
 }
 
 int eyes_view::heightForWidth ( int w ) const
