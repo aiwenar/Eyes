@@ -6,7 +6,6 @@
 
 #include "eyes_view.h"
 #include "eyes_info.h"
-#include "event.hxx"
 
 using namespace std;
 
@@ -18,7 +17,6 @@ static const char help [] = {
     "\t--color=COLOR -c COLOR\tSet eyes color to COLOR.\n"
 };
 
-EventQueue * evs;
 eyes_view * eyes;
 
 int main ( int argc, char ** argv )
