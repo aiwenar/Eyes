@@ -22,46 +22,46 @@ When ther're angry you can pet it for faster calm down.
 
 #### Eyes states
 
-Normal
-----------
+### Normal
+
 
 Nothing goes wrong.
 
 ![jakisobraz](http://gbs.org/images/jakisscreenshot.jakistyp
 
-Sleeppy
-----------
+### Sleeppy
+
 
 It's late or they'ra just tiried (eg. your computer has worked hard today)
 
 ![jakiśobraz](http://gbs.org/images/jakiśscreenshot.jakiśtyp)
 
-Bulwers
-----------
+### Bulwers
+
 
 They're angy, propably your computer works very hard or it's boiling
 
 
 
-Flue
------------
+### Flue
+
 
 Your computer just has got big difference between temperatures in 
 
 
-Shocked
------------
+### Shocked
+
 
 Something unexpected has been detected in your computer state (eg. get out battery in notebook)
 
 
 
-Hot
------------
+### Hot
+
 
 Temperature goes up! Try cool your machine
 
 
 
-----------------------------
+###
 ¹ etnc - et non cetera
