@@ -1,5 +1,5 @@
 ## The Eyes Project
-### Copyrights © 2010 2011 [GlassBallStudio](http://gbs.org) ( Chiliński Damian, Mędrzycki Krzysztof and Paszke Adam )
+### Copyrights © 2010 2011 [GlassBallStudio](http://gbs.org) (Chiliński Damian, Mędrzycki Krzysztof) asociated with: Paszke Adam
 
 Content:
 
