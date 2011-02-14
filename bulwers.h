@@ -51,7 +51,7 @@ struct bulwers_core
 
 struct pict_layers
 {
-char * outline;
+int outline;
 int eye;
 int tired;
 int hot;
@@ -59,9 +59,6 @@ int shy;
 int layer2;
 int layer3;
 int layer4;
-
-friend int operator== (pict_layers& left, int& right );
-friend int operator!= (pict_layers& a, pict_layers& b );
 
 };
 

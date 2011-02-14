@@ -72,6 +72,7 @@ int         pulsetext       (char*text, int delay, int repeat, int _position);
 void        bulwers_init    ();
 void        initialization  ( core_stats * input );
 void        reload_stats    ( core_stats * input );
+bool        identical       ( pict_layers, pict_layers);
 
 static bool event_now,
             get_flu,
@@ -101,6 +102,7 @@ void print_event ( char * ev_text )
 void eyes_view::update_bulwers ( core_stats * input )
 {
     pict_layers pics;
+    pict_layers prev_pics;
     //static int input->current_probe = 0;
         //input->cpu_probes[input->current_probe] = C_LOAD ();
 
@@ -705,9 +707,12 @@ if (wake_up)
 
     if (input->core_battery_plugged == 0)
     {
-        pics.outline = "to_shocked 2";
+        pics.outline = 20;
+        pics.eye = 10;
         print_event ("No battery !");
     }
+    else if (pics.outline == 20)
+        pics.outline = 0;
 
     bulwers->happy = input->prev_happy;
 
@@ -1118,10 +1123,21 @@ if (input->energy > 0)
     input->energy--;
 }
 
+
+
+
+
+/////////////////////////////////////////////////////
+
 //----END OF BULWERS MANAGING
 
+/////////////////////////////////////////////////////
 
 
+if (pics.outline <=19 && bulwers->level != 0)
+    pics.outline = bulwers->level + 3;
+if (pics.outline != 20 && bulwers->level == 0)
+    pics.outline = 0;
 
 //eye size
 
@@ -1136,7 +1152,8 @@ if (input->energy > 0)
 11-14
 */
 
-if (input->core_month == 11 || input->core_month == 12 || input->core_month == 1 || input->core_month == 2)
+//if (input->core_month == 11 || input->core_month == 12 || input->core_month == 1 || input->core_month == 2)
+if (pics.outline != 20)
 {
     if (input->core_time < 6*3600 || input->core_time >= 22*3600)
         pics.eye = 1;
@@ -1157,11 +1174,32 @@ if (input->core_month == 11 || input->core_month == 12 || input->core_month == 1
 if (input->core_day != 7)
 {
     if (input->core_time < 22800 || input->core_time > 75600 || input->energy < 18000)
+    {
         pics.tired = 1;
+        if (pics.outline <= 7)
+        {
+            if ((rand () % 1))
+                pics.outline = 1;
+        }
+    }
     if (input->core_time < 21600 || input->core_time > 79200 || input->energy < 10800)
+    {
         pics.tired = 2;
+        if (pics.outline <= 8)
+        {
+            if ((rand () % 1))
+                pics.outline = 2;
+        }
+    }
     if (input->core_time < 18000 || input->core_time > 82800 || input->energy < 3600 )
+    {
         pics.tired = 3;
+        if (pics.outline <= 9)
+        {
+            if ((rand () % 1))
+                pics.outline = 3;
+        }
+    }
     else
     {
         if (pics.tired > 0)
@@ -1173,25 +1211,36 @@ else
     if (input->core_time < 36000 || input->core_time > 82800 || input->energy < 18000)
     {
         pics.tired = 1;
-        if (bulwers->level <=6)
-            pics.outline = "to_sleeppy 1";
+        if (pics.outline <= 7)
+        {
+            if ((rand () % 1))
+                pics.outline = 1;
+        }
     }
     if ((input->core_time < 28800 && input->core_time > 3600) || input->energy < 10800)
     {
         pics.tired = 2;
-        if (bulwers->level <=6)
-            pics.outline = "to_sleeppy 2";
+        if (pics.outline <= 8)
+        {
+            if ((rand () % 1))
+                pics.outline = 2;
+        }
     }
     if ((input->core_time < 25200 && input->core_time > 10800) || input->energy < 3600 )
     {
         pics.tired = 3;
-        if (bulwers->level <=6)
-            pics.outline = "to_sleeppy 3";
+        if (pics.outline <= 9)
+        {
+            if ((rand () % 1))
+                pics.outline = 3;
+        }
     }
     else
     {
         if (pics.tired > 0)
             pics.tired--;
+        if (pics.outline <= 3 && pics.outline >= 1)
+            pics.outline--;
     }
 }
 /*
@@ -1286,8 +1335,11 @@ if (get_flu)
     }
 }
 
+if (identical (pics, prev_pics))
+{}
+else repaint ();
 
-
+prev_pics = pics;
 
 
 
@@ -1296,12 +1348,14 @@ if (get_flu)
 
 if (!wake_up)
 {
+    pics.outline = 21;
     if (input->core_day != 7)
     {
         if (input->core_time >= 22800 )
         {
             input->energy = 54000;
             wake_up = true;
+            pics.outline = 3;
         }
         else
             input->energy = 43200;
@@ -1313,6 +1367,7 @@ if (!wake_up)
         {
             input->energy = 72000;
             wake_up = true;
+            pics.outline = 3;
         }
         else
             input->energy = 43200;
@@ -1320,67 +1375,22 @@ if (!wake_up)
     cout << "\033[13;17H" << "Wake up Neo!" << endl;
 }
 
-//return pics;
+
 }
+
+
+bool identical (pict_layers el1, pict_layers el2)
+{
+    if (el1.eye == el2.eye && el1.hot == el2.hot && el1.layer2 == el2.layer2 && el1.layer3 == el2.layer3 && el1.layer4 == el2.layer4 && el1.outline == el2.outline && el1.shy == el2.shy && el1.tired == el2.tired)
+        return true;
+    else return false;
+}
+
 
 void core_main ()
 {
-    bulwers_init ();
-    /*event_now = false;
-    wake_up = false;
-    int f=0;
-    int a;
-    cout << "\033[40m" << endl;
-    cout << "\033[2J\033[0;0H";
-    cout << "\033[32m" << endl;
-    naglowek_in ("v.0.0.1a-01");
-    print ( " Welcome in eyes project!\nPlease give number of stages (0 for infinitive): " );
-    cin >> a;
-    naglowek_out ("v.0.0.1a-01");
-    cout << "\033[2J\033[0;0H";
-    cout << "\033[90A" << endl;
-    cout << "\033[2J";
-    print_gui ();
-    cout << "\033[1;33m";
-
-    //Event ev;
-    if (a != 0)
-    {
-        while (f<a)
-        {
-            //if ( evs->poll ( &ev ) and not event_now)
-            //{
-                cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
-                bulwers_init ();
-                event_now = true;
-                usleep (200000);
-            //}
-            //if ( not evs->poll ( &ev ) )
-            //{
-            //    event_now = false;
-            //}
-            //if (!event_now)
-            //{
-            //    cout << "\033[0;22H" << f << " (" << (100*f)/a << "%)" << '\n';
-            //    bulwers_init ();
-            //    sleep (1);
-            //    f++;
-            //}
-        }
-    }
-    else
-    {
-        while (true)
-        {
-            cout << "\033[0;22H" << f << '\n';
-            bulwers_init ();
-            sleep(1);
-            f++;
-        }
-    }
-    about();
-    cout << "\033[0m \033[2J \033[0;0H";
-}*/
+        bulwers_init ();
+        srand ( time(NULL) );
         event_now = false;
         static int f;
         wake_up = false;
