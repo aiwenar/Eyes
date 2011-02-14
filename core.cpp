@@ -36,6 +36,7 @@ GBS copyright 2010 *all rights reserved.
 #include <glibtop/mem.h>
 #include <glibtop/proclist.h>
 #include <glibtop/uptime.h>
+
 #include "bulwers.h"
 #include "eyes_view.h"
 #include "defines.hxx"
