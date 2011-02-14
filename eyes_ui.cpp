@@ -20,7 +20,6 @@ static const char help [] = {
 };
 
 void core_main ();
-
 EventQueue * evs;
 eyes_view * eyes;
 

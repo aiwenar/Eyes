@@ -26,8 +26,8 @@ public:
     QSize               sizeHint            () 															const;
 signals:
 public slots:
-        void            mousePressEvent     ( QMouseEvent * ev );
-        void            mouseMoveEvent      ( QMouseEvent * ev );
+    void            mousePressEvent     ( QMouseEvent * ev );
+    void            mouseMoveEvent      ( QMouseEvent * ev );
 private:
     QString                 eye,
                             spec,

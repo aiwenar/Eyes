@@ -4,6 +4,7 @@
 #include <QPainter>
 
 #include <iostream>
+
 using namespace std;
 
 #define MM_NO_MOTION 10000
