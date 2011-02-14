@@ -26,11 +26,11 @@ eyes_view::~eyes_view ()
 
 void eyes_view::open_images ( QString folder )
 {
-    out = new QPixmap ( "out.png" );
-    shadow = new QPixmap ( "shadow.png" );
-    mirror = new QPixmap ( "mirror.png" );
+    out = new QPixmap ( "pics/cusual_01_o.png" );
+    shadow = new QPixmap ( "pics/cusual_01_s.png" );
+    mirror = new QPixmap ( "pics/cusual_01_m.png" );
     eyein = new QPixmap ( "eyein.png" );
-    eye = new QPixmap ( QString ( "pics/eye_01_n.png" ) );
+    eye = new QPixmap ( QString ( "pics/eye_04_n.png" ) );
     spec = new QPixmap ( "spec.png" );
 }
 
