@@ -1337,7 +1337,7 @@ if (get_flu)
 
 if (identical (pics, prev_pics))
 {}
-else repaint ();
+else update ();
 
 prev_pics = pics;
 
