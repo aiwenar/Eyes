@@ -7,38 +7,61 @@ Content:
 
 - Features
 
-- intp ( i nie tym podobne :D )
+- etnc.¹ 
 
 ### Supported platform
 
-Eyes is currently avalible for Linux, but we are working about Windows version.
+Eyes is currently avalible for Linux, but Adam (who isn't currently in this project) is working about Windows version.
 
 ### Features
 
-* eyes states
-
-* itp
+eyes have got advanced psycho
+Their mood is calculated from many different computer stats like temperature, cpu usage, RAM usage, system uptime, system time or date.
+They're calming down after some time (sec. in Fibbonaci numbers)
+When ther're angry you can pet it for faster calm down.
 
 #### Eyes states
 
-* jakiś stan oczka
+Normal
+----------
 
-* jakiś inny stan oczka
+Nothing goes wrong.
 
-jakis opis stanów oczków
+![jakisobraz](http://gbs.org/images/jakisscreenshot.jakistyp
 
-##### jakiś stan oczka
+Sleeppy
+----------
+
+It's late or they'ra just tiried (eg. your computer has worked hard today)
 
 ![jakiśobraz](http://gbs.org/images/jakiśscreenshot.jakiśtyp)
 
-##### jakiś inny stan oczka
+Bulwers
+----------
 
-itd
+They're angy, propably your computer works very hard or it's boiling
 
-#### itp
 
-itp
 
-### intp
+Flue
+-----------
 
-itp
+Your computer just has got big difference between temperatures in 
+
+
+Shocked
+-----------
+
+Something unexpected has been detected in your computer state (eg. get out battery in notebook)
+
+
+
+Hot
+-----------
+
+Temperature goes up! Try cool your machine
+
+
+
+----------------------------
+¹ etnc - et non cetera
