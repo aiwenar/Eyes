@@ -27,6 +27,8 @@ struct core_stats
                                                 cpu_probes[9]) / 10;*/
             current_probe,            //0
             cpu_probes[10],           //20 / C_LOAD ();
+            cpu_sector_small[10],     //20 / C_LOAD ();
+            current_probe_small,      //0
             core_memory,              //M_LOAD ();
             core_proclist,            //P_LIST ();
             core_uptime,              //U_TIME ();

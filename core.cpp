@@ -77,6 +77,7 @@ bool        identical       ( pict_layers, pict_layers);
 static bool event_now,
             get_flu,
             wake_up;
+static int core_step;
 int _pos;
 
 //------------------
@@ -141,6 +142,17 @@ void eyes_view::update_bulwers ( core_stats * input )
          << input->cpu_probes [7] << ' '
          << input->cpu_probes [8] << ' '
          << input->cpu_probes [9] << '\n';
+    cout << "\033[3;22H" << input->current_probe_small+1 << " " << "\033[2;55H"
+         << input->cpu_sector_small [0] << ' '
+         << input->cpu_sector_small [1] << ' '
+         << input->cpu_sector_small [2] << ' '
+         << input->cpu_sector_small [3] << ' '
+         << input->cpu_sector_small [4] << ' '
+         << input->cpu_sector_small [5] << ' '
+         << input->cpu_sector_small [6] << ' '
+         << input->cpu_sector_small [7] << ' '
+         << input->cpu_sector_small [8] << ' '
+         << input->cpu_sector_small [9] << '\n';
     if (input->cpu_probes[9] == 20){}
     else cout << "\033[3;53H" << input->core_cpu_load;
     cout << "\033[4;53H" << input->core_memory << "%"
@@ -265,16 +277,33 @@ void eyes_view::update_bulwers ( core_stats * input )
 
 if (wake_up)
 {
-    if (input->energy >= 10000)
-        cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)  " << endl;
-    if (input->energy < 10000 && input->energy >= 1000)
-        cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)   " << endl;
-    if (input->energy < 1000 && input->energy >= 100)
-        cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)    " << endl;
-    if (input->energy < 100 && input->energy >= 10)
-        cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)     " << endl;
-    if (input->energy < 10)
-        cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)      " << endl;
+    if (input->core_day != 7)
+    {
+        if (input->energy >= 10000)
+            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)  " << endl;
+        if (input->energy < 10000 && input->energy >= 1000)
+            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)   " << endl;
+        if (input->energy < 1000 && input->energy >= 100)
+            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)    " << endl;
+        if (input->energy < 100 && input->energy >= 10)
+            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)     " << endl;
+        if (input->energy < 10)
+            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)      " << endl;
+    }
+
+    else
+    {
+        if (input->energy >= 10000)
+            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/72000 << "%)  " << endl;
+        if (input->energy < 10000 && input->energy >= 1000)
+            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/72000 << "%)   " << endl;
+        if (input->energy < 1000 && input->energy >= 100)
+            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/72000 << "%)    " << endl;
+        if (input->energy < 100 && input->energy >= 10)
+            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/72000 << "%)     " << endl;
+        if (input->energy < 10)
+            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/72000 << "%)      " << endl;
+    }
 
 
 
@@ -317,20 +346,21 @@ if (wake_up)
         print_event ( "ev5 (it's very late)" );
     }
 
+
+    if ((input->core_uptime >= 36000 || input->energy < 25200) && bulwers->longev < 6)
+    {
+        bulwers->longev = 6;
+        print_event ( "ev6 (they're tired)" );
+    }
+
     if (input->core_temperature >= 58)
     {
         input->energy -=1;
 
-        if(bulwers->longev < 6)
-            bulwers->longev = 6;
+        if(bulwers->longev < 7)
+            bulwers->longev = 7;
 
-        print_event ( "ev6 (temperature goes up to 58ºC)" );
-    }
-
-    if ((input->core_uptime >= 21600 || input->energy < 25200) && bulwers->longev < 7)
-    {
-        bulwers->longev = 7;
-        print_event ( "ev7 (they're tired)" );
+        print_event ( "ev7 (temperature goes up to 58ºC)" );
     }
 
     if (input->core_temperature >= 60)
@@ -423,21 +453,21 @@ if (wake_up)
         {
             bulwers->level = 4;
             input->energy -=1;
-            bulwers->step = 1;
+            bulwers->step = 8;
         }
 
         if(bulwers->level <= 6 && bulwers->longev >= 9)
         {
             bulwers->level = 6;
             input->energy -=1;
-            bulwers->step = 4;
+            bulwers->step = 21;
         }
 
         if(bulwers->level <= 10 && bulwers->longev > 11)
         {
             bulwers->level = 10;
             input->energy -=2;
-            bulwers->step = 64;
+            bulwers->step = 144;
         }
     }
 
@@ -449,21 +479,21 @@ if (wake_up)
         {
             bulwers->level = 6;
             input->energy -=1;
-            bulwers->step = 4;
+            bulwers->step = 21;
         }
 
         if (bulwers->level <= 8 && bulwers->longev >= 8)
         {
             bulwers->level = 8;
             input->energy -=1;
-            bulwers->step = 16;
+            bulwers->step = 55;
         }
 
         if (bulwers->level <= 12 && bulwers->longev > 10)
         {
             bulwers->level = 12;
             input->energy -=2;
-            bulwers->step = 256;
+            bulwers->step = 377;
         }
     }
 
@@ -475,21 +505,21 @@ if (wake_up)
         {
             bulwers->level = 8;
             input->energy -=2;
-            bulwers->step = 16;
+            bulwers->step = 55;
         }
 
         if (bulwers->level <= 10 && bulwers->longev >= 7)
         {
             bulwers->level = 10;
             input->energy -=2;
-            bulwers->step = 64;
+            bulwers->step = 144;
         }
 
         if (bulwers->level <= 14 && bulwers->longev > 9)
         {
             bulwers->level = 14;
             input->energy -=3;
-            bulwers->step = 1024;
+            bulwers->step = 987;
         }
     }
 
@@ -501,21 +531,21 @@ if (wake_up)
         {
             bulwers->level = 10;
             input->energy -=2;
-            bulwers->step = 64;
+            bulwers->step = 144;
         }
 
         if(bulwers->level <= 12 && bulwers->longev >= 6)
         {
             bulwers->level = 12;
             input->energy -=2;
-            bulwers->step = 256;
+            bulwers->step = 377;
         }
 
         if(bulwers->level <= 15 && bulwers->longev > 8)
         {
             bulwers->level = 15;
             input->energy -=3;
-            bulwers->step = 2048;
+            bulwers->step = 1597;
         }
     }
 
@@ -527,21 +557,21 @@ if (wake_up)
         {
             bulwers->level = 12;
             input->energy -=3;
-            bulwers->step = 256;
+            bulwers->step = 377;
         }
 
         if(bulwers->level <= 14 && bulwers->longev >= 5)
         {
             bulwers->level = 14;
             input->energy -=3;
-            bulwers->step = 1024;
+            bulwers->step = 987;
         }
 
         if(bulwers->level <= 16 && bulwers->longev > 7)
         {
             bulwers->level = 16;
             input->energy -=4;
-            bulwers->step = 4096;
+            bulwers->step = 2584;
         }
     }
 
@@ -581,20 +611,20 @@ if (wake_up)
         if(bulwers->level <= 4 && bulwers->longev < 9)
         {
             bulwers->level = 4;
-            bulwers->step = 1;
+            bulwers->step = 8;
         }
 
         if(bulwers->level <= 5 && bulwers->longev >= 9)
         {
             bulwers->level = 5;
-            bulwers->step = 2;
+            bulwers->step = 13;
         }
 
         if(bulwers->level <= 7 && bulwers->longev > 11)
         {
             bulwers->level = 7;
             input->energy -=1;
-            bulwers->step = 16;
+            bulwers->step = 34;
         }
     }
 
@@ -605,20 +635,20 @@ if (wake_up)
         if(bulwers->level <= 5 && bulwers->longev < 8)
         {
             bulwers->level = 5;
-            bulwers->step = 2;
+            bulwers->step = 13;
         }
 
         if(bulwers->level <= 6 && bulwers->longev >= 8)
         {
             bulwers->level = 6;
-            bulwers->step = 4;
+            bulwers->step = 21;
         }
 
         if(bulwers->level <= 8 && bulwers->longev > 10)
         {
             bulwers->level = 8;
             input->energy -=1;
-            bulwers->step = 16;
+            bulwers->step = 55;
         }
     }
 
@@ -630,21 +660,21 @@ if (wake_up)
         {
             bulwers->level = 6;
             input->energy -=1;
-            bulwers->step = 4;
+            bulwers->step = 21;
         }
 
         if(bulwers->level <= 7 && bulwers->longev >= 7)
         {
             bulwers->level = 7;
             input->energy -=1;
-            bulwers->step = 8;
+            bulwers->step = 34;
         }
 
         if(bulwers->level <= 9 && bulwers->longev > 9)
         {
             bulwers->level = 9;
             input->energy -=2;
-            bulwers->step = 32;
+            bulwers->step = 89;
         }
     }
 
@@ -656,21 +686,21 @@ if (wake_up)
         {
             bulwers->level = 7;
             input->energy -=1;
-            bulwers->step = 8;
+            bulwers->step = 34;
         }
 
         if(bulwers->level <= 8 && bulwers->longev >= 6)
         {
             bulwers->level = 8;
             input->energy -=1;
-            bulwers->step = 16;
+            bulwers->step = 55;
         }
 
         if(bulwers->level <= 10 && bulwers->longev > 8)
         {
             bulwers->level = 10;
             input->energy -=2;
-            bulwers->step = 64;
+            bulwers->step = 144;
         }
     }
 
@@ -682,21 +712,21 @@ if (wake_up)
         {
             bulwers->level = 8;
             input->energy -=2;
-            bulwers->step = 16;
+            bulwers->step = 55;
         }
 
         if(bulwers->level <= 9 && bulwers->longev >= 5)
         {
             bulwers->level = 9;
             input->energy -=2;
-            bulwers->step = 32;
+            bulwers->step = 89;
         }
 
         if(bulwers->level <= 11 && bulwers->longev > 7)
         {
             bulwers->level = 11;
             input->energy -=3;
-            bulwers->step = 128;
+            bulwers->step = 233;
         }
     }
 
@@ -824,14 +854,43 @@ if (wake_up)
 */
 
     //---bulwers state
-
+    if (bulwers->level == 1)
+    {
+        if (bulwers->step == 0)
+        {
+            bulwers->level = 0;
+        }
+        else
+            bulwers->step--;
+    }
+    if (bulwers->level == 2)
+    {
+        if (bulwers->step == 0)
+        {
+            bulwers->level--;
+            bulwers->step = 2;
+        }
+        else
+            bulwers->step--;
+    }
+    if (bulwers->level == 3)
+    {
+        if (bulwers->step == 0)
+        {
+            bulwers->level--;
+            bulwers->step = 3;
+        }
+        else
+            bulwers->step--;
+    }
     if (bulwers->level == 4)
     {
         if ((input->core_memory < 40 && bulwers->longev < 9) && (input->core_cpu_load < 40 && bulwers->longev < 9))
         {
             if (bulwers->step == 0)
             {
-                bulwers->level = 0;
+                bulwers->level--;
+                bulwers->step = 5;
             }
             else
                 bulwers->step--;
@@ -844,7 +903,7 @@ if (wake_up)
             if (bulwers->step == 0)
             {
                 bulwers->level--;
-                bulwers->step = 1;
+                bulwers->step = 8;
             }
             else
                 bulwers->step--;
@@ -857,7 +916,7 @@ if (wake_up)
             if (bulwers->step == 0)
             {
                 bulwers->level--;
-                bulwers->step = 1;
+                bulwers->step = 13;
             }
             else
                 bulwers->step--;
@@ -870,7 +929,7 @@ if (wake_up)
             if (bulwers->step == 0)
             {
                 bulwers->level--;
-                bulwers->step = 2;
+                bulwers->step = 21;
             }
             else
                 bulwers->step--;
@@ -883,7 +942,7 @@ if (wake_up)
             if (bulwers->step == 0)
             {
                 bulwers->level--;
-                bulwers->step = 4;
+                bulwers->step = 34;
             }
             else
                 bulwers->step--;
@@ -896,7 +955,7 @@ if (wake_up)
             if (bulwers->step == 0)
             {
                 bulwers->level--;
-                bulwers->step = 8;
+                bulwers->step = 55;
             }
             else
                 bulwers->step--;
@@ -909,7 +968,7 @@ if (wake_up)
             if (bulwers->step == 0)
             {
                 bulwers->level--;
-                bulwers->step = 16;
+                bulwers->step = 89;
             }
             else
                 bulwers->step--;
@@ -922,7 +981,7 @@ if (wake_up)
             if (bulwers->step == 0)
             {
                 bulwers->level--;
-                bulwers->step = 32;
+                bulwers->step = 144;
             }
             else
                 bulwers->step--;
@@ -935,7 +994,7 @@ if (wake_up)
             if (bulwers->step == 0)
             {
                 bulwers->level--;
-                bulwers->step = 64;
+                bulwers->step = 233;
             }
             else
                 bulwers->step--;
@@ -948,7 +1007,7 @@ if (wake_up)
             if (bulwers->step == 0)
             {
                 bulwers->level--;
-                bulwers->step = 128;
+                bulwers->step = 377;
             }
             else
                 bulwers->step--;
@@ -961,7 +1020,7 @@ if (wake_up)
             if (bulwers->step == 0)
             {
                 bulwers->level--;
-                bulwers->step = 256;
+                bulwers->step = 610;
             }
             else
                 bulwers->step--;
@@ -974,7 +1033,7 @@ if (wake_up)
             if (bulwers->step == 0)
             {
                 bulwers->level--;
-                bulwers->step = 512;
+                bulwers->step = 987;
             }
             else
                 bulwers->step--;
@@ -987,7 +1046,7 @@ if (wake_up)
             if (bulwers->step == 0)
             {
                 bulwers->level--;
-                bulwers->step = 1024;
+                bulwers->step = 1597;
             }
             else
                 bulwers->step--;
@@ -1392,7 +1451,7 @@ void core_main ()
         bulwers_init ();
         srand ( time(NULL) );
         event_now = false;
-        static int f;
+        core_step = 1;
         wake_up = false;
         cout << "\033[40m" << endl;
         cout << "\033[2J\033[0;0H";
@@ -1410,11 +1469,11 @@ void core_main ()
         initialization ( &input );
 while (1)
 {
-    cout << "\033[0;22H" << f << '\n';
+    cout << "\033[0;22H" << core_step << '\n';
     reload_stats ( &input );
     eyes->update_bulwers ( &input );
     sleep (1);
-    f++;
+    core_step++;
 }
 
 
@@ -1435,6 +1494,7 @@ void initialization ( core_stats * input)
                 input->core_temperature         =temperatura ();
                 input->core_battery             =bateria();
                 input->current_probe            =0;
+                input->current_probe_small      =0;
                 input->cpu_probes[0]            =20;
                 input->cpu_probes[1]            =20;
                 input->cpu_probes[2]            =20;
@@ -1445,6 +1505,16 @@ void initialization ( core_stats * input)
                 input->cpu_probes[7]            =20;
                 input->cpu_probes[8]            =20;
                 input->cpu_probes[9]            =20;
+                input->cpu_sector_small[0]      =20;
+                input->cpu_sector_small[1]      =20;
+                input->cpu_sector_small[2]      =20;
+                input->cpu_sector_small[3]      =20;
+                input->cpu_sector_small[4]      =20;
+                input->cpu_sector_small[5]      =20;
+                input->cpu_sector_small[6]      =20;
+                input->cpu_sector_small[7]      =20;
+                input->cpu_sector_small[8]      =20;
+                input->cpu_sector_small[9]      =20;
                 input->core_cpu_load            =20;
                 input->core_memory              =M_LOAD ();
                 input->core_proclist            =P_LIST ();
@@ -1471,6 +1541,24 @@ void reload_stats ( core_stats * input )
                 input->core_battery_plugged     =bat_plugged ();
                 input->core_temperature         =temperatura ();
                 input->core_battery             =bateria();
+                input->current_probe_small      ++;
+                if (input->current_probe_small == 10)
+                    input->current_probe_small = 0;
+                input->cpu_sector_small[input->current_probe_small] = C_LOAD ();
+                if (input->cpu_sector_small[input->current_probe_small] > 100)
+                    input->cpu_sector_small[input->current_probe_small] = 20;
+                input->cpu_probes[input->current_probe] = ((input->cpu_sector_small[0] +
+                                                            input->cpu_sector_small[1] +
+                                                            input->cpu_sector_small[2] +
+                                                            input->cpu_sector_small[3] +
+                                                            input->cpu_sector_small[4] +
+                                                            input->cpu_sector_small[5] +
+                                                            input->cpu_sector_small[6] +
+                                                            input->cpu_sector_small[7] +
+                                                            input->cpu_sector_small[8] +
+                                                            input->cpu_sector_small[9]) / 10);
+                if (core_step % 10 == 0)
+                {
                 input->current_probe            ++;
                 input->core_cpu_load = (input->cpu_probes[0] +
                                         input->cpu_probes[1] +
@@ -1484,9 +1572,7 @@ void reload_stats ( core_stats * input )
                                         input->cpu_probes[9]) / 10;
                 if (input->current_probe == 10)
                     input->current_probe = 0;
-                input->cpu_probes[input->current_probe]=C_LOAD ();
-                if (input->cpu_probes[input->current_probe] > 100)
-                input->cpu_probes[input->current_probe] = 20;
+                }
                 input->core_memory              =M_LOAD ();
                 input->core_proclist            =P_LIST ();
                 input->core_uptime              =U_TIME ();
