@@ -20,8 +20,8 @@ Their mood is calculated from many different computer stats like temperature, cp
 They're calming down after some time (sec. in Fibbonaci numbers)
 When ther're angry you can pet it for faster calm down.
 
-#### Eyes states
-
+Eyes states
+-------------
 ### Normal
 
 
@@ -63,5 +63,5 @@ Temperature goes up! Try cool your machine
 
 
 
-###
+#
 ¹ etnc - et non cetera
