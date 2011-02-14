@@ -5,7 +5,7 @@
 #include <QGraphicsScene>
 #include <QImage>
 #include <QPixmap>
-#include <QVector>
+#include <QMap>
 #include <QMouseEvent>
 
 #include "bulwers.h"
@@ -20,7 +20,7 @@ public:
     void        	open_images         ( QString folder );
     void        	paintEvent          ( QPaintEvent * );
     void                closeEvent          ( QCloseEvent * ev );
-    void                update_bulwers      ( core_stats * input );
+    void                update_bulwers      ( core_stats * color );
     int                 heightForWidth      ( int w )                               const;
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            () 															const;
@@ -29,17 +29,16 @@ public slots:
         void            mousePressEvent     ( QMouseEvent * ev );
         void            mouseMoveEvent      ( QMouseEvent * ev );
 private:
-    QPixmap           * out,
-                      * shadow,
-                      * mirror,
-                      * eyein,
-                      * eye,
-                      * spec;
-    int                 px,
-                        py,
-                        epx1,
-                        epx2,
-                        epy;
+    QString                 eye,
+                            spec,
+                            out,
+                            shadow;
+    QMap<QString,QPixmap>   pics;
+    int                     px,
+                            py,
+                            epx1,
+                            epx2,
+                            epy;
 };
 
 extern eyes_view * eyes;
