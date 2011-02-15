@@ -68,7 +68,7 @@ Temperature goes up! Try cool your machine
 
 
 
-![ending][end_ad]
+![logo](http://img405.imageshack.us/img405/5218/logozva.png)
 
 ¹ etnc - et non cetera
 
