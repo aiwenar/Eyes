@@ -70,8 +70,6 @@ Temperature goes up! Try cool your machine
 
 ![logo](http://img208.imageshack.us/img208/2520/logosmalle.gif)
 
-Uploaded with [URL=http://imageshack.us]ImageShack.us[/URL]
-
 ¹ etnc - et non cetera
 
 [home]: http://gbs.org
