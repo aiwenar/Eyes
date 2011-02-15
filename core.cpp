@@ -1407,17 +1407,43 @@ if (pics.outline == 0)
     int tmp = rand () % 3;
     if (tmp == 0)
         face = "cusual_01";
-    else
-        face = "bul_0" + tmp;
+    if (tmp == 1)
+        face = "bul_01";
+    if (tmp == 2)
+        face = "bul_02";
+    if (tmp == 3)
+        face = "bul_03";
 }
 else
 {
     if (pics.outline == 1)
-        face = "slp_" + rand () % 3 + 1;
+    {
+        tmp = rand () % 3 + 1;
+        if (tmp == 1)
+            face = "slp_01";
+        if (tmp == 2)
+            face = "slp_02";
+        if (tmp == 3)
+            face = "slp_03";
+        if (tmp == 4)
+            face = "slp_04";
+    }
     if (pics.outline == 2)
-        face = "slp_" + rand () % 4 + 3;
+    {
+        tmp = rand () % 1 + 4;
+        if (tmp == 4)
+            face = "slp_04";
+        if (tmp == 5)
+            face = "slp_05";
+    }
     if (pics.outline == 3)
-        face = "slp_" + rand () % 5 + 1;
+    {
+        tmp = rand () % 5 + 1;
+        if (tmp == 5)
+            face = "slp_05";
+        if (tmp == 6)
+            face = "slp_06";
+    }
 
     if (pics.outline > 3)
     {
