@@ -2,6 +2,7 @@
 ### Copyrights © 2010 2011 [GlassBallStudio][home] (Chiliński Damian, Mędrzycki Krzysztof) asociated with: Paszke Adam
 
 Content:
+--------
 
 - Supported platforms
 
@@ -9,11 +10,13 @@ Content:
 
 - etnc.¹ 
 
-### Supported platform
+ Supported platform
+--------------
 
 Eyes is currently avalible for Linux, but Adam (who isn't currently in this project) is working about Windows version.
 
-### Features
+ Features
+------------
 
 eyes have got advanced psycho
 Their mood is calculated from many different computer stats like temperature, cpu usage, RAM usage, system uptime, system time or date.
