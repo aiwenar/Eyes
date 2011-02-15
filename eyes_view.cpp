@@ -54,13 +54,23 @@ eyes_view::~eyes_view ()
 
 void eyes_view::open_images ( QString color )
 {
+    QPixmap file;
+    bool no_file ( false );
     for ( int i=0 ; i<38 ; i++ )
     {
-        pics.insert ( QString ( files[i] ), QPixmap ( QString ( folder ) + files[i] + ".png" ) );
-        if ( pics[QString ( files[i] ) ].isNull () )
+        file.load ( QString ( folder ) + files[i] + ".png" );
+        if ( file.isNull () )
         {
             cerr << "[error :] file " << ( QString ( folder ) + files[i] + ".png" ).toStdString () << " is nil.\n";
+            no_file = true;
         }
+        pics.insert ( QString ( files[i] ), file.scaled ( EYES_W, EYES_H, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
+    }
+    if ( no_file )
+    {
+        c_main.cancel ();
+        cerr << "Some files may not exist, exiting...\n";
+        exit ( 2 );
     }
 }
 
@@ -77,7 +87,7 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_m"] );
     parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_o"] );
     parea.end ();
-    area->setMask ( pics[face+"_a"].scaled ( EYES_W, EYES_H ).mask () );
+    area->setMask ( pics[face+"_a"].mask () );
     paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *area );
 }
 
