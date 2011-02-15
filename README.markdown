@@ -78,5 +78,5 @@ Temperature goes up! Try cool your machine
 [flue]: http://gbs.org/images/eyes/flue.png "flue"
 [shocked]: http://gbs.org/images/eyes/shocked.png "shocked"
 [hot]: http://gbs.org/images/eyes/hot.png "hot"
-[main_ad]: http://img143.imageshack.us/i/commercial.png "advertisement"
+[main_ad]: [URL=http://img143.imageshack.us/i/commercial.png/][IMG]http://img143.imageshack.us/img143/9532/commercial.png[/IMG][/URL] "advertisement"
 [end_ad]: 
