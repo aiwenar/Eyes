@@ -9,6 +9,7 @@
 #include <QMap>
 #include <QMouseEvent>
 #include <QtConcurrentRun>
+#include <QTimer>
 
 #include "bulwers.h"
 #include "defines.hxx"
@@ -25,13 +26,16 @@ public:
     void                update_bulwers      ( core_stats * color );
     void                update_mask         ();
     int                 heightForWidth      ( int w )                               const;
+    int                 get_next_clap_delay ();
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            () 															const;
 signals:
 public slots:
     void            mousePressEvent     ( QMouseEvent * ev );
     void            mouseMoveEvent      ( QMouseEvent * ev );
+    void            eyes_time_event     ();
 private:
+    QTimer                * timer;
     QWidget               * win;
     QBitmap                 mask;
     QPixmap               * area;
