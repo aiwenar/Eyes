@@ -36,7 +36,7 @@ Nothing goes wrong.
 
 It's late or they'ra just tiried (eg. your computer has worked hard today)
 
-![spleeppy screenshot][sleppy]
+![spleeppy screenshot][sleeppy]
 
 #### Bulwers
 
