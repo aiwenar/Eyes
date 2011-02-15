@@ -5,6 +5,7 @@
 #include <QGraphicsScene>
 #include <QImage>
 #include <QPixmap>
+#include <QBitmap>
 #include <QMap>
 #include <QMouseEvent>
 #include <QtConcurrentRun>
@@ -22,6 +23,7 @@ public:
     void        	paintEvent          ( QPaintEvent * );
     void                closeEvent          ( QCloseEvent * ev );
     void                update_bulwers      ( core_stats * color );
+    void                update_mask         ();
     int                 heightForWidth      ( int w )                               const;
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            () 															const;
@@ -30,11 +32,12 @@ public slots:
     void            mousePressEvent     ( QMouseEvent * ev );
     void            mouseMoveEvent      ( QMouseEvent * ev );
 private:
+    QWidget               * win;
+    QBitmap                 mask;
+    QPixmap               * area;
     QString                 eye,
-                            spec,
-                            out,
-                            shadow,
-                            mirror;
+                            face,
+                            spec;
     QMap<QString,QPixmap>   pics;
     QFuture<void>           c_main;
     int                     px,

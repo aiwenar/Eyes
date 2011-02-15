@@ -40,11 +40,12 @@ eyes_view::eyes_view ( QWidget * parent ) : QWidget ( parent )
     setMaximumSize ( EYES_W, EYES_H );
     spec = "spec";
     eye = "eye_04_n";
-    out = "cusual_01_o";
-    shadow = "cusual_01_s";
-    mirror = "cusual_01_m";
+    face = "cusual_01";
     is_finished = false;
     c_main = QtConcurrent::run ( core_main );
+    area = new QPixmap ( EYES_W, EYES_H );
+    update_mask ();
+    win = parent;
 }
 
 eyes_view::~eyes_view ()
@@ -67,13 +68,17 @@ void eyes_view::open_images ( QString color )
 void eyes_view::paintEvent ( QPaintEvent * event )
 {
     QPainter paint ( this );
-    paint.drawPixmap ( epx1, epy, EYE_S, EYE_S, pics[eye] );
-    paint.drawPixmap ( epx2, epy, EYE_S, EYE_S, pics[eye] );
-    paint.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[shadow] );
-    paint.drawPixmap ( emx1, emy, EYE_M, EYE_M, pics[spec] );
-    paint.drawPixmap ( emx2, emy, EYE_M, EYE_M, pics[spec] );
-    paint.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[mirror] );
-    paint.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[out] );
+    QPainter parea ( area );
+    parea.drawPixmap ( epx1, epy, EYE_S, EYE_S, pics[eye] );
+    parea.drawPixmap ( epx2, epy, EYE_S, EYE_S, pics[eye] );
+    parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_s"] );
+    parea.drawPixmap ( emx1, emy, EYE_M, EYE_M, pics[spec] );
+    parea.drawPixmap ( emx2, emy, EYE_M, EYE_M, pics[spec] );
+    parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_m"] );
+    parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_o"] );
+    parea.end ();
+    area->setMask ( pics[face+"_a"].mask () );
+    paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *area );
 }
 
 void eyes_view::mousePressEvent ( QMouseEvent * ev )
@@ -102,6 +107,11 @@ void eyes_view::closeEvent ( QCloseEvent * ev )
     is_finished = true;
     c_main.waitForFinished ();
     cout << "\033[0m";
+}
+
+void eyes_view::update_mask ()
+{
+    return;
 }
 
 int eyes_view::heightForWidth ( int w ) const
