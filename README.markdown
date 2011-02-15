@@ -1,5 +1,5 @@
 ## The Eyes Project
-### Copyrights © 2010 2011 [GlassBallStudio](http://gbs.org) (Chiliński Damian, Mędrzycki Krzysztof) asociated with: Paszke Adam
+### Copyrights © 2010 2011 [GlassBallStudio][home] (Chiliński Damian, Mędrzycki Krzysztof) asociated with: Paszke Adam
 
 Content:
 
@@ -24,44 +24,46 @@ Eyes states
 -------------
 #### Normal
 
-
 Nothing goes wrong.
 
-![jakisobraz](http://gbs.org/images/jakisscreenshot.jakistyp
+![normal screenshot][normal]
 
 #### Sleeppy
 
-
 It's late or they'ra just tiried (eg. your computer has worked hard today)
 
-![jakiśobraz](http://gbs.org/images/jakiśscreenshot.jakiśtyp)
+![spleeppy screenshot][sleppy]
 
 #### Bulwers
 
-
 They're angy, propably your computer works very hard or it's boiling
 
-
+![bulwers screenshot][bulwers]
 
 #### Flue
 
-
 Your computer just has got big difference between temperatures in 
 
+![flue screenshot][flue]
 
 #### Shocked
 
-
 Something unexpected has been detected in your computer state (eg. get out battery in notebook)
 
-
+![shocked screenshot][shocked]
 
 #### Hot
 
-
 Temperature goes up! Try cool your machine
 
-
-
+![hot screenshot][hot]
 
 ¹ etnc - et non cetera
+
+[home]: http://gbs.org
+[normal]: http://gbs.org/images/eyes/normal.png "normal"
+[sleeppy]: http://gbs.org/images/eyes/sleppy.png "sleppy"
+[bulwers]: http://gbs.org/images/eyes/bulwers.png "bulwers"
+[flue]: http://gbs.org/images/eyes/flue.png "flue"
+[shocked]: http://gbs.org/images/eyes/shocked.png "shocked"
+[hot]: http://gbs.org/images/eyes/hot.png "hot"
