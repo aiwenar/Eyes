@@ -7,7 +7,7 @@ morzna na 2 sposoby.
 
 1)
 
-![advertisement](http://img143.imageshack.us/i/commercial.png)
+![advertisement](http://img143.imageshack.us/img143/9532/commercial.png)
 
 2)
 
@@ -15,7 +15,7 @@ morzna na 2 sposoby.
 
 i gdzieś na dole:
 
-[keyword]: http://img143.imageshack.us/i/commercial.png/
+[keyword]: http://img143.imageshack.us/img143/9532/commercial.png
 
 Content:
 --------
