@@ -18,7 +18,7 @@ Content:
  Supported platform
 --------------
 
-Eyes is currently avalible for Linux, but Adam (who isn't currently in this project) is working about Windows version.
+Eyes is currently avalible for Linux, but Adam is working about Windows version.
 
  Features
 ------------
