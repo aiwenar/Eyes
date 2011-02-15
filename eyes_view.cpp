@@ -15,11 +15,13 @@ static char * files[]     = {
     "clap_03_a", "clap_03_m", "clap_03_o", "clap_03_s",         // 12
     "clap_04_a", "clap_04_m", "clap_04_o", "clap_04_s",         // 16
     "clap_05_a", "clap_05_m", "clap_05_o", "clap_05_s",         // 20
-    "cusual_01_a", "cusual_01_m", "cusual_01_o", "cusual_01_s", // 24
-    "eye_01_n", "eye_02_n", "eye_03_n", "eye_04_n", "eye_05_n", // 29
-    "eye_06_n", "eye_07_n", "eye_08_n", "eye_09_n", "eye_10_n", // 34
-    "tired_01", "tired_02", "tired_03",                         // 37
-    "spec"                                                      // 38
+    "bul_01_a", "bul_01_m", "bul_01_o", "bul_01_s",             // 24
+    "bul_02_a", "bul_02_m",
+    "cusual_01_a", "cusual_01_m", "cusual_01_o", "cusual_01_s", //
+    "eye_01_n", "eye_02_n", "eye_03_n", "eye_04_n", "eye_05_n", //
+    "eye_06_n", "eye_07_n", "eye_08_n", "eye_09_n", "eye_10_n", //
+    "tired_01", "tired_02", "tired_03",                         //
+    "spec"                                                      //
 };
 
 void core_main ();
@@ -45,6 +47,8 @@ eyes_view::eyes_view ( QWidget * parent ) : QWidget ( parent )
     area = new QPixmap ( EYES_W, EYES_H );
     update_mask ();
     win = parent;
+    timer = new QTimer ( this );
+    connect ( timer, SIGNAL ( timeout () ), this, SLOT ( eyes_time_event () ) );
 }
 
 eyes_view::~eyes_view ()
@@ -64,7 +68,11 @@ void eyes_view::open_images ( QString color )
             cerr << "[error :] file " << ( QString ( folder ) + files[i] + ".png" ).toStdString () << " is nil.\n";
             no_file = true;
         }
-        pics.insert ( QString ( files[i] ), file.scaled ( EYES_W, EYES_H, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
+        else
+        {
+            pics.insert ( QString ( files[i] ), file.scaled ( EYES_W, EYES_H, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
+            cerr << "[info :] loading image " << files[i] << ".\n";
+        }
     }
     if ( no_file )
     {
@@ -110,6 +118,11 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
     int dy = ( ( py > ev->y () ? -1 : 1 ) * py ) + ev->y ();
     move ( dx, dy );
     repaint ();
+}
+
+void eyes_view::eyes_time_event ()
+{
+
 }
 
 void eyes_view::closeEvent ( QCloseEvent * ev )
