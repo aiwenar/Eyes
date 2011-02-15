@@ -122,7 +122,18 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
 
 void eyes_view::eyes_time_event ()
 {
-
+    for ( int i=0 ; i<6 ; i++ )
+    {
+        face = QString ( "clap_0" ) + i;
+        update ();
+        QThread::sleep ( 200 );
+    }
+    for ( int i=5 ; i>=0 ; i++ )
+    {
+        face = QString ( "clap_0" ) + i;
+        update ();
+    }
+    timer->setInterval ( get_next_clap_delay () );
 }
 
 void eyes_view::closeEvent ( QCloseEvent * ev )
@@ -141,6 +152,11 @@ void eyes_view::update_mask ()
 int eyes_view::heightForWidth ( int w ) const
 {
     return ( EYES_H );
+}
+
+int eyes_view::get_next_clap_delay ()
+{
+    return ( rand () % 35 + 5 );
 }
 
 QVariant eyes_view::inputMethodQuery ( Qt::InputMethodQuery query ) const
