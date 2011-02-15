@@ -3,7 +3,7 @@
 
 ![advertisement][URL=http://img143.imageshack.us/i/commercial.png/][IMG]http://img143.imageshack.us/img143/9532/commercial.png[/IMG][/URL]
 
-Uploaded with [URL=http://imageshack.us]ImageShack.us[/URL]
+
 
 ### Copyrights © 2010 2011 [GlassBallStudio][home] (Chiliński Damian, Mędrzycki Krzysztof) asociated with: Paszke Adam
 
