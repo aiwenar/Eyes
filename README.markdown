@@ -1,5 +1,8 @@
  The Eyes Project
 =========================
+
+![advertisement][main_ad]
+
 ### Copyrights © 2010 2011 [GlassBallStudio][home] (Chiliński Damian, Mędrzycki Krzysztof) asociated with: Paszke Adam
 
 Content:
@@ -62,6 +65,10 @@ Temperature goes up! Try cool your machine
 
 ![hot screenshot][hot]
 
+
+
+![ending][end_ad]
+
 ¹ etnc - et non cetera
 
 [home]: http://gbs.org
@@ -71,3 +78,5 @@ Temperature goes up! Try cool your machine
 [flue]: http://gbs.org/images/eyes/flue.png "flue"
 [shocked]: http://gbs.org/images/eyes/shocked.png "shocked"
 [hot]: http://gbs.org/images/eyes/hot.png "hot"
+[main_ad]: http://img143.imageshack.us/i/commercial.png "advertisement"
+[end_ad]: 
