@@ -1,11 +1,13 @@
  The Eyes Project
 =========================
 
+### Copyrights © 2010 2011 [GlassBallStudio][home] (Chiliński Damian, Mędrzycki Krzysztof) asociated with: Paszke Adam
+
 morzna na 2 sposoby.
 
 1)
 
-![advertisement](http://img143.imageshack.us/i/commercial.png/][IMG]http://img143.imageshack.us/img143/9532/commercial.png)
+![advertisement](http://img143.imageshack.us/i/commercial.png)
 
 2)
 
@@ -13,9 +15,7 @@ morzna na 2 sposoby.
 
 i gdzieś na dole:
 
-[keyword]: http://img143.imageshack.us/i/commercial.png/][IMG]http://img143.imageshack.us/img143/9532/commercial.png
-
-### Copyrights © 2010 2011 [GlassBallStudio][home] (Chiliński Damian, Mędrzycki Krzysztof) asociated with: Paszke Adam
+[keyword]: http://img143.imageshack.us/i/commercial.png/
 
 Content:
 --------
