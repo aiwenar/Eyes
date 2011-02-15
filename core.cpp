@@ -1402,9 +1402,44 @@ if (get_flu)
     }
 }
 
+if (pics.outline == 0)
+{
+    int tmp = rand () % 3;
+    if (tmp == 0)
+        face = "cusual_01";
+    else
+        face = "bul_0" + tmp;
+}
+else
+{
+    if (pics.outline == 1)
+        face = "slp_" + rand () % 3 + 1;
+    if (pics.outline == 2)
+        face = "slp_" + rand () % 4 + 3;
+    if (pics.outline == 3)
+        face = "slp_" + rand () % 5 + 1;
+
+    if (pics.outline > 3)
+    {
+        if (pics.outline < 10)
+            face = "bul_0" + pics.outline;
+        if (pics.outline >= 10 && pics.outline < 20)
+            face = "bul_" + pics.outline;
+        if (pics.outline == 20)
+            face = "sh_02";
+        if (prev_pics.outline == 20 && pics.outline != 20)
+            face = "sh_01";
+        if (pics.outline == 21)
+            face = "slp_10";
+    }
+
+}
+
+
 if (identical (pics, prev_pics))
 {}
-else update ();
+else if (pics.outline != 20)
+    update ();
 
 prev_pics = pics;
 
