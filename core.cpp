@@ -1418,7 +1418,7 @@ else
 {
     if (pics.outline == 1)
     {
-        tmp = rand () % 3 + 1;
+        int tmp = rand () % 3 + 1;
         if (tmp == 1)
             face = "slp_01";
         if (tmp == 2)
@@ -1430,7 +1430,7 @@ else
     }
     if (pics.outline == 2)
     {
-        tmp = rand () % 1 + 4;
+        int tmp = rand () % 1 + 4;
         if (tmp == 4)
             face = "slp_04";
         if (tmp == 5)
@@ -1438,7 +1438,7 @@ else
     }
     if (pics.outline == 3)
     {
-        tmp = rand () % 5 + 1;
+        int tmp = rand () % 5 + 1;
         if (tmp == 5)
             face = "slp_05";
         if (tmp == 6)
