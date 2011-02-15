@@ -68,6 +68,7 @@ void eyes_view::paintEvent ( QPaintEvent * event )
 {
     QPainter paint ( this );
     QPainter parea ( area );
+    area->fill ();
     parea.drawPixmap ( epx1, epy, EYE_S, EYE_S, pics[eye] );
     parea.drawPixmap ( epx2, epy, EYE_S, EYE_S, pics[eye] );
     parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_s"] );
