@@ -1,5 +1,10 @@
  The Eyes Project
 =========================
+
+![advertisement][URL=http://img143.imageshack.us/i/commercial.png/][IMG]http://img143.imageshack.us/img143/9532/commercial.png[/IMG][/URL]
+
+
+
 ### Copyrights © 2010 2011 [GlassBallStudio][home] (Chiliński Damian, Mędrzycki Krzysztof) asociated with: Paszke Adam
 
 Content:
@@ -61,6 +66,10 @@ Something unexpected has been detected in your computer state (eg. get out batte
 Temperature goes up! Try cool your machine
 
 ![hot screenshot][hot]
+
+
+
+![ending][end_ad]
 
 ¹ etnc - et non cetera
 
