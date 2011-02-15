@@ -77,7 +77,7 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_m"] );
     parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_o"] );
     parea.end ();
-    area->setMask ( pics[face+"_a"].mask () );
+    area->setMask ( pics[face+"_a"].scaled ( EYES_W, EYES_H ).mask () );
     paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *area );
 }
 
