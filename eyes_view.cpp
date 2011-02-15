@@ -2,7 +2,6 @@
 #include "eyes_info.h"
 
 #include <QPainter>
-
 #include <iostream>
 
 using namespace std;
