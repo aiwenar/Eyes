@@ -10,14 +10,40 @@ using namespace std;
 
 static char   folder[]    = "./pics/";
 static char * files[]     = {
+    "bul_01_a", "bul_01_m", "bul_01_o", "bul_01_s",
+    "bul_02_a", "bul_02_m", "bul_02_o", "bul_02_s",
+    "bul_03_a", "bul_03_m", "bul_03_o", "bul_03_s",
+    "bul_04_a", "bul_04_m", "bul_04_o", "bul_04_s",
+    "bul_05_a", "bul_05_m", "bul_05_o", "bul_05_s",
+    "bul_06_a", "bul_06_m", "bul_06_o", "bul_06_s",
+    "bul_07_a", "bul_07_m", "bul_07_o", "bul_07_s",
+    "bul_08_a", "bul_08_m", "bul_08_o", "bul_08_s",
+    "bul_09_a", "bul_09_m", "bul_09_o", "bul_09_s",
+    "bul_10_a", "bul_10_m", "bul_10_o", "bul_10_s",
+    "bul_11_a", "bul_11_m", "bul_11_o", "bul_11_s",
+    "bul_12_a", "bul_12_m", "bul_12_o", "bul_12_s",
+    "bul_13_a", "bul_13_m", "bul_13_o", "bul_13_s",
+    "bul_14_a", "bul_14_m", "bul_14_o", "bul_14_s",
+    "bul_15_a", "bul_15_m", "bul_15_o", "bul_15_s",
+    "bul_16_a", "bul_16_m", "bul_16_o", "bul_16_s",
     "clap_01_a", "clap_01_m", "clap_01_o", "clap_01_s",         // 4
     "clap_02_a", "clap_02_m", "clap_02_o", "clap_02_s",         // 8
     "clap_03_a", "clap_03_m", "clap_03_o", "clap_03_s",         // 12
     "clap_04_a", "clap_04_m", "clap_04_o", "clap_04_s",         // 16
-    "clap_05_a", "clap_05_m", "clap_05_o", "clap_05_s",         // 20
-    "bul_01_a", "bul_01_m", "bul_01_o", "bul_01_s",             // 24
-    "bul_02_a", "bul_02_m",
+    "clap_05_a", "clap_05_m", "clap_05_o", "clap_05_s",         // 24
     "cusual_01_a", "cusual_01_m", "cusual_01_o", "cusual_01_s", //
+    "sh_01_a", "sh_01_m", "sh_01_o", "sh_01_s",
+    "sh_02_a", "sh_02_m", "sh_02_o", "sh_02_s",
+    "slp_01_a", "slp_01_m", "slp_01_o", "slp_01_s",
+    "slp_02_a", "slp_02_m", "slp_02_o", "slp_02_s",
+    "slp_03_a", "slp_03_m", "slp_03_o", "slp_03_s",
+    "slp_04_a", "slp_04_m", "slp_04_o", "slp_04_s",
+    "slp_05_a", "slp_05_m", "slp_05_o", "slp_05_s",
+    "slp_06_a", "slp_06_m", "slp_06_o", "slp_06_s",
+    "slp_07_a", "slp_07_m", "slp_07_o", "slp_07_s",
+    "slp_08_a", "slp_08_m", "slp_08_o", "slp_08_s",
+    "slp_09_a", "slp_09_m", "slp_09_o", "slp_09_s",
+    "slp_10_a", "slp_10_m", "slp_10_o", "slp_10_s",
     "eye_01_n", "eye_02_n", "eye_03_n", "eye_04_n", "eye_05_n", //
     "eye_06_n", "eye_07_n", "eye_08_n", "eye_09_n", "eye_10_n", //
     "tired_01", "tired_02", "tired_03",                         //
