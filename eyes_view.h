@@ -29,7 +29,9 @@ public:
     void                closeEvent          ( QCloseEvent * ev );
     void                update_bulwers      ( core_stats * color );
     void                set_face            ( QString nface );
-    void                lock_face           ();
+    void                set_face            ( QString nface, void * nlocker );
+    void                lock_face           ( void * nlocker );
+    void                unlock_face         ( void * lovker );
     void                unlock_face         ();
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
@@ -59,6 +61,7 @@ private:
                             emx2,
                             emy;
     bool                    is_face_locked;
+    void                  * locker;
     eyes_clapper          * clapper;
 };
 

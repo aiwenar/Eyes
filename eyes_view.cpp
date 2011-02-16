@@ -74,11 +74,11 @@ eyes_view::eyes_view ( QWidget * parent, QString color ) : QWidget ( parent )
     is_face_locked = false;
     setMinimumSize ( EYES_W, EYES_H );
     setMaximumSize ( EYES_W, EYES_H );
-    //clapper = new eyes_clapper ( this );
+    clapper = new eyes_clapper ( this );
     c_main = QtConcurrent::run ( core_main );
     open_images ( color );
     area = new QPixmap ( EYES_W, EYES_H );
-    //clapper->run ();
+    clapper->run ();
 }
 
 eyes_view::~eyes_view ()
@@ -88,7 +88,7 @@ eyes_view::~eyes_view ()
 
 void eyes_view::open_images ( QString color )
 {
-    lock_face ();
+    lock_face ( this );
     QPixmap file;
     bool no_file ( false );
     for ( int i=0 ; i<150 ; i++ )
@@ -112,12 +112,12 @@ void eyes_view::open_images ( QString color )
         exit ( 2 );
     }
     images_ready = true;
-    unlock_face ();
+    unlock_face ( this );
 }
 
 void eyes_view::paintEvent ( QPaintEvent * event )
 {
-    lock_face ();
+    lock_face ( this );
     cerr << "[info :] painting " << face.toStdString () << " with eye " << eye.toStdString () << ".\n";
     QPainter paint ( this );
     QPainter parea ( area );
@@ -133,7 +133,7 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.end ();
     area->setMask ( pics[face+"_a"].mask () );
     paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *area );
-    unlock_face ();
+    unlock_face ( this );
 }
 
 void eyes_view::mousePressEvent ( QMouseEvent * ev )
@@ -166,7 +166,12 @@ void eyes_view::closeEvent ( QCloseEvent * ev )
 
 void eyes_view::set_face ( QString nface )
 {
-    if ( is_face_locked )
+    set_face ( nface, nil );
+}
+
+void eyes_view::set_face ( QString nface, void * nlocker )
+{
+    if ( is_face_locked and not ( nlocker = locker ) )
     {
         cerr << "[info :] face changing is locked, puting new face into queue.\n";
         face_next = nface;
@@ -180,7 +185,7 @@ void eyes_view::set_face ( QString nface )
     face = nface;
 }
 
-void eyes_view::lock_face ()
+void eyes_view::lock_face ( void * nlocker )
 {
     if ( is_face_locked )
     {
@@ -191,15 +196,25 @@ void eyes_view::lock_face ()
     {
         cerr << "[info :] locking face.\n";
         is_face_locked = true;
+        locker = nlocker;
     }
 }
 
 void eyes_view::unlock_face ()
 {
+    unlock_face ( nil );
+}
+
+void eyes_view::unlock_face ( void * nlocker )
+{
     if ( not is_face_locked )
     {
         cerr << "[info :] face isn't locked.\n";
         return;
+    }
+    else if ( not ( nlocker == locker ) )
+    {
+        cerr << "[warning :] face is locked by " << locker << " but " << nlocker << " wanna unlock it.\n";
     }
     else
     {
