@@ -65,5 +65,6 @@ int layer4;
 };
 
 extern bool is_finished;
+extern bool images_ready;
 
 #endif // bulwers_h

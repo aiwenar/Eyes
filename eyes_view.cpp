@@ -52,6 +52,7 @@ static char * files[]     = {
 
 void core_main ();
 bool is_finished;
+bool images_ready;
 
 eyes_view::eyes_view ( QWidget * parent, QString color ) : QWidget ( parent )
 {
@@ -68,6 +69,7 @@ eyes_view::eyes_view ( QWidget * parent, QString color ) : QWidget ( parent )
     eye = "eye_04_n";
     face = "cusual_01";
     is_finished = false;
+    images_ready = false;
     setMinimumSize ( EYES_W, EYES_H );
     setMaximumSize ( EYES_W, EYES_H );
     //clapper = new eyes_clapper ( this );
@@ -106,6 +108,7 @@ void eyes_view::open_images ( QString color )
         cerr << "Some files may not exist, exiting...\n";
         exit ( 2 );
     }
+    images_ready = true;
 }
 
 void eyes_view::paintEvent ( QPaintEvent * event )
