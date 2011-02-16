@@ -1426,7 +1426,7 @@ if (get_flu)
 
 /////////////////////////////////
 
-
+/*
 if (pics.eye == 1)
     eye = "eye_01_n";
 if (pics.eye == 2)
@@ -1448,18 +1448,18 @@ if (pics.eye == 9)
 if (pics.eye == 10)
     eye = "eye_10_n";
 
-
+*/
 if (pics.outline == 0)
 {
     int tmp = rand () % 3;
     if (tmp == 0)
-        face = "cusual_01";
+        set_face ("cusual_01");
     if (tmp == 1)
-        face = "bul_01";
+        set_face ("bul_01");
     if (tmp == 2)
-        face = "bul_02";
+        set_face ("bul_02");
     if (tmp == 3)
-        face = "bul_03";
+        set_face ("bul_03");
 }
 else
 {
@@ -1467,198 +1467,198 @@ else
     {
         int tmp = rand () % 3 + 1;
         if (tmp == 1)
-            face = "slp_01";
+            set_face ("slp_01");
         if (tmp == 2)
-            face = "slp_02";
+            set_face ("slp_02");
         if (tmp == 3)
-            face = "slp_03";
+            set_face ("slp_03");
         if (tmp == 4)
-            face = "slp_04";
+            set_face ("slp_04");
     }
     if (pics.outline == 2)
     {
         int tmp = rand () % 1 + 4;
         if (tmp == 4)
-            face = "slp_04";
+            set_face ("slp_04");
         if (tmp == 5)
-            face = "slp_05";
+            set_face ("slp_05");
     }
     if (pics.outline == 3)
     {
         int tmp = rand () % 5 + 1;
         if (tmp == 5)
-            face = "slp_05";
+            set_face ("slp_05");
         if (tmp == 6)
-            face = "slp_06";
+            set_face ("slp_06");
     }
 
     if (pics.outline == 4)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "cusual_01";
+            set_face ("cusual_01");
         if (tmp == 1)
-            face = "bul_01";
+            set_face ("bul_01");
         if (tmp == 2)
-            face = "bul_02";
+            set_face ("bul_02");
     }
     if (pics.outline == 5)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_01";
+            set_face ("bul_01");
         if (tmp == 1)
-            face = "bul_02";
+            set_face ("bul_02");
         if (tmp == 2)
-            face = "bul_03";
+            set_face ("bul_03");
     }
     if (pics.outline == 6)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_02";
+            set_face ("bul_02");
         if (tmp == 1)
-            face = "bul_03";
+            set_face ("bul_03");
         if (tmp == 2)
-            face = "bul_04";
+            set_face ("bul_04");
     }
     if (pics.outline == 7)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_03";
+            set_face ("bul_03");
         if (tmp == 1)
-            face = "bul_04";
+            set_face ("bul_04");
         if (tmp == 2)
-            face = "bul_05";
+            set_face ("bul_05");
     }
     if (pics.outline == 8)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_04";
+            set_face ("bul_04");
         if (tmp == 1)
-            face = "bul_05";
+            set_face ("bul_05");
         if (tmp == 2)
-            face = "bul_06";
+            set_face ("bul_06");
     }
     if (pics.outline == 9)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_05";
+            set_face ("bul_05");
         if (tmp == 1)
-            face = "bul_06";
+            set_face ("bul_06");
         if (tmp == 2)
-            face = "bul_07";
+            set_face ("bul_07");
     }
     if (pics.outline == 10)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_06";
+            set_face ("bul_06");
         if (tmp == 1)
-            face = "bul_07";
+            set_face ("bul_07");
         if (tmp == 2)
-            face = "bul_08";
+            set_face ("bul_08");
     }
     if (pics.outline == 11)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_07";
+            set_face ("bul_07");
         if (tmp == 1)
-            face = "bul_08";
+            set_face ("bul_08");
         if (tmp == 2)
-            face = "bul_09";
+            set_face ("bul_09");
     }
     if (pics.outline == 12)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_08";
+            set_face ("bul_08");
         if (tmp == 1)
-            face = "bul_09";
+            set_face ("bul_09");
         if (tmp == 2)
-            face = "bul_10";
+            set_face ("bul_10");
     }
     if (pics.outline == 13)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_09";
+            set_face ("bul_09");
         if (tmp == 1)
-            face = "bul_10";
+            set_face ("bul_10");
         if (tmp == 2)
-            face = "bul_11";
+            set_face ("bul_11");
     }
     if (pics.outline == 14)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_10";
+            set_face ("bul_10");
         if (tmp == 1)
-            face = "bul_11";
+            set_face ("bul_11");
         if (tmp == 2)
-            face = "bul_12";
+            set_face ("bul_12");
     }
     if (pics.outline == 15)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_11";
+            set_face ("bul_11");
         if (tmp == 1)
-            face = "bul_12";
+            set_face ("bul_12");
         if (tmp == 2)
-            face = "bul_13";
+            set_face ("bul_13");
     }
     if (pics.outline == 16)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_12";
+            set_face ("bul_12");
         if (tmp == 1)
-            face = "bul_13";
+            set_face ("bul_13");
         if (tmp == 2)
-            face = "bul_14";
+            set_face ("bul_14");
     }
     if (pics.outline == 17)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_13";
+            set_face ("bul_13");
         if (tmp == 1)
-            face = "bul_14";
+            set_face ("bul_14");
         if (tmp == 2)
-            face = "bul_15";
+            set_face ("bul_15");
     }
     if (pics.outline == 18)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            face = "bul_14";
+            set_face ("bul_14");
         if (tmp == 1)
-            face = "bul_15";
+            set_face ("bul_15");
         if (tmp == 2)
-            face = "bul_16";
+            set_face ("bul_16");
     }
     if (pics.outline == 19)
     {
         int tmp = rand () % 1;
         if (tmp == 0)
-            face = "bul_15";
+            set_face ("bul_15");
         if (tmp == 1)
-            face = "bul_16";
+            set_face ("bul_16");
     }
 
     if (pics.outline == 20 && prev_pics.outline != 20)
-        face = "sh_02";
+        set_face ("sh_02");
 
     if (pics.outline != 20 && prev_pics.outline == 20)
-        face = "sh_01";
+        set_face ("sh_01");
 
     if (pics.outline == 21)
-        face = "slp_10";
+        set_face ("slp_10");
 
 }
 
