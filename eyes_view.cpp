@@ -117,6 +117,7 @@ void eyes_view::open_images ( QString color )
 
 void eyes_view::paintEvent ( QPaintEvent * event )
 {
+    lock_face ();
     cerr << "[info :] painting " << face.toStdString () << " with eye " << eye.toStdString () << ".\n";
     QPainter paint ( this );
     QPainter parea ( area );
@@ -132,6 +133,7 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.end ();
     area->setMask ( pics[face+"_a"].mask () );
     paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *area );
+    unlock_face ();
 }
 
 void eyes_view::mousePressEvent ( QMouseEvent * ev )
@@ -170,7 +172,7 @@ void eyes_view::set_face ( QString nface )
         face_next = nface;
         return;
     }
-    if ( not pics.contains ( nface ) )
+    if ( not pics.contains ( nface+"_a" ) )
     {
         cerr << "[warning :] setting face to " << nface.toStdString () << " but it not exists.\n";
         return;
