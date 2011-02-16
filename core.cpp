@@ -160,8 +160,7 @@ void eyes_view::update_bulwers ( core_stats * input )
          << input->cpu_sector_small [7] << ' '
          << input->cpu_sector_small [8] << ' '
          << input->cpu_sector_small [9] << '\n';
-    if (input->cpu_probes[9] == 20){}
-    else cout << "\033[3;53H" << input->core_cpu_load;
+    cout << "\033[3;53H" << input->core_cpu_load;
     cout << "\033[4;53H" << input->core_memory << "%"
          << "\033[5;53H" << input->core_proclist
          << "\033[6;53H" << input->core_uptime << " seconds" //<< "that is: " << input->core_uptime/3600 << " hours" << " and " << (input->core_uptime/60) - ((input->core_uptime/3600)*60) << "minutes"
@@ -1219,7 +1218,7 @@ if (pics.outline != 20 && bulwers->level == 0)
 11-14
 */
 
-//if (input->core_month == 11 || input->core_month == 12 || input->core_month == 1 || input->core_month == 2)
+//if (input->core_month == 11 || input->core_month == 12 || input->core_month == 1)
 if (pics.outline != 20)
 {
     if (input->core_time < 6*3600 || input->core_time >= 22*3600)
@@ -1243,7 +1242,11 @@ if (input->core_day != 7)
     if (input->core_time < 22800 || input->core_time > 75600 || input->energy < 18000)
     {
         pics.tired = 1;
+
         if (pics.outline <= 7)
+            pics.outline = 1;
+
+        if (pics.outline > 7 && pics.outline < 11)
         {
             if ((rand () % 1))
                 pics.outline = 1;
@@ -1253,18 +1256,24 @@ if (input->core_day != 7)
     {
         pics.tired = 2;
         if (pics.outline <= 8)
+            pics.outline = 1;
+
+        if (pics.outline > 8 && pics.outline < 12)
         {
             if ((rand () % 1))
-                pics.outline = 2;
+                pics.outline = 1;
         }
     }
     if (input->core_time < 18000 || input->core_time > 82800 || input->energy < 3600 )
     {
         pics.tired = 3;
         if (pics.outline <= 9)
+            pics.outline = 1;
+
+        if (pics.outline > 9 && pics.outline < 13)
         {
             if ((rand () % 1))
-                pics.outline = 3;
+                pics.outline = 1;
         }
     }
     else
@@ -1279,6 +1288,9 @@ else
     {
         pics.tired = 1;
         if (pics.outline <= 7)
+            pics.outline = 1;
+
+        if (pics.outline > 7 && pics.outline < 11)
         {
             if ((rand () % 1))
                 pics.outline = 1;
@@ -1288,18 +1300,24 @@ else
     {
         pics.tired = 2;
         if (pics.outline <= 8)
+            pics.outline = 1;
+
+        if (pics.outline > 8 && pics.outline < 12)
         {
             if ((rand () % 1))
-                pics.outline = 2;
+                pics.outline = 1;
         }
     }
     if ((input->core_time < 25200 && input->core_time > 10800) || input->energy < 3600 )
     {
         pics.tired = 3;
         if (pics.outline <= 9)
+            pics.outline = 1;
+
+        if (pics.outline > 9 && pics.outline < 13)
         {
             if ((rand () % 1))
-                pics.outline = 3;
+                pics.outline = 1;
         }
     }
     else
@@ -1402,6 +1420,35 @@ if (get_flu)
     }
 }
 
+/////////////////////////////////
+
+// PICTURE MANAGING
+
+/////////////////////////////////
+
+
+if (pics.eye == 1)
+    eye = "eye_01_n";
+if (pics.eye == 2)
+    eye = "eye_02_n";
+if (pics.eye == 3)
+    eye = "eye_03_n";
+if (pics.eye == 4)
+    eye = "eye_04_n";
+if (pics.eye == 5)
+    eye = "eye_05_n";
+if (pics.eye == 6)
+    eye = "eye_06_n";
+if (pics.eye == 7)
+    eye = "eye_07_n";
+if (pics.eye == 8)
+    eye = "eye_08_n";
+if (pics.eye == 9)
+    eye = "eye_09_n";
+if (pics.eye == 10)
+    eye = "eye_10_n";
+
+
 if (pics.outline == 0)
 {
     int tmp = rand () % 3;
@@ -1445,19 +1492,173 @@ else
             face = "slp_06";
     }
 
-    if (pics.outline > 3)
+    if (pics.outline == 4)
     {
-        if (pics.outline < 10)
-            face = "bul_0" + pics.outline;
-        if (pics.outline >= 10 && pics.outline < 20)
-            face = "bul_" + pics.outline;
-        if (pics.outline == 20)
-            face = "sh_02";
-        if (prev_pics.outline == 20 && pics.outline != 20)
-            face = "sh_01";
-        if (pics.outline == 21)
-            face = "slp_10";
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "cusual_01";
+        if (tmp == 1)
+            face = "bul_01";
+        if (tmp == 2)
+            face = "bul_02";
     }
+    if (pics.outline == 5)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_01";
+        if (tmp == 1)
+            face = "bul_02";
+        if (tmp == 2)
+            face = "bul_03";
+    }
+    if (pics.outline == 6)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_02";
+        if (tmp == 1)
+            face = "bul_03";
+        if (tmp == 2)
+            face = "bul_04";
+    }
+    if (pics.outline == 7)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_03";
+        if (tmp == 1)
+            face = "bul_04";
+        if (tmp == 2)
+            face = "bul_05";
+    }
+    if (pics.outline == 8)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_04";
+        if (tmp == 1)
+            face = "bul_05";
+        if (tmp == 2)
+            face = "bul_06";
+    }
+    if (pics.outline == 9)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_05";
+        if (tmp == 1)
+            face = "bul_06";
+        if (tmp == 2)
+            face = "bul_07";
+    }
+    if (pics.outline == 10)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_06";
+        if (tmp == 1)
+            face = "bul_07";
+        if (tmp == 2)
+            face = "bul_08";
+    }
+    if (pics.outline == 11)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_07";
+        if (tmp == 1)
+            face = "bul_08";
+        if (tmp == 2)
+            face = "bul_09";
+    }
+    if (pics.outline == 12)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_08";
+        if (tmp == 1)
+            face = "bul_09";
+        if (tmp == 2)
+            face = "bul_10";
+    }
+    if (pics.outline == 13)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_09";
+        if (tmp == 1)
+            face = "bul_10";
+        if (tmp == 2)
+            face = "bul_11";
+    }
+    if (pics.outline == 14)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_10";
+        if (tmp == 1)
+            face = "bul_11";
+        if (tmp == 2)
+            face = "bul_12";
+    }
+    if (pics.outline == 15)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_11";
+        if (tmp == 1)
+            face = "bul_12";
+        if (tmp == 2)
+            face = "bul_13";
+    }
+    if (pics.outline == 16)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_12";
+        if (tmp == 1)
+            face = "bul_13";
+        if (tmp == 2)
+            face = "bul_14";
+    }
+    if (pics.outline == 17)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_13";
+        if (tmp == 1)
+            face = "bul_14";
+        if (tmp == 2)
+            face = "bul_15";
+    }
+    if (pics.outline == 18)
+    {
+        int tmp = rand () % 2;
+        if (tmp == 0)
+            face = "bul_14";
+        if (tmp == 1)
+            face = "bul_15";
+        if (tmp == 2)
+            face = "bul_16";
+    }
+    if (pics.outline == 19)
+    {
+        int tmp = rand () % 1;
+        if (tmp == 0)
+            face = "bul_15";
+        if (tmp == 1)
+            face = "bul_16";
+    }
+
+    if (pics.outline == 20 && prev_pics.outline != 20)
+        face = "sh_02";
+
+    if (pics.outline != 20 && prev_pics.outline == 20)
+        face = "sh_01";
+
+    if (pics.outline == 21)
+        face = "slp_10";
 
 }
 
@@ -1503,7 +1704,7 @@ if (!wake_up)
     cout << "\033[13;17H" << "Wake up Neo!" << endl;
 }
 
-
+cout << "\033[4;22H" << pics.outline;
 }
 
 
@@ -1621,6 +1822,8 @@ void reload_stats ( core_stats * input )
                 input->cpu_sector_small[input->current_probe_small] = C_LOAD ();
                 if (input->cpu_sector_small[input->current_probe_small] > 100)
                     input->cpu_sector_small[input->current_probe_small] = 20;
+                if (input->cpu_sector_small[input->current_probe_small] == 100)
+                    input->cpu_sector_small[input->current_probe_small] = 99;
                 input->cpu_probes[input->current_probe] = ((input->cpu_sector_small[0] +
                                                             input->cpu_sector_small[1] +
                                                             input->cpu_sector_small[2] +
@@ -1684,9 +1887,9 @@ static void print ( char * str, int _pos )
 inline void print_gui ()
 {
   cout  << "\033[2J \033[0;0H";
-  print ( " stage:\ncurrent cpu probe:" );
+  print ( " stage:\ncurrent cpu probe:\ncureent buffer:\nreturned face:" );
   cout  << "\033[0;35H";
-  print ( " cpu probes table:", 35 );
+  print ( " cpu probes table:\ncpu buffer table", 35 );
   cout << "\033[3;40H";
   print ( " cpu:\nmemory:\nproclist:\nuptime:", 40 );
   cout << "\033[4;75H";
