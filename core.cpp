@@ -1426,7 +1426,8 @@ if (get_flu)
 
 /////////////////////////////////
 
-/*
+if (images_ready)
+{
 if (pics.eye == 1)
     eye = "eye_01_n";
 if (pics.eye == 2)
@@ -1448,7 +1449,7 @@ if (pics.eye == 9)
 if (pics.eye == 10)
     eye = "eye_10_n";
 
-*/
+
 if (pics.outline == 0)
 {
     int tmp = rand () % 3;
@@ -1662,10 +1663,15 @@ else
 
 }
 
+cout << "\033[4;22H" << pics.outline << "            ";
 
-if (identical (pics, prev_pics))
-{}
-else if (pics.outline != 20)
+}
+
+else
+    cout << "\033[4;22H" << "image loadnig";
+
+
+if (!identical (pics, prev_pics) && images_ready)
     update ();
 
 prev_pics = pics;
@@ -1704,7 +1710,7 @@ if (!wake_up)
     cout << "\033[13;17H" << "Wake up Neo!" << endl;
 }
 
-cout << "\033[4;22H" << pics.outline;
+
 }
 
 
@@ -1728,7 +1734,7 @@ void core_main ()
         cout << "\033[32m" << endl;
         naglowek_in ("v.0.0.1a-01");
         print ( " Welcome in eyes project!" );
-        sleep (1);
+        sleep (2);
         naglowek_out ("v.0.0.1a-01");
         cout << "\033[2J\033[0;0H";
         cout << "\033[90A" << endl;
