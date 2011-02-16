@@ -29,6 +29,8 @@ public:
     void                closeEvent          ( QCloseEvent * ev );
     void                update_bulwers      ( core_stats * color );
     void                set_face            ( QString nface );
+    void                lock_face           ();
+    void                unlock_face         ();
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
@@ -44,6 +46,7 @@ private:
     QPixmap               * area;
     QString                 eye,
                             face,
+                            face_next,
                             spec;
     QMap<QString,QPixmap>   pics;
     QFuture<void>           c_main;
@@ -55,6 +58,7 @@ private:
                             emx1,
                             emx2,
                             emy;
+    bool                    is_face_locked;
     eyes_clapper          * clapper;
 };
 
