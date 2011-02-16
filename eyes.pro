@@ -7,7 +7,8 @@ DEPENDENCY_INCLUDES += glib-2.0 \
 SOURCES	+= \
     eyes_ui.cpp \
     eyes_view.cpp \
-    core.cpp
+    core.cpp \
+    eyes_clapper.cc
 
 HEADERS += \
     eyes_view.h \
@@ -16,7 +17,7 @@ HEADERS += \
     defines.hxx
 
 OTHER_FILES += \
-    dependences.pri
+    README.markdown
 
 INCLUDEPATH += /usr/include/glib-2.0 \
     /usr/lib/glib-2.0/include \

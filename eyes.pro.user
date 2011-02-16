@@ -30,16 +30,7 @@
      <valuelist key="Qt4ProjectManager.MakeStep.MakeArguments" type="QVariantList"/>
      <value key="Qt4ProjectManager.MakeStep.MakeCommand" type="QString"></value>
     </valuemap>
-    <valuemap key="ProjectExplorer.BuildConfiguration.BuildStep.2" type="QVariantMap">
-     <value key="ProjectExplorer.ProjectConfiguration.DisplayName" type="QString">Make</value>
-     <value key="ProjectExplorer.ProjectConfiguration.Id" type="QString">Qt4ProjectManager.MakeStep</value>
-     <value key="Qt4ProjectManager.MakeStep.Clean" type="bool">false</value>
-     <valuelist key="Qt4ProjectManager.MakeStep.MakeArguments" type="QVariantList">
-      <value type="QString">clean</value>
-     </valuelist>
-     <value key="Qt4ProjectManager.MakeStep.MakeCommand" type="QString"></value>
-    </valuemap>
-    <value key="ProjectExplorer.BuildConfiguration.BuildStepsCount" type="int">3</value>
+    <value key="ProjectExplorer.BuildConfiguration.BuildStepsCount" type="int">2</value>
     <valuemap key="ProjectExplorer.BuildConfiguration.CleanStep.0" type="QVariantMap">
      <value key="ProjectExplorer.ProjectConfiguration.DisplayName" type="QString">Make</value>
      <value key="ProjectExplorer.ProjectConfiguration.Id" type="QString">Qt4ProjectManager.MakeStep</value>
