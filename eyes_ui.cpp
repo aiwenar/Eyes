@@ -55,8 +55,7 @@ int main ( int argc, char ** argv )
   win.setAttribute ( Qt::WA_TranslucentBackground, true );
   win.show ();
 
-  eyes = new eyes_view ( &win );
-  eyes->open_images ( color );
+  eyes = new eyes_view ( &win, color );
   eyes->show ();
   eyes->repaint ();
   eyes->update ();
