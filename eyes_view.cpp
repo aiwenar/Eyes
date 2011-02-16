@@ -157,14 +157,13 @@ void eyes_view::closeEvent ( QCloseEvent * ev )
 
 void eyes_view::set_face ( QString nface )
 {
-    QString tmp ( nface );
     cerr << "[info :] given new face " << nface.toStdString () << ".\n";
-    if ( not pics.contains ( tmp ) )
+    if ( not pics.contains ( nface ) )
     {
         cerr << "[warning :] setting face to " << nface.toStdString () << " but it not exists.\n";
         return;
     }
-    face = tmp;
+    face = nface;
 }
 
 int eyes_view::heightForWidth ( int w ) const
