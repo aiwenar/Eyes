@@ -53,7 +53,7 @@ static char * files[]     = {
 void core_main ();
 bool is_finished;
 
-eyes_view::eyes_view ( QWidget * parent ) : QWidget ( parent )
+eyes_view::eyes_view ( QWidget * parent, QString color ) : QWidget ( parent )
 {
     px = MM_NO_MOTION;
     px = MM_NO_MOTION;
@@ -63,18 +63,18 @@ eyes_view::eyes_view ( QWidget * parent ) : QWidget ( parent )
     emx2 = 252;
     epy = 10;
     emy = 24;
-    setMinimumSize ( EYES_W, EYES_H );
-    setMaximumSize ( EYES_W, EYES_H );
+    win = parent;
     spec = "spec";
     eye = "eye_04_n";
     face = "cusual_01";
     is_finished = false;
+    setMinimumSize ( EYES_W, EYES_H );
+    setMaximumSize ( EYES_W, EYES_H );
+    //clapper = new eyes_clapper ( this );
     c_main = QtConcurrent::run ( core_main );
+    open_images ( color );
     area = new QPixmap ( EYES_W, EYES_H );
-    update_mask ();
-    win = parent;
-    timer = new QTimer ( this );
-    connect ( timer, SIGNAL ( timeout () ), this, SLOT ( eyes_time_event () ) );
+    //clapper->run ();
 }
 
 eyes_view::~eyes_view ()
@@ -110,6 +110,7 @@ void eyes_view::open_images ( QString color )
 
 void eyes_view::paintEvent ( QPaintEvent * event )
 {
+    cerr << "[info :] painting " << face.toStdString () << " with eye " << eye.toStdString () << ".\n";
     QPainter paint ( this );
     QPainter parea ( area );
     area->fill ( QColor ( 0, 0, 0 ) );
@@ -146,21 +147,6 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
     repaint ();
 }
 
-void eyes_view::eyes_time_event ()
-{
-    for ( int i=0 ; i<6 ; i++ )
-    {
-        face = QString ( "clap_0" ) + i;
-        update ();
-    }
-    for ( int i=5 ; i>=0 ; i++ )
-    {
-        face = QString ( "clap_0" ) + i;
-        update ();
-    }
-    timer->setInterval ( get_next_clap_delay () );
-}
-
 void eyes_view::closeEvent ( QCloseEvent * ev )
 {
     ev->accept ();
@@ -169,19 +155,21 @@ void eyes_view::closeEvent ( QCloseEvent * ev )
     cout << "\033[0m";
 }
 
-void eyes_view::update_mask ()
+void eyes_view::set_face ( QString nface )
 {
-    return;
+    QString tmp ( nface );
+    cerr << "[info :] given new face " << nface.toStdString () << ".\n";
+    if ( not pics.contains ( tmp ) )
+    {
+        cerr << "[warning :] setting face to " << nface.toStdString () << " but it not exists.\n";
+        return;
+    }
+    face = tmp;
 }
 
 int eyes_view::heightForWidth ( int w ) const
 {
     return ( EYES_H );
-}
-
-int eyes_view::get_next_clap_delay ()
-{
-    return ( rand () % 35 + 5 );
 }
 
 QVariant eyes_view::inputMethodQuery ( Qt::InputMethodQuery query ) const

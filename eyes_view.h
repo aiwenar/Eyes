@@ -10,21 +10,25 @@
 #include <QMouseEvent>
 #include <QtConcurrentRun>
 #include <QTimer>
+#include <QThread>
+#include <QTime>
 
 #include "bulwers.h"
 #include "defines.hxx"
+
+class eyes_clapper;
 
 class eyes_view : public QWidget
 {
     Q_OBJECT
 public:
-    explicit    	eyes_view           ( QWidget * parent );
+    explicit    	eyes_view           ( QWidget * parent, QString color );
                         ~eyes_view          ();
     void        	open_images         ( QString folder );
     void        	paintEvent          ( QPaintEvent * );
     void                closeEvent          ( QCloseEvent * ev );
     void                update_bulwers      ( core_stats * color );
-    void                update_mask         ();
+    void                set_face            ( QString nface );
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
@@ -33,7 +37,6 @@ signals:
 public slots:
     void            mousePressEvent     ( QMouseEvent * ev );
     void            mouseMoveEvent      ( QMouseEvent * ev );
-    void            eyes_time_event     ();
 private:
     QTimer                * timer;
     QWidget               * win;
@@ -52,6 +55,22 @@ private:
                             emx1,
                             emx2,
                             emy;
+    eyes_clapper          * clapper;
+};
+
+class eyes_clapper : public QThread
+{
+    Q_OBJECT
+public:
+    explicit    eyes_clapper        ( eyes_view * neyes );
+    int         get_next_clap_delay ();
+    void        run                 ();
+public slots:
+    void    clap                ();
+private:
+    eyes_view * eyes;
+    QTime       time;
+    QTimer    * timer;
 };
 
 extern eyes_view * eyes;
