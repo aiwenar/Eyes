@@ -68,8 +68,10 @@ eyes_view::eyes_view ( QWidget * parent, QString color ) : QWidget ( parent )
     spec = "spec";
     eye = "eye_04_n";
     face = "cusual_01";
+    face_next = "";
     is_finished = false;
     images_ready = false;
+    is_face_locked = false;
     setMinimumSize ( EYES_W, EYES_H );
     setMaximumSize ( EYES_W, EYES_H );
     //clapper = new eyes_clapper ( this );
@@ -86,6 +88,7 @@ eyes_view::~eyes_view ()
 
 void eyes_view::open_images ( QString color )
 {
+    lock_face ();
     QPixmap file;
     bool no_file ( false );
     for ( int i=0 ; i<150 ; i++ )
@@ -109,6 +112,7 @@ void eyes_view::open_images ( QString color )
         exit ( 2 );
     }
     images_ready = true;
+    unlock_face ();
 }
 
 void eyes_view::paintEvent ( QPaintEvent * event )
@@ -160,13 +164,51 @@ void eyes_view::closeEvent ( QCloseEvent * ev )
 
 void eyes_view::set_face ( QString nface )
 {
-    cerr << "[info :] given new face " << nface.toStdString () << ".\n";
+    if ( is_face_locked )
+    {
+        cerr << "[info :] face changing is locked, puting new face into queue.\n";
+        face_next = nface;
+        return;
+    }
     if ( not pics.contains ( nface ) )
     {
         cerr << "[warning :] setting face to " << nface.toStdString () << " but it not exists.\n";
         return;
     }
     face = nface;
+}
+
+void eyes_view::lock_face ()
+{
+    if ( is_face_locked )
+    {
+        cerr << "[info :] face is allready locked.\n";
+        return;
+    }
+    else
+    {
+        cerr << "[info :] locking face.\n";
+        is_face_locked = true;
+    }
+}
+
+void eyes_view::unlock_face ()
+{
+    if ( not is_face_locked )
+    {
+        cerr << "[info :] face isn't locked.\n";
+        return;
+    }
+    else
+    {
+        cerr << "[info :] unlocking face.\n";
+        is_face_locked = false;
+        if ( face_next != "" )
+        {
+            set_face ( face_next );
+            face_next = "";
+        }
+    }
 }
 
 int eyes_view::heightForWidth ( int w ) const
