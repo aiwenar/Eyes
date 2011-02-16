@@ -109,8 +109,8 @@ void print_event ( char * ev_text )
 
 void eyes_view::update_bulwers ( core_stats * input )
 {
-    pict_layers pics;
-    pict_layers prev_pics;
+    static pict_layers pics;
+    static pict_layers prev_pics;
     //static int input->current_probe = 0;
         //input->cpu_probes[input->current_probe] = C_LOAD ();
 
@@ -1200,7 +1200,7 @@ if (input->energy > 0)
 /////////////////////////////////////////////////////
 
 
-if (pics.outline <=19 && bulwers->level != 0)
+if (bulwers->level != 0 && pics.outline != 20 && pics.outline != 21)
     pics.outline = bulwers->level + 3;
 if (pics.outline != 20 && bulwers->level == 0)
     pics.outline = 0;
@@ -1261,7 +1261,7 @@ if (input->core_day != 7)
         if (pics.outline > 8 && pics.outline < 12)
         {
             if ((rand () % 1))
-                pics.outline = 1;
+                pics.outline = 2;
         }
     }
     if (input->core_time < 18000 || input->core_time > 82800 || input->energy < 3600 )
@@ -1273,7 +1273,7 @@ if (input->core_day != 7)
         if (pics.outline > 9 && pics.outline < 13)
         {
             if ((rand () % 1))
-                pics.outline = 1;
+                pics.outline = 3;
         }
     }
     else
@@ -1305,7 +1305,7 @@ else
         if (pics.outline > 8 && pics.outline < 12)
         {
             if ((rand () % 1))
-                pics.outline = 1;
+                pics.outline = 2;
         }
     }
     if ((input->core_time < 25200 && input->core_time > 10800) || input->energy < 3600 )
@@ -1317,7 +1317,7 @@ else
         if (pics.outline > 9 && pics.outline < 13)
         {
             if ((rand () % 1))
-                pics.outline = 1;
+                pics.outline = 3;
         }
     }
     else
@@ -1671,8 +1671,16 @@ else
     cout << "\033[4;22H" << "image loadnig";
 
 
+cout << "\033[5;2H" << pics.eye << " " << pics.hot << " " << pics.layer2 << " " << pics.layer3 << " " << pics.layer4 << " " << pics.outline << " " << pics.shy << " " << pics.tired;
+cout << "\033[6;2H" << prev_pics.eye << " " << prev_pics.hot << " " << prev_pics.layer2 << " " << prev_pics.layer3 << " " << prev_pics.layer4 << " " << prev_pics.outline << " " << prev_pics.shy << " " << prev_pics.tired;
 if (!identical (pics, prev_pics) && images_ready)
+{
     update ();
+    cout << "\033[5;0H" << "O";
+}
+else
+    cout << "\033[5;0H" << "X";
+
 
 prev_pics = pics;
 
