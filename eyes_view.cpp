@@ -240,3 +240,8 @@ QSize eyes_view::sizeHint () const
 {
     return ( QSize ( EYES_W, EYES_H ) );
 }
+
+QString eyes_view::get_face ()
+{
+    return ( face );
+}

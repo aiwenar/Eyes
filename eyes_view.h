@@ -36,7 +36,8 @@ public:
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
-    QSize               sizeHint            () 															const;
+    QSize               sizeHint            ()                                      const;
+    QString             get_face            ();
 signals:
 public slots:
     void            mousePressEvent     ( QMouseEvent * ev );
@@ -80,6 +81,7 @@ private:
     eyes_view     * eyes;
     QTime           time;
     QTimer        * timer;
+    QString         old_face;
 };
 
 extern eyes_view * eyes;

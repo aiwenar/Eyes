@@ -35,11 +35,16 @@ void eyes_clapper::run ()
 void eyes_clapper::clap ()
 {
     if ( stage == 0 )
+    {
         eyes->lock_face ( this );
+        old_face = eyes->get_face ();
+    }
     eyes->set_face ( claps[stage], this );
     eyes->repaint ();
     if ( stage == 8 )
     {
+        eyes->set_face ( old_face );
+        eyes->update ();
         eyes->unlock_face ( this );
         timer->setInterval ( get_next_clap_delay () * 200 );
         stage = 0;
