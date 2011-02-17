@@ -1218,22 +1218,98 @@ if (pics.outline != 20 && bulwers->level == 0)
 11-14
 */
 
-//if (input->core_month == 11 || input->core_month == 12 || input->core_month == 1)
+/*
+
+        11-13 -         8
+        10-11/13-14     7
+        10-9/14-15      6
+        8-9/15-16       5
+        7-8/16-17       4
+        6-7/17-18       3
+        5-6/18-19       2
+
+*/
+
+if (input->core_month == 12 || input->core_month == 1 )
 if (pics.outline != 20)
 {
-    if (input->core_time < 6*3600 || input->core_time >= 22*3600)
+    if (input->core_time < 7*3600 || input->core_time >= 19*3600)
         pics.eye = 1;
-    if ((input->core_time >= 6*3600 && input->core_time < 7*3600) || (input->core_time >= 18*3600 && input->core_time < 22*3600))
+    if ((input->core_time >= 7*3600 && input->core_time < 8*3600) || (input->core_time >= 16*3600 && input->core_time < 17*3600))
         pics.eye = 2;
-    if ((input->core_time >= 7*3600 && input->core_time < 8*3600) || (input->core_time >= 16*3600 && input->core_time < 18*3600))
+    if ((input->core_time >= 8*3600 && input->core_time < 9*3600) || (input->core_time >= 15*3600 && input->core_time < 16*3600))
+        pics.eye = 3;
+    if ((input->core_time >= 9*3600 && input->core_time < 10*3600) || (input->core_time >= 14*3600 && input->core_time < 15*3600))
+        pics.eye = 4;
+    if ((input->core_time >= 10*3600 && input->core_time < 11*3600) || (input->core_time >= 13*3600 && input->core_time < 14*3600))
+        pics.eye = 5;
+    if ((input->core_time >= 11*3600 && input->core_time < 13*3600))
+        pics.eye = 6;
+}
+
+if (input->core_month == 2 || input->core_month == 3 || input->core_month == 10 || input->core_month == 11 )
+if (pics.outline != 20)
+{
+    if (input->core_time < 6*3600 || input->core_time >= 19*3600)
+        pics.eye = 1;
+    if ((input->core_time >= 6*3600 && input->core_time < 7*3600) || (input->core_time >= 17*3600 && input->core_time < 18*3600))
+        pics.eye = 2;
+    if ((input->core_time >= 7*3600 && input->core_time < 8*3600) || (input->core_time >= 16*3600 && input->core_time < 17*3600))
         pics.eye = 3;
     if ((input->core_time >= 8*3600 && input->core_time < 9*3600) || (input->core_time >= 15*3600 && input->core_time < 16*3600))
         pics.eye = 4;
-    if ((input->core_time >= 9*3600 && input->core_time < 11*3600) || (input->core_time >= 14*3600 && input->core_time < 15*3600))
+    if ((input->core_time >= 9*3600 && input->core_time < 10*3600) || (input->core_time >= 14*3600 && input->core_time < 15*3600))
         pics.eye = 5;
-    if ((input->core_time >= 11*3600 && input->core_time < 14*3600))
+    if ((input->core_time >= 10*3600 && input->core_time < 11*3600) || (input->core_time >= 13*3600 && input->core_time < 14*3600))
         pics.eye = 6;
+    if ((input->core_time >= 11*3600 && input->core_time < 13*3600))
+        pics.eye = 7;
 }
+
+if (input->core_month == 4 || input->core_month == 5 || input->core_month == 8 || input->core_month == 9 )
+if (pics.outline != 20)
+    {
+        if (input->core_time < 5*3600 || input->core_time >= 19*3600)
+            pics.eye = 1;
+        if ((input->core_time >= 5*3600 && input->core_time < 6*3600) || (input->core_time >= 18*3600 && input->core_time < 19*3600))
+            pics.eye = 2;
+        if ((input->core_time >= 6*3600 && input->core_time < 7*3600) || (input->core_time >= 17*3600 && input->core_time < 18*3600))
+            pics.eye = 3;
+        if ((input->core_time >= 7*3600 && input->core_time < 8*3600) || (input->core_time >= 16*3600 && input->core_time < 17*3600))
+            pics.eye = 4;
+        if ((input->core_time >= 8*3600 && input->core_time < 9*3600) || (input->core_time >= 15*3600 && input->core_time < 16*3600))
+            pics.eye = 5;
+        if ((input->core_time >= 9*3600 && input->core_time < 10*3600) || (input->core_time >= 14*3600 && input->core_time < 15*3600))
+            pics.eye = 6;
+        if ((input->core_time >= 10*3600 && input->core_time < 11*3600) || (input->core_time >= 13*3600 && input->core_time < 14*3600))
+            pics.eye = 7;
+        if ((input->core_time >= 11*3600 && input->core_time < 13*3600))
+            pics.eye = 8;
+    }
+
+
+if (input->core_month == 6 || input->core_month == 7)
+if (pics.outline != 20)
+    {
+        if (input->core_time < 4*3600 || input->core_time >= 20*3600)
+            pics.eye = 1;
+        if ((input->core_time >= 4*3600 && input->core_time < 5*3600) || (input->core_time >= 19*3600 && input->core_time < 20*3600))
+            pics.eye = 2;
+        if ((input->core_time >= 5*3600 && input->core_time < 6*3600) || (input->core_time >= 18*3600 && input->core_time < 19*3600))
+            pics.eye = 3;
+        if ((input->core_time >= 6*3600 && input->core_time < 7*3600) || (input->core_time >= 17*3600 && input->core_time < 18*3600))
+            pics.eye = 4;
+        if ((input->core_time >= 7*3600 && input->core_time < 8*3600) || (input->core_time >= 16*3600 && input->core_time < 17*3600))
+            pics.eye = 5;
+        if ((input->core_time >= 8*3600 && input->core_time < 9*3600) || (input->core_time >= 15*3600 && input->core_time < 16*3600))
+            pics.eye = 6;
+        if ((input->core_time >= 9*3600 && input->core_time < 10*3600) || (input->core_time >= 14*3600 && input->core_time < 15*3600))
+            pics.eye = 7;
+        if ((input->core_time >= 10*3600 && input->core_time < 11*3600) || (input->core_time >= 13*3600 && input->core_time < 14*3600))
+            pics.eye = 8;
+        if ((input->core_time >= 11*3600 && input->core_time < 13*3600))
+            pics.eye = 9;
+    }
 
 
 
