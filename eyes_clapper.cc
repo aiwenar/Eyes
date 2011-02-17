@@ -6,7 +6,7 @@
 using namespace std;
 
 static char *claps[] = {
-    "clap_01", "bul_03", "clap_02", "clap_03", "clap_04", "clap_05", "clap_04", "clap_03", "clap_02", "clap_01"
+    "clap_01", "clap_02", "clap_03", "clap_04", "clap_05", "clap_04", "clap_03", "clap_02", "clap_01",
 };
 
 eyes_clapper::eyes_clapper ( eyes_view * neyes )
@@ -38,7 +38,7 @@ void eyes_clapper::clap ()
         eyes->lock_face ( this );
     eyes->set_face ( claps[stage], this );
     eyes->repaint ();
-    if ( stage == 10 )
+    if ( stage == 8 )
     {
         eyes->unlock_face ( this );
         timer->setInterval ( get_next_clap_delay () * 200 );

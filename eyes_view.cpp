@@ -117,7 +117,6 @@ void eyes_view::open_images ( QString color )
 
 void eyes_view::paintEvent ( QPaintEvent * event )
 {
-    lock_face ( this );
     cerr << "[info :] painting " << face.toStdString () << " with eye " << eye.toStdString () << ".\n";
     QPainter paint ( this );
     QPainter parea ( area );
@@ -133,7 +132,6 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.end ();
     area->setMask ( pics[face+"_a"].mask () );
     paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *area );
-    unlock_face ( this );
 }
 
 void eyes_view::mousePressEvent ( QMouseEvent * ev )
