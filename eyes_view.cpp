@@ -180,6 +180,7 @@ void eyes_view::set_face ( QString nface, void * nlocker )
         cerr << "[\033[33mwarning \033[0m:] setting face to " << nface.toStdString () << " but it not exists.\n";
         return;
     }
+    cout << "[info :] changing face to " << nface.toStdString () << " by " << nlocker << ".\n";
     face = nface;
 }
 
