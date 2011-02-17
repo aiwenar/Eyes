@@ -34,14 +34,17 @@ void eyes_clapper::run ()
 
 void eyes_clapper::clap ()
 {
-    eyes->set_face ( claps[stage] );
+    if ( stage == 0 )
+        eyes->lock_face ( this );
+    eyes->set_face ( claps[stage], this );
     eyes->repaint ();
     if ( stage == 10 )
     {
+        eyes->unlock_face ( this );
         timer->setInterval ( get_next_clap_delay () * 200 );
         stage = 0;
         return;
     }
     stage ++;
-    timer->setInterval ( 200 );
+    timer->setInterval ( 15 );
 }
