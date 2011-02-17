@@ -96,7 +96,7 @@ void eyes_view::open_images ( QString color )
         file.load ( QString ( folder ) + files[i] + ".png" );
         if ( file.isNull () )
         {
-            cerr << "[error :] file " << ( QString ( folder ) + files[i] + ".png" ).toStdString () << " is nil.\n";
+            cerr << "[\033[31merror \033[0m:] file " << ( QString ( folder ) + files[i] + ".png" ).toStdString () << " is nil.\n";
             no_file = true;
         }
         else
@@ -179,7 +179,7 @@ void eyes_view::set_face ( QString nface, void * nlocker )
     }
     if ( not pics.contains ( nface+"_a" ) )
     {
-        cerr << "[warning :] setting face to " << nface.toStdString () << " but it not exists.\n";
+        cerr << "[\033[33mwarning \033[0m:] setting face to " << nface.toStdString () << " but it not exists.\n";
         return;
     }
     face = nface;
@@ -189,7 +189,7 @@ void eyes_view::lock_face ( void * nlocker )
 {
     if ( is_face_locked )
     {
-        cerr << "[info :] face is allready locked.\n";
+        cerr << "[\033[33mwarning \033[0m:] face is allready locked.\n";
         return;
     }
     else
@@ -214,7 +214,7 @@ void eyes_view::unlock_face ( void * nlocker )
     }
     else if ( not ( nlocker == locker ) )
     {
-        cerr << "[warning :] face is locked by " << locker << " but " << nlocker << " wanna unlock it.\n";
+        cerr << "[\033[33mwarning \033[0m:] face is locked by " << locker << " but " << nlocker << " wanna unlock it.\n";
     }
     else
     {

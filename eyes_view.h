@@ -72,12 +72,14 @@ public:
     explicit    eyes_clapper        ( eyes_view * neyes );
     int         get_next_clap_delay ();
     void        run                 ();
+    void        __init__            ();
 public slots:
     void    clap                ();
 private:
-    eyes_view * eyes;
-    QTime       time;
-    QTimer    * timer;
+    int             stage;
+    eyes_view     * eyes;
+    QTime           time;
+    QTimer        * timer;
 };
 
 extern eyes_view * eyes;
