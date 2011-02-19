@@ -2,6 +2,7 @@
 #define _eyes_clap_animations_hxx
 
 #include <QMap>
+#include "defines.hxx"
 
 // dodawaj animki z nazwami anim_<name>_[<nr>_]_<open/close>
 // a potem updatuj w register_animations
@@ -63,7 +64,7 @@ static char * anim_bul_07_open[] = {
 };
 
 static char * anim_bul_08_close[] = {
-    (char*)4, "clap_02", "clap_03", "clap_04", "clap_05",
+    (char*)4 , "clap_02", "clap_03", "clap_04", "clap_05",
 };
 
 static char * anim_bul_08_open[] = {
@@ -133,14 +134,6 @@ static char * anim_bul_16_close[] = {
 
 static char * anim_bul_16_open[] = {
     (char*)0,
-};
-
-static char * anim_cusual_01_close[] = {
-    (char*)5, "clap_01", "clap_02", "clap_03", "clap_04", "clap_05",
-};
-
-static char * anim_cusual_01_open[] = {
-    (char*)4, "clap_04", "clap_03", "clap_02", "clap_01",
 };
 
 static char * anim_sh_02_close[] = {
@@ -227,7 +220,7 @@ static char * anim_slp_10_open[] = {
     (char*)0,
 };
 
-void register_animations ( QMap <QString,char**> * map )
+void register_animations ( QMap <QString,animation> * map )
 {
     map->insert ( "bul_01_close", anim_bul_01_close );
     map->insert ( "bul_01_open", anim_bul_01_open );
