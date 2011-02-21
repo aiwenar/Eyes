@@ -80,6 +80,8 @@ static bool event_now,
             get_flu,
             wake_up;
 static int core_step;
+QString     face_send,
+            face_prev;
 int _pos;
 
 //------------------
@@ -1530,13 +1532,13 @@ if (pics.outline == 0)
 {
     int tmp = rand () % 3;
     if (tmp == 0)
-        set_face ("cusual_01");
+        face_send = "cusual_01";
     if (tmp == 1)
-        set_face ("bul_01");
+        face_send = "bul_01";
     if (tmp == 2)
-        set_face ("bul_02");
+        face_send = "bul_02";
     if (tmp == 3)
-        set_face ("bul_03");
+        face_send = "bul_03";
 }
 else
 {
@@ -1544,200 +1546,279 @@ else
     {
         int tmp = rand () % 3 + 1;
         if (tmp == 1)
-            set_face ("slp_01");
+            face_send = "slp_01";
         if (tmp == 2)
-            set_face ("slp_02");
+            face_send = "slp_02";
         if (tmp == 3)
-            set_face ("slp_03");
+            face_send = "slp_03";
         if (tmp == 4)
-            set_face ("slp_04");
+            face_send = "slp_04";
     }
     if (pics.outline == 2)
     {
         int tmp = rand () % 1 + 4;
         if (tmp == 4)
-            set_face ("slp_04");
+            face_send = "slp_04";
         if (tmp == 5)
-            set_face ("slp_05");
+            face_send = "slp_05";
     }
     if (pics.outline == 3)
     {
         int tmp = rand () % 5 + 1;
         if (tmp == 5)
-            set_face ("slp_05");
+            face_send = "slp_05";
         if (tmp == 6)
-            set_face ("slp_06");
+            face_send = "slp_06";
     }
 
     if (pics.outline == 4)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("cusual_01");
+            face_send = "cusual_01";
         if (tmp == 1)
-            set_face ("bul_01");
+            face_send = "bul_01";
         if (tmp == 2)
-            set_face ("bul_02");
+            face_send = "bul_02";
     }
     if (pics.outline == 5)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_01");
+            face_send = "bul_01";
         if (tmp == 1)
-            set_face ("bul_02");
+            face_send = "bul_02";
         if (tmp == 2)
-            set_face ("bul_03");
+            face_send = "bul_03";
     }
     if (pics.outline == 6)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_02");
+            face_send = "bul_02";
         if (tmp == 1)
-            set_face ("bul_03");
+            face_send = "bul_03";
         if (tmp == 2)
-            set_face ("bul_04");
+            face_send = "bul_04";
     }
     if (pics.outline == 7)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_03");
+            face_send = "bul_03";
         if (tmp == 1)
-            set_face ("bul_04");
+            face_send = "bul_04";
         if (tmp == 2)
-            set_face ("bul_05");
+            face_send = "bul_05";
     }
     if (pics.outline == 8)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_04");
+            face_send = "bul_04";
         if (tmp == 1)
-            set_face ("bul_05");
+            face_send = "bul_05";
         if (tmp == 2)
-            set_face ("bul_06");
+            face_send = "bul_06";
     }
     if (pics.outline == 9)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_05");
+            face_send = "bul_05";
         if (tmp == 1)
-            set_face ("bul_06");
+            face_send = "bul_06";
         if (tmp == 2)
-            set_face ("bul_07");
+            face_send = "bul_07";
     }
     if (pics.outline == 10)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_06");
+            face_send = "bul_06";
         if (tmp == 1)
-            set_face ("bul_07");
+            face_send = "bul_07";
         if (tmp == 2)
-            set_face ("bul_08");
+            face_send = "bul_08";
     }
     if (pics.outline == 11)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_07");
+            face_send = "bul_07";
         if (tmp == 1)
-            set_face ("bul_08");
+            face_send = "bul_08";
         if (tmp == 2)
-            set_face ("bul_09");
+            face_send = "bul_09";
     }
     if (pics.outline == 12)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_08");
+            face_send = "bul_08";
         if (tmp == 1)
-            set_face ("bul_09");
+            face_send = "bul_09";
         if (tmp == 2)
-            set_face ("bul_10");
+            face_send = "bul_10";
     }
     if (pics.outline == 13)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_09");
+            face_send = "bul_09";
         if (tmp == 1)
-            set_face ("bul_10");
+            face_send = "bul_10";
         if (tmp == 2)
-            set_face ("bul_11");
+            face_send = "bul_11";
     }
     if (pics.outline == 14)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_10");
+            face_send = "bul_10";
         if (tmp == 1)
-            set_face ("bul_11");
+            face_send = "bul_11";
         if (tmp == 2)
-            set_face ("bul_12");
+            face_send = "bul_12";
     }
     if (pics.outline == 15)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_11");
+            face_send = "bul_11";
         if (tmp == 1)
-            set_face ("bul_12");
+            face_send = "bul_12";
         if (tmp == 2)
-            set_face ("bul_13");
+            face_send = "bul_13";
     }
     if (pics.outline == 16)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_12");
+            face_send = "bul_12";
         if (tmp == 1)
-            set_face ("bul_13");
+            face_send = "bul_13";
         if (tmp == 2)
-            set_face ("bul_14");
+            face_send = "bul_14";
     }
     if (pics.outline == 17)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_13");
+            face_send = "bul_13";
         if (tmp == 1)
-            set_face ("bul_14");
+            face_send = "bul_14";
         if (tmp == 2)
-            set_face ("bul_15");
+            face_send = "bul_15";
     }
     if (pics.outline == 18)
     {
         int tmp = rand () % 2;
         if (tmp == 0)
-            set_face ("bul_14");
+            face_send = "bul_14";
         if (tmp == 1)
-            set_face ("bul_15");
+            face_send = "bul_15";
         if (tmp == 2)
-            set_face ("bul_16");
+            face_send = "bul_16";
     }
     if (pics.outline == 19)
     {
         int tmp = rand () % 1;
         if (tmp == 0)
-            set_face ("bul_15");
+            face_send = "bul_15";
         if (tmp == 1)
-            set_face ("bul_16");
+            face_send = "bul_16";
     }
 
-    if (pics.outline == 20 && prev_pics.outline != 20)
-        set_face ("sh_02");
-
-    if (pics.outline != 20 && prev_pics.outline == 20)
-        set_face ("sh_01");
-
-    if (pics.outline == 21)
-        set_face ("slp_10");
 
 }
+
+
+int anim_num_1 = 0;
+int anim_num_2 = 0;
+
+       if (face_send == "bul_16" ||
+           face_send == "sh_01"  ||
+           face_send == "slp_10" ||
+           face_send == "cusual_01" ||
+           face_send == "bul_01" ||
+           face_send == "bul_02" ||
+           face_send == "bul_03" ||
+           face_send == "bul_04" ||
+           face_send == "bul_05" ||
+           face_send == "bul_06" ||
+           face_send == "bul_07" ||
+           face_send == "bul_08" ||
+           face_send == "bul_09" ||
+           face_send == "bul_10" ||
+           face_send == "bul_11" ||
+           face_send == "bul_12" ||
+           face_send == "bul_13" ||
+           face_send == "bul_14" ||
+           face_send == "bul_15" ||
+           face_send == "slp_01" ||
+           face_send == "slp_02" ||
+           face_send == "slp_03" ||
+           face_send == "slp_04" ||
+           face_send == "slp_05" ||
+           face_send == "slp_06" )
+           anim_num_1 = 0;
+
+
+       if (face_prev == "bul_16" ||
+           face_prev == "slp_10" )
+           anim_num_2 = 0;
+       if (face_prev == "cusual_01" ||
+           face_prev == "bul_01" ||
+           face_prev == "bul_02" ||
+           face_prev == "bul_03" ||
+           face_prev == "bul_04" ||
+           face_prev == "slp_01" ||
+           face_prev == "slp_02" ||
+           face_prev == "slp_03" ||
+           face_prev == "slp_04" ||
+           face_prev == "slp_05" )
+           anim_num_2 = 4;
+       if (face_prev == "bul_05" ||
+           face_prev == "bul_06" ||
+           face_prev == "bul_07" ||
+           face_prev == "bul_08" ||
+           face_prev == "bul_09" )
+           anim_num_2 = 3;
+       if (face_prev == "bul_10" ||
+           face_prev == "bul_11" ||
+           face_prev == "bul_12" ||
+           face_prev == "bul_13" ||
+           face_prev == "bul_14" ||
+           face_prev == "bul_15" ||
+           face_prev == "slp_06" )
+           anim_num_2 = 2;
+
+       set_animation (face_prev + "_close", face_send + "open", anim_num_1, anim_num_2);
+
+       if (pics.outline == 20 && prev_pics.outline != 20)
+       {
+           face_send = "sh_01";
+           set_animation (face_prev + "_close", "sh_02_open", anim_num_1, 7);
+       }
+
+       if (pics.outline != 20 && prev_pics.outline == 20)
+       {
+           face_send = "cusual_01";
+           set_animation ("sh_01_close", "cusual_01_open", 0, 4);
+       }
+       if (pics.outline == 20 && prev_pics.outline == 20)
+       {
+           face_send = "sh_01";
+           set_animation ("sh_02_close", "sh_01_open", 0, 0);
+       }
+
+       if (pics.outline == 21)
+       {
+           face_send = "slp_10";
+           set_animation (face_prev + "_close", "slp_10_open", anim_num_1, 0);
+       }
+
 
 cout << "\033[4;22H" << pics.outline << "            ";
 
