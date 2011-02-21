@@ -7,6 +7,7 @@
 #include <QPixmap>
 #include <QBitmap>
 #include <QMap>
+#include <QList>
 #include <QMouseEvent>
 #include <QtConcurrentRun>
 #include <QTimer>
@@ -15,6 +16,7 @@
 
 #include "bulwers.h"
 #include "defines.hxx"
+#include "animation.hxx"
 
 class eyes_clapper;
 
@@ -30,9 +32,11 @@ public:
     void                update_bulwers      ( core_stats * color );
     void                set_face            ( QString nface );
     void                set_face            ( QString nface, void * nlocker );
+    void                set_eyes            ( QString neyes );
     void                lock_face           ( void * nlocker );
     void                unlock_face         ( void * lovker );
     void                unlock_face         ();
+    void                set_animation       ( QString start, QString end, int from, int to );
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
@@ -73,15 +77,20 @@ public:
     explicit    eyes_clapper        ( eyes_view * neyes );
     int         get_next_clap_delay ();
     void        run                 ();
-    void        __init__            ();
+    void        set_animation       ( QString nstart, QString nend, int nfrom, int nto );
 public slots:
-    void    clap                ();
+    void        clap                ();
 private:
-    int             stage;
-    eyes_view     * eyes;
-    QTime           time;
-    QTimer        * timer;
-    QString         old_face;
+    int                         stage,
+                                from,
+                                to;
+    eyes_view                 * eyes;
+    QTime                       time;
+    QTimer                    * timer;
+    QString                     old_face,
+                                start,
+                                end;
+    QMap<QString,animation*>    animations;
 };
 
 extern eyes_view * eyes;

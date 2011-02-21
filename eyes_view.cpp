@@ -66,7 +66,7 @@ eyes_view::eyes_view ( QWidget * parent, QString color ) : QWidget ( parent )
     emy = 24;
     win = parent;
     spec = "spec";
-    eye = "eye_04_n";
+    eye = "eye_04";
     face = "cusual_01";
     face_next = "";
     is_finished = false;
@@ -83,6 +83,7 @@ eyes_view::eyes_view ( QWidget * parent, QString color ) : QWidget ( parent )
 
 eyes_view::~eyes_view ()
 {
+    cerr << "[info :] destroying eyes.\n";
                 delete &px, &py, &epx1, &epx2, &epy, &emx1, &emx2, &emy;
 }
 
@@ -122,8 +123,8 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     QPainter parea ( area );
     area->fill ( QColor ( 0, 0, 0 ) );
     parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_a"] );
-    parea.drawPixmap ( epx1, epy, EYE_S, EYE_S, pics[eye] );
-    parea.drawPixmap ( epx2, epy, EYE_S, EYE_S, pics[eye] );
+    parea.drawPixmap ( epx1, epy, EYE_S, EYE_S, pics[eye+"_n"] );
+    parea.drawPixmap ( epx2, epy, EYE_S, EYE_S, pics[eye+"_n"] );
     parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_s"] );
     parea.drawPixmap ( emx1, emy, EYE_M, EYE_M, pics[spec] );
     parea.drawPixmap ( emx2, emy, EYE_M, EYE_M, pics[spec] );
@@ -156,6 +157,7 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
 
 void eyes_view::closeEvent ( QCloseEvent * ev )
 {
+    cout << "[info :] close event recived, exiting...\n";
     ev->accept ();
     is_finished = true;
     c_main.waitForFinished ();
@@ -182,6 +184,11 @@ void eyes_view::set_face ( QString nface, void * nlocker )
     }
     cerr << "[info :] changing face to " << nface.toStdString () << " by " << nlocker << ".\n";
     face = nface;
+}
+
+void eyes_view::set_eyes ( QString neyes )
+{
+    eye = neyes;
 }
 
 void eyes_view::lock_face ( void * nlocker )
@@ -219,12 +226,17 @@ void eyes_view::unlock_face ( void * nlocker )
     {
         cerr << "[info :] unlocking face.\n";
         is_face_locked = false;
-        if ( face_next != "" )
+        if ( not ( face_next == "" ) )
         {
             set_face ( face_next );
             face_next = "";
         }
     }
+}
+
+void eyes_view::set_animation ( QString start, QString end, int from, int to )
+{
+    clapper->set_animation ( start, end, from ,to );
 }
 
 int eyes_view::heightForWidth ( int w ) const
