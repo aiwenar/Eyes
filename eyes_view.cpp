@@ -44,6 +44,25 @@ static char * files[]     = {
     "slp_08_a", "slp_08_m", "slp_08_o", "slp_08_s",                 //128
     "slp_09_a", "slp_09_m", "slp_09_o", "slp_09_s",                 //132
     "slp_10_a", "slp_10_m", "slp_10_o", "slp_10_s",                 //136
+    "hpp_01_a", "hpp_01_m", "hpp_01_o", "hpp_01_s",
+    "hpp_02_a", "hpp_02_m", "hpp_02_o", "hpp_02_s",
+    "hpp_03_a", "hpp_03_m", "hpp_03_o", "hpp_03_s",
+    "hpp_04_a", "hpp_04_m", "hpp_04_o", "hpp_04_s",
+    "hpp_05_a", "hpp_05_m", "hpp_05_o", "hpp_05_s",
+    "hpp_06_a", "hpp_06_m", "hpp_06_o", "hpp_06_s",
+    "hpp_07_a", "hpp_07_m", "hpp_07_o", "hpp_07_s",
+    "bclap_01_a", "bclap_01_m", "bclap_01_o", "bclap_01_s",
+    "bclap_02_a", "bclap_02_m", "bclap_02_o", "bclap_02_s",
+    "bclap_03_a", "bclap_03_m", "bclap_03_o", "bclap_03_s",
+    "bclap_04_a", "bclap_04_m", "bclap_04_o", "bclap_04_s",
+    "bclap_05_a", "bclap_05_m", "bclap_05_o", "bclap_05_s",
+    "bclap_06_a", "bclap_06_m", "bclap_06_o", "bclap_06_s",
+    "bhclap_01_a", "bhclap_01_m", "bhclap_01_o", "bhclap_01_s",
+    "bhclap_02_a", "bhclap_02_m", "bhclap_02_o", "bhclap_02_s",
+    "bhclap_03_a", "bhclap_03_m", "bhclap_03_o", "bhclap_03_s",
+    "bhclap_04_a", "bhclap_04_m", "bhclap_04_o", "bhclap_04_s",
+    "bhclap_05_a", "bhclap_05_m", "bhclap_05_o", "bhclap_05_s",
+    "bhclap_06_a", "bhclap_06_m", "bhclap_06_o", "bhclap_06_s",
     "eye_01_n", "eye_02_n", "eye_03_n", "eye_04_n", "eye_05_n",     //141
     "eye_06_n", "eye_07_n", "eye_08_n", "eye_09_n", "eye_10_n",     //146
     "tired_01", "tired_02", "tired_03",                             //149
@@ -92,7 +111,7 @@ void eyes_view::open_images ( QString color )
     lock_face ( this );
     QPixmap file;
     bool no_file ( false );
-    for ( int i=0 ; i<150 ; i++ )
+    for ( int i=0 ; i<226 ; i++ )
     {
         file.load ( QString ( folder ) + files[i] + ".png" );
         if ( file.isNull () )
