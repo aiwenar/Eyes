@@ -54,7 +54,7 @@ void core_main ();
 bool is_finished;
 bool images_ready;
 
-eyes_view::eyes_view ( QWidget * parent, QString color ) : QWidget ( parent )
+eyes_view::eyetys_view ( QWidget * parent, QString color ) : QWidget ( parent )
 {
     px = MM_NO_MOTION;
     px = MM_NO_MOTION;
