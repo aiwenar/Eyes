@@ -56,8 +56,10 @@ private:
                             face,
                             face_next,
 			    face_send,
-                            spec;
+                            spec,
+                            color;
     QMap<QString,QPixmap>   pics;
+    QMap<QString,QPixmap>   eyes;
     QFuture<void>           c_main;
     int                     px,
                             py,
