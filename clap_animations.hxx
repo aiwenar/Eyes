@@ -30,20 +30,20 @@ void register_animations ( QMap <QString,animation*> * map )
     map->insert ( "bul_07_open", ( new animation ( 3 ) )->add_frame ( "clap_04" )->add_frame ( "clap_03" )->add_frame("clap_02") );
     map->insert ( "bul_08_close", ( new animation ( 4 ) )->add_frame ("clap_02")->add_frame ( "clap_03" )->add_frame ( "clap_04" )->add_frame ( "clap_05" ) );
     map->insert ( "bul_08_open", ( new animation ( 3 ) )->add_frame ( "clap_04" )->add_frame ( "clap_03" )->add_frame("clap_02") );
-    map->insert ( "bul_09_close", ( new animation ( 3 ) )->add_frame ( "clap_03" )->add_frame ( "clap_04" )->add_frame ( "clap_05" ) );
-    map->insert ( "bul_09_open", ( new animation ( 2 ) )->add_frame ( "clap_04" )->add_frame ( "clap_03" ) );
-    map->insert ( "bul_10_close", ( new animation ( 3 ) )->add_frame ( "clap_03" )->add_frame ( "clap_04" )->add_frame ( "clap_05" ) );
-    map->insert ( "bul_10_open", ( new animation ( 2 ) )->add_frame ( "clap_04" )->add_frame ( "clap_03" ) );
-    map->insert ( "bul_11_close", ( new animation ( 3 ) )->add_frame ( "clap_03" )->add_frame ( "clap_04" )->add_frame ( "clap_05" ) );
-    map->insert ( "bul_11_open", ( new animation ( 2 ) )->add_frame ( "clap_04" )->add_frame ( "clap_03" ) );
-    map->insert ( "bul_12_close", ( new animation ( 3 ) )->add_frame ( "clap_03" )->add_frame ( "clap_04" )->add_frame ( "clap_05" ) );
-    map->insert ( "bul_12_open", ( new animation ( 2 ) )->add_frame ( "clap_04" )->add_frame ( "clap_03" ) );
-    map->insert ( "bul_13_close", ( new animation ( 3 ) )->add_frame ( "clap_03" )->add_frame ( "clap_04" )->add_frame ( "clap_05" ) );
-    map->insert ( "bul_13_open", ( new animation ( 2 ) )->add_frame ( "clap_04" )->add_frame ( "clap_03" ) );
-    map->insert ( "bul_14_close", ( new animation ( 3 ) )->add_frame ( "clap_03" )->add_frame ( "clap_04" )->add_frame ( "clap_05" ) );
-    map->insert ( "bul_14_open", ( new animation ( 2 ) )->add_frame ( "clap_04" )->add_frame ( "clap_03" ) );
-    map->insert ( "bul_15_close", ( new animation ( 3 ) )->add_frame ( "clap_03" )->add_frame ( "clap_04" )->add_frame ( "clap_05" ) );
-    map->insert ( "bul_15_open", ( new animation ( 2 ) )->add_frame ( "clap_04" )->add_frame ( "clap_03" ) );
+    map->insert ( "bul_09_close", ( new animation ( 6 ) )->add_frame ( "bclap_01" )->add_frame ( "bclap_02" )->add_frame ( "bclap_03" )->add_frame("bclap_04")->add_frame("bclap_05")->add_frame("bclap_06") );
+    map->insert ( "bul_09_open", ( new animation ( 5 ) )->add_frame ( "bclap_05" )->add_frame ( "bclap_04" )->add_frame("bclap_03")->add_frame("bclap_02")->add_frame("bclap_01") );
+    map->insert ( "bul_10_close", ( new animation ( 6 ) )->add_frame ( "bclap_01" )->add_frame ( "bclap_02" )->add_frame ( "bclap_03" )->add_frame("bclap_04")->add_frame("bclap_05")->add_frame("bclap_06") );
+    map->insert ( "bul_10_open", ( new animation ( 5 ) )->add_frame ( "bclap_05" )->add_frame ( "bclap_04" )->add_frame("bclap_03")->add_frame("bclap_02")->add_frame("bclap_01") );
+    map->insert ( "bul_11_close", ( new animation ( 6 ) )->add_frame ( "bclap_01" )->add_frame ( "bclap_02" )->add_frame ( "bclap_03" )->add_frame("bclap_04")->add_frame("bclap_05")->add_frame("bclap_06") );
+    map->insert ( "bul_11_open", ( new animation ( 5 ) )->add_frame ( "bclap_05" )->add_frame ( "bclap_04" )->add_frame("bclap_03")->add_frame("bclap_02")->add_frame("bclap_01") );
+    map->insert ( "bul_12_close", ( new animation ( 6 ) )->add_frame ( "bhclap_01" )->add_frame ( "bhclap_02" )->add_frame ( "bhclap_03" )->add_frame("bhclap_04")->add_frame("bhclap_05")->add_frame("bhclap_06") );
+    map->insert ( "bul_12_open", ( new animation ( 5 ) )->add_frame ( "bhclap_05" )->add_frame ( "bhclap_04" )->add_frame("bhclap_03")->add_frame("bhclap_02")->add_frame("bhclap_01") );
+    map->insert ( "bul_13_close", ( new animation ( 6 ) )->add_frame ( "bhclap_01" )->add_frame ( "bhclap_02" )->add_frame ( "bhclap_03" )->add_frame("bhclap_04")->add_frame("bhclap_05")->add_frame("bhclap_06") );
+    map->insert ( "bul_13_open", ( new animation ( 5 ) )->add_frame ( "bhclap_05" )->add_frame ( "bhclap_04" )->add_frame("bhclap_03")->add_frame("bhclap_02")->add_frame("bhclap_01") );
+    map->insert ( "bul_14_close", ( new animation ( 6 ) )->add_frame ( "bhclap_01" )->add_frame ( "bhclap_02" )->add_frame ( "bhclap_03" )->add_frame("bhclap_04")->add_frame("bhclap_05")->add_frame("bhclap_06") );
+    map->insert ( "bul_14_open", ( new animation ( 5 ) )->add_frame ( "bhclap_05" )->add_frame ( "bhclap_04" )->add_frame("bhclap_03")->add_frame("bhclap_02")->add_frame("bhclap_01") );
+    map->insert ( "bul_15_close", ( new animation ( 6 ) )->add_frame ( "bhclap_01" )->add_frame ( "bhclap_02" )->add_frame ( "bhclap_03" )->add_frame("bhclap_04")->add_frame("bhclap_05")->add_frame("bhclap_06") );
+    map->insert ( "bul_15_open", ( new animation ( 5 ) )->add_frame ( "bhclap_05" )->add_frame ( "bhclap_04" )->add_frame("bhclap_03")->add_frame("bhclap_02")->add_frame("bhclap_01") );
     map->insert ( "bul_16_close", ( new animation ( 0 ) ) );
     map->insert ( "bul_16_open", ( new animation ( 0 ) ) );
     map->insert ( "sh_01_close", ( new animation ( 6 ) )->add_frame ("cusual_01")->add_frame("clap_01")->add_frame("clap_02")->add_frame("clap_03")->add_frame("clap_04")->add_frame("clap_05") );
@@ -64,6 +64,8 @@ void register_animations ( QMap <QString,animation*> * map )
     map->insert ( "slp_06_open", ( new animation ( 3 ) )->add_frame ( "slp_09" )->add_frame ( "slp_08" )->add_frame ( "slp_07" ) );
     map->insert ( "slp_10_close", ( new animation ( 0 ) ) );
     map->insert ( "slp_10_open", ( new animation ( 0 ) ) );
+    map->insert ( "hpp_01_close", ( new animation ( 7 ) )->add_frame ("hpp_01")->add_frame("hpp_02")->add_frame("hpp_03")->add_frame("hpp_04")->add_frame("hpp_05")->add_frame("hpp_06")->add_frame("hpp_07") );
+    map->insert ( "hpp_01_open", ( new animation ( 6 ) )->add_frame("hpp_06")->add_frame("hpp_05")->add_frame("hpp_04")->add_frame("hpp_03")->add_frame("hpp_02")->add_frame("hpp_01") );
 }
 
 #endif //eyes_clap_animations_hxx
