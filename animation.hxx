@@ -7,7 +7,7 @@ public:
                 animation ( int nsize );
     animation * add_frame ( char * f );
 
-    char *  frames;
+    char ** frames;
     int     size;
 private:
     int     act_frame;

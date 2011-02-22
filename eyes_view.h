@@ -83,7 +83,9 @@ public slots:
 private:
     int                         stage,
                                 from,
-                                to;
+                                to,
+                                size1,
+                                size2;
     eyes_view                 * eyes;
     QTime                       time;
     QTimer                    * timer;

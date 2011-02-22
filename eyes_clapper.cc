@@ -2,9 +2,11 @@
 #include <QChar>
 #include <iostream>
 #include "eyes_view.h"
+#include "clap_animations.hxx"
 
 using namespace std;
 
+// actually unused.
 static char *claps[] = {
     "clap_01", "clap_02", "clap_03", "clap_04", "clap_05", "clap_04", "clap_03", "clap_02", "clap_01",
 };
@@ -12,6 +14,7 @@ static char *claps[] = {
 eyes_clapper::eyes_clapper ( eyes_view * neyes )
 {
     cerr << "[info :] setting up eyes_clapper.\n";
+    register_animations ( &animations );
     eyes = neyes;
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( clap () ) );
@@ -32,24 +35,42 @@ void eyes_clapper::run ()
     cerr << "[info :] starting eyes_clapper.\n";
 }
 
+void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int nto )
+{
+    start = nstart;
+    end = nend;
+    from = nfrom;
+    to = nto;
+    cerr << "[info :] setting animation from " << nstart.toStdString() << " to " << nend.toStdString() << ".\n";
+}
+
 void eyes_clapper::clap ()
 {
-    if ( stage == 0 )
+    if ( stage == from )
     {
         eyes->lock_face ( this );
         old_face = eyes->get_face ();
+        cerr << size1<< ' ' << size2 << '\n' << start.toStdString () << ' ' << end.toStdString () << ' ' << animations[start] << ' ' << '\n';
+        size1 = animations[start]->size;
+        size2 = animations[end]->size;
     }
-    eyes->set_face ( claps[stage], this );
-    eyes->repaint ();
-    if ( stage == 8 )
+    if ( stage < size1 )
+        eyes->set_face ( QString ( animations[start]->frames[stage] ), this );
+    else
     {
-        eyes->set_face ( old_face );
-        eyes->update ();
-        eyes->unlock_face ( this );
-        timer->setInterval ( get_next_clap_delay () * 200 );
-        stage = 0;
-        return;
+        if ( stage-size1 == to )
+        {
+            eyes->set_face ( old_face );
+            eyes->update ();
+            eyes->unlock_face ( this );
+            timer->setInterval ( get_next_clap_delay () * 200 );
+            stage = from;
+            return;
+        }
+        cerr << stage << ' ' << size1 << ' ' << size2 << ' ' << animations[end]->size << '\n';
+        eyes->set_face ( QString ( animations[end]->frames[stage-size1] ), this );
     }
+    eyes->repaint ();
     stage ++;
     timer->setInterval ( 15 );
 }
