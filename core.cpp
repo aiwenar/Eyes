@@ -1507,25 +1507,25 @@ if (get_flu)
 if (images_ready)
 {
 if (pics.eye == 1)
-    eye = "eye_01_n";
+    set_eyes ( "eye_01_n" );
 if (pics.eye == 2)
-    eye = "eye_02_n";
+    set_eyes ( "eye_02_n" );
 if (pics.eye == 3)
-    eye = "eye_03_n";
+    set_eyes ( "eye_03_n" );
 if (pics.eye == 4)
-    eye = "eye_04_n";
+    set_eyes ( "eye_04_n" );
 if (pics.eye == 5)
-    eye = "eye_05_n";
+    set_eyes ( "eye_05_n" );
 if (pics.eye == 6)
-    eye = "eye_06_n";
+    set_eyes ( "eye_06_n" );
 if (pics.eye == 7)
-    eye = "eye_07_n";
+    set_eyes ( "eye_07_n" );
 if (pics.eye == 8)
-    eye = "eye_08_n";
+    set_eyes ( "eye_08_n" );
 if (pics.eye == 9)
-    eye = "eye_09_n";
+    set_eyes ( "eye_09_n" );
 if (pics.eye == 10)
-    eye = "eye_10_n";
+    set_eyes ( "eye_10_n" );
 
 
 if (pics.outline == 0)
@@ -1794,7 +1794,11 @@ int anim_num_2 = 0;
            face_prev == "slp_06" )
            anim_num_2 = 2;
 
-       set_animation (face_prev + "_close", face_send + "open", anim_num_1, anim_num_2);
+       if (face_prev == "")
+           face_prev = "cusual_01";
+
+
+       set_animation (face_prev + "_close", face_send + "_open", anim_num_1, anim_num_2);
 
        if (pics.outline == 20 && prev_pics.outline != 20)
        {
