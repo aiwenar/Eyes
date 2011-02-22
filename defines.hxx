@@ -12,10 +12,4 @@ typedef signed char sint8;
 #define nil 0
 #define abstract = 0
 
-struct animation
-{
-    int     length;
-    char ** frames;
-};
-
 #endif //eyes_defines_hxx
