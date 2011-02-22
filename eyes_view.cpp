@@ -111,7 +111,7 @@ void eyes_view::open_images ( QString color )
     lock_face ( this );
     QPixmap file;
     bool no_file ( false );
-    for ( int i=0 ; i<150 ; i++ )
+    for ( int i=0 ; i<226 ; i++ )
     {
         file.load ( QString ( folder ) + files[i] + ".png" );
         if ( file.isNull () )
