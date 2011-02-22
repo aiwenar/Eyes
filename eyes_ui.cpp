@@ -20,7 +20,7 @@ static const char help [] = {
 
 static const char help_colors [] = {
     "Avalible colors are:\n"
-    "\tgreen ; blue ; brown ; fire ; monochrome ; pink ; WidnowsSpecjal\n\n"
+    "\tgreen ; blue ; brown ; fire ; monochrome ; pink ; WidnowsSpecjal ; ubuntu ; evilgreen\n\n"
 };
 
 eyes_view * eyes;

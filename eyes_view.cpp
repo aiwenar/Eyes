@@ -104,6 +104,10 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
         color = "_p";
     else if ( ncolor == "blue" )
         color = "_n";
+    else if ( ncolor == "ubuntu" )
+        color = "_u";
+    else if ( ncolor == "evilgreen" )
+        color = "_eg";
     else
         color = "_g";
     is_finished = false;
