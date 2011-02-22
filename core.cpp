@@ -83,6 +83,7 @@ static int core_step;
 QString     face_prev,
             face_double_prev;
 int _pos;
+//static int force_bulwers;
 
 //------------------
 
@@ -1528,6 +1529,7 @@ if (pics.eye == 10)
     set_eyes ( "eye_10" );
 
 
+
 if (pics.outline == 0)
 {
     int tmp = rand () % 3;
@@ -1768,6 +1770,14 @@ int anim_num_2 = 0;
        if (face_send == "bul_16" ||
            face_send == "slp_10" )
            anim_num_2 = 0;
+       if (face_send == "bul_09" ||
+           face_send == "bul_10" ||
+           face_send == "bul_11" ||
+           face_send == "bul_12" ||
+           face_send == "bul_13" ||
+           face_send == "bul_14" ||
+           face_send == "bul_15" )
+           anim_num_2 = 5;
        if (face_send == "cusual_01" ||
            face_send == "bul_01" ||
            face_send == "bul_02" ||
@@ -1783,16 +1793,11 @@ int anim_num_2 = 0;
            face_send == "bul_06" ||
            face_send == "bul_07" ||
            face_send == "bul_08" ||
-           face_send == "bul_09" )
-           anim_num_2 = 3;
-       if (face_send == "bul_10" ||
-           face_send == "bul_11" ||
-           face_send == "bul_12" ||
-           face_send == "bul_13" ||
-           face_send == "bul_14" ||
-           face_send == "bul_15" ||
            face_send == "slp_06" )
-           anim_num_2 = 2;
+           anim_num_2 = 3;
+
+       else
+           anim_num_2 = 0;
 
        if (face_send == "")
            face_send = "cusual_01";
@@ -1830,6 +1835,9 @@ int anim_num_2 = 0;
        }
 
        }
+
+
+
 
        face_double_prev = face_prev;
        face_prev = face_send;
@@ -1913,6 +1921,7 @@ void core_main ()
         cout << "\033[32m" << endl;
         naglowek_in ("v.0.0.1a-01");
         print ( " Welcome in eyes project!" );
+        //cin >> force_bulwers;
         sleep (2);
         naglowek_out ("v.0.0.1a-01");
         cout << "\033[2J\033[0;0H";
@@ -2511,6 +2520,6 @@ v.0.0.1a-06
 
 
 
-//Version 0.0.1a-01
+//Version 0.8.0a-01
 //Chiliński Damian
 //GBS
