@@ -80,8 +80,7 @@ static bool event_now,
             get_flu,
             wake_up;
 static int core_step;
-QString     face_send,
-            face_prev,
+QString     face_prev,
             face_double_prev;
 int _pos;
 
