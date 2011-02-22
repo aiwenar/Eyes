@@ -1767,6 +1767,8 @@ int anim_num_2 = 0;
            anim_num_1 = 0;
 
 
+           anim_num_2 = 0;
+
        if (face_send == "bul_16" ||
            face_send == "slp_10" )
            anim_num_2 = 0;
@@ -1796,8 +1798,8 @@ int anim_num_2 = 0;
            face_send == "slp_06" )
            anim_num_2 = 3;
 
-       else
-           anim_num_2 = 0;
+
+
 
        if (face_send == "")
            face_send = "cusual_01";
