@@ -81,7 +81,8 @@ static bool event_now,
             wake_up;
 static int core_step;
 QString     face_send,
-            face_prev;
+            face_prev,
+            face_double_prev;
 int _pos;
 
 //------------------
@@ -1737,66 +1738,72 @@ else
 int anim_num_1 = 0;
 int anim_num_2 = 0;
 
-       if (face_send == "bul_16" ||
-           face_send == "sh_01"  ||
-           face_send == "slp_10" ||
-           face_send == "cusual_01" ||
-           face_send == "bul_01" ||
-           face_send == "bul_02" ||
-           face_send == "bul_03" ||
-           face_send == "bul_04" ||
-           face_send == "bul_05" ||
-           face_send == "bul_06" ||
-           face_send == "bul_07" ||
-           face_send == "bul_08" ||
-           face_send == "bul_09" ||
-           face_send == "bul_10" ||
-           face_send == "bul_11" ||
-           face_send == "bul_12" ||
-           face_send == "bul_13" ||
-           face_send == "bul_14" ||
-           face_send == "bul_15" ||
-           face_send == "slp_01" ||
-           face_send == "slp_02" ||
-           face_send == "slp_03" ||
-           face_send == "slp_04" ||
-           face_send == "slp_05" ||
-           face_send == "slp_06" )
-           anim_num_1 = 0;
-
-
        if (face_prev == "bul_16" ||
-           face_prev == "slp_10" )
-           anim_num_2 = 0;
-       if (face_prev == "cusual_01" ||
+           face_prev == "sh_01"  ||
+           face_prev == "slp_10" ||
+           face_prev == "cusual_01" ||
            face_prev == "bul_01" ||
            face_prev == "bul_02" ||
            face_prev == "bul_03" ||
            face_prev == "bul_04" ||
-           face_prev == "slp_01" ||
-           face_prev == "slp_02" ||
-           face_prev == "slp_03" ||
-           face_prev == "slp_04" ||
-           face_prev == "slp_05" )
-           anim_num_2 = 4;
-       if (face_prev == "bul_05" ||
+           face_prev == "bul_05" ||
            face_prev == "bul_06" ||
            face_prev == "bul_07" ||
            face_prev == "bul_08" ||
-           face_prev == "bul_09" )
-           anim_num_2 = 3;
-       if (face_prev == "bul_10" ||
+           face_prev == "bul_09" ||
+           face_prev == "bul_10" ||
            face_prev == "bul_11" ||
            face_prev == "bul_12" ||
            face_prev == "bul_13" ||
            face_prev == "bul_14" ||
            face_prev == "bul_15" ||
+           face_prev == "slp_01" ||
+           face_prev == "slp_02" ||
+           face_prev == "slp_03" ||
+           face_prev == "slp_04" ||
+           face_prev == "slp_05" ||
            face_prev == "slp_06" )
+           anim_num_1 = 0;
+
+
+       if (face_send == "bul_16" ||
+           face_send == "slp_10" )
+           anim_num_2 = 0;
+       if (face_send == "cusual_01" ||
+           face_send == "bul_01" ||
+           face_send == "bul_02" ||
+           face_send == "bul_03" ||
+           face_send == "bul_04" ||
+           face_send == "slp_01" ||
+           face_send == "slp_02" ||
+           face_send == "slp_03" ||
+           face_send == "slp_04" ||
+           face_send == "slp_05" )
+           anim_num_2 = 4;
+       if (face_send == "bul_05" ||
+           face_send == "bul_06" ||
+           face_send == "bul_07" ||
+           face_send == "bul_08" ||
+           face_send == "bul_09" )
+           anim_num_2 = 3;
+       if (face_send == "bul_10" ||
+           face_send == "bul_11" ||
+           face_send == "bul_12" ||
+           face_send == "bul_13" ||
+           face_send == "bul_14" ||
+           face_send == "bul_15" ||
+           face_send == "slp_06" )
            anim_num_2 = 2;
 
-       if (face_prev == "")
-           face_prev = "cusual_01";
+       if (face_send == "")
+           face_send = "cusual_01";
 
+
+       if (face_double_prev == face_prev && face_prev == face_send)
+       {};
+
+       else
+       {
 
        set_animation (face_prev + "_close", face_send + "_open", anim_num_1, anim_num_2);
 
@@ -1823,6 +1830,10 @@ int anim_num_2 = 0;
            set_animation (face_prev + "_close", "slp_10_open", anim_num_1, 0);
        }
 
+       }
+
+       face_double_prev = face_prev;
+       face_prev = face_send;
 
 cout << "\033[4;22H" << pics.outline << "            ";
 
