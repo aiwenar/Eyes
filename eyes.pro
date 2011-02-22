@@ -8,13 +8,16 @@ SOURCES	+= \
     eyes_ui.cpp \
     eyes_view.cpp \
     core.cpp \
-    eyes_clapper.cc
+    eyes_clapper.cc \
+    animation.cc
 
 HEADERS += \
     eyes_view.h \
     bulwers.h \
     eyes_info.h \
-    defines.hxx
+    defines.hxx \
+    clap_animations.hxx \
+    animation.hxx
 
 OTHER_FILES += \
     README.markdown
