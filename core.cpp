@@ -1508,25 +1508,25 @@ if (get_flu)
 if (images_ready)
 {
 if (pics.eye == 1)
-    set_eyes ( "eye_01_n" );
+    set_eyes ( "eye_01" );
 if (pics.eye == 2)
-    set_eyes ( "eye_02_n" );
+    set_eyes ( "eye_02" );
 if (pics.eye == 3)
-    set_eyes ( "eye_03_n" );
+    set_eyes ( "eye_03" );
 if (pics.eye == 4)
-    set_eyes ( "eye_04_n" );
+    set_eyes ( "eye_04" );
 if (pics.eye == 5)
-    set_eyes ( "eye_05_n" );
+    set_eyes ( "eye_05" );
 if (pics.eye == 6)
-    set_eyes ( "eye_06_n" );
+    set_eyes ( "eye_06" );
 if (pics.eye == 7)
-    set_eyes ( "eye_07_n" );
+    set_eyes ( "eye_07" );
 if (pics.eye == 8)
-    set_eyes ( "eye_08_n" );
+    set_eyes ( "eye_08" );
 if (pics.eye == 9)
-    set_eyes ( "eye_09_n" );
+    set_eyes ( "eye_09" );
 if (pics.eye == 10)
-    set_eyes ( "eye_10_n" );
+    set_eyes ( "eye_10" );
 
 
 if (pics.outline == 0)
