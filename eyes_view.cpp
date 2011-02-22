@@ -63,17 +63,19 @@ static char * files[]     = {
     "bhclap_04_a", "bhclap_04_m", "bhclap_04_o", "bhclap_04_s",
     "bhclap_05_a", "bhclap_05_m", "bhclap_05_o", "bhclap_05_s",
     "bhclap_06_a", "bhclap_06_m", "bhclap_06_o", "bhclap_06_s",
-    "eye_01_n", "eye_02_n", "eye_03_n", "eye_04_n", "eye_05_n",     //141
-    "eye_06_n", "eye_07_n", "eye_08_n", "eye_09_n", "eye_10_n",     //146
-    "tired_01", "tired_02", "tired_03",                             //149
-    "spec"                                                          //150
+    "tired_01", "tired_02", "tired_03",                             //139
+    "spec"                                                          //140
+};
+static char * eyefiles[]  = {
+    "eye_01", "eye_02", "eye_03", "eye_04", "eye_05",   // 5
+    "eye_06", "eye_07", "eye_08", "eye_09", "eye_10"    // 10
 };
 
 void core_main ();
 bool is_finished;
 bool images_ready;
 
-eyes_view::eyes_view ( QWidget * parent, QString color ) : QWidget ( parent )
+eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
 {
     px = MM_NO_MOTION;
     px = MM_NO_MOTION;
@@ -88,6 +90,22 @@ eyes_view::eyes_view ( QWidget * parent, QString color ) : QWidget ( parent )
     eye = "eye_04";
     face = "cusual_01";
     face_next = "";
+    if ( ncolor == "green" )
+        color = "_g";
+    else if ( ncolor == "WindowsSpecjal" )
+        color = "_w";
+    else if ( ncolor == "monochrome" )
+        color = "_m";
+    else if ( ncolor == "brown" )
+        color = "_o";
+    else if ( ncolor == "fire" )
+        color = "_f";
+    else if ( ncolor == "pink" )
+        color = "_p";
+    else if ( ncolor == "blue" )
+        color = "_n";
+    else
+        color = "_g";
     is_finished = false;
     images_ready = false;
     is_face_locked = false;
@@ -111,7 +129,7 @@ void eyes_view::open_images ( QString color )
     lock_face ( this );
     QPixmap file;
     bool no_file ( false );
-    for ( int i=0 ; i<226 ; i++ )
+    for ( int i=0 ; i<216 ; i++ )
     {
         file.load ( QString ( folder ) + files[i] + ".png" );
         if ( file.isNull () )
@@ -123,6 +141,20 @@ void eyes_view::open_images ( QString color )
         {
             pics.insert ( QString ( files[i] ), file.scaled ( EYES_W, EYES_H, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
             cerr << "[info :] loading image " << files[i] << ".\n";
+        }
+    }
+    for ( int i=0 ; i<10 ; i++ )
+    {
+        file.load ( QString ( folder ) + eyefiles[i] + color + ".png" );
+        if ( file.isNull () )
+        {
+            cerr << "[\033[31merror \033[0m:] file " << ( QString ( folder ) + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";
+            no_file = true;
+        }
+        else
+        {
+            eyes.insert ( QString ( eyefiles[i] ), file );
+            cerr << "[info :] loading image " << eyefiles[i] << ".\n";
         }
     }
     if ( no_file )
@@ -142,8 +174,8 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     QPainter parea ( area );
     area->fill ( QColor ( 0, 0, 0 ) );
     parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_a"] );
-    parea.drawPixmap ( epx1, epy, EYE_S, EYE_S, pics[eye+"_n"] );
-    parea.drawPixmap ( epx2, epy, EYE_S, EYE_S, pics[eye+"_n"] );
+    parea.drawPixmap ( epx1, epy, EYE_S, EYE_S, eyes[eye] );
+    parea.drawPixmap ( epx2, epy, EYE_S, EYE_S, eyes[eye] );
     parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_s"] );
     parea.drawPixmap ( emx1, emy, EYE_M, EYE_M, pics[spec] );
     parea.drawPixmap ( emx2, emy, EYE_M, EYE_M, pics[spec] );

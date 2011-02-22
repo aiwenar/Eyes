@@ -1,4 +1,4 @@
-#include <QtGui>
+    #include <QtGui>
 #include <QApplication>
 
 #include <iostream>
@@ -15,6 +15,12 @@ static const char help [] = {
     "\t--help -h\t\tPrint this text ang exit.\n"
     "\t--version -v\t\tPrint version and exit.\n"
     "\t--color=COLOR -c COLOR\tSet eyes color to COLOR.\n"
+    "\nSee --help colors for colors.\n"
+};
+
+static const char help_colors [] = {
+    "Avalible colors are:\n"
+    "\tgreen ; blue ; brown ; fire ; monochrome ; pink ; WidnowsSpecjal\n\n"
 };
 
 eyes_view * eyes;
@@ -30,8 +36,16 @@ int main ( int argc, char ** argv )
   {
       if ( arg.at ( i ) == "-h" or arg.at ( i ) == "--help" )
       {
-          cout << help;
-          exit ( 0 );
+          if ( arg.at ( i+1 ) == "colors" )
+          {
+              cout << help_colors;
+              exit ( 0 );
+          }
+          else
+          {
+            cout << help;
+            exit ( 0 );
+          }
       }
       else if ( arg.at ( i ) == "-v" or arg.at ( i ) == "--version" )
       {
@@ -51,7 +65,7 @@ int main ( int argc, char ** argv )
 
   QWidget win ( 0, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint );
   win.resize ( EYES_W, EYES_H );
-  win.setWindowTitle( "!Eyesy" );
+  win.setWindowTitle( "Eyesy" );
   win.setAttribute ( Qt::WA_TranslucentBackground, true );
   win.show ();
 
