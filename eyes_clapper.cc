@@ -49,7 +49,7 @@ void eyes_clapper::clap ()
     if ( stage == from )
     {
         eyes->lock_face ( this );
-        old_face = eyes->get_face ();
+        old_face = eyes->get_face_send ();
         cerr << size1<< ' ' << size2 << '\n' << start.toStdString () << ' ' << end.toStdString () << ' ' << animations[start] << ' ' << '\n';
         size1 = animations[start]->size;
         size2 = animations[end]->size;

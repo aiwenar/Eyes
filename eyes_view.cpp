@@ -258,3 +258,8 @@ QString eyes_view::get_face ()
 {
     return ( face );
 }
+
+QString eyes_view::get_face_send ()
+{
+    return ( face_send );
+}

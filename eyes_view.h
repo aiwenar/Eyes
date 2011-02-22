@@ -42,6 +42,7 @@ public:
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            ()                                      const;
     QString             get_face            ();
+    QString	       get_face_send       ();
 signals:
 public slots:
     void            mousePressEvent     ( QMouseEvent * ev );
@@ -54,6 +55,7 @@ private:
     QString                 eye,
                             face,
                             face_next,
+			    face_send,
                             spec;
     QMap<QString,QPixmap>   pics;
     QFuture<void>           c_main;
