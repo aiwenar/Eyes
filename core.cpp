@@ -1800,7 +1800,7 @@ int anim_num_2 = 0;
 
 
        if (face_double_prev == face_prev && face_prev == face_send)
-       {};
+       {}
 
        else
        {
