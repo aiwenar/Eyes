@@ -37,10 +37,12 @@ void eyes_clapper::run ()
 
 void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int nto )
 {
+    if ( nto >= animations[nend]->size )
+        to = animations[nend]->size;
+    else
+        to = nto;
     start = nstart;
     end = nend;
-    from = nfrom;
-    to = nto;
     cerr << "[info :] setting animation from " << nstart.toStdString() << " to " << nend.toStdString() << ".\n";
 }
 
