@@ -74,5 +74,5 @@ void eyes_clapper::clap ()
     }
     eyes->repaint ();
     stage ++;
-    timer->setInterval ( 15 );
+    timer->setInterval ( 10 );
 }
