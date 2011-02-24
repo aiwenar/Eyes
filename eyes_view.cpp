@@ -113,11 +113,15 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     is_finished = false;
     images_ready = false;
     is_face_locked = false;
+    time = QTime::currentTime ();
+    qsrand ( (uint)time.msec () );
     setMinimumSize ( EYES_W, EYES_H );
     setMaximumSize ( EYES_W, EYES_H );
     clapper = new eyes_clapper ( this );
+    cerr << "[info :] trying to setup eyes looker.\n";
     c_main = QtConcurrent::run ( core_main );
     open_images ( color );
+    looker = new eyes_looker ( this );
     area = new QPixmap ( EYES_W, EYES_H );
     clapper->run ();
 }
@@ -173,7 +177,6 @@ void eyes_view::open_images ( QString color )
 
 void eyes_view::paintEvent ( QPaintEvent * event )
 {
-    cerr << "[info :] painting " << face.toStdString () << " with eye " << eye.toStdString () << ".\n";
     QPainter paint ( this );
     QPainter parea ( area );
     area->fill ( QColor ( 0, 0, 0 ) );
@@ -244,6 +247,14 @@ void eyes_view::set_face ( QString nface, void * nlocker )
 void eyes_view::set_eyes ( QString neyes )
 {
     eye = neyes;
+}
+
+void eyes_view::set_eyes_position ( int nx1, int nx2, int ny )
+{
+    epx1 = nx1;
+    epx2 = nx2;
+    epy = ny;
+
 }
 
 void eyes_view::lock_face ( void * nlocker )
