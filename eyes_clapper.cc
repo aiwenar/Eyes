@@ -18,8 +18,6 @@ eyes_clapper::eyes_clapper ( eyes_view * neyes )
     eyes = neyes;
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( clap () ) );
-    time = QTime::currentTime ();
-    qsrand ( (uint)time.msec () );
     stage = 0;
     cerr << "[info :] eyes_clapper is ready.\n";
 }
@@ -69,7 +67,6 @@ void eyes_clapper::clap ()
             stage = from;
             return;
         }
-        cerr << stage << ' ' << size1 << ' ' << size2 << ' ' << animations[end]->size << '\n';
         eyes->set_face ( QString ( animations[end]->frames[stage-size1] ), this );
     }
     eyes->repaint ();

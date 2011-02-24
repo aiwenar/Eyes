@@ -23,7 +23,6 @@ animation * animation::add_frame ( char * f )
         cerr << "[\033[33mwarning \033[0m:] adding new frame to animation, but there isn't any free slot.\n";
         return ( this );
     }
-    cerr << "[info :] adding frame " << f << " to animation.\n";
     frames[act_frame] = f;
     act_frame ++;
     return ( this );
