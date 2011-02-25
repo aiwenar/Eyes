@@ -9,7 +9,8 @@ SOURCES	+= \
     eyes_view.cpp \
     core.cpp \
     eyes_clapper.cc \
-    animation.cc
+    animation.cc \
+    eyes_looker.cc
 
 HEADERS += \
     eyes_view.h \
@@ -20,12 +21,14 @@ HEADERS += \
     animation.hxx
 
 OTHER_FILES += \
-    README.markdown
+    README.markdown \
+    config.cfg
 
 INCLUDEPATH += /usr/include/glib-2.0 \
     /usr/lib/glib-2.0/include \
     /usr/include/libgtop-2.0 \
-    /usr/lib/libgtop-2.0/include
+    /usr/lib/libgtop-2.0/include \
+    /usr/local/include/
 
 LIBDIR = /usr/lib
 
