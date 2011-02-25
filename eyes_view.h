@@ -13,10 +13,13 @@
 #include <QTimer>
 #include <QThread>
 #include <QTime>
+#include <libconfig.h++>
 
 #include "bulwers.h"
 #include "defines.hxx"
 #include "animation.hxx"
+
+using namespace libconfig;
 
 class eyes_clapper;
 class eyes_looker;
@@ -79,6 +82,7 @@ private:
     void                  * locker;
     eyes_clapper          * clapper;
     eyes_looker           * looker;
+    Config                * set;
 };
 
 class eyes_clapper : public QThread
@@ -89,6 +93,7 @@ public:
     int         get_next_clap_delay ();
     void        run                 ();
     void        set_animation       ( QString nstart, QString nend, int nfrom, int nto );
+    void        load_config         ( Config * set );
 public slots:
     void        clap                ();
 private:
@@ -96,7 +101,9 @@ private:
                                 from,
                                 to,
                                 size1,
-                                size2;
+                                size2,
+                                min_dl,
+                                max_dl;
     eyes_view                 * eyes;
     QTime                       time;
     QTimer                    * timer;
@@ -111,11 +118,19 @@ class eyes_looker : public QObject
     Q_OBJECT
 public:
             eyes_looker ( eyes_view * eyes );
+    void    load_config ( Config * set );
+    void    run ();
 public slots:
     void    look ();
 private:
     eyes_view * eyes;
     QTimer    * timer;
+    int         min_dx,
+                max_dx,
+                min_dy,
+                max_dy,
+                min_dl,
+                max_dl;
 };
 
 extern eyes_view * eyes;

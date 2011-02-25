@@ -9,8 +9,26 @@ eyes_looker::eyes_looker ( eyes_view * neyes )
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout() ), this, SLOT ( look() ) );
     timer->setInterval ( ( qrand () % 30 + 1 )*200 );
-    timer->start ();
     cerr << "[info :] eyes_looker working.\n";
+}
+
+void eyes_looker::load_config ( Config * set )
+{
+    if ( not set->lookupValue ( "ui.looker.min_dx", min_dx ) or
+         not set->lookupValue ( "ui.looker.max_dx", max_dx ) or
+         not set->lookupValue ( "ui.looker.min_dy", min_dy ) or
+         not set->lookupValue ( "ui.looker.max_dy", max_dy ) or
+         not set->lookupValue ( "ui.looker.min_delay", min_dl ) or
+         not set->lookupValue ( "ui.looker.max_delay", max_dl ) )
+    {
+        cerr << "[\033[31merror \033[0m:] ui.looker section in config is invalid.\n";
+        exit ( 126 );
+    }
+}
+
+void eyes_looker::run ()
+{
+    timer->start ();
 }
 
 void eyes_looker::look ()
@@ -25,12 +43,12 @@ void eyes_looker::look ()
     px1 = eyes->get_eyes_x1 ();
     px2 = eyes->get_eyes_x2 ();
     py = eyes->get_eyes_y ();
-    if ( px1+dx < 20 or px1+dx > 80 )
+    if ( px1+dx < min_dx or px1+dx > max_dx )
         dx = 0;
-    if ( py+dy < 0 or py+dy > 30 )
+    if ( py+dy < min_dy or py+dy > max_dy )
         dy = 0;
     eyes->set_eyes_position ( px1+dx, px2+dx, py+dy );
     cerr << "[info :] looking witch dx:" << dx << " and dy:" << dy << ".\n";
-    timer->setInterval ( ( qrand() % 30 + 1 ) * 200 );
+    timer->setInterval ( ( qrand() % max_dl + min_dl ) * 200 );
     eyes->repaint ();
 }
