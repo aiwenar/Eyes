@@ -2131,11 +2131,11 @@ glibtop_init();
 glibtop_mem memory;
 glibtop_get_mem(&memory);
 
-unsigned int mem_total = memory.total;
-unsigned int mem_used = memory.used;
-unsigned int mem_load = (100*mem_used)/mem_total;
+//unsigned int mem_total = memory.total;
+//unsigned int mem_used = memory.used;
+//unsigned int mem_load = (100*mem_used)/mem_total;
 
-return mem_load;
+return 100* ((float)memory.user/(float)memory.total);
 }
 //-------------------------
 int P_LIST ()
