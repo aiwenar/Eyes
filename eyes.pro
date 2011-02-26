@@ -33,4 +33,5 @@ INCLUDEPATH += /usr/include/glib-2.0 \
 LIBDIR = /usr/lib
 
 LIBS += $${LIBDIR}/libglib-2.0.so \
-    $${LIBDIR}/libgtop-2.0.so
+    $${LIBDIR}/libgtop-2.0.so \
+    /usr/local/lib/libconfig++.so
