@@ -3,6 +3,7 @@
 
 #include <QPainter>
 #include <iostream>
+#include <string>
 
 using namespace std;
 
@@ -90,6 +91,14 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     eye = "eye_04";
     face = "cusual_01";
     face_next = "";
+    set = new Config ();
+    set->readFile ( "./config.cfg" );
+    string scolor;
+    if ( not set->lookupValue ( "ui.color", scolor ) )
+    {
+        cerr << "[\033[31merror \033[0m:] variable 'ui.color' don't found in file confg.cfg .\n";
+        exit ( 126 );
+    }
     if ( ncolor == "green" )
         color = "_g";
     else if ( ncolor == "WindowsSpecjal" )
@@ -118,12 +127,14 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     setMinimumSize ( EYES_W, EYES_H );
     setMaximumSize ( EYES_W, EYES_H );
     clapper = new eyes_clapper ( this );
-    cerr << "[info :] trying to setup eyes looker.\n";
+    looker = new eyes_looker ( this );
     c_main = QtConcurrent::run ( core_main );
     open_images ( color );
-    looker = new eyes_looker ( this );
+    clapper->load_config ( set );
+    looker->load_config ( set );
     area = new QPixmap ( EYES_W, EYES_H );
     clapper->run ();
+    looker->run ();
 }
 
 eyes_view::~eyes_view ()

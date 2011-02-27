@@ -24,7 +24,7 @@ eyes_clapper::eyes_clapper ( eyes_view * neyes )
 
 int eyes_clapper::get_next_clap_delay ()
 {
-    return ( qrand () % 31 + 5 );
+    return ( qrand () % max_dl + min_dl );
 }
 
 void eyes_clapper::run ()
@@ -42,6 +42,16 @@ void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int 
     start = nstart;
     end = nend;
     cerr << "[info :] setting animation from " << nstart.toStdString() << " to " << nend.toStdString() << ".\n";
+}
+
+void eyes_clapper::load_config ( Config * set )
+{
+    if ( not set->lookupValue ( "ui.clapper.min_delay", min_dl ) or
+         not set->lookupValue ( "ui.clapper.max_delay", max_dl ) )
+    {
+        cerr << "[\033[31merror \033[0m:] section ui.clapper in configuration file is invalid.\n";
+        exit ( 126 );
+    }
 }
 
 void eyes_clapper::clap ()
