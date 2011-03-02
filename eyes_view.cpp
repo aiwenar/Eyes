@@ -124,15 +124,15 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     is_face_locked = false;
     time = QTime::currentTime ();
     qsrand ( (uint)time.msec () );
-    setMinimumSize ( EYES_W, EYES_H );
-    setMaximumSize ( EYES_W, EYES_H );
+    setMinimumSize ( eyes_w, eyes_h );
+    setMaximumSize ( eyes_w, eyes_h );
     clapper = new eyes_clapper ( this );
     looker = new eyes_looker ( this );
     c_main = QtConcurrent::run ( core_main );
     open_images ( color );
     clapper->load_config ( set );
     looker->load_config ( set );
-    area = new QPixmap ( EYES_W, EYES_H );
+    area = new QPixmap ( eyes_w, eyes_h );
     clapper->run ();
     looker->run ();
 }
@@ -158,7 +158,7 @@ void eyes_view::open_images ( QString color )
         }
         else
         {
-            pics.insert ( QString ( files[i] ), file.scaled ( EYES_W, EYES_H, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
+            pics.insert ( QString ( files[i] ), file.scaled ( eyes_w, eyes_h, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
             cerr << "[info :] loading image " << files[i] << ".\n";
         }
     }
@@ -191,17 +191,17 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     QPainter paint ( this );
     QPainter parea ( area );
     area->fill ( QColor ( 0, 0, 0 ) );
-    parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_a"] );
-    parea.drawPixmap ( epx1, epy, EYE_S, EYE_S, eyes[eye] );
-    parea.drawPixmap ( epx2, epy, EYE_S, EYE_S, eyes[eye] );
-    parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_s"] );
-    parea.drawPixmap ( emx1, emy, EYE_M, EYE_M, pics[spec] );
-    parea.drawPixmap ( emx2, emy, EYE_M, EYE_M, pics[spec] );
-    parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_m"] );
-    parea.drawPixmap ( 0, 0, EYES_W, EYES_H, pics[face+"_o"] );
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_a"] );
+    parea.drawPixmap ( epx1, epy, eye_s, eye_s, eyes[eye] );
+    parea.drawPixmap ( epx2, epy, eye_s, eye_s, eyes[eye] );
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_s"] );
+    parea.drawPixmap ( emx1, emy, eye_m, eye_m, pics[spec] );
+    parea.drawPixmap ( emx2, emy, eye_m, eye_m, pics[spec] );
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_m"] );
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_o"] );
     parea.end ();
     area->setMask ( pics[face+"_a"].mask () );
-    paint.drawPixmap ( 0, 0, EYES_W, EYES_H, *area );
+    paint.drawPixmap ( 0, 0, eyes_w, eyes_h, *area );
 }
 
 void eyes_view::mousePressEvent ( QMouseEvent * ev )
@@ -318,7 +318,7 @@ void eyes_view::set_animation ( QString start, QString end, int from, int to )
 
 int eyes_view::heightForWidth ( int w ) const
 {
-    return ( EYES_H );
+    return ( eyes_h );
 }
 
 QVariant eyes_view::inputMethodQuery ( Qt::InputMethodQuery query ) const
@@ -328,7 +328,7 @@ QVariant eyes_view::inputMethodQuery ( Qt::InputMethodQuery query ) const
 
 QSize eyes_view::sizeHint () const
 {
-    return ( QSize ( EYES_W, EYES_H ) );
+    return ( QSize ( eyes_w, eyes_h ) );
 }
 
 QString eyes_view::get_face ()

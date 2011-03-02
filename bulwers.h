@@ -3,6 +3,7 @@
 
 #define IMG_NORMAL  0
 
+#include <iostream>
 #include "defines.hxx"
 
 struct core_stats

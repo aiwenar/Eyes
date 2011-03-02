@@ -10,7 +10,8 @@ SOURCES	+= \
     core.cpp \
     eyes_clapper.cc \
     animation.cc \
-    eyes_looker.cc
+    eyes_looker.cc \
+    eyes_cfg.cc
 
 HEADERS += \
     eyes_view.h \
@@ -18,7 +19,8 @@ HEADERS += \
     eyes_info.h \
     defines.hxx \
     clap_animations.hxx \
-    animation.hxx
+    animation.hxx \
+    eyes_cfg.hxx
 
 OTHER_FILES += \
     README.markdown \
