@@ -14,12 +14,14 @@
 #include <QThread>
 #include <QTime>
 #include <libconfig.h++>
+#include <ostream>
 
 #include "bulwers.h"
 #include "defines.hxx"
 #include "animation.hxx"
 
 using namespace libconfig;
+using namespace std;
 
 class eyes_clapper;
 class eyes_looker;
@@ -42,6 +44,7 @@ public:
     void                unlock_face         ( void * lovker );
     void                unlock_face         ();
     void                set_animation       ( QString start, QString end, int from, int to );
+    void                graphics_prepare    ();
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
     int                 get_eyes_x1         () { return epx1; }
