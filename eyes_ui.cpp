@@ -42,67 +42,67 @@ int main ( int argc, char ** argv )
   Config set;
   set.readFile ( "./config.cfg" );
 
-  if ( arg.at ( 1 ) == "config" )
+  if ( arg.size () > 1 )
   {
-    if ( arg.at ( 2 ) == "list" )
-      list_keys ( &set );
-    else
+    if ( arg.at ( 1 ) == "config" )
     {
-      if ( not set.exists ( arg.at ( 2 ).toStdString () ) )
-      {
-        cout << "[\033[31merror \033[0m:] requested path dosn't exist. See `help config` for help.\n";
-        exit ( 126 );
-      }
-      if ( arg.size () > 3 )
-      {
-
-      }
+      if ( arg.at ( 2 ) == "list" )
+        list_keys ( &set );
       else
       {
-        try
+        if ( not set.exists ( arg.at ( 2 ).toStdString () ) )
         {
-          cout << set.lookup ( arg.at ( 2 ).toStdString () ) << '\n';
+          cout << "[\033[31merror \033[0m:] requested path dosn't exist. See `help config` for help.\n";
+          exit ( 126 );
         }
-        catch ( SettingTypeException e )
+        if ( arg.size () > 3 )
         {
-          cout << e.what ();
+
+        }
+        else
+        {
+          try
+          {
+            cout << set.lookup ( arg.at ( 2 ).toStdString () ).c_str () << '\n';
+          }
+          catch ( SettingTypeException e )
+          {
+            cout << e.what ();
+          }
         }
       }
+      exit ( 0 );
     }
-    exit ( 0 );
   }
-  else
+  for ( int i = 0 ; i < arg.size () ; i++ )
   {
-    for ( int i = 0 ; i < arg.size () ; i++ )
-    {
-        if ( arg.at ( i ) == "-h" or arg.at ( i ) == "--help" )
-        {
-            if ( arg.at ( i+1 ) == "colors" )
-            {
-                cout << help_colors;
-                exit ( 0 );
-            }
-            else
-            {
-              cout << help;
+      if ( arg.at ( i ) == "-h" or arg.at ( i ) == "--help" )
+      {
+          if ( arg.at ( i+1 ) == "colors" )
+          {
+              cout << help_colors;
               exit ( 0 );
-            }
-        }
-        else if ( arg.at ( i ) == "-v" or arg.at ( i ) == "--version" )
-        {
-            cout << "Wersyjka\n";
+          }
+          else
+          {
+            cout << help;
             exit ( 0 );
-        }
-        else if ( arg.at ( i ).split ( "=" )[0] == "--color" )
-        {
-            color = arg.at ( i ).split ( "=" )[1];
-        }
-        else if ( arg.at ( i ) == "-c" )
-        {
-            i++;
-            color = arg.at ( i );
-        }
-    }
+          }
+      }
+      else if ( arg.at ( i ) == "-v" or arg.at ( i ) == "--version" )
+      {
+          cout << "Wersyjka\n";
+          exit ( 0 );
+      }
+      else if ( arg.at ( i ).split ( "=" )[0] == "--color" )
+      {
+          color = arg.at ( i ).split ( "=" )[1];
+      }
+      else if ( arg.at ( i ) == "-c" )
+      {
+          i++;
+          color = arg.at ( i );
+      }
   }
 
   if ( not set.lookupValue ( "ui.eye.size", eye_s ) or
