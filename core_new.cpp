@@ -18,6 +18,7 @@
 #include <glibtop/proclist.h>
 #include <glibtop/uptime.h>
 #include "core_new.hxx"
+#include "eyes_view.h"
 
 using namespace std;
 
@@ -2143,7 +2144,7 @@ void Core::gui_refresh ()
 
     //cout << "\033[3A" << "\n";
 }
-
+/*
 int main ()
 {
     Config set;
@@ -2154,11 +2155,12 @@ int main ()
     core->bulwers_init ();
     core->run ();
 }
-
-Core::Core ()
+*/
+Core::Core ( eyes_view * neyes )
 {
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( on_timer_tick () ) );
+    eyes = eyes;
 }
 
 void Core::load_config ( Config * set )

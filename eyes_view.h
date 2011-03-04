@@ -25,6 +25,7 @@ using namespace std;
 
 class eyes_clapper;
 class eyes_looker;
+class Core;
 
 class eyes_view : public QWidget
 {
@@ -86,6 +87,7 @@ private:
     eyes_clapper          * clapper;
     eyes_looker           * looker;
     Config                * set;
+    Core                  * core;
 };
 
 class eyes_clapper : public QThread
@@ -134,6 +136,29 @@ private:
                 max_dy,
                 min_dl,
                 max_dl;
+};
+
+class Core : public QObject
+{
+    Q_OBJECT
+public:
+            Core            ( eyes_view * );
+    void    bulwers_update  (),
+            bulwers_init    (),
+            gui_refresh     (),
+            gui_init        (),
+            load_config     ( Config * set ),
+            run             (),
+            graphics_prepare();
+    bool    wake_up_prepare ();
+
+    QString face_prev;
+    bool    wake_up;
+public slots:
+    void    on_timer_tick   ();
+private:
+    QTimer        * timer;
+    eyes_view     * eyes;
 };
 
 extern eyes_view * eyes;

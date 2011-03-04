@@ -114,25 +114,4 @@ public:
     void                    update();
 };
 
-class Core : public QObject
-{
-    Q_OBJECT
-public:
-            Core            ();
-    void    bulwers_update   (),
-            bulwers_init    (),
-            gui_refresh     (),
-            gui_init        (),
-            load_config     ( Config * set ),
-            run             (),
-            graphics_prepare();
-    QString face_prev         ;
-    bool    wake_up           ,
-            wake_up_prepare ();
-public slots:
-    void    on_timer_tick   ();
-private:
-    QTimer        * timer;
-};
-
 #endif //gbssl_core_new_hxx

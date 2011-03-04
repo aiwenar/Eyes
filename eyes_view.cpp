@@ -128,13 +128,15 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     setMaximumSize ( eyes_w, eyes_h );
     clapper = new eyes_clapper ( this );
     looker = new eyes_looker ( this );
-    c_main = QtConcurrent::run ( core_main );
+    core = new Core ( this );
     open_images ( color );
     clapper->load_config ( set );
     looker->load_config ( set );
+    core->load_config ( set );
     area = new QPixmap ( eyes_w, eyes_h );
     clapper->run ();
     looker->run ();
+    core->run ();
 }
 
 eyes_view::~eyes_view ()
