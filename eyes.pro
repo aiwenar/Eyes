@@ -7,11 +7,11 @@ DEPENDENCY_INCLUDES += glib-2.0 \
 SOURCES	+= \
     eyes_ui.cpp \
     eyes_view.cpp \
-    core.cpp \
     eyes_clapper.cc \
     animation.cc \
     eyes_looker.cc \
-    eyes_cfg.cc
+    eyes_cfg.cc \
+    core_new.cpp
 
 HEADERS += \
     eyes_view.h \
@@ -20,7 +20,8 @@ HEADERS += \
     defines.hxx \
     clap_animations.hxx \
     animation.hxx \
-    eyes_cfg.hxx
+    eyes_cfg.hxx \
+    core_new.hxx
 
 OTHER_FILES += \
     README.markdown \
