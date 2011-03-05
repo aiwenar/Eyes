@@ -26,11 +26,11 @@ class percental
 public:
     short                   mod,
                             mod_prev;
-    double                  load,
-                            stable;
     vector <double>         probes,
                             sector_small;
-    unsigned int          buff_size,
+    double                  load,
+                            stable;
+    unsigned int            buff_size,
                             steps,
                             lin_num,
                             current_probe,
@@ -50,9 +50,9 @@ public:
                                 mod_prev;
     vector<unsigned short>      probes,
                                 sector_small;
-    unsigned int              buff_size,
-                                value,
+    unsigned int                value,
                                 stable,
+                                buff_size,
                                 steps,
                                 unit,
                                 lin_num,
@@ -70,7 +70,7 @@ class timal
 {
 public:
     short               mod;
-    unsigned int      value,
+    unsigned int        value,
                         start,
                         steps,
                         lin_num,

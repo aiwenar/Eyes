@@ -2343,16 +2343,16 @@ void Core::load_config ( Config * set )
 
     if ( not set->lookupValue ( "core.times.frequency", tmp_frequency ))
     {
-        cerr << "[\033[31merror \033[0m:] core.times.frequency in configuration file is invalid.\nSetting emergency value (\'f\')";
-        tmp_frequency = 'f';
+        times.frequency = 'f';
+        cerr << "[\033[31merror \033[0m:] core.times.frequency in configuration file is invalid.\nSetting emergency value ( " << times.frequency << " )";
     }
     else
         times.frequency = tmp_frequency[0];
 
-    if ( not set->lookupValue ( "core.times.linear_modifier", times.lin_num ))
+    if ( not set->lookupValue ( "core.times.quad_modifier", times.lin_num ))
     {
         times.lin_num = 0;
-        cerr << "[\033[31merror \033[0m:] core.times.linear_modifier in configuration file is invalid.\nSetting emergency value ( "<< times.lin_num << " )";
+        cerr << "[\033[31merror \033[0m:] core.times.quad_modifier in configuration file is invalid.\nSetting emergency value ( "<< times.lin_num << " )";
     }
     if ( not set->lookupValue ( "core.times.start", times.start ))
     {
@@ -2379,16 +2379,16 @@ void Core::load_config ( Config * set )
 
     if ( not set->lookupValue ( "core.energy.frequency", tmp_frequency ))
     {
-        cerr << "[\033[31merror \033[0m:] core.energy.frequency in configuration file is invalid.\nSetting emergency value (\'f\')";
-        tmp_frequency = 'f';
+        energy.frequency = 'f';
+        cerr << "[\033[31merror \033[0m:] core.energy.frequency in configuration file is invalid.\nSetting emergency value ( " << energy.frequency << " )";
     }
     else
         energy.frequency = tmp_frequency[0];
 
-    if ( not set->lookupValue ( "core.energy.linear_modifier", energy.lin_num ))
+    if ( not set->lookupValue ( "core.energy.quad_modifier", energy.lin_num ))
     {
         energy.lin_num = 0;
-        cerr << "[\033[31merror \033[0m:] core.energy.linear_modifier in configuration file is invalid.\nSetting emergency value ( "<< energy.lin_num << " )";
+        cerr << "[\033[31merror \033[0m:] core.energy.quad_modifier in configuration file is invalid.\nSetting emergency value ( "<< energy.lin_num << " )";
     }
     if ( not set->lookupValue ( "core.energy.start", energy.start ))
     {
