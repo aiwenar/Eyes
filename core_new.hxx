@@ -70,8 +70,7 @@ class timal
 {
 public:
     short               mod;
-    int        value;
-    unsigned int
+    unsigned int        value,
                         start,
                         steps,
                         lin_num,
