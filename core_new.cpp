@@ -2499,7 +2499,8 @@ void Core::load_config ( Config * set )
 void Core::run ()
 {
     cerr << "[info :] starting core.\n";
-    timer->start( 1000);
+    bulwers_init ();
+    timer->start( 1000 );
 }
 
 void Core::on_timer_tick ()
