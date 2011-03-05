@@ -14,10 +14,14 @@ eyes_looker::eyes_looker ( eyes_view * neyes )
 
 void eyes_looker::load_config ( Config * set )
 {
-    if ( not set->lookupValue ( "ui.looker.min_dx", min_dx ) or
-         not set->lookupValue ( "ui.looker.max_dx", max_dx ) or
-         not set->lookupValue ( "ui.looker.min_dy", min_dy ) or
-         not set->lookupValue ( "ui.looker.max_dy", max_dy ) or
+    if ( not set->lookupValue ( "ui.looker.delta_x.min", min_dx ) or
+         not set->lookupValue ( "ui.looker.delta_x.max", max_dx ) or
+         not set->lookupValue ( "ui.looker.delta_y.min", min_dy ) or
+         not set->lookupValue ( "ui.looker.delta_y.max", max_dy ) or
+         not set->lookupValue ( "ui.looker.bounds_x.min", bmin_x ) or
+         not set->lookupValue ( "ui.looker.bounds_x.max", bmax_x ) or
+         not set->lookupValue ( "ui.looker.bounds_y.min", bmin_y ) or
+         not set->lookupValue ( "ui.looker.bounds_y.max", bmax_y ) or
          not set->lookupValue ( "ui.looker.min_delay", min_dl ) or
          not set->lookupValue ( "ui.looker.max_delay", max_dl ) )
     {
@@ -38,14 +42,14 @@ void eyes_looker::look ()
     static int px1;
     static int px2;
     static int py;
-    dx = ( (qrand()%100+1) > 50 ? -1 : 1 )*(qrand() % 40 + 1);
-    dy = ( (qrand()%100+1) > 50 ? -1 : 1 )*(qrand() % 40 + 1);
+    dx = ( (qrand()%100+1) > 50 ? -1 : 1 )*(qrand() % max_dx + min_dx);
+    dy = ( (qrand()%100+1) > 50 ? -1 : 1 )*(qrand() % max_dy + min_dy);
     px1 = eyes->get_eyes_x1 ();
     px2 = eyes->get_eyes_x2 ();
     py = eyes->get_eyes_y ();
-    if ( px1+dx < min_dx or px1+dx > max_dx )
+    if ( px1+dx < bmin_x or px1+dx > bmax_x )
         dx = 0;
-    if ( py+dy < min_dy or py+dy > max_dy )
+    if ( py+dy < bmin_y or py+dy > bmax_y )
         dy = 0;
     eyes->set_eyes_position ( px1+dx, px2+dx, py+dy );
     cerr << "[info :] looking witch dx:" << dx << " and dy:" << dy << ".\n";
