@@ -94,6 +94,7 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     set = new Config ();
     set->readFile ( "./config.cfg" );
     string scolor;
+
     if ( not set->lookupValue ( "ui.color", scolor ) )
     {
         cerr << "[\033[31merror \033[0m:] variable 'ui.color' don't found in file confg.cfg .\n";
