@@ -782,11 +782,13 @@ if (temperature.buffered)
 }
 
 energy.value                      = 0    ;
+energy.start                     *= 3600 ;
+energy.wide                      *= 3600 ;
 
 once_plugged                      = 0    ;
 mod_bat_plug                      = 0    ;
 
-bulwers.step                      = 0     ;
+bulwers.step                      = 0    ;
 
 
 }
@@ -2160,7 +2162,7 @@ Core::Core ( eyes_view * neyes )
 {
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( on_timer_tick () ) );
-    eyes = eyes;
+    eyes = neyes;
 }
 
 void Core::load_config ( Config * set )
@@ -2500,6 +2502,7 @@ void Core::run ()
 {
     cerr << "[info :] starting core.\n";
     bulwers_init ();
+    Core::gui_init();
     timer->start( 1000 );
 }
 
@@ -2507,5 +2510,6 @@ void Core::on_timer_tick ()
 {
     core_step ++;
     bulwers_update ();
+    eyes->graphics_prepare();
     gui_refresh ();
 }
