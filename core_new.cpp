@@ -2369,10 +2369,10 @@ void Core::load_config ( Config * set )
         times.end = 6;
         cerr << "[\033[31merror \033[0m:] core.times.end in configuration file is invalid.\nSetting emergency value ( " << times.end << " )";
     }
-    if ( not set->lookupValue ( "core.times.buffer_size", times.wide ))
+    if ( not set->lookupValue ( "core.times.wide", times.wide ))
     {
         times.wide = 10;
-        cerr << "[\033[31merror \033[0m:] core.times.buffer_size in configuration file is invalid.\nSetting emergency value ( " << times.wide << " )";
+        cerr << "[\033[31merror \033[0m:] core.times.wide in configuration file is invalid.\nSetting emergency value ( " << times.wide << " )";
     }
 
     //energy_sector
@@ -2405,10 +2405,10 @@ void Core::load_config ( Config * set )
         energy.end = 6;
         cerr << "[\033[31merror \033[0m:] core.energy.end in configuration file is invalid.\nSetting emergency value ( " << energy.end << " )";
     }
-    if ( not set->lookupValue ( "core.energy.buffer_size", energy.wide ))
+    if ( not set->lookupValue ( "core.energy.wide", energy.wide ))
     {
         energy.wide = 10;
-        cerr << "[\033[31merror \033[0m:] core.energy.buffer_size in configuration file is invalid.\nSetting emergency value ( " << energy.wide << " )";
+        cerr << "[\033[31merror \033[0m:] core.energy.wide in configuration file is invalid.\nSetting emergency value ( " << energy.wide << " )";
     }
 
 
