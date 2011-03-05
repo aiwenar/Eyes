@@ -135,7 +135,11 @@ private:
                 min_dy,
                 max_dy,
                 min_dl,
-                max_dl;
+                max_dl,
+                bmin_x,
+                bmax_x,
+                bmin_y,
+                bmax_y;
 };
 
 class Core : public QObject
