@@ -82,10 +82,10 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     px = MM_NO_MOTION;
     epx1 = 46;
     epx2 = 213;
-    emx1 = 83;
-    emx2 = 252;
+    mpx1 = 83;
+    mpx2 = 252;
     epy = 10;
-    emy = 24;
+    mpy = 24;
     win = parent;
     spec = "spec";
     eye = "eye_04";
@@ -144,7 +144,7 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
 eyes_view::~eyes_view ()
 {
     cerr << "[info :] destroying eyes.\n";
-                delete &px, &py, &epx1, &epx2, &epy, &emx1, &emx2, &emy;
+                delete &px, &py, &epx1, &epx2, &epy, &mpx1, &mpx2, &mpy;
 }
 
 void eyes_view::open_images ( QString color )
@@ -199,8 +199,8 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.drawPixmap ( epx1, epy, eye_s, eye_s, eyes[eye] );
     parea.drawPixmap ( epx2, epy, eye_s, eye_s, eyes[eye] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_s"] );
-    parea.drawPixmap ( emx1, emy, eye_m, eye_m, pics[spec] );
-    parea.drawPixmap ( emx2, emy, eye_m, eye_m, pics[spec] );
+    parea.drawPixmap ( mpx1, mpy, eye_m, eye_m, pics[spec] );
+    parea.drawPixmap ( mpx2, mpy, eye_m, eye_m, pics[spec] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_m"] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_o"] );
     parea.end ();
@@ -224,7 +224,7 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
     }
     int dx = ( ( px > ev->x () ? -1 : 1 ) * px ) + ev->x ();
     int dy = ( ( py > ev->y () ? -1 : 1 ) * py ) + ev->y ();
-    move ( dx, dy );
+    win->move ( ev->x (), ev->y () );
     repaint ();
 }
 
@@ -269,7 +269,13 @@ void eyes_view::set_eyes_position ( int nx1, int nx2, int ny )
     epx1 = nx1;
     epx2 = nx2;
     epy = ny;
+}
 
+void eyes_view::set_mirror_position ( int nx1, int nx2, int ny )
+{
+    mpx1 = nx1;
+    mpx2 = nx2;
+    mpy = ny;
 }
 
 void eyes_view::lock_face ( void * nlocker )

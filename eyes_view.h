@@ -41,6 +41,7 @@ public:
     void                set_face            ( QString nface, void * nlocker );
     void                set_eyes            ( QString neyes );
     void                set_eyes_position   ( int nx1, int nx2, int ny );
+    void                set_mirror_position ( int nx1, int nx2, int ny );
     void                lock_face           ( void * nlocker );
     void                unlock_face         ( void * lovker );
     void                unlock_face         ();
@@ -79,9 +80,9 @@ private:
                             epx1,
                             epx2,
                             epy,
-                            emx1,
-                            emx2,
-                            emy;
+                            mpx1,
+                            mpx2,
+                            mpy;
     bool                    is_face_locked;
     void                  * locker;
     eyes_clapper          * clapper;

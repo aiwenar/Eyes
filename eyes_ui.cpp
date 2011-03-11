@@ -78,16 +78,16 @@ int main ( int argc, char ** argv )
   {
       if ( arg.at ( i ) == "-h" or arg.at ( i ) == "--help" )
       {
-          if ( arg.at ( i+1 ) == "colors" )
+          if ( arg.size () > 2 )
           {
+            if ( arg.at ( i+1 ) == "colors" )
+            {
               cout << help_colors;
               exit ( 0 );
+            }
           }
-          else
-          {
-            cout << help;
-            exit ( 0 );
-          }
+          cout << help;
+          exit ( 0 );
       }
       else if ( arg.at ( i ) == "-v" or arg.at ( i ) == "--version" )
       {
