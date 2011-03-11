@@ -119,7 +119,8 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     else if ( ncolor == "evilgreen" )
         color = "_eg";
     else
-        color = "_g";
+    {
+    }
     is_finished = false;
     images_ready = false;
     is_face_locked = false;
