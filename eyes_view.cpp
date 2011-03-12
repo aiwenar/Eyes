@@ -76,6 +76,30 @@ void core_main ();
 bool is_finished;
 bool images_ready;
 
+QString get_face_suffix ( QString face )
+{
+    if ( face == "green" )
+        return "_g";
+    else if ( face == "WindowsSpecjal" )
+        return "_w";
+    else if ( face == "monochrome" )
+        return "_m";
+    else if ( face == "brown" )
+        return "_o";
+    else if ( face == "fire" )
+        return "_f";
+    else if ( face == "pink" )
+        return "_p";
+    else if ( face == "blue" )
+        return "_n";
+    else if ( face == "ubuntu" )
+        return "_u";
+    else if ( face == "evilgreen" )
+        return "_eg";
+    else
+        return "NIL";
+}
+
 eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
 {
     px = MM_NO_MOTION;
@@ -100,27 +124,8 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
         cerr << "[\033[31merror \033[0m:] variable 'ui.color' don't found in file confg.cfg .\n";
         exit ( 126 );
     }
-    if ( ncolor == "green" )
-        color = "_g";
-    else if ( ncolor == "WindowsSpecjal" )
-        color = "_w";
-    else if ( ncolor == "monochrome" )
-        color = "_m";
-    else if ( ncolor == "brown" )
-        color = "_o";
-    else if ( ncolor == "fire" )
-        color = "_f";
-    else if ( ncolor == "pink" )
-        color = "_p";
-    else if ( ncolor == "blue" )
-        color = "_n";
-    else if ( ncolor == "ubuntu" )
-        color = "_u";
-    else if ( ncolor == "evilgreen" )
-        color = "_eg";
-    else
-    {
-    }
+    if ( ( color = get_face_suffix ( ncolor ) ) == "NIL" )
+        color = get_face_suffix ( QString ( scolor.c_str () ) );
     is_finished = false;
     images_ready = false;
     is_face_locked = false;
@@ -150,35 +155,39 @@ eyes_view::~eyes_view ()
 void eyes_view::open_images ( QString color )
 {
     lock_face ( this );
-    QPixmap file;
+    QPixmap * file ;
     bool no_file ( false );
     for ( int i=0 ; i<216 ; i++ )
     {
-        file.load ( QString ( folder ) + files[i] + ".png" );
-        if ( file.isNull () )
+        file = new QPixmap ();
+        file->load ( QString ( folder ) + files[i] + ".png" );
+        if ( file->isNull () )
         {
             cerr << "[\033[31merror \033[0m:] file " << ( QString ( folder ) + files[i] + ".png" ).toStdString () << " is nil.\n";
             no_file = true;
         }
         else
         {
-            pics.insert ( QString ( files[i] ), file.scaled ( eyes_w, eyes_h, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
+            pics.insert ( QString ( files[i] ), file->scaled ( eyes_w, eyes_h, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
             cerr << "[info :] loading image " << files[i] << ".\n";
         }
+        delete file;
     }
     for ( int i=0 ; i<10 ; i++ )
     {
-        file.load ( QString ( folder ) + eyefiles[i] + color + ".png" );
-        if ( file.isNull () )
+        file = new QPixmap ();
+        file->load ( QString ( folder ) + eyefiles[i] + color + ".png" );
+        if ( file->isNull () )
         {
             cerr << "[\033[31merror \033[0m:] file " << ( QString ( folder ) + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";
             no_file = true;
         }
         else
         {
-            eyes.insert ( QString ( eyefiles[i] ), file );
+            eyes.insert ( QString ( eyefiles[i] ), file->copy () );
             cerr << "[info :] loading image " << eyefiles[i] << ".\n";
         }
+        delete file;
     }
     if ( no_file )
     {
