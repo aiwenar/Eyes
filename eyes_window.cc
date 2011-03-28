@@ -24,33 +24,36 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     setWindowTitle ( "!eyesy!" );
     setAttribute ( Qt::WA_TranslucentBackground, true );
     eyes = new eyes_view ( this, color );
+    ecfg = new eyes_config ( *cfg, (QWidget*)nil );
+    ecfg->set_icon ( eyes->get_color_suffix () );
+    cerr << "[info :] loading icon " << ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
+    QPixmap tmp;
+    tmp.load ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" );
+    tico = new QIcon ( tmp );
+    setWindowIcon ( *tico );
+    if ( tmp.isNull () )
+    {
+        cerr << "[\033[31merror \033[0m:] file not found. Continuing whiwaut tray icon.\n";
+        isicon = false;
+    }
     if ( isicon )
     {
-        cerr << "[info :] loading tray icon " << ( QString ( "./pics/trayico" ) + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
-        QPixmap tmp;
-        tmp.load ( QString ( "./pics/trayico" ) + eyes->get_color_suffix () + ".png" );
-        if ( tmp.isNull () )
-        {
-            cerr << "[\033[31merror \033[0m:] file not found. Continuing whiwaut tray icon.\n";
-            isicon = false;
-        }
-        else
-        {
-            tico = new QIcon ( tmp );
-            trayico = new QSystemTrayIcon ( this );
-            trayico->setIcon ( *tico );
-            trayico->setToolTip ( "!eyesy!" );
-            //actions
-            quitA = new QAction ( tr ( "&Quit" ), this );
-            connect ( quitA, SIGNAL ( triggered () ), qApp, SLOT ( quit () ) );
-            //menu
-            timenu = new QMenu ( this );
-            timenu->addSeparator ();
-            timenu->addAction ( quitA );
-            //iconend
-            trayico->setContextMenu ( timenu );
-            trayico->show ();
-        }
+        trayico = new QSystemTrayIcon ( this );
+        trayico->setIcon ( *tico );
+        trayico->setToolTip ( "!eyesy!" );
+        //actions
+        setA = new QAction ( tr ( "&Settings" ), this );
+        connect ( setA, SIGNAL ( triggered () ), ecfg, SLOT ( show () ) );
+        quitA = new QAction ( tr ( "&Quit" ), this );
+        connect ( quitA, SIGNAL ( triggered () ), qApp, SLOT ( quit () ) );
+        //menu
+        timenu = new QMenu ( this );
+        timenu->addAction ( setA );
+        timenu->addSeparator ();
+        timenu->addAction ( quitA );
+        //iconend
+        trayico->setContextMenu ( timenu );
+        trayico->show ();
     }
     eyes->show ();
     eyes->update ();

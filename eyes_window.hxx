@@ -7,6 +7,7 @@
 #include <QMenu>
 #include <libconfig.h++>
 #include "eyes_view.h"
+#include "eyes_config.hxx"
 
 using namespace libconfig;
 
@@ -15,14 +16,16 @@ class eyes_window : public QWidget
     Q_OBJECT
 public:
     explicit eyes_window ( QString color, QWidget * parent = 0 );
+
+    QIcon             * tico;
 signals:
 public slots:
 private:
     bool                isicon;
     eyes_view         * eyes;
+    eyes_config       * ecfg;
     QSystemTrayIcon   * trayico;
     QMenu             * timenu;
-    QIcon             * tico;
     QAction           * quitA,
                       * setA;
     Config            * cfg;
