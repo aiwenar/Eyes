@@ -27,6 +27,8 @@ class eyes_clapper;
 class eyes_looker;
 class Core;
 
+QString get_face_suffix ( QString face );
+
 class eyes_view : public QWidget
 {
     Q_OBJECT
@@ -41,7 +43,7 @@ public:
     void                set_face            ( QString nface, void * nlocker );
     void                set_eyes            ( QString neyes );
     void                set_eyes_position   ( int nx1, int nx2, int ny );
-    void                set_mirror_position ( int nx1, int nx2, int ny );
+    void                set_mirror_position ( double nx1, double nx2, double ny );
     void                lock_face           ( void * nlocker );
     void                unlock_face         ( void * lovker );
     void                unlock_face         ();
@@ -49,13 +51,17 @@ public:
     void                graphics_prepare    ();
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
-    int                 get_eyes_x1         () { return epx1; }
-    int                 get_eyes_x2         () { return epx2; }
-    int                 get_eyes_y          () { return epy; }
+    inline int          get_eyes_x1         () { return epx1; }
+    inline int          get_eyes_x2         () { return epx2; }
+    inline int          get_eyes_y          () { return epy; }
+    inline double        get_mirror_x1      () { return mpx1; }
+    inline double        get_mirror_x2      () { return mpx2; }
+    inline double        get_mirror_y       () { return mpy; }
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            ()                                      const;
     QString             get_face            ();
-    QString	       get_face_send       ();
+    QString	        get_face_send       ();
+    QString             get_color_suffix    () { return color; }
 signals:
 public slots:
     void            mousePressEvent     ( QMouseEvent * ev );
@@ -79,8 +85,8 @@ private:
                             py,
                             epx1,
                             epx2,
-                            epy,
-                            mpx1,
+                            epy;
+    double                   mpx1,
                             mpx2,
                             mpy;
     bool                    is_face_locked;

@@ -124,6 +124,12 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
         cerr << "[\033[31merror \033[0m:] variable 'ui.color' don't found in file confg.cfg .\n";
         exit ( 126 );
     }
+    if ( not set->lookupValue ( "ui.eye.size", eye_s ) or
+         not set->lookupValue ( "ui.eye.mirror", eye_m) )
+    {
+        cerr << "[\033[31merror \033[0m:] section ui.eye in configuration file is invalid.\n";
+        exit ( 126 );
+    }
     if ( ( color = get_face_suffix ( ncolor ) ) == "NIL" )
         color = get_face_suffix ( QString ( scolor.c_str () ) );
     is_finished = false;
@@ -149,7 +155,6 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
 eyes_view::~eyes_view ()
 {
     cerr << "[info :] destroying eyes.\n";
-                delete &px, &py, &epx1, &epx2, &epy, &mpx1, &mpx2, &mpy;
 }
 
 void eyes_view::open_images ( QString color )
@@ -208,8 +213,8 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.drawPixmap ( epx1, epy, eye_s, eye_s, eyes[eye] );
     parea.drawPixmap ( epx2, epy, eye_s, eye_s, eyes[eye] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_s"] );
-    parea.drawPixmap ( mpx1, mpy, eye_m, eye_m, pics[spec] );
-    parea.drawPixmap ( mpx2, mpy, eye_m, eye_m, pics[spec] );
+    parea.drawPixmap ( int(mpx1), int(mpy), eye_m, eye_m, pics[spec] );
+    parea.drawPixmap ( int(mpx2), int(mpy), eye_m, eye_m, pics[spec] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_m"] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_o"] );
     parea.end ();
@@ -280,11 +285,12 @@ void eyes_view::set_eyes_position ( int nx1, int nx2, int ny )
     epy = ny;
 }
 
-void eyes_view::set_mirror_position ( int nx1, int nx2, int ny )
+void eyes_view::set_mirror_position ( double nx1, double nx2, double ny )
 {
     mpx1 = nx1;
     mpx2 = nx2;
     mpy = ny;
+    clog << "[log :] moving mirrors to x1:" << mpx1 << " x2:" << mpx2 << " py:" << mpy << ".\n";
 }
 
 void eyes_view::lock_face ( void * nlocker )

@@ -41,21 +41,25 @@ void eyes_looker::look ()
     static int dy;
     static int px1;
     static int px2;
-    static int mpx1;
-    static int mpx2;
     static int py;
-    dx = ( (qrand()%100+1) > 50 ? -1 : 1 )*(qrand() % max_dx + min_dx);
-    dy = ( (qrand()%100+1) > 50 ? -1 : 1 )*(qrand() % max_dy + min_dy);
+    static double mpx1;
+    static double mpx2;
+    static double mpy;
     px1 = eyes->get_eyes_x1 ();
     px2 = eyes->get_eyes_x2 ();
     py = eyes->get_eyes_y ();
+    mpx1 = eyes->get_mirror_x1 ();
+    mpx2 = eyes->get_mirror_x2 ();
+    mpy = eyes->get_mirror_y ();
+    dx = ( (qrand()%100+1) > 50 ? -1 : 1 )*(qrand() % max_dx + min_dx);
+    dy = ( (qrand()%100+1) > 50 ? -1 : 1 )*(qrand() % max_dy + min_dy);
     if ( px1+dx < bmin_x or px1+dx > bmax_x )
         dx = 0;
     if ( py+dy < bmin_y or py+dy > bmax_y )
         dy = 0;
     eyes->set_eyes_position ( px1+dx, px2+dx, py+dy );
-    eyes->set_mirror_position ( px1+(dx/10), px2+(dx/10), (dy/10) );
-    cerr << "[info :] looking witch dx:" << dx << " and dy:" << dy << ".\n";
+    eyes->set_mirror_position ( mpx1+(dx!=0?(double(dx)/10):0), mpx2+(dx!=0?(double(dx)/10):0), mpy+(dy!=0?(double(dy)/10):0) );
+    cerr << "[info :] looking witch dx:" << dx << " and dy:" << dy << " mirrors at mdx:" << (dx!=0?(double(dx)/10):0) << " and mdy:" << (dy!=0?(double(dy)/10):0) << ".\n";
     timer->setInterval ( ( qrand() % max_dl + min_dl ) * 200 );
     eyes->repaint ();
 }
