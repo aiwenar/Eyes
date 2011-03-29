@@ -8,6 +8,7 @@ extern int  eye_s,
             eye_m,
             eyes_w,
             eyes_h;
+
 #define EYES_W  320
 #define EYES_H  80
 
