@@ -11,7 +11,9 @@ SOURCES	+= \
     animation.cc \
     eyes_looker.cc \
     eyes_cfg.cc \
-    core_new.cpp
+    core_new.cpp \
+    eyes_window.cc \
+    eyes_config.cc
 
 HEADERS += \
     eyes_view.h \
@@ -21,7 +23,9 @@ HEADERS += \
     clap_animations.hxx \
     animation.hxx \
     eyes_cfg.hxx \
-    core_new.hxx
+    core_new.hxx \
+    eyes_window.hxx \
+    eyes_config.hxx
 
 OTHER_FILES += \
     README.markdown \
@@ -38,3 +42,5 @@ LIBDIR = /usr/lib
 LIBS += $${LIBDIR}/libglib-2.0.so \
     $${LIBDIR}/libgtop-2.0.so \
     /usr/local/lib/libconfig++.so
+
+FORMS +=
