@@ -8,6 +8,7 @@
 #include "eyes_view.h"
 #include "eyes_info.h"
 #include "eyes_cfg.hxx"
+#include "eyes_window.hxx"
 
 using namespace std;
 using namespace libconfig;
@@ -26,7 +27,6 @@ static const char help_colors [] = {
     "\tgreen ; blue ; brown ; fire ; monochrome ; pink ; WidnowsSpecjal ; ubuntu ; evilgreen\n\n"
 };
 
-eyes_view * eyes;
 int eye_s,
     eye_m,
     eyes_w,
@@ -105,25 +105,8 @@ int main ( int argc, char ** argv )
       }
   }
 
-  if ( not set.lookupValue ( "ui.eye.size", eye_s ) or
-       not set.lookupValue ( "ui.eye.mirror", eye_m ) or
-       not set.lookupValue ( "ui.eyes.width", eyes_w) or
-       not set.lookupValue ( "ui.eyes.height", eyes_h ) )
-  {
-      cerr << "[\033[31merror \033[0m:] one of sections ui.eye ui.eyes in configuration file is wrong.\n";
-      exit ( 126 );
-  }
-
-  QWidget win ( 0, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint );
-  win.resize ( eyes_w, eyes_h );
-  win.setWindowTitle( "Eyesy" );
-  win.setAttribute ( Qt::WA_TranslucentBackground, true );
+  eyes_window win ( color );
   win.show ();
-
-  eyes = new eyes_view ( &win, color );
-  eyes->show ();
-  eyes->repaint ();
-  eyes->update ();
 
   return app.exec ();
 }
