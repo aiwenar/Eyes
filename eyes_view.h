@@ -48,7 +48,11 @@ public:
     void                unlock_face         ( void * lovker );
     void                unlock_face         ();
     void                set_animation       ( QString start, QString end, int from, int to );
+    void                anims_send          ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto );
+    void                send_eyes           ( QString neyes );
+    void                reload_eyes         ();
     void                graphics_prepare    ();
+    void                anims_reload        ();
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
     inline int          get_eyes_x1         () { return epx1; }
@@ -60,7 +64,7 @@ public:
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            ()                                      const;
     QString             get_face            ();
-    QString	        get_face_send       ();
+    QString	        get_face_next       ();
     QString             get_color_suffix    () { return color; }
 signals:
 public slots:
@@ -75,7 +79,7 @@ private:
     QString                 eye,
                             face,
                             face_next,
-			    face_send,
+                            face_send,
                             spec,
                             color;
     QMap<QString,QPixmap>   pics;

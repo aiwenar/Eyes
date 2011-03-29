@@ -114,4 +114,14 @@ public:
     void                    update();
 };
 
+struct sended_anims
+{
+    QString                 close,
+                            open,
+                            eyes,
+                            face_prev;
+    unsigned short          start,
+                            end;
+};
+
 #endif //gbssl_core_new_hxx

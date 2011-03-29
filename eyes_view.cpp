@@ -69,7 +69,8 @@ static char * files[]     = {
 };
 static char * eyefiles[]  = {
     "eye_01", "eye_02", "eye_03", "eye_04", "eye_05",   // 5
-    "eye_06", "eye_07", "eye_08", "eye_09", "eye_10"    // 10
+    "eye_06", "eye_07", "eye_08", "eye_09", "eye_10",
+    "blank"    // 10
 };
 
 void core_main ();
@@ -112,9 +113,9 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     mpy = 24;
     win = parent;
     spec = "spec";
-    eye = "eye_04";
-    face = "cusual_01";
-    face_next = "";
+    eye = "blank";
+    face = "slp_10";
+    face_next = "slp_10";
     set = new Config ();
     set->readFile ( "./config.cfg" );
     string scolor;
@@ -210,6 +211,7 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     QPainter parea ( area );
     area->fill ( QColor ( 0, 0, 0 ) );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_a"] );
+    cerr << "eye is: " << eye.toStdString() << "\n";
     parea.drawPixmap ( epx1, epy, eye_s, eye_s, eyes[eye] );
     parea.drawPixmap ( epx2, epy, eye_s, eye_s, eyes[eye] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_s"] );
@@ -275,6 +277,7 @@ void eyes_view::set_face ( QString nface, void * nlocker )
 
 void eyes_view::set_eyes ( QString neyes )
 {
+    cerr << "setting eye: \"" << neyes.toStdString () << "\"\n";
     eye = neyes;
 }
 
@@ -331,7 +334,6 @@ void eyes_view::unlock_face ( void * nlocker )
         if ( not ( face_next == "" ) )
         {
             set_face ( face_next );
-            face_next = "";
         }
     }
 }
@@ -361,7 +363,7 @@ QString eyes_view::get_face ()
     return ( face );
 }
 
-QString eyes_view::get_face_send ()
+QString eyes_view::get_face_next ()
 {
-    return ( face_send );
+    return ( face_next );
 }

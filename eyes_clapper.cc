@@ -69,13 +69,15 @@ void eyes_clapper::clap ()
     if ( stage == from )
     {
         eyes->lock_face ( this );
-        old_face = eyes->get_face_send ();
+        old_face = eyes->get_face_next ();
         cerr << size1<< ' ' << size2 << '\n' << start.toStdString () << ' ' << end.toStdString () << ' ' << animations[start] << ' ' << '\n';
         size1 = animations[start]->size;
         size2 = animations[end]->size;
+        eyes->reload_eyes();
     }
     if ( stage < size1 )
         eyes->set_face ( QString ( animations[start]->frames[stage] ), this );
+
     else
     {
         if ( stage-size1 == to )
@@ -91,5 +93,6 @@ void eyes_clapper::clap ()
     }
     eyes->repaint ();
     stage ++;
+    eyes->anims_reload();
     timer->setInterval ( 10 );
 }

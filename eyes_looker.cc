@@ -58,8 +58,8 @@ void eyes_looker::look ()
     if ( py+dy < bmin_y or py+dy > bmax_y )
         dy = 0;
     eyes->set_eyes_position ( px1+dx, px2+dx, py+dy );
-    eyes->set_mirror_position ( mpx1+(dx!=0?(double(dx)/10):0), mpx2+(dx!=0?(double(dx)/10):0), mpy+(dy!=0?(double(dy)/10):0) );
-    cerr << "[info :] looking witch dx:" << dx << " and dy:" << dy << " mirrors at mdx:" << (dx!=0?(double(dx)/10):0) << " and mdy:" << (dy!=0?(double(dy)/10):0) << ".\n";
+    eyes->set_mirror_position ( mpx1+(dx!=0?(double(dx)/3):0), mpx2+(dx!=0?(double(dx)/3):0), mpy+(dy!=0?(double(dy)/3):0) );
+    cerr << "[info :] looking witch dx:" << dx << " and dy:" << dy << " mirrors at mdx:" << (dx!=0?(double(dx)/3):0) << " and mdy:" << (dy!=0?(double(dy)/3):0) << ".\n";
     timer->setInterval ( ( qrand() % max_dl + min_dl ) * 200 );
     eyes->repaint ();
 }
