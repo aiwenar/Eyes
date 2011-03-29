@@ -20,6 +20,10 @@ eyes_clapper::eyes_clapper ( eyes_view * neyes )
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( clap () ) );
     stage = 0;
     cerr << "[info :] eyes_clapper is ready.\n";
+    start = "slp_10_open";
+    end = "slp_10_close";
+    from = 0;
+    to = 0;
 }
 
 int eyes_clapper::get_next_clap_delay ()
@@ -35,13 +39,19 @@ void eyes_clapper::run ()
 
 void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int nto )
 {
+    if ( not animations.contains ( nstart ) or not animations.contains ( nend ) )
+    {
+        cerr << "[\033[31merror \033[0m:] seting animation from " << nstart.toStdString () << " to " << nend.toStdString () << " but one nit exists.\n";
+        return;
+    }
     if ( nto >= animations[nend]->size )
         to = animations[nend]->size;
     else
         to = nto;
     start = nstart;
     end = nend;
-    cerr << "[info :] setting animation from " << nstart.toStdString() << " to " << nend.toStdString() << ".\n";
+    from = nfrom;
+    cerr << "[info :] seting animation from " << nstart.toStdString() << " to " << nend.toStdString() << ".\n";
 }
 
 void eyes_clapper::load_config ( Config * set )
