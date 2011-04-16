@@ -31,16 +31,24 @@ OTHER_FILES += \
     README.markdown \
     config.cfg
 
-INCLUDEPATH += /usr/include/glib-2.0 \
-    /usr/lib/glib-2.0/include \
-    /usr/include/libgtop-2.0 \
-    /usr/lib/libgtop-2.0/include \
-    /usr/local/include/
+ARCH=$$system(uname -m)
+contains(ARCH, x86_64){
+  message(target system arch is x64)
+  LIBDIR = /usr/lib64
+  LOCALLIB = /usr/local/lib64
+}
+contains(ACRH, i686){
+  message(target system arch is x32)
+  LIBDIR = /usr/lib
+  LOCALLIB = /usr/local/lib
+}
 
-LIBDIR = /usr/lib
+INCLUDEPATH += /usr/include/glib-2.0 \
+    $${LIBDIR}/glib-2.0/include \
+    /usr/include/libgtop-2.0 \
+    $${LIBDIR}/libgtop-2.0/include \
+    /usr/local/include/
 
 LIBS += $${LIBDIR}/libglib-2.0.so \
     $${LIBDIR}/libgtop-2.0.so \
-    /usr/local/lib/libconfig++.so
-
-FORMS +=
+    $${LOCALLIB}/libconfig++.so
