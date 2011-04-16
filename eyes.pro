@@ -52,3 +52,5 @@ INCLUDEPATH += /usr/include/glib-2.0 \
 LIBS += $${LIBDIR}/libglib-2.0.so \
     $${LIBDIR}/libgtop-2.0.so \
     $${LOCALLIB}/libconfig++.so
+
+message($${ARCH})
