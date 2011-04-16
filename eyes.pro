@@ -37,7 +37,7 @@ contains(ARCH, x86_64){
   LIBDIR = /usr/lib64
   LOCALLIB = /usr/local/lib64
 }
-contains(ACRH, i686){
+contains(ARCH, i686){
   message(target system arch is x32)
   LIBDIR = /usr/lib
   LOCALLIB = /usr/local/lib
