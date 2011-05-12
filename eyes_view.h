@@ -19,6 +19,7 @@
 #include "bulwers.h"
 #include "defines.hxx"
 #include "animation.hxx"
+#include "econfig.hxx"
 
 using namespace libconfig;
 using namespace std;
@@ -33,10 +34,10 @@ class eyes_view : public QWidget
 {
     Q_OBJECT
 public:
-    explicit    	eyes_view           ( QWidget * parent, QString color );
+    explicit            eyes_view           ( QWidget * parent, QString color );
                         ~eyes_view          ();
-    void        	open_images         ( QString folder );
-    void        	paintEvent          ( QPaintEvent * );
+    void                open_images         ( QString folder );
+    void                paintEvent          ( QPaintEvent * );
     void                closeEvent          ( QCloseEvent * ev );
     void                update_bulwers      ( core_stats * color );
     void                set_face            ( QString nface );
@@ -64,7 +65,7 @@ public:
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            ()                                      const;
     QString             get_face            ();
-    QString	        get_face_next       ();
+    QString	            get_face_next       ();
     QString             get_color_suffix    () { return color; }
 signals:
 public slots:
@@ -97,7 +98,7 @@ private:
     void                  * locker;
     eyes_clapper          * clapper;
     eyes_looker           * looker;
-    Config                * set;
+    eConfig               * set;
     Core                  * core;
 };
 
@@ -109,7 +110,7 @@ public:
     int         get_next_clap_delay ();
     void        run                 ();
     void        set_animation       ( QString nstart, QString nend, int nfrom, int nto );
-    void        load_config         ( Config * set );
+    void        load_config         ( eConfig * set );
 public slots:
     void        clap                ();
 private:
@@ -123,7 +124,7 @@ private:
     eyes_view                 * eyes;
     QTime                       time;
     QTimer                    * timer;
-    QString                     old_face,
+    QString                     face,
                                 start,
                                 end;
     QMap<QString,animation*>    animations;
@@ -134,7 +135,7 @@ class eyes_looker : public QObject
     Q_OBJECT
 public:
             eyes_looker ( eyes_view * eyes );
-    void    load_config ( Config * set );
+    void    load_config ( eConfig * set );
     void    run ();
 public slots:
     void    look ();

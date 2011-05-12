@@ -54,21 +54,17 @@ void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int 
     cerr << "[info :] seting animation from " << nstart.toStdString() << " to " << nend.toStdString() << ".\n";
 }
 
-void eyes_clapper::load_config ( Config * set )
+void eyes_clapper::load_config ( eConfig * set )
 {
-    if ( not set->lookupValue ( "ui.clapper.min_delay", min_dl ) or
-         not set->lookupValue ( "ui.clapper.max_delay", max_dl ) )
-    {
-        cerr << "[\033[31merror \033[0m:] section ui.clapper in configuration file is invalid.\n";
-        exit ( 126 );
-    }
+    min_dl = set->lookupValue ( "ui.clapper.min_delay", 5 );
+    max_dl = set->lookupValue ( "ui.clapper.max_delay", 35 );
 }
 
 void eyes_clapper::clap ()
 {
     if ( stage == from )
     {
-        eyes->lock_face ( this );
+        face = eyes->get_face ();
         old_face = eyes->get_face_next ();
         cerr << size1<< ' ' << size2 << '\n' << start.toStdString () << ' ' << end.toStdString () << ' ' << animations[start] << ' ' << '\n';
         size1 = animations[start]->size;
@@ -84,7 +80,6 @@ void eyes_clapper::clap ()
         {
             eyes->set_face ( old_face );
             eyes->update ();
-            eyes->unlock_face ( this );
             timer->setInterval ( get_next_clap_delay () * 200 );
             stage = from;
             return;

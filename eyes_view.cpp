@@ -116,21 +116,11 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     eye = "blank";
     face = "slp_10";
     face_next = "slp_10";
-    set = new Config ();
-    set->readFile ( "./config.cfg" );
+    set = new eConfig ( "config.cfg" );
     string scolor;
-
-    if ( not set->lookupValue ( "ui.color", scolor ) )
-    {
-        cerr << "[\033[31merror \033[0m:] variable 'ui.color' don't found in file confg.cfg .\n";
-        exit ( 126 );
-    }
-    if ( not set->lookupValue ( "ui.eye.size", eye_s ) or
-         not set->lookupValue ( "ui.eye.mirror", eye_m) )
-    {
-        cerr << "[\033[31merror \033[0m:] section ui.eye in configuration file is invalid.\n";
-        exit ( 126 );
-    }
+    scolor = set->lookupValue ( "ui.color", "green" );
+    eye_s = set->lookupValue ( "ui.eye.size", 60 );
+    eye_m = set->lookupValue ( "ui.eye.mirror", 9 );
     if ( ( color = get_face_suffix ( ncolor ) ) == "NIL" )
         color = get_face_suffix ( QString ( scolor.c_str () ) );
     is_finished = false;
