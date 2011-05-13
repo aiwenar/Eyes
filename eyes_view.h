@@ -165,7 +165,7 @@ public:
             bulwers_init    (),
             gui_refresh     (),
             gui_init        (),
-            load_config     ( Config * set ),
+            load_config     ( eConfig * set ),
             run             (),
             graphics_prepare();
     bool    wake_up_prepare ();
