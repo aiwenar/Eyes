@@ -828,10 +828,8 @@ if (temperature.buffered)
 energy.value                      = 0    ;
 energy.start                     *= 3600 ;
 energy.wide                      *= 3600 ;
-
 once_plugged                      = false;
 mod_bat_plug                      = 0    ;
-
 bulwers.step                      = 0    ;
 
 
@@ -2571,391 +2569,139 @@ Core::Core ( eyes_view * neyes )
 
 void Core::load_config ( Config * set )
 {
-    unsigned short errors = 0;
-    string tmp_frequency = new char[1];
-    if ( not set->lookupValue ( "core.cpu.frequency", tmp_frequency ))
-    {
-        cpu.frequency = 'f';
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.frequency in configuration file is invalid.\nSetting emergency value ( " << cpu.frequency << " )";
-    }
-    else
-        cpu.frequency = tmp_frequency[0];
 
-    if ( not set->lookupValue ( "core.cpu.linear_modifier", cpu.lin_num ))
-    {
-        cpu.lin_num = 0;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.linear_modifier in configuration file is invalid.\nSetting emergency value ( "<< cpu.lin_num << " )";
-    }
-    if ( not set->lookupValue ( "core.cpu.stable", cpu.stable ))
-    {
-        cpu.stable = 25;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.stable in configuration file is invalid.\nSetting emergency value ( " << cpu.stable << " )";
-    }
-    if ( not set->lookupValue ( "core.cpu.steps", cpu.steps ))
-    {
-        cpu.steps = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.steps in configuration file is invalid.\nSetting emergency value ( " << cpu.steps << " )";
-    }
-    if ( not set->lookupValue ( "core.cpu.adaptation", cpu.loseless ))
-    {
-        cpu.loseless = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.adaptation in configuration file is invalid.\nSetting emergency value ( " << cpu.loseless << " )";
-    }
-    if ( not set->lookupValue ( "core.cpu.buffered", cpu.buffered ))
-    {
-        cpu.buffered = true;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.buffered in configuration file is invalid.\nSetting emergency value ( " << cpu.buffered << " )";
-    }
-    if ( not set->lookupValue ( "core.cpu.buffer_size", cpu.buff_size ))
-    {
-        cpu.buff_size = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.buffer_size in configuration file is invalid.\nSetting emergency value ( " << cpu.buff_size << " )";
-    }
+    cpu.frequency = cfg->lookupValue ( "core.cpu.frequency", 'f' )
+
+    cpu.lin_num = cfg->lookupValue ( "core.cpu.linear_modifier", 0 )
+
+    cpu.stable = cfg->lookupValue ( "core.cpu.stable", 25 )
+
+    cpu.steps = cfg->lookupValue ( "core.cpu.steps", 10 )
+
+    cpu.loseless = cfg->lookupValue ( "core.cpu.adaptation", 10 )
+
+    cpu.buffered = cfg->lookupValue ( "core.cpu.buffered", true )
+
+    cpu.buff_size = cfg->lookupValue ( "core.cpu.buffer_size", 10 )
+
 
     //mem_section
 
-    if ( not set->lookupValue ( "core.memory.frequency", tmp_frequency ))
-    {
-        memory.frequency = 'q';
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.frequency in configuration file is invalid.\nSetting emergency value ( " << memory.frequency << " )";
-    }
-    else
-        memory.frequency = tmp_frequency[0];
+    memory.frequency = cfg->lookupValue ( "core.memory.frequency", 'q' )
 
-    if ( not set->lookupValue ( "core.memory.linear_modifier", memory.lin_num ))
-    {
-        memory.lin_num = 2;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.linear_modifier in configuration file is invalid.\nSetting emergency value ( "<< memory.lin_num << " )";
-    }
-    if ( not set->lookupValue ( "core.memory.stable", memory.stable ))
-    {
-        memory.stable = 25;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.stable in configuration file is invalid.\nSetting emergency value ( " << memory.stable << " )";
-    }
-    if ( not set->lookupValue ( "core.memory.steps", memory.steps ))
-    {
-        memory.steps = 8;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.steps in configuration file is invalid.\nSetting emergency value ( " << memory.steps << " )";
-    }
-    if ( not set->lookupValue ( "core.memory.adaptation", memory.loseless ))
-    {
-        memory.loseless = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.adaptation in configuration file is invalid.\nSetting emergency value ( " << memory.loseless << " )";
-    }
-    if ( not set->lookupValue ( "core.memory.buffered", memory.buffered ))
-    {
-        memory.buffered = true;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.buffered in configuration file is invalid.\nSetting emergency value ( " << memory.buffered << " )";
-    }
-    if ( not set->lookupValue ( "core.memory.buffer_size", memory.buff_size ))
-    {
-        memory.buff_size = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.buffer_size in configuration file is invalid.\nSetting emergency value ( " << memory.buff_size << " )";
-    }
+    memory.lin_num = cfg->lookupValue ( "core.memory.linear_modifier", 2 )
+
+    memory.stable = cfg->lookupValue ( "core.memory.stable", 25 )
+
+    memory.steps = cfg->lookupValue ( "core.memory.steps", 8 )
+
+    memory.loseless = cfg->lookupValue ( "core.memory.adaptation", 10 )
+
+    memory.buffered = cfg->lookupValue ( "core.memory.buffered", true )
+
+    memory.buff_size = cfg->lookupValue ( "core.memory.buffer_size", 10 )
+
 
     //temperature_section
 
-    if ( not set->lookupValue ( "core.temperature.frequency", tmp_frequency ))
-    {
-        temperature.frequency = 'q';
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.frequency in configuration file is invalid.\nSetting emergency value ( " << temperature.frequency << " )";
-    }
-    else
-        temperature.frequency = tmp_frequency[0];
+    temperature.frequency = cfg->lookupValue ( "core.temperature.frequency", 'q' )
 
-    if ( not set->lookupValue ( "core.temperature.linear_modifier", temperature.lin_num ))
-    {
-        temperature.lin_num = 2;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.linear_modifier in configuration file is invalid.\nSetting emergency value ( "<< temperature.lin_num << " )";
-    }
-    if ( not set->lookupValue ( "core.temperature.stable", temperature.stable ))
-    {
-        temperature.stable = 56;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.stable in configuration file is invalid.\nSetting emergency value ( " << temperature.stable << " )";
-    }
-    if ( not set->lookupValue ( "core.temperature.steps", temperature.steps ))
-    {
-        temperature.steps = 12;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.steps in configuration file is invalid.\nSetting emergency value ( " << temperature.steps << " )";
-    }
-    if ( not set->lookupValue ( "core.temperature.adaptation", temperature.loseless ))
-    {
-        temperature.loseless = 2;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.adaptation in configuration file is invalid.\nSetting emergency value ( " << temperature.loseless << " )";
-    }
-    if ( not set->lookupValue ( "core.temperature.buffered", temperature.buffered ))
-    {
-        temperature.buffered = true;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.buffered in configuration file is invalid.\nSetting emergency value ( " << temperature.buffered << " )";
-    }
-    if ( not set->lookupValue ( "core.temperature.buffer_size", temperature.buff_size ))
-    {
-        temperature.buff_size = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.buffer_size in configuration file is invalid.\nSetting emergency value ( " << temperature.buff_size << " )";
-    }
-    if ( not set->lookupValue ( "core.temperature.unit", temperature.unit ))
-    {
-        temperature.unit = 1;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.buffer_size in configuration file is invalid.\nSetting emergency value ( " << temperature.unit << " )";
-    }
+    temperature.lin_num = cfg->lookupValue ( "core.temperature.linear_modifier", 2 )
+
+    temperature.stable = cfg->lookupValue ( "core.temperature.stable", 56 )
+
+    temperature.steps = cfg->lookupValue ( "core.temperature.steps", 12 )
+
+    temperature.loseless = cfg->lookupValue ( "core.temperature.adaptation", 2 )
+
+    temperature.buffered = cfg->lookupValue ( "core.temperature.buffered", true )
+
+    temperature.buff_size = cfg->lookupValue ( "core.temperature.buffer_size", 10 )
+
+    temperature.unit = cfg->lookupValue ( "core.temperature.unit", 1 )
+
 
     //battery_section
 
-    if ( not set->lookupValue ( "core.battery.capacity", battery_capacity ))
-    {
-        battery_capacity = 4700;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.capacity in configuration file is invalid.\nSetting emergency value ( " << battery_capacity << " mAh )";
-    }
-    if ( not set->lookupValue ( "core.battery.frequency", tmp_frequency ))
-    {
-        battery.frequency = 'l';
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.frequency in configuration file is invalid.\nSetting emergency value ( " << battery.frequency << " )";
-    }
-    else
-        battery.frequency = tmp_frequency[0];
+    battery_capacity = cfg->lookupValue ( "core.battery.capacity", 4700 )
 
-    if ( not set->lookupValue ( "core.battery.linear_modifier", battery.lin_num ))
-    {
-        battery.lin_num = 0;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.linear_modifier in configuration file is invalid.\nSetting emergency value ( "<< battery.lin_num << " )";
-    }
-    if ( not set->lookupValue ( "core.battery.stable", battery.stable ))
-    {
-        battery.stable = 25;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.stable in configuration file is invalid.\nSetting emergency value ( " << battery.stable << " )";
-    }
-    if ( not set->lookupValue ( "core.battery.steps", battery.steps ))
-    {
-        battery.steps = 8;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.steps in configuration file is invalid.\nSetting emergency value ( " << battery.steps << " )";
-    }
-    if ( not set->lookupValue ( "core.battery.adaptation", battery.loseless ))
-    {
-        battery.loseless = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.adaptation in configuration file is invalid.\nSetting emergency value ( " << battery.loseless << " )";
-    }
-    if ( not set->lookupValue ( "core.battery.buffered", battery.buffered ))
-    {
-        battery.buffered = false;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.buffered in configuration file is invalid.\nSetting emergency value ( " << battery.buffered << " )";
-    }
-    if ( not set->lookupValue ( "core.battery.buffer_size", battery.buff_size ))
-    {
-        battery.buff_size = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.buffer_size in configuration file is invalid.\nSetting emergency value ( " << battery.buff_size << " )";
-    }
+    battery.frequency = cfg->lookupValue ( "core.battery.frequency", 'l' )
+
+    battery.lin_num = cfg->lookupValue ( "core.battery.linear_modifier", 0 )
+
+    battery.stable = cfg->lookupValue ( "core.battery.stable", 25 )
+
+    battery.steps = cfg->lookupValue ( "core.battery.steps", 8 )
+
+    battery.loseless = cfg->lookupValue ( "core.battery.adaptation", 10 )
+
+    battery.buffered = cfg->lookupValue ( "core.battery.buffered", false )
+
+    battery.buff_size = cfg->lookupValue ( "core.battery.buffer_size", 10 )
+
 
     //times_sector
 
-    if ( not set->lookupValue ( "core.times.frequency", tmp_frequency ))
-    {
-        times.frequency = 'q';
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.times.frequency in configuration file is invalid.\nSetting emergency value ( " << times.frequency << " )";
-    }
-    else
-        times.frequency = tmp_frequency[0];
+    times.frequency = cfg->lookupValue ( "core.times.frequency", 'q' )
 
-    if ( not set->lookupValue ( "core.times.quad_modifier", times.lin_num ))
-    {
-        times.lin_num = 2;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.times.quad_modifier in configuration file is invalid.\nSetting emergency value ( "<< times.lin_num << " )";
-    }
-    if ( not set->lookupValue ( "core.times.start", times.start ))
-    {
-        times.start = 20;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.times.start in configuration file is invalid.\nSetting emergency value ( " << times.start << " )";
-    }
-    if ( not set->lookupValue ( "core.times.steps", times.steps ))
-    {
-        times.steps = 6;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.times.steps in configuration file is invalid.\nSetting emergency value ( " << times.steps << " )";
-    }
-    if ( not set->lookupValue ( "core.times.end", times.end ))
-    {
-        times.end = 6;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.times.end in configuration file is invalid.\nSetting emergency value ( " << times.end << " )";
-    }
-    if ( not set->lookupValue ( "core.times.wide", times.wide ))
-    {
-        times.wide = 6;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.times.wide in configuration file is invalid.\nSetting emergency value ( " << times.wide << " )";
-    }
+    times.lin_num = cfg->lookupValue ( "core.times.quad_modifier", 2 )
+
+    times.start = cfg->lookupValue ( "core.times.start", 20 )
+
+    times.steps = cfg->lookupValue ( "core.times.steps", 6 )
+
+    times.end = cfg->lookupValue ( "core.times.end", 6 )
+
+    times.wide = cfg->lookupValue ( "core.times.wide", 6 )
+
 
     //energy_sector
 
-    if ( not set->lookupValue ( "core.energy.frequency", tmp_frequency ))
-    {
-        energy.frequency = 'q';
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.energy.frequency in configuration file is invalid.\nSetting emergency value ( " << energy.frequency << " )";
-    }
-    else
-        energy.frequency = tmp_frequency[0];
+    energy.frequency = cfg->lookupValue ( "core.energy.frequency", 'q' )
+    
+    energy.lin_num = cfg->lookupValue ( "core.energy.quad_modifier", 2 )
 
-    if ( not set->lookupValue ( "core.energy.quad_modifier", energy.lin_num ))
-    {
-        energy.lin_num = 2;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.energy.quad_modifier in configuration file is invalid.\nSetting emergency value ( "<< energy.lin_num << " )";
-    }
-    if ( not set->lookupValue ( "core.energy.start", energy.start ))
-    {
-        energy.start = 16;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.energy.start in configuration file is invalid.\nSetting emergency value ( " << energy.start << " )";
-    }
-    if ( not set->lookupValue ( "core.energy.steps", energy.steps ))
-    {
-        energy.steps = 6;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.energy.steps in configuration file is invalid.\nSetting emergency value ( " << energy.steps << " )";
-    }
-    if ( not set->lookupValue ( "core.energy.end", energy.end ))
-    {
-        energy.end = 0;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.energy.end in configuration file is invalid.\nSetting emergency value ( " << energy.end << " )";
-    }
-    if ( not set->lookupValue ( "core.energy.wide", energy.wide ))
-    {
-        energy.wide = 6;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.energy.wide in configuration file is invalid.\nSetting emergency value ( " << energy.wide << " )";
-    }
+    energy.start = cfg->lookupValue ( "core.energy.start", 16 )
+
+    energy.steps = cfg->lookupValue ( "core.energy.steps", 6 )
+
+    energy.end = cfg->lookupValue ( "core.energy.end", 0 )
+
+    energy.wide = cfg->lookupValue ( "core.energy.wide", 6 )
+
 
 
     //bulwers_walls_sector
 
-    if ( not set->lookupValue ("core.bulwers.wall_01", bulwers.wall_01))
-    {
-        bulwers.wall_01 = 300;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_01 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_02", bulwers.wall_02))
-    {
-        bulwers.wall_01 = 500;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_02 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_03", bulwers.wall_03))
-    {
-        bulwers.wall_01 = 800;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_03 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_04", bulwers.wall_04))
-    {
-        bulwers.wall_01 = 1300;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_04 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_05", bulwers.wall_05))
-    {
-        bulwers.wall_01 = 2100;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_05 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_06", bulwers.wall_06))
-    {
-        bulwers.wall_01 = 3400;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_06 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_07", bulwers.wall_07))
-    {
-        bulwers.wall_01 = 5500;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_07 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_08", bulwers.wall_08))
-    {
-        bulwers.wall_01 = 8900;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_08 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_09", bulwers.wall_09))
-    {
-        bulwers.wall_01 = 14400;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_09 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_10", bulwers.wall_10))
-    {
-        bulwers.wall_01 = 23300;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_10 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_11", bulwers.wall_11))
-    {
-        bulwers.wall_01 = 37700;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_11 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_12", bulwers.wall_12))
-    {
-        bulwers.wall_01 = 61600;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_12 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_13", bulwers.wall_13))
-    {
-        bulwers.wall_01 = 98700;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_13 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_14", bulwers.wall_14))
-    {
-        bulwers.wall_01 = 159700;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_14 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_15", bulwers.wall_15))
-    {
-        bulwers.wall_01 = 258400;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_15 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
+    bulwers.wall_01 = cfg->lookupValue ("core.bulwers.wall_01", 300 )
 
+    bulwers.wall_02 = cfg->lookupValue ("core.bulwers.wall_02", 500 )
 
-    if (errors < 0)
-        cout << "CONFIGURATION FILE DAMAGED!!! There\'re " << errors << " errors. Run eyes -c to fix them.\n\n\n\n";
+    bulwers.wall_03 = cfg->lookupValue ("core.bulwers.wall_03", 800 )
+
+    bulwers.wall_04 = cfg->lookupValue ("core.bulwers.wall_04", 1300 )
+
+    bulwers.wall_05 = cfg->lookupValue ("core.bulwers.wall_05", 2100 )
+
+    bulwers.wall_06 = cfg->lookupValue ("core.bulwers.wall_06", 3400 )
+
+    bulwers.wall_07 = cfg->lookupValue ("core.bulwers.wall_07", 5500 )
+
+    bulwers.wall_08 = cfg->lookupValue ("core.bulwers.wall_08", 8900 )
+
+    bulwers.wall_09 = cfg->lookupValue ("core.bulwers.wall_09", 14400 )
+
+    bulwers.wall_10 = cfg->lookupValue ("core.bulwers.wall_10", 23300 )
+
+    bulwers.wall_11 = cfg->lookupValue ("core.bulwers.wall_11", 37700 )
+
+    bulwers.wall_12 = cfg->lookupValue ("core.bulwers.wall_12", 61600 )
+
+    bulwers.wall_13 = cfg->lookupValue ("core.bulwers.wall_13", 98700 )
+
+    bulwers.wall_14 = cfg->lookupValue ("core.bulwers.wall_14", 159700 )
+
+    bulwers.wall_15 = cfg->lookupValue ("core.bulwers.wall_15", 258400 )
 
 
 }
@@ -2991,8 +2737,5 @@ void Core::on_timer_tick ()
     core_step ++;
     bulwers_update ();
     eyes->graphics_prepare();
-
-    // TODO 04 : Fix non-buffering segfeult.
-
     gui_refresh ();
 }
