@@ -9,11 +9,12 @@ using namespace libconfig;
 class eConfig
 {
 public:
-    eConfig ( QString fname );
-    bool    lookupValue ( const char * path, bool def=false );
-    int     lookupValue ( const char * path, int def=0 );
-    char    lookupValue ( const char * path, char def='\0' );
-    char  * lookupValue ( const char * path, const char * def="" );
+    eConfig                         ( QString fname );
+    bool        lookupValue         ( const char * path, bool def=false );
+    int         lookupValue         ( const char * path, int def=0 );
+    char        lookupValue         ( const char * path, char def='\0' );
+    char      * lookupValue         ( const char * path, char * def="" );
+    Config    * libconfigConfig    ();
 private:
     Config cfg;
 };

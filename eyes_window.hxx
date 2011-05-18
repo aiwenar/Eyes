@@ -28,7 +28,7 @@ private:
     QMenu             * timenu;
     QAction           * quitA,
                       * setA;
-    Config            * cfg;
+    eConfig           * cfg;
 };
 
 #endif // EYES_WINDOW_HXX

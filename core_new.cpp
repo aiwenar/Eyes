@@ -40,15 +40,7 @@ timal           energy;
 bul             bulwers;
 sended_anims    s_anim;
 hard_dbg        HDBG;
-
-
-
-
-
-
-
-
-
+QString         face_send;
 
 void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto )
 {
@@ -2567,142 +2559,71 @@ Core::Core ( eyes_view * neyes )
     eyes = neyes;
 }
 
-void Core::load_config ( Config * set )
+void Core::load_config ( eConfig * cfg )
 {
-
-    cpu.frequency = cfg->lookupValue ( "core.cpu.frequency", 'f' )
-
-    cpu.lin_num = cfg->lookupValue ( "core.cpu.linear_modifier", 0 )
-
-    cpu.stable = cfg->lookupValue ( "core.cpu.stable", 25 )
-
-    cpu.steps = cfg->lookupValue ( "core.cpu.steps", 10 )
-
-    cpu.loseless = cfg->lookupValue ( "core.cpu.adaptation", 10 )
-
-    cpu.buffered = cfg->lookupValue ( "core.cpu.buffered", true )
-
-    cpu.buff_size = cfg->lookupValue ( "core.cpu.buffer_size", 10 )
-
-
+    cpu.frequency = cfg->lookupValue ( "core.cpu.frequency", 'f' );
+    cpu.lin_num = cfg->lookupValue ( "core.cpu.linear_modifier", 0 );
+    cpu.stable = cfg->lookupValue ( "core.cpu.stable", 25 );
+    cpu.steps = cfg->lookupValue ( "core.cpu.steps", 10 );
+    cpu.loseless = cfg->lookupValue ( "core.cpu.adaptation", 10 );
+    cpu.buffered = cfg->lookupValue ( "core.cpu.buffered", true );
+    cpu.buff_size = cfg->lookupValue ( "core.cpu.buffer_size", 10 );
     //mem_section
-
-    memory.frequency = cfg->lookupValue ( "core.memory.frequency", 'q' )
-
-    memory.lin_num = cfg->lookupValue ( "core.memory.linear_modifier", 2 )
-
-    memory.stable = cfg->lookupValue ( "core.memory.stable", 25 )
-
-    memory.steps = cfg->lookupValue ( "core.memory.steps", 8 )
-
-    memory.loseless = cfg->lookupValue ( "core.memory.adaptation", 10 )
-
-    memory.buffered = cfg->lookupValue ( "core.memory.buffered", true )
-
-    memory.buff_size = cfg->lookupValue ( "core.memory.buffer_size", 10 )
-
-
+    memory.frequency = cfg->lookupValue ( "core.memory.frequency", 'q' );
+    memory.lin_num = cfg->lookupValue ( "core.memory.linear_modifier", 2 );
+    memory.stable = cfg->lookupValue ( "core.memory.stable", 25 );
+    memory.steps = cfg->lookupValue ( "core.memory.steps", 8 );
+    memory.loseless = cfg->lookupValue ( "core.memory.adaptation", 10 );
+    memory.buffered = cfg->lookupValue ( "core.memory.buffered", true );
+    memory.buff_size = cfg->lookupValue ( "core.memory.buffer_size", 10 );
     //temperature_section
-
-    temperature.frequency = cfg->lookupValue ( "core.temperature.frequency", 'q' )
-
-    temperature.lin_num = cfg->lookupValue ( "core.temperature.linear_modifier", 2 )
-
-    temperature.stable = cfg->lookupValue ( "core.temperature.stable", 56 )
-
-    temperature.steps = cfg->lookupValue ( "core.temperature.steps", 12 )
-
-    temperature.loseless = cfg->lookupValue ( "core.temperature.adaptation", 2 )
-
-    temperature.buffered = cfg->lookupValue ( "core.temperature.buffered", true )
-
-    temperature.buff_size = cfg->lookupValue ( "core.temperature.buffer_size", 10 )
-
-    temperature.unit = cfg->lookupValue ( "core.temperature.unit", 1 )
-
-
+    temperature.frequency = cfg->lookupValue ( "core.temperature.frequency", 'q' );
+    temperature.lin_num = cfg->lookupValue ( "core.temperature.linear_modifier", 2 );
+    temperature.stable = cfg->lookupValue ( "core.temperature.stable", 56 );
+    temperature.steps = cfg->lookupValue ( "core.temperature.steps", 12 );
+    temperature.loseless = cfg->lookupValue ( "core.temperature.adaptation", 2 );
+    temperature.buffered = cfg->lookupValue ( "core.temperature.buffered", true );
+    temperature.buff_size = cfg->lookupValue ( "core.temperature.buffer_size", 10 );
+    temperature.unit = cfg->lookupValue ( "core.temperature.unit", 1 );
     //battery_section
-
-    battery_capacity = cfg->lookupValue ( "core.battery.capacity", 4700 )
-
-    battery.frequency = cfg->lookupValue ( "core.battery.frequency", 'l' )
-
-    battery.lin_num = cfg->lookupValue ( "core.battery.linear_modifier", 0 )
-
-    battery.stable = cfg->lookupValue ( "core.battery.stable", 25 )
-
-    battery.steps = cfg->lookupValue ( "core.battery.steps", 8 )
-
-    battery.loseless = cfg->lookupValue ( "core.battery.adaptation", 10 )
-
-    battery.buffered = cfg->lookupValue ( "core.battery.buffered", false )
-
-    battery.buff_size = cfg->lookupValue ( "core.battery.buffer_size", 10 )
-
-
+    battery_capacity = cfg->lookupValue ( "core.battery.capacity", 4700 );
+    battery.frequency = cfg->lookupValue ( "core.battery.frequency", 'l' );
+    battery.lin_num = cfg->lookupValue ( "core.battery.linear_modifier", 0 );
+    battery.stable = cfg->lookupValue ( "core.battery.stable", 25 );
+    battery.steps = cfg->lookupValue ( "core.battery.steps", 8 );
+    battery.loseless = cfg->lookupValue ( "core.battery.adaptation", 10 );
+    battery.buffered = cfg->lookupValue ( "core.battery.buffered", false );
+    battery.buff_size = cfg->lookupValue ( "core.battery.buffer_size", 10 );
     //times_sector
-
-    times.frequency = cfg->lookupValue ( "core.times.frequency", 'q' )
-
-    times.lin_num = cfg->lookupValue ( "core.times.quad_modifier", 2 )
-
-    times.start = cfg->lookupValue ( "core.times.start", 20 )
-
-    times.steps = cfg->lookupValue ( "core.times.steps", 6 )
-
-    times.end = cfg->lookupValue ( "core.times.end", 6 )
-
-    times.wide = cfg->lookupValue ( "core.times.wide", 6 )
-
-
+    times.frequency = cfg->lookupValue ( "core.times.frequency", 'q' );
+    times.lin_num = cfg->lookupValue ( "core.times.quad_modifier", 2 );
+    times.start = cfg->lookupValue ( "core.times.start", 20 );
+    times.steps = cfg->lookupValue ( "core.times.steps", 6 );
+    times.end = cfg->lookupValue ( "core.times.end", 6 );
+    times.wide = cfg->lookupValue ( "core.times.wide", 6 );
     //energy_sector
-
-    energy.frequency = cfg->lookupValue ( "core.energy.frequency", 'q' )
-    
-    energy.lin_num = cfg->lookupValue ( "core.energy.quad_modifier", 2 )
-
-    energy.start = cfg->lookupValue ( "core.energy.start", 16 )
-
-    energy.steps = cfg->lookupValue ( "core.energy.steps", 6 )
-
-    energy.end = cfg->lookupValue ( "core.energy.end", 0 )
-
-    energy.wide = cfg->lookupValue ( "core.energy.wide", 6 )
-
-
-
+    energy.frequency = cfg->lookupValue ( "core.energy.frequency", 'q' );
+    energy.lin_num = cfg->lookupValue ( "core.energy.quad_modifier", 2 );
+    energy.start = cfg->lookupValue ( "core.energy.start", 16 );
+    energy.steps = cfg->lookupValue ( "core.energy.steps", 6 );
+    energy.end = cfg->lookupValue ( "core.energy.end", 0 );
+    energy.wide = cfg->lookupValue ( "core.energy.wide", 6 );
     //bulwers_walls_sector
-
-    bulwers.wall_01 = cfg->lookupValue ("core.bulwers.wall_01", 300 )
-
-    bulwers.wall_02 = cfg->lookupValue ("core.bulwers.wall_02", 500 )
-
-    bulwers.wall_03 = cfg->lookupValue ("core.bulwers.wall_03", 800 )
-
-    bulwers.wall_04 = cfg->lookupValue ("core.bulwers.wall_04", 1300 )
-
-    bulwers.wall_05 = cfg->lookupValue ("core.bulwers.wall_05", 2100 )
-
-    bulwers.wall_06 = cfg->lookupValue ("core.bulwers.wall_06", 3400 )
-
-    bulwers.wall_07 = cfg->lookupValue ("core.bulwers.wall_07", 5500 )
-
-    bulwers.wall_08 = cfg->lookupValue ("core.bulwers.wall_08", 8900 )
-
-    bulwers.wall_09 = cfg->lookupValue ("core.bulwers.wall_09", 14400 )
-
-    bulwers.wall_10 = cfg->lookupValue ("core.bulwers.wall_10", 23300 )
-
-    bulwers.wall_11 = cfg->lookupValue ("core.bulwers.wall_11", 37700 )
-
-    bulwers.wall_12 = cfg->lookupValue ("core.bulwers.wall_12", 61600 )
-
-    bulwers.wall_13 = cfg->lookupValue ("core.bulwers.wall_13", 98700 )
-
-    bulwers.wall_14 = cfg->lookupValue ("core.bulwers.wall_14", 159700 )
-
-    bulwers.wall_15 = cfg->lookupValue ("core.bulwers.wall_15", 258400 )
-
+    bulwers.wall_01 = cfg->lookupValue ("core.bulwers.wall_01", 300 );
+    bulwers.wall_02 = cfg->lookupValue ("core.bulwers.wall_02", 500 );
+    bulwers.wall_03 = cfg->lookupValue ("core.bulwers.wall_03", 800 );
+    bulwers.wall_04 = cfg->lookupValue ("core.bulwers.wall_04", 1300 );
+    bulwers.wall_05 = cfg->lookupValue ("core.bulwers.wall_05", 2100 );
+    bulwers.wall_06 = cfg->lookupValue ("core.bulwers.wall_06", 3400 );
+    bulwers.wall_07 = cfg->lookupValue ("core.bulwers.wall_07", 5500 );
+    bulwers.wall_08 = cfg->lookupValue ("core.bulwers.wall_08", 8900 );
+    bulwers.wall_09 = cfg->lookupValue ("core.bulwers.wall_09", 14400 );
+    bulwers.wall_10 = cfg->lookupValue ("core.bulwers.wall_10", 23300 );
+    bulwers.wall_11 = cfg->lookupValue ("core.bulwers.wall_11", 37700 );
+    bulwers.wall_12 = cfg->lookupValue ("core.bulwers.wall_12", 61600 );
+    bulwers.wall_13 = cfg->lookupValue ("core.bulwers.wall_13", 98700 );
+    bulwers.wall_14 = cfg->lookupValue ("core.bulwers.wall_14", 159700 );
+    bulwers.wall_15 = cfg->lookupValue ("core.bulwers.wall_15", 258400 );
 
 }
 

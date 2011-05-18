@@ -13,7 +13,8 @@ SOURCES	+= \
     eyes_cfg.cc \
     core_new.cpp \
     eyes_window.cc \
-    eyes_config.cc
+    eyes_config.cc \
+    econfig.cc
 
 HEADERS += \
     eyes_view.h \
@@ -25,7 +26,8 @@ HEADERS += \
     eyes_cfg.hxx \
     core_new.hxx \
     eyes_window.hxx \
-    eyes_config.hxx
+    eyes_config.hxx \
+    econfig.hxx
 
 OTHER_FILES += \
     README.markdown \

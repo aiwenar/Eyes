@@ -65,26 +65,24 @@ void eyes_clapper::clap ()
     if ( stage == from )
     {
         face = eyes->get_face ();
-        old_face = eyes->get_face_next ();
         cerr << size1<< ' ' << size2 << '\n' << start.toStdString () << ' ' << end.toStdString () << ' ' << animations[start] << ' ' << '\n';
         size1 = animations[start]->size;
         size2 = animations[end]->size;
         eyes->reload_eyes();
     }
     if ( stage < size1 )
-        eyes->set_face ( QString ( animations[start]->frames[stage] ), this );
+        eyes->set_face ( QString ( animations[start]->frames[stage] ) );
 
     else
     {
         if ( stage-size1 == to )
         {
-            eyes->set_face ( old_face );
             eyes->update ();
             timer->setInterval ( get_next_clap_delay () * 200 );
             stage = from;
             return;
         }
-        eyes->set_face ( QString ( animations[end]->frames[stage-size1] ), this );
+        eyes->set_face ( QString ( animations[end]->frames[stage-size1] ) );
     }
     eyes->repaint ();
     stage ++;

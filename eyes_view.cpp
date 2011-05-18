@@ -125,7 +125,6 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
         color = get_face_suffix ( QString ( scolor.c_str () ) );
     is_finished = false;
     images_ready = false;
-    is_face_locked = false;
     time = QTime::currentTime ();
     qsrand ( (uint)time.msec () );
     setMinimumSize ( eyes_w, eyes_h );
@@ -150,7 +149,6 @@ eyes_view::~eyes_view ()
 
 void eyes_view::open_images ( QString color )
 {
-    lock_face ( this );
     QPixmap * file ;
     bool no_file ( false );
     for ( int i=0 ; i<216 ; i++ )
@@ -192,7 +190,6 @@ void eyes_view::open_images ( QString color )
         exit ( 2 );
     }
     images_ready = true;
-    unlock_face ( this );
 }
 
 void eyes_view::paintEvent ( QPaintEvent * event )
@@ -245,23 +242,11 @@ void eyes_view::closeEvent ( QCloseEvent * ev )
 
 void eyes_view::set_face ( QString nface )
 {
-    set_face ( nface, nil );
-}
-
-void eyes_view::set_face ( QString nface, void * nlocker )
-{
-    if ( is_face_locked and not ( nlocker = locker ) )
-    {
-        cerr << "[info :] face changing is locked, puting new face into queue.\n";
-        face_next = nface;
-        return;
-    }
     if ( not pics.contains ( nface+"_a" ) )
     {
         cerr << "[\033[33mwarning \033[0m:] setting face to " << nface.toStdString () << " but it not exists.\n";
         return;
     }
-    cerr << "[info :] changing face to " << nface.toStdString () << " by " << nlocker << ".\n";
     face = nface;
 }
 
@@ -284,48 +269,6 @@ void eyes_view::set_mirror_position ( double nx1, double nx2, double ny )
     mpx2 = nx2;
     mpy = ny;
     clog << "[log :] moving mirrors to x1:" << mpx1 << " x2:" << mpx2 << " py:" << mpy << ".\n";
-}
-
-void eyes_view::lock_face ( void * nlocker )
-{
-    if ( is_face_locked )
-    {
-        cerr << "[\033[33mwarning \033[0m:] face is allready locked.\n";
-        return;
-    }
-    else
-    {
-        cerr << "[info :] locking face by " << nlocker << ".\n";
-        is_face_locked = true;
-        locker = nlocker;
-    }
-}
-
-void eyes_view::unlock_face ()
-{
-    unlock_face ( nil );
-}
-
-void eyes_view::unlock_face ( void * nlocker )
-{
-    if ( not is_face_locked )
-    {
-        cerr << "[info :] face isn't locked.\n";
-        return;
-    }
-    else if ( not ( nlocker == locker ) )
-    {
-        cerr << "[\033[33mwarning \033[0m:] face is locked by " << locker << " but " << nlocker << " wanna unlock it.\n";
-    }
-    else
-    {
-        cerr << "[info :] unlocking face.\n";
-        is_face_locked = false;
-        if ( not ( face_next == "" ) )
-        {
-            set_face ( face_next );
-        }
-    }
 }
 
 void eyes_view::set_animation ( QString start, QString end, int from, int to )

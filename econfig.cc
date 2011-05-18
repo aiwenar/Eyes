@@ -6,10 +6,10 @@ using namespace std;
 
 eConfig::eConfig ( QString fname )
 {
-    cfg.readFile ( fname );
+    cfg.readFile ( fname.toStdString ().c_str () );
 }
 
-bool eConfig::lookupValue ( char * path, bool def )
+bool eConfig::lookupValue ( const char * path, bool def )
 {
     bool tmp;
     if ( not cfg.lookupValue ( path, tmp ) )
@@ -24,10 +24,10 @@ bool eConfig::lookupValue ( char * path, bool def )
     return tmp;
 }
 
-char * eConfig::lookupValue ( char * path, char * def )
+char * eConfig::lookupValue ( const char * path, char * def )
 {
-    char * tmp;
-    if ( not cfg.lookupValue ( path, tmp ) )
+    std::string tmp;
+    if ( not cfg.lookupValue ( &(*path), tmp ) )
     {
         cerr << "[\033[31merror\033[0m :] lookup for: "
              << path
@@ -36,13 +36,13 @@ char * eConfig::lookupValue ( char * path, char * def )
              << ")\n";
         return def;
     }
-    return tmp;
+    return const_cast<char*>(tmp.c_str ());
 }
 
-char eConfig::lookupValue ( char * path, char def )
+char eConfig::lookupValue ( const char * path, char def )
 {
-    char * tmp;
-    if ( not cfg.lookupValue ( path, tmp ) )
+    std::string tmp;
+    if ( not cfg.lookupValue ( &(*path), tmp ) )
     {
         cerr << "[\033[31merror\033[0m :] lookup for: "
              << path
@@ -54,10 +54,10 @@ char eConfig::lookupValue ( char * path, char def )
     return tmp[0];
 }
 
-int eConfig::lookupValue ( char * path, int def )
+int eConfig::lookupValue ( const char * path, int def )
 {
-    int * tmp;
-    if ( not cfg.lookupValue ( path, tmp ) )
+    int tmp;
+    if ( not cfg.lookupValue ( &(*path), tmp ) )
     {
         cerr << "[\033[31merror\033[0m :] lookup for: "
              << path
@@ -67,4 +67,9 @@ int eConfig::lookupValue ( char * path, int def )
         return def;
     }
     return tmp;
+}
+
+Config * eConfig::libconfigConfig()
+{
+    return &cfg;
 }
