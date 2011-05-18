@@ -3,10 +3,10 @@
 #include <string.h>
 #include <time.h>
 #include <vector>
-#include </usr/include/qt4/Qt/qstring.h>
-#include </usr/include/qt4/Qt/qvector.h>
-#include </usr/include/qt4/Qt/qregexp.h>
-#include </usr/include/qt4/Qt/qstringlist.h>
+#include <qstring.h>
+#include <qvector.h>
+#include <qregexp.h>
+#include <qstringlist.h>
 #include <cstdlib>
 #include <ctime>
 #include <unistd.h>
@@ -39,14 +39,8 @@ timal           times;
 timal           energy;
 bul             bulwers;
 sended_anims    s_anim;
-
-// -----
-// jedyne co musisz zmieni z funkcjami to:
-// * umieci ich definicje w core_new
-// * zmieni im nazwe x np double <NAME> () na double core_new::<NAME> ()
-// a jedyne co z funkcjami to
-// * przenie je do core_new
-// -----
+hard_dbg        HDBG;
+QString         face_send;
 
 void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto )
 {
@@ -500,7 +494,7 @@ void bul::update()
     }
     else
     {
-        if (times.value < 10 || times.value > 23 ||  energy.value > energy.start + energy.wide - 5)
+        if (times.value < 10 || times.value > 23 ||  energy.value > energy.start + energy.wide - 5*3600)
         {
             tired = 1;
             if (outline <= 7)
@@ -512,7 +506,7 @@ void bul::update()
                     outline = 1;
             }
         }
-        if ((times.value < 8 && times.value > 1) ||  energy.value > energy.start + energy.wide - 3)
+        if ((times.value < 8 && times.value > 1) ||  energy.value > energy.start + energy.wide - 3*3600)
         {
             tired = 2;
             if (outline <= 8)
@@ -524,7 +518,7 @@ void bul::update()
                     outline = 2;
             }
         }
-        if ((times.value < 7 && times.value > 3) ||  energy.value > energy.start + energy.wide - 3 )
+        if ((times.value < 7 && times.value > 3) ||  energy.value > energy.start + energy.wide - 3*3600 )
         {
             tired = 3;
             if (outline <= 9)
@@ -826,10 +820,8 @@ if (temperature.buffered)
 energy.value                      = 0    ;
 energy.start                     *= 3600 ;
 energy.wide                      *= 3600 ;
-
 once_plugged                      = false;
 mod_bat_plug                      = 0    ;
-
 bulwers.step                      = 0    ;
 
 
@@ -928,7 +920,6 @@ bool Core::wake_up_prepare()
         {
             if (times.value >= 7 )
             {
-                energy.start = 16;
                 wake_up = true;
                 bulwers.outline = 3;
             }
@@ -940,7 +931,7 @@ bool Core::wake_up_prepare()
 
             if (times.value >= 10 )
             {
-                energy.start = 20;
+                energy.start += 4*3600;
                 wake_up = true;
                 bulwers.outline = 3;
             }
@@ -1315,18 +1306,18 @@ bulwers.update();
 void Core::gui_init()
 {
 cout << "\033[40m" << "\033[37m" << "\n";
-unsigned short max_buff = 10;
-if (cpu.buffered && cpu.buff_size > max_buff)
-    max_buff = cpu.buff_size;
-if (memory.buffered && memory.buff_size > max_buff)
-    max_buff = memory.buff_size;
-if (temperature.buffered && temperature.buff_size > max_buff)
-    max_buff = temperature.buff_size;
-for (unsigned short i = max_buff+7; i>1; i--)
+HDBG.max_s = 10;
+if (cpu.buffered && cpu.buff_size > HDBG.max_s)
+    HDBG.max_s = cpu.buff_size;
+if (memory.buffered && memory.buff_size > HDBG.max_s)
+    HDBG.max_s = memory.buff_size;
+if (temperature.buffered && temperature.buff_size > HDBG.max_s)
+    HDBG.max_s = temperature.buff_size;
+for (unsigned short i = HDBG.max_s+6; i>1; i--)
 {
     cout << "\n";
 }
-for (unsigned short i = max_buff+5; i>1; i--)
+for (unsigned short i = HDBG.max_s+7; i>1; i--)
 {
     cout << "\033[1A";
 }
@@ -1335,7 +1326,7 @@ for (unsigned short i = 37; i>1; i--)
     cout << "-";
 }
 cout << "\033[12D" << "\033[3B";
-for (unsigned short i = 12; i>=1; i--)
+for (unsigned short i = 12; i>1; i--)
 {
     cout << "-";
 }
@@ -1349,54 +1340,54 @@ for (unsigned short i = 12; i>=1; i--)
 {
     cout << "-";
 }
-cout << "\033[28D" << "\033[9A";
-for (unsigned short i = max_buff + 4; i>0; i--)
+cout << "\033[27D" << "\033[9A";
+for (unsigned short i = HDBG.max_s + 4; i>0; i--)
 {
     cout << "\033[1B" << "\033[1D" << "|";
 }
-for (unsigned short i = max_buff + 4; i>0; i--)
+for (unsigned short i = HDBG.max_s + 4; i>0; i--)
 {
     cout << "\033[1A";
 }
 
 cout << "\033[8C";
-for (unsigned short i = max_buff+4; i>0; i--)
+for (unsigned short i = HDBG.max_s+4; i>0; i--)
 {
     cout << "\033[1B" << "\033[1D" << "|";
 }
-for (unsigned short i = max_buff+4; i>0; i--)
+for (unsigned short i = HDBG.max_s+4; i>0; i--)
 {
     cout << "\033[1A";
 }
 cout << "\033[8C";
-for (unsigned short i = max_buff+4; i>0; i--)
+for (unsigned short i = HDBG.max_s+4; i>0; i--)
 {
     cout << "\033[1B" << "\033[1D" << "|";
 }
-for (unsigned short i = max_buff+4; i>0; i--)
+for (unsigned short i = HDBG.max_s+4; i>0; i--)
 {
     cout << "\033[1A";
 }
-cout << "\033[12C" << "\033[2A";
+cout << "\033[12C" << "\033[1A";
 
-for (unsigned short i = max_buff+6; i>0; i--)
+for (unsigned short i = HDBG.max_s+6; i>0; i--)
 {
     cout << "|" << "\033[1B" << "\033[1D";
 }
-for (unsigned short i = max_buff+6; i>0; i--)
+for (unsigned short i = HDBG.max_s+6; i>0; i--)
 {
     cout << "\033[1A";
 }
 cout << "\033[14C";
-for (unsigned short i = max_buff+6; i>0; i--)
+for (unsigned short i = HDBG.max_s+6; i>0; i--)
 {
     cout << "|" << "\033[1B" << "\033[1D";
 }
-for (unsigned short i = max_buff+6; i>0; i--)
+for (unsigned short i = HDBG.max_s+6; i>0; i--)
 {
     cout << "\033[1A";
 }
-cout << "\n" << "\033[1A" << "\033[1C" << "step:" << "\033[8C" << "special:";
+cout << "\n" << "\033[1A" << " " << "step:" << "        " << "special:";
 cout << "\033[2B" << "\033[21D" << "cpu:";
 cout << "\033[4C" << "mem:";
 cout << "\033[4C" << "temp:";
@@ -1404,8 +1395,10 @@ cout << "\033[3C" << "battery:";
 cout << "\033[8D" << "\033[3B" << "time:";
 cout << "\033[5D" << "\033[3B" << "energy:";
 cout << "\033[7D" << "\033[6B" << "next_wall:";
-cout << "\n" << "\033[15A" << "\033[38C" << "mods:\n";
-cout << "\n" << "\033[38C" << "cpu:\n";
+cout << "\n" << "\033[15A" << "\033[22C              | " << "mods:       ";
+if (1)
+    cout << "\033[1C HARDLY DEBUG MODE:";
+cout << "\n\n" << "\033[38C" << "cpu:\n";
 cout << "\033[1A" << "\033[44C" << "load:\n";
 cout << "\n" << "\033[38C" << "mem:\n";
 cout << "\033[1A" << "\033[44C" << "load:\n";
@@ -1426,6 +1419,10 @@ cout << "\033[14A";
 cout << "\n";
 
 /*
+
+This is concept debug layout:
+
+
 #######################################################################################################################
 # step:____   special:__             | mods:       | [] [] [] [] [] []        |
 # -----------------------------------|             | [] [] [] [] [] [] bul    |
@@ -1443,6 +1440,107 @@ cout << "\n";
 # p0 b0 | m0 b0 | t0 b0 | __________ |             | [] [] [] [] [] []        |
 #       |       |       | next_wall: | plug: val:  | [] [] [] [] [] []        |
 # ===== | ===== | ===== | __________ |             | [] [] [] [] [] []        |
+
+
+And for everyone there are terminal instructions for that:
+
+
+\033 = [Esc] (up in your keyboard top left corner)
+
+ Colors:
+ \033[30m set foreground color to black
+
+ \033[31m set foreground color to red
+
+ \033[32m set foreground color to green
+
+ \033[33m set foreground color to yellow
+
+ \033[34m set foreground color to blue
+
+ \033[35m set foreground color to magenta (purple)
+
+ \033[36m set foreground color to cyan
+
+ \033[37m set foreground color to white
+
+ \033[40m set background color to black
+
+ \033[41m set background color to red
+
+ \033[42m set background color to green
+
+ \033[43m set background color to yellow
+
+ \033[44m set background color to blue
+
+ \033[45m set background color to magenta (purple)
+
+ \033[46m set background color to cyan
+
+ \033[47m set background color to white
+
+ \033[1;30m set foreground color to dark gray
+
+ \033[1;31m set foreground color to light red
+
+ \033[1;32m set foreground color to light green
+
+ \033[1;33m set foreground color to yellow
+
+ \033[1;34m set foreground color to light blue
+
+ \033[1;35m set foreground color to light magenta (purple)
+
+ \033[1;36m set foreground color to light cyan
+
+ \033[1;37m set foreground color to white
+
+ \033[1;40m set background color to dark gray
+
+ \033[1;41m set background color to light red
+
+ \033[1;42m set background color to light green
+
+ \033[1;43m set background color to yellow
+
+ \033[1;44m set background color to light blue
+
+ \033[1;45m set background color to light magenta (purple)
+
+ \033[1;46m set background color to light cyan
+
+ \033[1;47m set background color to white
+
+ For other features:
+ \033[0m reset; clears all colors and styles (to white on black)
+
+ \033[1m bold on
+
+ \033[3m italics on
+
+ \033[4m underline on
+
+ \033[5m blink on
+
+ \033[7m reverse video on
+
+ \033[8m nondisplayed (invisible)
+
+ \033[x;yH moves cursor to line x, column y
+
+ \033[xA moves cursor up x lines
+
+ \033[xB moves cursor down x lines
+
+ \033[xC moves cursor right x spaces
+
+ \033[xD moves cursor left x spaces
+
+ \033[2J clear screen and home cursor
+
+ END
+
 */
 }
 void Core::gui_refresh ()
@@ -1479,14 +1577,34 @@ void Core::gui_refresh ()
             if (i != cpu.current_probe_small)
             {
                 if (cpu.sector_small[i] <= cpu.stable - cpu.loseless)
-                    cout << "\033[1;32m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
+                {
+                    if (cpu.sector_small[i] < 10)
+                        cout << "\033[1;32m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;32m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
+                }
                 else if (cpu.sector_small[i] >= cpu.stable + cpu.loseless)
-                    cout << "\033[1;31m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
+                {
+                    if (cpu.sector_small[i] < 10)
+                        cout << "\033[1;31m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;31m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
+                }
                 else
-                    cout << "\033[1;30m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
+                {
+                    if (cpu.sector_small[i] < 10)
+                        cout << "\033[1;30m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;30m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
+                }
             }
             else
-                cout << "\033[1;33m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << "<\n";
+            {
+                if (cpu.sector_small[i] < 10)
+                    cout << "\033[1;33m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << " <\n";
+                else
+                    cout << "\033[1;33m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << "<\n";
+            }
         }
     }
     else
@@ -1656,14 +1774,34 @@ void Core::gui_refresh ()
             if (i != memory.current_probe_small)
             {
                 if (memory.sector_small[i] <= memory.stable - memory.loseless)
-                    cout << "\033[1;32m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
+                {
+                    if (memory.sector_small[i] < 10)
+                        cout << "\033[1;32m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;32m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
+                }
                 else if (memory.sector_small[i] >= memory.stable + memory.loseless)
-                    cout << "\033[1;31m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
+                {
+                    if (memory.sector_small[i] < 10)
+                        cout << "\033[1;31m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;31m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
+                }
                 else
-                    cout << "\033[1;30m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
+                {
+                    if (memory.sector_small[i] < 10)
+                        cout << "\033[1;30m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;30m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
+                }
             }
             else
-                cout << "\033[1;33m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "<\n";
+            {
+                if (memory.sector_small[i] < 10)
+                    cout << "\033[1;33m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " <\n";
+                else
+                    cout << "\033[1;33m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "<\n";
+            }
         }
     }
     else
@@ -1960,14 +2098,34 @@ void Core::gui_refresh ()
             if (i != temperature.current_probe_small)
             {
                 if (temperature.sector_small[i] <= temperature.stable - temperature.loseless)
-                    cout << "\033[1;32m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << " \n";
+                {
+                    if (temperature.sector_small[i] < 10)
+                        cout << "\033[1;32m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;32m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << " \n";
+                }
                 else if (temperature.sector_small[i] >= temperature.stable + temperature.loseless)
-                    cout << "\033[1;31m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << " \n";
+                {
+                    if (temperature.sector_small[i] < 10)
+                        cout << "\033[1;31m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;31m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << " \n";
+                }
                 else
-                    cout << "\033[1;30m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << " \n";
+                {
+                    if (temperature.sector_small[i] < 10)
+                        cout << "\033[1;30m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;30m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << " \n";
+                }
             }
             else
-                cout << "\033[1;33m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << "<\n";
+            {
+                if (temperature.sector_small[i] < 10)
+                    cout << "\033[1;33m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << " <\n";
+                else
+                    cout << "\033[1;33m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << "<\n";
+            }
         }
         for (unsigned short i = 0; i<= temperature.buff_size; i++)
         {
@@ -2238,11 +2396,150 @@ void Core::gui_refresh ()
         cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << mod_bat_plug;
         cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << battery_state;
     }
-    cout << "\033[16A" << "\n";
+    cout << "\033[16A" << "\n\n";
 
-
-    //cout << "\033[3A" << "\n";
+    if (1)
+        HDBG.print();
 }
+
+void hard_dbg::print()
+{
+
+
+    //------------WARNING-------------//
+
+    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+    //   !!! HARDLY DEBUG BEGIN !!!   //
+    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//.
+
+
+
+    spacer = 52;
+    line = 0;
+
+    cout << "\033[" << spacer << "C";
+    cout << "\033[1;32m";
+
+    cout << "cload" << " " << (unsigned short)cpu.load << " %";
+    chck_s ();
+    cout << "cstbl" << " " << (unsigned short)cpu.stable << " %";
+    chck_s ();
+    cout << "closs" << " " << (unsigned short)cpu.loseless;
+    chck_s ();
+    cout << "clnum" << " " << (unsigned short)cpu.lin_num;
+    chck_s ();
+    cout << "cfreq" << " " << cpu.frequency;
+    chck_s ();
+    cout << "mload" << " " << (unsigned short)memory.load << " %";
+    chck_s ();
+    cout << "mstbl" << " " << (unsigned short)memory.stable << " %";
+    chck_s ();
+    cout << "mloss" << " " << (unsigned short)memory.loseless;
+    chck_s ();
+    cout << "mlnum" << " " << (unsigned short)memory.lin_num;
+    chck_s ();
+    cout << "mfreq" << " " << memory.frequency;
+    chck_s ();
+    cout << "bload" << " " << (unsigned short)battery.load << " %";
+    chck_s ();
+    cout << "bstbl" << " " << (unsigned short)battery.stable << " %";
+    chck_s ();
+    cout << "bloss" << " " << (unsigned short)battery.loseless;
+    chck_s ();
+    cout << "blnum" << " " << (unsigned short)battery.lin_num;
+    chck_s ();
+    cout << "bstat" << " " << battery_state;
+    chck_s ();
+    cout << "bfreq" << " " << battery.frequency;
+    chck_s ();
+    cout << "pbplg" << " " << prev_bat_plug;
+    chck_s ();
+    cout << "bcapa" << " " << battery_capacity;
+    chck_s ();
+    cout << "boplg" << " " << once_plugged;
+    chck_s ();
+    cout << "tempv" << " " << (unsigned short)temperature.value << "ºC";
+    chck_s ();
+    cout << "tstbl" << " " << (unsigned short)temperature.stable << "ºC";
+    chck_s ();
+    cout << "tloss" << " " << (unsigned short)temperature.loseless;
+    chck_s ();
+    cout << "tlnum" << " " << (unsigned short)temperature.lin_num;
+    chck_s ();
+    cout << "tunit" << " " << (unsigned short)temperature.unit;
+    chck_s ();
+    cout << "tfreq" << " " << temperature.frequency;
+    chck_s ();
+    cout << "tempt" << " " << temp_t;
+    chck_s ();
+    cout << "flutm" << " " << flu_timer;
+    chck_s ();
+    cout << "gtflu" << " " << get_flu;
+    chck_s ();
+    cout << "timev" << " " << (unsigned short)times.value << " h";
+    chck_s ();
+    cout << "tmstr" << " " << (unsigned short)times.start << " h";
+    chck_s ();
+    cout << "timew" << " " << (unsigned short)times.wide << " h";
+    chck_s ();
+    cout << "tmstp" << " " << (unsigned short)times.steps;
+    chck_s ();
+    cout << "tmlnr" << " " << (unsigned short)times.lin_num;
+    chck_s ();
+    cout << "timef" << " " << times.frequency;
+    chck_s ();
+    cout << "nrgvl" << " " << (unsigned short)energy.value;
+    chck_s ();
+    cout << "nrgst" << " " << (unsigned short)energy.start;
+    chck_s ();
+    cout << "nrgwd" << " " << (unsigned short)energy.wide;
+    chck_s ();
+    cout << "nrstp" << " " << (unsigned short)energy.steps;
+    chck_s ();
+    cout << "nrgln" << " " << (unsigned short)energy.lin_num;
+    chck_s ();
+    cout << "nrgfq" << " " << energy.frequency;
+    chck_s ();
+
+
+
+    cout << "\033[" << line+4 << "A\n";
+
+
+
+    //-------------WARNING-------------//
+
+    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+    //   !!! HARDLY DEBUG ENDING !!!   //
+    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//.
+
+
+}
+
+
+void hard_dbg::chck_s()
+{
+    if(line >= HDBG.max_s+3 && line >= 10 )
+    {
+        line = 0;
+        spacer += 14;
+        cout << "\033[1;32m\033[" << HDBG.max_s+4 << "A\n";
+    }
+    else
+    {
+        if (line % 2 == 1)
+            cout << "\033[1;32m";
+        else
+            cout << "\033[1;36m";
+        cout << "\n";
+        line++;
+    }
+    cout << "\033[" << spacer << "C";
+}
+
+
+
+
 /*
 int main ()
 {
@@ -2262,394 +2559,71 @@ Core::Core ( eyes_view * neyes )
     eyes = neyes;
 }
 
-void Core::load_config ( Config * set )
+void Core::load_config ( eConfig * cfg )
 {
-    unsigned short errors = 0;
-    string tmp_frequency = new char[1];
-    if ( not set->lookupValue ( "core.cpu.frequency", tmp_frequency ))
-    {
-        cpu.frequency = 'f';
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.frequency in configuration file is invalid.\nSetting emergency value ( " << cpu.frequency << " )";
-    }
-    else
-        cpu.frequency = tmp_frequency[0];
-
-    if ( not set->lookupValue ( "core.cpu.linear_modifier", cpu.lin_num ))
-    {
-        cpu.lin_num = 0;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.linear_modifier in configuration file is invalid.\nSetting emergency value ( "<< cpu.lin_num << " )";
-    }
-    if ( not set->lookupValue ( "core.cpu.stable", cpu.stable ))
-    {
-        cpu.stable = 25;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.stable in configuration file is invalid.\nSetting emergency value ( " << cpu.stable << " )";
-    }
-    if ( not set->lookupValue ( "core.cpu.steps", cpu.steps ))
-    {
-        cpu.steps = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.steps in configuration file is invalid.\nSetting emergency value ( " << cpu.steps << " )";
-    }
-    if ( not set->lookupValue ( "core.cpu.adaptation", cpu.loseless ))
-    {
-        cpu.loseless = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.adaptation in configuration file is invalid.\nSetting emergency value ( " << cpu.loseless << " )";
-    }
-    if ( not set->lookupValue ( "core.cpu.buffered", cpu.buffered ))
-    {
-        cpu.buffered = true;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.buffered in configuration file is invalid.\nSetting emergency value ( " << cpu.buffered << " )";
-    }
-    if ( not set->lookupValue ( "core.cpu.buffer_size", cpu.buff_size ))
-    {
-        cpu.buff_size = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.cpu.buffer_size in configuration file is invalid.\nSetting emergency value ( " << cpu.buff_size << " )";
-    }
-
+    cpu.frequency = cfg->lookupValue ( "core.cpu.frequency", 'f' );
+    cpu.lin_num = cfg->lookupValue ( "core.cpu.linear_modifier", 0 );
+    cpu.stable = cfg->lookupValue ( "core.cpu.stable", 25 );
+    cpu.steps = cfg->lookupValue ( "core.cpu.steps", 10 );
+    cpu.loseless = cfg->lookupValue ( "core.cpu.adaptation", 10 );
+    cpu.buffered = cfg->lookupValue ( "core.cpu.buffered", true );
+    cpu.buff_size = cfg->lookupValue ( "core.cpu.buffer_size", 10 );
     //mem_section
-
-    if ( not set->lookupValue ( "core.memory.frequency", tmp_frequency ))
-    {
-        memory.frequency = 'f';
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.frequency in configuration file is invalid.\nSetting emergency value ( " << memory.frequency << " )";
-    }
-    else
-        memory.frequency = tmp_frequency[0];
-
-    if ( not set->lookupValue ( "core.memory.linear_modifier", memory.lin_num ))
-    {
-        memory.lin_num = 0;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.linear_modifier in configuration file is invalid.\nSetting emergency value ( "<< memory.lin_num << " )";
-    }
-    if ( not set->lookupValue ( "core.memory.stable", memory.stable ))
-    {
-        memory.stable = 25;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.stable in configuration file is invalid.\nSetting emergency value ( " << memory.stable << " )";
-    }
-    if ( not set->lookupValue ( "core.memory.steps", memory.steps ))
-    {
-        memory.steps = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.steps in configuration file is invalid.\nSetting emergency value ( " << memory.steps << " )";
-    }
-    if ( not set->lookupValue ( "core.memory.adaptation", memory.loseless ))
-    {
-        memory.loseless = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.adaptation in configuration file is invalid.\nSetting emergency value ( " << memory.loseless << " )";
-    }
-    if ( not set->lookupValue ( "core.memory.buffered", memory.buffered ))
-    {
-        memory.buffered = true;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.buffered in configuration file is invalid.\nSetting emergency value ( " << memory.buffered << " )";
-    }
-    if ( not set->lookupValue ( "core.memory.buffer_size", memory.buff_size ))
-    {
-        memory.buff_size = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.memory.buffer_size in configuration file is invalid.\nSetting emergency value ( " << memory.buff_size << " )";
-    }
-
+    memory.frequency = cfg->lookupValue ( "core.memory.frequency", 'q' );
+    memory.lin_num = cfg->lookupValue ( "core.memory.linear_modifier", 2 );
+    memory.stable = cfg->lookupValue ( "core.memory.stable", 25 );
+    memory.steps = cfg->lookupValue ( "core.memory.steps", 8 );
+    memory.loseless = cfg->lookupValue ( "core.memory.adaptation", 10 );
+    memory.buffered = cfg->lookupValue ( "core.memory.buffered", true );
+    memory.buff_size = cfg->lookupValue ( "core.memory.buffer_size", 10 );
     //temperature_section
-
-    if ( not set->lookupValue ( "core.temperature.frequency", tmp_frequency ))
-    {
-        temperature.frequency = 'f';
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.frequency in configuration file is invalid.\nSetting emergency value ( " << temperature.frequency << " )";
-    }
-    else
-        temperature.frequency = tmp_frequency[0];
-
-    if ( not set->lookupValue ( "core.temperature.linear_modifier", temperature.lin_num ))
-    {
-        temperature.lin_num = 0;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.linear_modifier in configuration file is invalid.\nSetting emergency value ( "<< temperature.lin_num << " )";
-    }
-    if ( not set->lookupValue ( "core.temperature.stable", temperature.stable ))
-    {
-        temperature.stable = 25;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.stable in configuration file is invalid.\nSetting emergency value ( " << temperature.stable << " )";
-    }
-    if ( not set->lookupValue ( "core.temperature.steps", temperature.steps ))
-    {
-        temperature.steps = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.steps in configuration file is invalid.\nSetting emergency value ( " << temperature.steps << " )";
-    }
-    if ( not set->lookupValue ( "core.temperature.adaptation", temperature.loseless ))
-    {
-        temperature.loseless = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.adaptation in configuration file is invalid.\nSetting emergency value ( " << temperature.loseless << " )";
-    }
-    if ( not set->lookupValue ( "core.temperature.buffered", temperature.buffered ))
-    {
-        temperature.buffered = true;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.buffered in configuration file is invalid.\nSetting emergency value ( " << temperature.buffered << " )";
-    }
-    if ( not set->lookupValue ( "core.temperature.buffer_size", temperature.buff_size ))
-    {
-        temperature.buff_size = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.buffer_size in configuration file is invalid.\nSetting emergency value ( " << temperature.buff_size << " )";
-    }
-    if ( not set->lookupValue ( "core.temperature.unit", temperature.unit ))
-    {
-        temperature.unit = 2;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.temperature.buffer_size in configuration file is invalid.\nSetting emergency value ( " << temperature.unit << " )";
-    }
-
+    temperature.frequency = cfg->lookupValue ( "core.temperature.frequency", 'q' );
+    temperature.lin_num = cfg->lookupValue ( "core.temperature.linear_modifier", 2 );
+    temperature.stable = cfg->lookupValue ( "core.temperature.stable", 56 );
+    temperature.steps = cfg->lookupValue ( "core.temperature.steps", 12 );
+    temperature.loseless = cfg->lookupValue ( "core.temperature.adaptation", 2 );
+    temperature.buffered = cfg->lookupValue ( "core.temperature.buffered", true );
+    temperature.buff_size = cfg->lookupValue ( "core.temperature.buffer_size", 10 );
+    temperature.unit = cfg->lookupValue ( "core.temperature.unit", 1 );
     //battery_section
-
-    if ( not set->lookupValue ( "core.battery.capacity", battery_capacity ))
-    {
-        battery_capacity = 4700;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.capacity in configuration file is invalid.\nSetting emergency value ( " << battery_capacity << " mAh )";
-    }
-    if ( not set->lookupValue ( "core.battery.frequency", tmp_frequency ))
-    {
-        battery.frequency = 'f';
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.frequency in configuration file is invalid.\nSetting emergency value ( " << battery.frequency << " )";
-    }
-    else
-        battery.frequency = tmp_frequency[0];
-
-    if ( not set->lookupValue ( "core.battery.linear_modifier", battery.lin_num ))
-    {
-        battery.lin_num = 0;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.linear_modifier in configuration file is invalid.\nSetting emergency value ( "<< battery.lin_num << " )";
-    }
-    if ( not set->lookupValue ( "core.battery.stable", battery.stable ))
-    {
-        battery.stable = 25;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.stable in configuration file is invalid.\nSetting emergency value ( " << battery.stable << " )";
-    }
-    if ( not set->lookupValue ( "core.battery.steps", battery.steps ))
-    {
-        battery.steps = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.steps in configuration file is invalid.\nSetting emergency value ( " << battery.steps << " )";
-    }
-    if ( not set->lookupValue ( "core.battery.adaptation", battery.loseless ))
-    {
-        battery.loseless = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.adaptation in configuration file is invalid.\nSetting emergency value ( " << battery.loseless << " )";
-    }
-    if ( not set->lookupValue ( "core.battery.buffered", battery.buffered ))
-    {
-        battery.buffered = true;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.buffered in configuration file is invalid.\nSetting emergency value ( " << battery.buffered << " )";
-    }
-    if ( not set->lookupValue ( "core.battery.buffer_size", battery.buff_size ))
-    {
-        battery.buff_size = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.battery.buffer_size in configuration file is invalid.\nSetting emergency value ( " << battery.buff_size << " )";
-    }
-
+    battery_capacity = cfg->lookupValue ( "core.battery.capacity", 4700 );
+    battery.frequency = cfg->lookupValue ( "core.battery.frequency", 'l' );
+    battery.lin_num = cfg->lookupValue ( "core.battery.linear_modifier", 0 );
+    battery.stable = cfg->lookupValue ( "core.battery.stable", 25 );
+    battery.steps = cfg->lookupValue ( "core.battery.steps", 8 );
+    battery.loseless = cfg->lookupValue ( "core.battery.adaptation", 10 );
+    battery.buffered = cfg->lookupValue ( "core.battery.buffered", false );
+    battery.buff_size = cfg->lookupValue ( "core.battery.buffer_size", 10 );
     //times_sector
-
-    if ( not set->lookupValue ( "core.times.frequency", tmp_frequency ))
-    {
-        times.frequency = 'f';
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.times.frequency in configuration file is invalid.\nSetting emergency value ( " << times.frequency << " )";
-    }
-    else
-        times.frequency = tmp_frequency[0];
-
-    if ( not set->lookupValue ( "core.times.quad_modifier", times.lin_num ))
-    {
-        times.lin_num = 0;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.times.quad_modifier in configuration file is invalid.\nSetting emergency value ( "<< times.lin_num << " )";
-    }
-    if ( not set->lookupValue ( "core.times.start", times.start ))
-    {
-        times.start = 25;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.times.start in configuration file is invalid.\nSetting emergency value ( " << times.start << " )";
-    }
-    if ( not set->lookupValue ( "core.times.steps", times.steps ))
-    {
-        times.steps = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.times.steps in configuration file is invalid.\nSetting emergency value ( " << times.steps << " )";
-    }
-    if ( not set->lookupValue ( "core.times.end", times.end ))
-    {
-        times.end = 6;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.times.end in configuration file is invalid.\nSetting emergency value ( " << times.end << " )";
-    }
-    if ( not set->lookupValue ( "core.times.wide", times.wide ))
-    {
-        times.wide = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.times.wide in configuration file is invalid.\nSetting emergency value ( " << times.wide << " )";
-    }
-
+    times.frequency = cfg->lookupValue ( "core.times.frequency", 'q' );
+    times.lin_num = cfg->lookupValue ( "core.times.quad_modifier", 2 );
+    times.start = cfg->lookupValue ( "core.times.start", 20 );
+    times.steps = cfg->lookupValue ( "core.times.steps", 6 );
+    times.end = cfg->lookupValue ( "core.times.end", 6 );
+    times.wide = cfg->lookupValue ( "core.times.wide", 6 );
     //energy_sector
-
-    if ( not set->lookupValue ( "core.energy.frequency", tmp_frequency ))
-    {
-        energy.frequency = 'f';
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.energy.frequency in configuration file is invalid.\nSetting emergency value ( " << energy.frequency << " )";
-    }
-    else
-        energy.frequency = tmp_frequency[0];
-
-    if ( not set->lookupValue ( "core.energy.quad_modifier", energy.lin_num ))
-    {
-        energy.lin_num = 0;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.energy.quad_modifier in configuration file is invalid.\nSetting emergency value ( "<< energy.lin_num << " )";
-    }
-    if ( not set->lookupValue ( "core.energy.start", energy.start ))
-    {
-        energy.start = 25;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.energy.start in configuration file is invalid.\nSetting emergency value ( " << energy.start << " )";
-    }
-    if ( not set->lookupValue ( "core.energy.steps", energy.steps ))
-    {
-        energy.steps = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.energy.steps in configuration file is invalid.\nSetting emergency value ( " << energy.steps << " )";
-    }
-    if ( not set->lookupValue ( "core.energy.end", energy.end ))
-    {
-        energy.end = 6;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.energy.end in configuration file is invalid.\nSetting emergency value ( " << energy.end << " )";
-    }
-    if ( not set->lookupValue ( "core.energy.wide", energy.wide ))
-    {
-        energy.wide = 10;
-        errors++;
-        cerr << "[\033[31merror \033[0m:] core.energy.wide in configuration file is invalid.\nSetting emergency value ( " << energy.wide << " )";
-    }
-
-
+    energy.frequency = cfg->lookupValue ( "core.energy.frequency", 'q' );
+    energy.lin_num = cfg->lookupValue ( "core.energy.quad_modifier", 2 );
+    energy.start = cfg->lookupValue ( "core.energy.start", 16 );
+    energy.steps = cfg->lookupValue ( "core.energy.steps", 6 );
+    energy.end = cfg->lookupValue ( "core.energy.end", 0 );
+    energy.wide = cfg->lookupValue ( "core.energy.wide", 6 );
     //bulwers_walls_sector
-
-    if ( not set->lookupValue ("core.bulwers.wall_01", bulwers.wall_01))
-    {
-        bulwers.wall_01 = 300;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_01 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_02", bulwers.wall_02))
-    {
-        bulwers.wall_01 = 500;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_02 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_03", bulwers.wall_03))
-    {
-        bulwers.wall_01 = 800;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_03 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_04", bulwers.wall_04))
-    {
-        bulwers.wall_01 = 1300;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_04 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_05", bulwers.wall_05))
-    {
-        bulwers.wall_01 = 2100;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_05 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_06", bulwers.wall_06))
-    {
-        bulwers.wall_01 = 3400;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_06 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_07", bulwers.wall_07))
-    {
-        bulwers.wall_01 = 5500;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_07 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_08", bulwers.wall_08))
-    {
-        bulwers.wall_01 = 8900;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_08 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_09", bulwers.wall_09))
-    {
-        bulwers.wall_01 = 14400;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_09 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_10", bulwers.wall_10))
-    {
-        bulwers.wall_01 = 23300;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_10 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_11", bulwers.wall_11))
-    {
-        bulwers.wall_01 = 37700;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_11 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_12", bulwers.wall_12))
-    {
-        bulwers.wall_01 = 61600;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_12 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_13", bulwers.wall_13))
-    {
-        bulwers.wall_01 = 98700;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_13 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_14", bulwers.wall_14))
-    {
-        bulwers.wall_01 = 159700;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_14 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-    if ( not set->lookupValue ("core.bulwers.wall_15", bulwers.wall_15))
-    {
-        bulwers.wall_01 = 258400;
-        errors++;
-        cerr << cerr << "[\033[31merror \033[0m:] core.bulwers.wall_15 in configuration file is invalid.\nSetting emergency value ( " << bulwers.wall_01 << " )";
-    }
-
-
-    if (errors < 0)
-        cout << "CONFIGURATION FILE DAMAGED!!! There\'re " << errors << " errors. Run eyes -c to fix them.\n\n\n\n";
-
+    bulwers.wall_01 = cfg->lookupValue ("core.bulwers.wall_01", 300 );
+    bulwers.wall_02 = cfg->lookupValue ("core.bulwers.wall_02", 500 );
+    bulwers.wall_03 = cfg->lookupValue ("core.bulwers.wall_03", 800 );
+    bulwers.wall_04 = cfg->lookupValue ("core.bulwers.wall_04", 1300 );
+    bulwers.wall_05 = cfg->lookupValue ("core.bulwers.wall_05", 2100 );
+    bulwers.wall_06 = cfg->lookupValue ("core.bulwers.wall_06", 3400 );
+    bulwers.wall_07 = cfg->lookupValue ("core.bulwers.wall_07", 5500 );
+    bulwers.wall_08 = cfg->lookupValue ("core.bulwers.wall_08", 8900 );
+    bulwers.wall_09 = cfg->lookupValue ("core.bulwers.wall_09", 14400 );
+    bulwers.wall_10 = cfg->lookupValue ("core.bulwers.wall_10", 23300 );
+    bulwers.wall_11 = cfg->lookupValue ("core.bulwers.wall_11", 37700 );
+    bulwers.wall_12 = cfg->lookupValue ("core.bulwers.wall_12", 61600 );
+    bulwers.wall_13 = cfg->lookupValue ("core.bulwers.wall_13", 98700 );
+    bulwers.wall_14 = cfg->lookupValue ("core.bulwers.wall_14", 159700 );
+    bulwers.wall_15 = cfg->lookupValue ("core.bulwers.wall_15", 258400 );
 
 }
 
@@ -2684,8 +2658,5 @@ void Core::on_timer_tick ()
     core_step ++;
     bulwers_update ();
     eyes->graphics_prepare();
-
-    // TODO 04 : Fix non-buffering segfeult.
-
     gui_refresh ();
 }

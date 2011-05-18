@@ -27,7 +27,7 @@ const static key_info keys [] = {
 
 const static int keys_count = 15;
 
-eyes_config::eyes_config ( Config& ncfg, QWidget * parent ) : QWidget ( parent )
+eyes_config::eyes_config ( eConfig& ncfg, QWidget * parent ) : QWidget ( parent )
 {
     resize ( 450, 230 );
     setWindowTitle ( QString ( "!eyes! config" ) );
@@ -62,14 +62,14 @@ void eyes_config::set_icon ( QString suffix )
     setWindowIcon ( *icon );
 }
 
-cfga_item::cfga_item ( const key_info& what, Config& cfg, QWidget * parent ) : QWidget ( parent )
+cfga_item::cfga_item ( const key_info& what, Config * cfg, QWidget * parent ) : QWidget ( parent )
 {
     hbl = new QHBoxLayout ( this );
     path = new QLabel ( what.path, this );
     info = &what;
     try
     {
-        set = &cfg.lookup ( what.path );
+        set = &cfg->lookup ( what.path );
     }
     catch ( SettingNotFoundException e )
     {
@@ -90,14 +90,15 @@ void cfga_item::show ()
     tedit->show ();
 }
 
-cfg_advanced::cfg_advanced ( Config& ncfg, QWidget * parent ) : QWidget ( parent )
+cfg_advanced::cfg_advanced ( eConfig& ncfg, QWidget * parent ) : QWidget ( parent )
 {
     cfg = &ncfg;
     list = new QVBoxLayout ( this );
     list->setSpacing ( 0 );
+    Config * lcfg = cfg->libconfigConfig ();
     for ( int i=0 ; i<keys_count ; i++ )
     {
-        items.push_back ( new cfga_item ( keys[i], *(cfg), this ) );
+        items.push_back ( new cfga_item ( keys[i], lcfg, this ) );
         list->addWidget ( items[i] );
     }
 }

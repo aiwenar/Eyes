@@ -12,22 +12,18 @@ eyes_looker::eyes_looker ( eyes_view * neyes )
     cerr << "[info :] eyes_looker working.\n";
 }
 
-void eyes_looker::load_config ( Config * set )
+void eyes_looker::load_config ( eConfig * set )
 {
-    if ( not set->lookupValue ( "ui.looker.delta_x.min", min_dx ) or
-         not set->lookupValue ( "ui.looker.delta_x.max", max_dx ) or
-         not set->lookupValue ( "ui.looker.delta_y.min", min_dy ) or
-         not set->lookupValue ( "ui.looker.delta_y.max", max_dy ) or
-         not set->lookupValue ( "ui.looker.bounds_x.min", bmin_x ) or
-         not set->lookupValue ( "ui.looker.bounds_x.max", bmax_x ) or
-         not set->lookupValue ( "ui.looker.bounds_y.min", bmin_y ) or
-         not set->lookupValue ( "ui.looker.bounds_y.max", bmax_y ) or
-         not set->lookupValue ( "ui.looker.min_delay", min_dl ) or
-         not set->lookupValue ( "ui.looker.max_delay", max_dl ) )
-    {
-        cerr << "[\033[31merror \033[0m:] ui.looker section in config is invalid.\n";
-        exit ( 126 );
-    }
+    min_dx = set->lookupValue ( "ui.looker.delta_x.min", 0 );
+    max_dx = set->lookupValue ( "ui.looker.delta_x.max", 14 );
+    min_dy = set->lookupValue ( "ui.looker.delta_y.min", 0 );
+    max_dy = set->lookupValue ( "ui.looker.delta_y.max", 10 );
+    bmin_x = set->lookupValue ( "ui.looker.bounds_x.min", 40 );
+    bmax_x = set->lookupValue ( "ui.looker.bounds_x.max", 54 );
+    bmin_y = set->lookupValue ( "ui.looker.bounds_y.min", 4 );
+    bmax_y = set->lookupValue ( "ui.looker.bounds_y.max", 14 );
+    min_dl = set->lookupValue ( "ui.looker.delay.min", 1 );
+    max_dl = set->lookupValue ( "ui.looker.delay.max", 30 );
 }
 
 void eyes_looker::run ()

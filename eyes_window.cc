@@ -8,19 +8,10 @@ using namespace std;
 
 eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint )
 {
-    cfg = new Config ();
-    cfg->readFile ( "config.cfg" );
-    if ( not cfg->lookupValue ( "ui.window.size.width", eyes_w ) or
-         not cfg->lookupValue ( "ui.window.size.height", eyes_h ) )
-    {
-        cerr << "[\033[31merror \033[0m:] section ui.window.size in configuration file is invalid.\n";
-        exit ( 126 );
-    }
-    if ( not cfg->lookupValue ( "ui.window.tray_icon", isicon ) )
-    {
-        cerr << "\033[31merror \033[0m:] variable ui.window.tray_icon not found.\n";
-        exit ( 126 );
-    }
+    cfg = new eConfig ( "config.cfg" );
+    eyes_w = cfg->lookupValue ( "ui.window.size.width", 320 );
+    eyes_h = cfg->lookupValue ( "ui.window.size.height", 80 );
+    isicon = cfg->lookupValue ( "ui.window.tray_icon", true );
     resize ( eyes_w, eyes_h );
     setWindowTitle ( "!eyesy!" );
     setAttribute ( Qt::WA_TranslucentBackground, true );
