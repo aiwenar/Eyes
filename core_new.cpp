@@ -197,27 +197,37 @@ sdate get_time ()
 
 unsigned short temperatura ()
 {
-        fstream calosc ("/proc/acpi/thermal_zone/TZ00/temperature", fstream::in);
+    string texcik;
 
-        string texcik;
+    fstream calosc ("/proc/acpi/thermal_zone/TZ00/temperature", fstream::in);
+    while (calosc.good())
+            texcik+=calosc.get();
+
+    if (texcik == "")
+    {
+        fstream calosc ("/sys/class/thermal/thermal_zone0/temp", fstream::in);
         while (calosc.good())
-                texcik+=calosc.get();
+            texcik+=calosc.get();
 
+        if (texcik == "")
+            return temperature.stable;
+
+        return (10*(unsigned short)texcik[0] + (unsigned short)texcik[0]);
+    }
+    else
+    {
         unsigned short tempjuczer=texcik.find_first_of ("temperature");
-
         unsigned short i=0;
         unsigned short a=0;
         char temp[27];
 
-        for (;i<27;i++) {
+        for (;i<27;i++)
+        {
                 temp[a] = texcik[25+a];
                 a++;
-                }
-
-        unsigned short temperature;
-        temperature = atoi (temp);
-
-        return temperature;
+        }
+        return atoi (temp);
+    }
 }
 
 //--------------------------
