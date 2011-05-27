@@ -1,7 +1,9 @@
 #include <QPainter>
 #include <QScrollArea>
 #include <iostream>
+
 #include "eyes_config.hxx"
+#include <debug.hxx>
 
 using namespace std;
 using namespace eyes_cfg_v;
@@ -45,14 +47,14 @@ void eyes_config::set_icon ( QString suffix )
     icn.load ( QString  ( "./pics/icon" ) + suffix + ".png" );
     if ( icn.isNull () )
     {
-        cerr << "[\033[31merror \033[0m:] file " << ( QString ( "./pics/icon" ) + suffix + ".png" ).toStdString () << " not found.\n";
+        error << "file " << ( QString ( "./pics/icon" ) + suffix + ".png" ).toStdString () << " not found.\n";
         return;
     }
     QPixmap tool;
     tool.load ( QString ( "./pics/config.png" ) );
     if ( icn.isNull () )
     {
-        cerr << "[\033[31merror \033[0m:] file " << ( QString ( "./pics/config.png" ) ).toStdString () << " not found.\n";
+        error << "file " << ( QString ( "./pics/config.png" ) ).toStdString () << " not found.\n";
         return;
     }
     QPainter paint ( &icn );

@@ -1,8 +1,10 @@
 #include <QTime>
 #include <QChar>
 #include <iostream>
+
 #include "eyes_view.h"
 #include "clap_animations.hxx"
+#include <debug.hxx>
 
 using namespace std;
 
@@ -13,13 +15,13 @@ static char *claps[] = {
 
 eyes_clapper::eyes_clapper ( eyes_view * neyes )
 {
-    cerr << "[info :] setting up eyes_clapper.\n";
+    info << "setting up eyes_clapper.\n";
     register_animations ( &animations );
     eyes = neyes;
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( clap () ) );
     stage = 0;
-    cerr << "[info :] eyes_clapper is ready.\n";
+    info << "eyes_clapper is ready.\n";
     start = "slp_10_open";
     end = "slp_10_close";
     from = 0;
@@ -34,14 +36,14 @@ int eyes_clapper::get_next_clap_delay ()
 void eyes_clapper::run ()
 {
     timer->start ( get_next_clap_delay () * 200 );
-    cerr << "[info :] starting eyes_clapper.\n";
+    info << "starting eyes_clapper.\n";
 }
 
 void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int nto )
 {
     if ( not animations.contains ( nstart ) or not animations.contains ( nend ) )
     {
-        cerr << "[\033[31merror \033[0m:] seting animation from " << nstart.toStdString () << " to " << nend.toStdString () << " but one nit exists.\n";
+        error << "seting animation from " << nstart.toStdString () << " to " << nend.toStdString () << " but one nit exists.\n";
         return;
     }
     if ( nto >= animations[nend]->size )
@@ -51,7 +53,7 @@ void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int 
     start = nstart;
     end = nend;
     from = nfrom;
-    cerr << "[info :] seting animation from " << nstart.toStdString() << " to " << nend.toStdString() << ".\n";
+    error << "seting animation from " << nstart.toStdString() << " to " << nend.toStdString() << ".\n";
 }
 
 void eyes_clapper::load_config ( eConfig * set )
@@ -65,6 +67,7 @@ void eyes_clapper::clap ()
     if ( stage == from )
     {
         face = eyes->get_face ();
+        face = eyes->get_face_next ();
         cerr << size1<< ' ' << size2 << '\n' << start.toStdString () << ' ' << end.toStdString () << ' ' << animations[start] << ' ' << '\n';
         size1 = animations[start]->size;
         size2 = animations[end]->size;
@@ -77,6 +80,7 @@ void eyes_clapper::clap ()
     {
         if ( stage-size1 == to )
         {
+            eyes->set_face ( face );
             eyes->update ();
             timer->setInterval ( get_next_clap_delay () * 200 );
             stage = from;

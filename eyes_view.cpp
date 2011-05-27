@@ -1,6 +1,8 @@
 #include "eyes_view.h"
 #include "eyes_info.h"
 
+#include <debug.hxx>
+
 #include <QPainter>
 #include <iostream>
 #include <string>
@@ -144,7 +146,7 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
 
 eyes_view::~eyes_view ()
 {
-    cerr << "[info :] destroying eyes.\n";
+    info << "destroying eyes.\n";
 }
 
 void eyes_view::open_images ( QString color )
@@ -157,13 +159,13 @@ void eyes_view::open_images ( QString color )
         file->load ( QString ( folder ) + files[i] + ".png" );
         if ( file->isNull () )
         {
-            cerr << "[\033[31merror \033[0m:] file " << ( QString ( folder ) + files[i] + ".png" ).toStdString () << " is nil.\n";
+            error << "file " << ( QString ( folder ) + files[i] + ".png" ).toStdString () << " is nil.\n";
             no_file = true;
         }
         else
         {
             pics.insert ( QString ( files[i] ), file->scaled ( eyes_w, eyes_h, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
-            cerr << "[info :] loading image " << files[i] << ".\n";
+            info << "loading image " << files[i] << ".\n";
         }
         delete file;
     }
@@ -173,20 +175,20 @@ void eyes_view::open_images ( QString color )
         file->load ( QString ( folder ) + eyefiles[i] + color + ".png" );
         if ( file->isNull () )
         {
-            cerr << "[\033[31merror \033[0m:] file " << ( QString ( folder ) + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";
+            error << "file " << ( QString ( folder ) + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";
             no_file = true;
         }
         else
         {
             eyes.insert ( QString ( eyefiles[i] ), file->copy () );
-            cerr << "[info :] loading image " << eyefiles[i] << ".\n";
+            info << "loading image " << eyefiles[i] << ".\n";
         }
         delete file;
     }
     if ( no_file )
     {
         c_main.cancel ();
-        cerr << "Some files may not exist, exiting...\n";
+        error << "Some files may not exist, exiting...\n";
         exit ( 2 );
     }
     images_ready = true;
@@ -198,7 +200,6 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     QPainter parea ( area );
     area->fill ( QColor ( 0, 0, 0 ) );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_a"] );
-    cerr << "eye is: " << eye.toStdString() << "\n";
     parea.drawPixmap ( epx1, epy, eye_s, eye_s, eyes[eye] );
     parea.drawPixmap ( epx2, epy, eye_s, eye_s, eyes[eye] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_s"] );
@@ -227,13 +228,13 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
     }
     int dx = ( ( px > ev->x () ? -1 : 1 ) * px ) + ev->x ();
     int dy = ( ( py > ev->y () ? -1 : 1 ) * py ) + ev->y ();
-    win->move ( ev->x (), ev->y () );
+    win->move ( 10, 10 );
     repaint ();
 }
 
 void eyes_view::closeEvent ( QCloseEvent * ev )
 {
-    cout << "[info :] close event recived, exiting...\n";
+    info << "close event recived, exiting...\n";
     ev->accept ();
     is_finished = true;
     c_main.waitForFinished ();
@@ -244,7 +245,7 @@ void eyes_view::set_face ( QString nface )
 {
     if ( not pics.contains ( nface+"_a" ) )
     {
-        cerr << "[\033[33mwarning \033[0m:] setting face to " << nface.toStdString () << " but it not exists.\n";
+        warning << "setting face to " << nface.toStdString () << " but it not exists.\n";
         return;
     }
     face = nface;
@@ -252,7 +253,6 @@ void eyes_view::set_face ( QString nface )
 
 void eyes_view::set_eyes ( QString neyes )
 {
-    cerr << "setting eye: \"" << neyes.toStdString () << "\"\n";
     eye = neyes;
 }
 

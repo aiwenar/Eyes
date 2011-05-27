@@ -1,4 +1,6 @@
 #include "eyes_view.h"
+#include <debug.hxx>
+
 #include <iostream>
 
 using namespace std;
@@ -9,7 +11,7 @@ eyes_looker::eyes_looker ( eyes_view * neyes )
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout() ), this, SLOT ( look() ) );
     timer->setInterval ( ( qrand () % 30 + 1 )*200 );
-    cerr << "[info :] eyes_looker working.\n";
+    info << "eyes_looker working.\n";
 }
 
 void eyes_looker::load_config ( eConfig * set )
@@ -55,7 +57,7 @@ void eyes_looker::look ()
         dy = 0;
     eyes->set_eyes_position ( px1+dx, px2+dx, py+dy );
     eyes->set_mirror_position ( mpx1+(dx!=0?(double(dx)/3):0), mpx2+(dx!=0?(double(dx)/3):0), mpy+(dy!=0?(double(dy)/3):0) );
-    cerr << "[info :] looking witch dx:" << dx << " and dy:" << dy << " mirrors at mdx:" << (dx!=0?(double(dx)/3):0) << " and mdy:" << (dy!=0?(double(dy)/3):0) << ".\n";
+    info << "looking witch dx:" << dx << " and dy:" << dy << " mirrors at mdx:" << (dx!=0?(double(dx)/3):0) << " and mdy:" << (dy!=0?(double(dy)/3):0) << ".\n";
     timer->setInterval ( ( qrand() % max_dl + min_dl ) * 200 );
     eyes->repaint ();
 }

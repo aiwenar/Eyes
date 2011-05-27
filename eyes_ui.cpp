@@ -9,6 +9,7 @@
 #include "eyes_info.h"
 #include "eyes_cfg.hxx"
 #include "eyes_window.hxx"
+#include <debug.hxx>
 
 using namespace std;
 using namespace libconfig;
@@ -52,7 +53,7 @@ int main ( int argc, char ** argv )
       {
         if ( not set.exists ( arg.at ( 2 ).toStdString () ) )
         {
-          cout << "[\033[31merror \033[0m:] requested path dosn't exist. See `help config` for help.\n";
+          error << "requested path dosn't exist. See `help config` for help.\n";
           exit ( 126 );
         }
         if ( arg.size () > 3 )
