@@ -1,4 +1,6 @@
 #include "eyes_cfg.hxx"
+#include <debug.hxx>
+
 #include <iostream>
 
 using namespace std;
@@ -18,7 +20,6 @@ const static key_info keys [] = {
     { "ui.looker",            "section", "Contains eyes looker parametrs." },
     { "ui.clapper",           "section", "Contains clapper paramters." },
     { "ui.color",             "string",  "Specyfics eyes color." },
-    { "ui.debug",             "boolean", "Specyfics that gui log shall be written on terminal (or file) or no." },
     { "ui.eye.size", "        integer",  "Specyfics eye size." },
     { "ui.eye.mirror",        "integer", "Specyfics eye mirror size." },
     { "ui.eyes.width",        "integer", "Specyfics window width {WARNING: currenty not working}" },

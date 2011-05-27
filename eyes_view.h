@@ -19,6 +19,7 @@
 #include "bulwers.h"
 #include "defines.hxx"
 #include "animation.hxx"
+#include "econfig.hxx"
 
 using namespace libconfig;
 using namespace std;
@@ -29,38 +30,40 @@ class Core;
 
 QString get_face_suffix ( QString face );
 
+enum eyes_flag
+{
+    clapper,
+};
+
 class eyes_view : public QWidget
 {
     Q_OBJECT
 public:
-    explicit    	eyes_view           ( QWidget * parent, QString color );
+    explicit            eyes_view           ( QWidget * parent, QString color );
                         ~eyes_view          ();
-    void        	open_images         ( QString folder );
-    void        	paintEvent          ( QPaintEvent * );
+    void                open_images         ( QString folder );
+    void                paintEvent          ( QPaintEvent * );
     void                closeEvent          ( QCloseEvent * ev );
     void                update_bulwers      ( core_stats * color );
     void                set_face            ( QString nface );
-    void                set_face            ( QString nface, void * nlocker );
     void                set_eyes            ( QString neyes );
     void                set_eyes_position   ( int nx1, int nx2, int ny );
     void                set_mirror_position ( double nx1, double nx2, double ny );
-    void                lock_face           ( void * nlocker );
-    void                unlock_face         ( void * lovker );
-    void                unlock_face         ();
     void                set_animation       ( QString start, QString end, int from, int to );
     void                anims_send          ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto );
     void                send_eyes           ( QString neyes );
     void                reload_eyes         ();
     void                graphics_prepare    ();
     void                anims_reload        ();
+    void                setFlag             ( eyes_flag flag, bool value );
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
     inline int          get_eyes_x1         () { return epx1; }
     inline int          get_eyes_x2         () { return epx2; }
     inline int          get_eyes_y          () { return epy; }
-    inline double        get_mirror_x1      () { return mpx1; }
-    inline double        get_mirror_x2      () { return mpx2; }
-    inline double        get_mirror_y       () { return mpy; }
+    inline double       get_mirror_x1      () { return mpx1; }
+    inline double       get_mirror_x2      () { return mpx2; }
+    inline double       get_mirror_y       () { return mpy; }
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            ()                                      const;
     QString             get_face            ();
@@ -79,7 +82,7 @@ private:
     QString                 eye,
                             face,
                             face_next,
-                            face_send,
+                            face_queue,
                             spec,
                             color;
     QMap<QString,QPixmap>   pics;
@@ -93,11 +96,11 @@ private:
     double                   mpx1,
                             mpx2,
                             mpy;
-    bool                    is_face_locked;
+    bool                    clapper_f;
     void                  * locker;
     eyes_clapper          * clapper;
     eyes_looker           * looker;
-    Config                * set;
+    eConfig               * set;
     Core                  * core;
 };
 
@@ -109,7 +112,7 @@ public:
     int         get_next_clap_delay ();
     void        run                 ();
     void        set_animation       ( QString nstart, QString nend, int nfrom, int nto );
-    void        load_config         ( Config * set );
+    void        load_config         ( eConfig * set );
 public slots:
     void        clap                ();
 private:
@@ -123,7 +126,7 @@ private:
     eyes_view                 * eyes;
     QTime                       time;
     QTimer                    * timer;
-    QString                     old_face,
+    QString                     face,
                                 start,
                                 end;
     QMap<QString,animation*>    animations;
@@ -134,7 +137,7 @@ class eyes_looker : public QObject
     Q_OBJECT
 public:
             eyes_looker ( eyes_view * eyes );
-    void    load_config ( Config * set );
+    void    load_config ( eConfig * set );
     void    run ();
 public slots:
     void    look ();
@@ -162,7 +165,7 @@ public:
             bulwers_init    (),
             gui_refresh     (),
             gui_init        (),
-            load_config     ( Config * set ),
+            load_config     ( eConfig * set ),
             run             (),
             graphics_prepare();
     bool    wake_up_prepare ();

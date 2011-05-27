@@ -1,6 +1,8 @@
 #include "eyes_view.h"
 #include "eyes_info.h"
 
+#include <debug.hxx>
+
 #include <QPainter>
 #include <iostream>
 #include <string>
@@ -116,26 +118,15 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     eye = "blank";
     face = "slp_10";
     face_next = "slp_10";
-    set = new Config ();
-    set->readFile ( "./config.cfg" );
+    set = new eConfig ( "config.cfg" );
     string scolor;
-
-    if ( not set->lookupValue ( "ui.color", scolor ) )
-    {
-        cerr << "[\033[31merror \033[0m:] variable 'ui.color' don't found in file confg.cfg .\n";
-        exit ( 126 );
-    }
-    if ( not set->lookupValue ( "ui.eye.size", eye_s ) or
-         not set->lookupValue ( "ui.eye.mirror", eye_m) )
-    {
-        cerr << "[\033[31merror \033[0m:] section ui.eye in configuration file is invalid.\n";
-        exit ( 126 );
-    }
+    scolor = set->lookupValue ( "ui.color", "green" );
+    eye_s = set->lookupValue ( "ui.eye.size", 60 );
+    eye_m = set->lookupValue ( "ui.eye.mirror", 9 );
     if ( ( color = get_face_suffix ( ncolor ) ) == "NIL" )
         color = get_face_suffix ( QString ( scolor.c_str () ) );
     is_finished = false;
     images_ready = false;
-    is_face_locked = false;
     time = QTime::currentTime ();
     qsrand ( (uint)time.msec () );
     setMinimumSize ( eyes_w, eyes_h );
@@ -155,12 +146,11 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
 
 eyes_view::~eyes_view ()
 {
-    cerr << "[info :] destroying eyes.\n";
+    info << "destroying eyes.\n";
 }
 
 void eyes_view::open_images ( QString color )
 {
-    lock_face ( this );
     QPixmap * file ;
     bool no_file ( false );
     for ( int i=0 ; i<216 ; i++ )
@@ -169,13 +159,13 @@ void eyes_view::open_images ( QString color )
         file->load ( QString ( folder ) + files[i] + ".png" );
         if ( file->isNull () )
         {
-            cerr << "[\033[31merror \033[0m:] file " << ( QString ( folder ) + files[i] + ".png" ).toStdString () << " is nil.\n";
+            error << "file " << ( QString ( folder ) + files[i] + ".png" ).toStdString () << " is nil.\n";
             no_file = true;
         }
         else
         {
             pics.insert ( QString ( files[i] ), file->scaled ( eyes_w, eyes_h, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
-            cerr << "[info :] loading image " << files[i] << ".\n";
+            info << "loading image " << files[i] << ".\n";
         }
         delete file;
     }
@@ -185,24 +175,23 @@ void eyes_view::open_images ( QString color )
         file->load ( QString ( folder ) + eyefiles[i] + color + ".png" );
         if ( file->isNull () )
         {
-            cerr << "[\033[31merror \033[0m:] file " << ( QString ( folder ) + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";
+            error << "file " << ( QString ( folder ) + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";
             no_file = true;
         }
         else
         {
             eyes.insert ( QString ( eyefiles[i] ), file->copy () );
-            cerr << "[info :] loading image " << eyefiles[i] << ".\n";
+            info << "loading image " << eyefiles[i] << ".\n";
         }
         delete file;
     }
     if ( no_file )
     {
         c_main.cancel ();
-        cerr << "Some files may not exist, exiting...\n";
+        error << "Some files may not exist, exiting...\n";
         exit ( 2 );
     }
     images_ready = true;
-    unlock_face ( this );
 }
 
 void eyes_view::paintEvent ( QPaintEvent * event )
@@ -211,7 +200,6 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     QPainter parea ( area );
     area->fill ( QColor ( 0, 0, 0 ) );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_a"] );
-    cerr << "eye is: " << eye.toStdString() << "\n";
     parea.drawPixmap ( epx1, epy, eye_s, eye_s, eyes[eye] );
     parea.drawPixmap ( epx2, epy, eye_s, eye_s, eyes[eye] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_s"] );
@@ -240,13 +228,13 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
     }
     int dx = ( ( px > ev->x () ? -1 : 1 ) * px ) + ev->x ();
     int dy = ( ( py > ev->y () ? -1 : 1 ) * py ) + ev->y ();
-    win->move ( ev->x (), ev->y () );
+    win->move ( 10, 10 );
     repaint ();
 }
 
 void eyes_view::closeEvent ( QCloseEvent * ev )
 {
-    cout << "[info :] close event recived, exiting...\n";
+    info << "close event recived, exiting...\n";
     ev->accept ();
     is_finished = true;
     c_main.waitForFinished ();
@@ -255,29 +243,16 @@ void eyes_view::closeEvent ( QCloseEvent * ev )
 
 void eyes_view::set_face ( QString nface )
 {
-    set_face ( nface, nil );
-}
-
-void eyes_view::set_face ( QString nface, void * nlocker )
-{
-    if ( is_face_locked and not ( nlocker = locker ) )
-    {
-        cerr << "[info :] face changing is locked, puting new face into queue.\n";
-        face_next = nface;
-        return;
-    }
     if ( not pics.contains ( nface+"_a" ) )
     {
-        cerr << "[\033[33mwarning \033[0m:] setting face to " << nface.toStdString () << " but it not exists.\n";
+        warning << "setting face to " << nface.toStdString () << " but it not exists.\n";
         return;
     }
-    cerr << "[info :] changing face to " << nface.toStdString () << " by " << nlocker << ".\n";
     face = nface;
 }
 
 void eyes_view::set_eyes ( QString neyes )
 {
-    cerr << "setting eye: \"" << neyes.toStdString () << "\"\n";
     eye = neyes;
 }
 
@@ -294,48 +269,6 @@ void eyes_view::set_mirror_position ( double nx1, double nx2, double ny )
     mpx2 = nx2;
     mpy = ny;
     clog << "[log :] moving mirrors to x1:" << mpx1 << " x2:" << mpx2 << " py:" << mpy << ".\n";
-}
-
-void eyes_view::lock_face ( void * nlocker )
-{
-    if ( is_face_locked )
-    {
-        cerr << "[\033[33mwarning \033[0m:] face is allready locked.\n";
-        return;
-    }
-    else
-    {
-        cerr << "[info :] locking face by " << nlocker << ".\n";
-        is_face_locked = true;
-        locker = nlocker;
-    }
-}
-
-void eyes_view::unlock_face ()
-{
-    unlock_face ( nil );
-}
-
-void eyes_view::unlock_face ( void * nlocker )
-{
-    if ( not is_face_locked )
-    {
-        cerr << "[info :] face isn't locked.\n";
-        return;
-    }
-    else if ( not ( nlocker == locker ) )
-    {
-        cerr << "[\033[33mwarning \033[0m:] face is locked by " << locker << " but " << nlocker << " wanna unlock it.\n";
-    }
-    else
-    {
-        cerr << "[info :] unlocking face.\n";
-        is_face_locked = false;
-        if ( not ( face_next == "" ) )
-        {
-            set_face ( face_next );
-        }
-    }
 }
 
 void eyes_view::set_animation ( QString start, QString end, int from, int to )
