@@ -15,7 +15,8 @@ SOURCES	+= \
     eyes_window.cc \
     eyes_config.cc \
     econfig.cc \
-    debug.cc
+    debug.cc \
+    core.cc
 
 HEADERS += \
     eyes_view.h \
@@ -29,11 +30,13 @@ HEADERS += \
     eyes_window.hxx \
     eyes_config.hxx \
     econfig.hxx \
-    debug.hxx
+    debug.hxx \
+    core.hxx
 
 OTHER_FILES += \
     README.markdown \
-    config.cfg
+    config.cfg \
+    colors.cfg
 
 ARCH=$$system(uname -m)
 contains(ARCH, x86_64){
