@@ -10,6 +10,7 @@
 using namespace std;
 
 #define MM_NO_MOTION 10000
+#define DEF_THEME "draw"
 
 static char   folder[]    = "./pics/";
 static char * files[]     = {
@@ -81,26 +82,28 @@ bool images_ready;
 
 QString get_face_suffix ( QString face )
 {
-    if ( face == "green" )
-        return "_g";
-    else if ( face == "WindowsSpecjal" )
-        return "_w";
-    else if ( face == "monochrome" )
-        return "_m";
-    else if ( face == "brown" )
-        return "_o";
-    else if ( face == "fire" )
-        return "_f";
-    else if ( face == "pink" )
-        return "_p";
-    else if ( face == "blue" )
-        return "_n";
-    else if ( face == "ubuntu" )
-        return "_u";
-    else if ( face == "evilgreen" )
-        return "_eg";
-    else
-        return "NIL";
+    Config cfg;
+    try
+    {
+        cfg.readFile ( "colors.cfg" );
+    }
+    catch ( libconfig::ParseException e )
+    {
+        cerr << "Error while parsing configuration file.\n"
+              << e.what () << '\n'
+              << e.getFile () << '\n'
+              << e.getLine () << '\n'
+              << e.getError () << '\n';
+        return QString ( "_g" );
+    }
+    std::string ret;
+    if ( not cfg.lookupValue ( ( QString ( "colors." ) + face + ".suffix" ).toStdString (), ret ) )
+    {
+        cfg.lookupValue ( "colors.default", ret );
+        if ( not cfg.lookupValue ( ( QString ( "colors." ) + ret.c_str () + ".suffix" ).toStdString (), ret ) )
+            return QString ( "_g" );
+    }
+    return QString ( ret.c_str () );
 }
 
 eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
@@ -120,13 +123,16 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     face_next = "slp_10";
     set = new eConfig ( "config.cfg" );
     string scolor;
+    // loading configuration
     scolor = set->lookupValue ( "ui.color", "green" );
     eye_s = set->lookupValue ( "ui.eye.size", 60 );
     eye_m = set->lookupValue ( "ui.eye.mirror", 9 );
     if ( ( color = get_face_suffix ( ncolor ) ) == "NIL" )
         color = get_face_suffix ( QString ( scolor.c_str () ) );
+    theme = set->lookupValue ( "ui.theme", DEF_THEME );
     is_finished = false;
     images_ready = false;
+    // initializing modules and submodules
     time = QTime::currentTime ();
     qsrand ( (uint)time.msec () );
     setMinimumSize ( eyes_w, eyes_h );
@@ -152,6 +158,7 @@ eyes_view::~eyes_view ()
 void eyes_view::open_images ( QString color )
 {
     QPixmap * file ;
+    info << color.toStdString () << "\n\n";
     bool no_file ( false );
     for ( int i=0 ; i<216 ; i++ )
     {
@@ -166,8 +173,15 @@ void eyes_view::open_images ( QString color )
         {
             pics.insert ( QString ( files[i] ), file->scaled ( eyes_w, eyes_h, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
             info << "loading image " << files[i] << ".\n";
+            std::cout;
         }
         delete file;
+    }
+    if ( no_file )
+    {
+        c_main.cancel ();
+        error << "Some files may not exist...\n";
+        exit ( 2 );
     }
     for ( int i=0 ; i<10 ; i++ )
     {
@@ -188,7 +202,7 @@ void eyes_view::open_images ( QString color )
     if ( no_file )
     {
         c_main.cancel ();
-        error << "Some files may not exist, exiting...\n";
+        error << "Some files may not exist...\n";
         exit ( 2 );
     }
     images_ready = true;
