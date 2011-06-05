@@ -4,6 +4,7 @@
 #include <defines.hxx>
 
 #include <fstream>
+#include <iostream>
 #include <string>
 
 using namespace std;
@@ -12,10 +13,10 @@ class Debug
 {
 public:
          Debug  ();
-         Debug  ( char * file, char * type );
+         Debug  ( char * stream, char * type );
          ~Debug ();
 
-    void open       ( char * nfile );
+    void open       ( char * nstream );
     void set_str    ( char * ntype );
 
     Debug& operator<< (  const char* str )
@@ -23,52 +24,59 @@ public:
         string s ( str );
         if ( message )
         {
-            file << '[' << type << " :] ";
+            stream << '[' << type << " :] ";
             message = false;
         }
         if ( s[s.size()-1] == '\n' )
             message = true;
-        file << s;
+        stream << s;
         return *this;
     }
     Debug& operator<< ( int in )
     {
-        file << in;
+        stream << in;
         return *this;
     }
     Debug& operator<< ( char c )
     {
         if ( c == '\n' )
+        {
             message = false;
-        file << c;
+            stream << c;
+        }
+        stream.flush ();
         return *this;
     }
     Debug& operator<< ( double d )
     {
-        file << d;
+        stream << d;
         return *this;
     }
     Debug& operator<< ( bool b )
     {
-        file << "b:" << ( b ? "true" : "false" );
+        stream << "b:" << ( b ? "true" : "false" );
         return *this;
     }
     Debug& operator<< ( string s )
     {
         if ( message )
         {
-            file << '[' << type << " :] ";
+            stream << '[' << type << " :] ";
             message = false;
         }
         if ( s[s.size()-1] == '\n' )
+        {
             message = true;
-        file << s;
+            stream.flush ();
+        }
+        stream << s;
         return *this;
     }
 private:
-    bool    message;
-    char  * type;
-    fstream file;
+    bool        message;
+    char      * type;
+    streambuf   fbuf;
+    iostream    &stream;
 };
 
 extern Debug info;
