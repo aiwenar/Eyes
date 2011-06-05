@@ -10,6 +10,7 @@
 #include "eyes_cfg.hxx"
 #include "eyes_window.hxx"
 #include <debug.hxx>
+#include <eyes.hxx>
 
 using namespace std;
 using namespace libconfig;
@@ -109,7 +110,7 @@ int main ( int argc, char ** argv )
       }
       else if ( arg.at ( i ) == "-v" or arg.at ( i ) == "--version" )
       {
-          cout << "Wersyjka\n";
+          cout << verstr << " (" << version << ").\n";
           exit ( 0 );
       }
       else if ( arg.at ( i ).split ( "=" )[0] == "--color" )

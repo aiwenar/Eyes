@@ -38,7 +38,7 @@ OTHER_FILES += \
     config.cfg \
     colors.cfg
 
-ARCH=$$system(uname -m)
+ARCH=$$system(arch)
 contains(ARCH, x86_64){
   message(target system arch is x64)
   LIBDIR = /usr/lib64
