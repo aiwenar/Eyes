@@ -29,7 +29,8 @@ HEADERS += \
     eyes_window.hxx \
     eyes_config.hxx \
     econfig.hxx \
-    debug.hxx
+    debug.hxx \
+    eyes.hxx
 
 OTHER_FILES += \
     README.markdown \
