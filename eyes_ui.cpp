@@ -26,7 +26,6 @@ static const char help [] = {
 
 static const char help_colors [] = {
     "Avalible colors are:\n"
-    "\tgreen ; blue ; brown ; fire ; monochrome ; pink ; WidnowsSpecjal ; ubuntu ; evilgreen\n\n"
 };
 
 int eye_s,
@@ -85,6 +84,24 @@ int main ( int argc, char ** argv )
             if ( arg.at ( i+1 ) == "colors" )
             {
               cout << help_colors;
+              Config cfg;
+              try
+              {
+                cfg.readFile ( "colors.cfg" );
+              }
+              catch ( libconfig::ParseException e )
+              {
+                cout << e.what () << '\n' << e.getError () << '\n';
+              }
+              std::string color;
+              int count;
+              cfg.lookupValue ( "colors.count", count );
+              cout << count << '\n';
+              for ( int j=0 ; j<count ; j++ )
+              {
+                  cfg.lookupValue ( ( QString ( "colors.list[" ) + j + "]" ).toStdString (), color );
+                  cout << "\t" << color << "\n";
+              }
               exit ( 0 );
             }
           }

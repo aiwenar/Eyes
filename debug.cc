@@ -6,7 +6,8 @@ Debug::Debug ()
 
 Debug::Debug ( char * nfile, char * ntype )
 {
-    file.open ( nfile, ios_base::out );
+    fbuf.open ( nfile, ios_base::out );
+    stream = new iostream ( fbuf );
     type = ntype;
 }
 
