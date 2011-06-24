@@ -68,7 +68,7 @@ cfga_item::cfga_item ( const key_info& what, Config * cfg, QWidget * parent ) : 
 {
     hbl = new QHBoxLayout ( this );
     path = new QLabel ( what.path, this );
-    info = &what;
+    inf = &what;
     try
     {
         set = &cfg->lookup ( what.path );

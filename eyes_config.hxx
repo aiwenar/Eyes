@@ -34,7 +34,7 @@ public:
     explicit    cfga_item   ( const key_info& what, Config * cfg, QWidget * parent = 0 );
     void        show        ();
 private:
-    const key_info    * info;
+    const key_info    * inf;
     Setting           * set;
     QHBoxLayout       * hbl;
     QLabel            * path;
