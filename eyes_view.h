@@ -61,9 +61,9 @@ public:
     inline int          get_eyes_x1         () { return epx1; }
     inline int          get_eyes_x2         () { return epx2; }
     inline int          get_eyes_y          () { return epy; }
-    inline double       get_mirror_x1      () { return mpx1; }
-    inline double       get_mirror_x2      () { return mpx2; }
-    inline double       get_mirror_y       () { return mpy; }
+    inline double       get_mirror_x1       () { return mpx1; }
+    inline double       get_mirror_x2       () { return mpx2; }
+    inline double       get_mirror_y        () { return mpy; }
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            ()                                      const;
     QString             get_face            ();
@@ -71,8 +71,8 @@ public:
     QString             get_color_suffix    () { return color; }
 signals:
 public slots:
-    void            mousePressEvent     ( QMouseEvent * ev );
-    void            mouseMoveEvent      ( QMouseEvent * ev );
+    void                mousePressEvent     ( QMouseEvent * ev );
+    void                mouseMoveEvent      ( QMouseEvent * ev );
 private:
     QTimer                * timer;
     QTime                   time;
@@ -81,6 +81,7 @@ private:
     QPixmap               * area;
     QString                 eye,
                             face,
+                            theme,
                             face_next,
                             face_queue,
                             spec,

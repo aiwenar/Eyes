@@ -66,8 +66,7 @@ void eyes_clapper::clap ()
 {
     if ( stage == from )
     {
-        face = eyes->get_face ();
-        cerr << size1<< ' ' << size2 << '\n' << start.toStdString () << ' ' << end.toStdString () << ' ' << animations[start] << ' ' << '\n';
+        face = eyes->get_face_next ();
         size1 = animations[start]->size;
         size2 = animations[end]->size;
         eyes->reload_eyes();
