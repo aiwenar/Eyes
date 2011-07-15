@@ -15,7 +15,6 @@ SOURCES	+= \
     eyes_window.cc \
     eyes_config.cc \
     econfig.cc \
-    debug.cc \
     core.cc
 
 HEADERS += \
@@ -31,7 +30,7 @@ HEADERS += \
     eyes_config.hxx \
     econfig.hxx \
     debug.hxx \
-    eyes.hxx
+    eyes.hxx \
     core.hxx
 
 OTHER_FILES += \
