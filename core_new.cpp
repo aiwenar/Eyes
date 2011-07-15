@@ -455,6 +455,31 @@ void bul::update()
                 eye = 8;
         }
 
+    if (get_time ().month == 6 || get_time ().month == 7 )
+    if (outline != 20)
+    {
+        if (times.value < 3 || times.value >= 21)
+            eye = 1;
+        if ((times.value >= 3 && times.value < 4) || (times.value >= 20 && times.value < 21))
+            eye = 2;
+        if ((times.value >= 4 && times.value < 5) || (times.value >= 19 && times.value < 20))
+            eye = 3;
+        if ((times.value >= 5 && times.value < 6) || (times.value >= 18 && times.value < 19))
+            eye = 4;
+        if ((times.value >= 6 && times.value < 7) || (times.value >= 17 && times.value < 18))
+            eye = 5;
+        if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
+            eye = 6;
+        if ((times.value >= 8 && times.value < 9) || (times.value >= 15 && times.value < 16))
+            eye = 7;
+        if ((times.value >= 9 && times.value < 10) || (times.value >= 14 && times.value < 15))
+            eye = 8;
+        if ((times.value >= 10 && times.value < 11) || (times.value >= 13 && times.value < 14))
+            eye = 9;
+        if ((times.value >= 11 && times.value < 13))
+            eye = 10;
+    }
+
     //TODO 01: It must works on cfg values, not static.
 
     if (get_time ().day != 7)
@@ -2406,9 +2431,9 @@ void Core::gui_refresh ()
         cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << mod_bat_plug;
         cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << battery_state;
     }
-    cout << "\033[16A" << "\n\n";
+    cout << "\033[15A" << "\n\n";
 
-    if (1)
+    if (0)
         HDBG.print();
 }
 
