@@ -1338,8 +1338,8 @@ energy.mod = energy.calculate();
 battery_state = bat_plugged ();
 bulwers.update();
 
-if (autocalc.enabled)
-    autocalc_reload ( &cfg );
+//if (autocalc.enabled)
+//    autocalc_reload ( &cfg );
 }
 
 void Core::gui_init()
