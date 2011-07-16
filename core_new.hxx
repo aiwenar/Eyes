@@ -113,6 +113,7 @@ public:
                                 value;
     void                        update();
 };
+
 class hard_dbg
 {
 private:
@@ -122,6 +123,19 @@ private:
 public:
     unsigned short              max_s   ;
     void                        print() ;
+    bool                        enabled ;
+};
+
+class auto_calc
+{
+public:
+    double                      c_cpu,
+                                c_mem,
+                                c_temp,
+                                impact;
+    unsigned long               save_next,
+                                save_interval;
+    bool                        enabled;
 };
 
 struct sended_anims
