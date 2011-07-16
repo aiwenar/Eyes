@@ -1339,7 +1339,7 @@ battery_state = bat_plugged ();
 bulwers.update();
 
 if (autocalc.enabled)
-    autocalc_reload ( eConfig * cfg );
+    autocalc_reload ( &cfg );
 }
 
 void Core::gui_init()
@@ -2651,7 +2651,7 @@ void Core::autocalc_reload ( eConfig * cfg )
     if (autocalc.save_next == 0)
     {
         //zrzut wartości
-        cpu.stable =cfg->lookupValue ( "core.cpu.stable", 0);
+        cpu.stable = cfg->lookupValue ( "core.cpu.stable", 0);
         cerr << "[info :] Dropping stable values\n";
     }
 }
