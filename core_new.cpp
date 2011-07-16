@@ -1339,7 +1339,7 @@ battery_state = bat_plugged ();
 bulwers.update();
 
 if (autocalc.enabled)
-    autocalc_reload ();
+    autocalc_reload ( eConfig * cfg );
 }
 
 void Core::gui_init()
@@ -2642,15 +2642,16 @@ void Core::autocalc_init ()
     autocalc.save_next = autocalc.save_interval;
 }
 
-void Core::autocalc_reload()
+void Core::autocalc_reload ( eConfig * cfg )
 {
-    autocalc.c_cpu = (((100/autocalc.impact)-1)*autocalc.c_cpu + cpu.load)/(100/autocalc.impact);
-    autocalc.c_mem = (((100/autocalc.impact)-1)*autocalc.c_mem + memory.load)/(100/autocalc.impact);
-    autocalc.c_temp = (((100/autocalc.impact)-1)*autocalc.c_temp + temperature.value)/(100/autocalc.impact);
+    autocalc.c_cpu = (((100/autocalc.impact)-1)*cpu.stable + cpu.load)/(100/autocalc.impact);
+    autocalc.c_mem = (((100/autocalc.impact)-1)*memory.stable + memory.load)/(100/autocalc.impact);
+    autocalc.c_temp = (((100/autocalc.impact)-1)*temperature.stable + temperature.value)/(100/autocalc.impact);
 
     if (autocalc.save_next == 0)
     {
         //zrzut wartości
+        cpu.stable =cfg->lookupValue ( "core.cpu.stable", 0);
         cerr << "[info :] Dropping stable values\n";
     }
 }

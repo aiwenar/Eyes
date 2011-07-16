@@ -161,15 +161,17 @@ class Core : public QObject
 {
     Q_OBJECT
 public:
-            Core            ( eyes_view * );
-    void    bulwers_update  (),
-            bulwers_init    (),
-            gui_refresh     (),
-            gui_init        (),
-            load_config     ( eConfig * set ),
-            run             (),
-            graphics_prepare();
-    bool    wake_up_prepare ();
+                    Core            ( eyes_view * );
+    void            bulwers_update  (),
+                    bulwers_init    (),
+                    gui_refresh     (),
+                    gui_init        (),
+                    load_config     ( eConfig * set ),
+                    run             (),
+                    graphics_prepare(),
+                    autocalc_reload ( eConfig * set ),
+                    autocalc_init   ();
+    bool            wake_up_prepare ();
 
     QString face_prev;
     bool    wake_up;
