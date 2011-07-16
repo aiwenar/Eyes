@@ -40,6 +40,7 @@ timal           energy;
 bul             bulwers;
 sended_anims    s_anim;
 hard_dbg        HDBG;
+auto_calc       autocalc;
 QString         face_send;
 
 void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto )
@@ -52,17 +53,17 @@ void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned
 }
 void eyes_view::anims_reload()
 {
-    cerr << "[info :] anims_reload begin\n";
+    //cerr << "[info :] anims_reload begin\n";
 
-    if (s_anim.close == "" || s_anim.open == "")
-        cerr << "\033[32mOops! My bad :]\n\n";
+    //if (s_anim.close == "" || s_anim.open == "")
+    //    cerr << "\033[32mOops! My bad :]\n\n";
 
     set_animation(s_anim.open, s_anim.close, s_anim.start, s_anim.end);
 
-    cerr << "[info :] sended pics:\n" << s_anim.open.toStdString() << " - open anim\n"
-         << s_anim.close.toStdString() << " - close anim\n"
-         << "start/end " << s_anim.start << " " << s_anim.end
-         << "\nface_next = " << face_next.toStdString() << "\n";
+    //cerr << "[info :] sended pics:\n" << s_anim.open.toStdString() << " - open anim\n"
+    //     << s_anim.close.toStdString() << " - close anim\n"
+    //     << "start/end " << s_anim.start << " " << s_anim.end
+    //     << "\nface_next = " << face_next.toStdString() << "\n";
 }
 
 void eyes_view::reload_eyes()
@@ -74,11 +75,11 @@ void eyes_view::send_eyes( QString neyes )
 {
     if ( neyes == "" )
     {
-        cerr << "033[32mOops! My bad :]";
+        //cerr << "033[32mOops! My bad :]";
         neyes = "eye_06";
     }
     s_anim.eyes = neyes;
-    cerr << "core sets \"" << s_anim.eyes.toStdString() << "\" eye\n";
+    //cerr << "core sets \"" << s_anim.eyes.toStdString() << "\" eye\n";
 }
 
 double C_LOAD ()
@@ -1283,7 +1284,7 @@ void eyes_view::graphics_prepare()
                s_anim.face_prev = "slp_10";
 
 
-            cerr << "[info :] core pics settings begin\n";
+            //cerr << "[info :] core pics settings begin\n";
 
            anims_send (face_send, s_anim.face_prev + "_close", face_send + "_open", anim_num_1, anim_num_2);
 
@@ -1336,6 +1337,9 @@ times.mod = times.calculate();
 energy.mod = energy.calculate();
 battery_state = bat_plugged ();
 bulwers.update();
+
+if (autocalc.enabled)
+    autocalc_reload ();
 }
 
 void Core::gui_init()
@@ -1431,7 +1435,7 @@ cout << "\033[8D" << "\033[3B" << "time:";
 cout << "\033[5D" << "\033[3B" << "energy:";
 cout << "\033[7D" << "\033[6B" << "next_wall:";
 cout << "\n" << "\033[15A" << "\033[22C              | " << "mods:       ";
-if (1)
+if (HDBG.enabled)
     cout << "\033[1C HARDLY DEBUG MODE:";
 cout << "\n\n" << "\033[38C" << "cpu:\n";
 cout << "\033[1A" << "\033[44C" << "load:\n";
@@ -1591,15 +1595,32 @@ void Core::gui_refresh ()
         {
             if (i != cpu.current_probe)
             {
-                if (cpu.probes[i] <= cpu.stable - cpu.loseless)
-                    cout << "\033[1;32m" << " " << (unsigned short)cpu.probes[i] << "\n";
-                else if (cpu.probes[i] >= cpu.stable + cpu.loseless)
-                    cout << "\033[1;31m" << " " << (unsigned short)cpu.probes[i] << "\n";
+                if (cpu.probes[i] < 10)
+                {
+                    if (cpu.probes[i] <= cpu.stable - cpu.loseless)
+                        cout << "\033[1;32m" << "  " << (unsigned short)cpu.probes[i] << "\n";
+                    else if (cpu.probes[i] >= cpu.stable + cpu.loseless)
+                        cout << "\033[1;31m" << "  " << (unsigned short)cpu.probes[i] << "\n";
+                    else
+                        cout << "\033[1;30m" << "  " << (unsigned short)cpu.probes[i] << "\n";
+                }
                 else
-                    cout << "\033[1;30m" << " " << (unsigned short)cpu.probes[i] << "\n";
+                {
+                    if (cpu.probes[i] <= cpu.stable - cpu.loseless)
+                        cout << "\033[1;32m" << " " << (unsigned short)cpu.probes[i] << "\n";
+                    else if (cpu.probes[i] >= cpu.stable + cpu.loseless)
+                        cout << "\033[1;31m" << " " << (unsigned short)cpu.probes[i] << "\n";
+                    else
+                        cout << "\033[1;30m" << " " << (unsigned short)cpu.probes[i] << "\n";
+                }
             }
             else
-                cout << "\033[1;33m" << ">" << (unsigned short)cpu.probes[i] << "\n";
+            {
+                if (cpu.probes[i] < 10)
+                    cout << "\033[1;33m" << "> " << (unsigned short)cpu.probes[i] << "\n";
+                else
+                    cout << "\033[1;33m" << ">" << (unsigned short)cpu.probes[i] << "\n";
+            }
         }
         for (unsigned short i = 0; i<= cpu.buff_size; i++)
         {
@@ -1787,15 +1808,32 @@ void Core::gui_refresh ()
         {
             if (i != memory.current_probe)
             {
-                if (memory.probes[i] <= memory.stable - memory.loseless)
-                    cout << "\033[1;32m" << "\033[8C" << " " << (unsigned short)memory.probes[i] << "\n";
-                else if (memory.probes[i] >= memory.stable + memory.loseless)
-                    cout << "\033[1;31m" << "\033[8C" << " " << (unsigned short)memory.probes[i] << "\n";
+                if (memory.probes[i] < 10)
+                {
+                    if (memory.probes[i] <= memory.stable - memory.loseless)
+                        cout << "\033[1;32m" << "\033[8C" << "  " << (unsigned short)memory.probes[i] << "\n";
+                    else if (memory.probes[i] >= memory.stable + memory.loseless)
+                        cout << "\033[1;31m" << "\033[8C" << "  " << (unsigned short)memory.probes[i] << "\n";
+                    else
+                        cout << "\033[1;30m" << "\033[8C" << "  " << (unsigned short)memory.probes[i] << "\n";
+                }
                 else
-                    cout << "\033[1;30m" << "\033[8C" << " " << (unsigned short)memory.probes[i] << "\n";
+                {
+                    if (memory.probes[i] <= memory.stable - memory.loseless)
+                        cout << "\033[1;32m" << "\033[8C" << " " << (unsigned short)memory.probes[i] << "\n";
+                    else if (memory.probes[i] >= memory.stable + memory.loseless)
+                        cout << "\033[1;31m" << "\033[8C" << " " << (unsigned short)memory.probes[i] << "\n";
+                    else
+                        cout << "\033[1;30m" << "\033[8C" << " " << (unsigned short)memory.probes[i] << "\n";
+                }
             }
             else
-                cout << "\033[1;33m" << "\033[8C" << ">" << (unsigned short)memory.probes[i] << "\n";
+            {
+                if (memory.probes[i] < 10)
+                    cout << "\033[1;33m" << "\033[8C" << "> " << (unsigned short)memory.probes[i] << "\n";
+                else
+                    cout << "\033[1;33m" << "\033[8C" << ">" << (unsigned short)memory.probes[i] << "\n";
+            }
 
         }
         for (unsigned short i = 0; i<= memory.buff_size; i++)
@@ -1982,15 +2020,32 @@ void Core::gui_refresh ()
         {
             if (i != temperature.current_probe)
             {
-                if (temperature.probes[i] <= temperature.stable - temperature.loseless)
-                    cout << "\033[1;32m" << "\033[16C" << " " << (unsigned short)temperature.probes[i] << "\n";
-                else if (temperature.probes[i] >= temperature.stable + temperature.loseless)
-                    cout << "\033[1;31m" << "\033[16C" << " " << (unsigned short)temperature.probes[i] << "\n";
+                if (temperature.probes[i] < 10)
+                {
+                    if (temperature.probes[i] <= temperature.stable - temperature.loseless)
+                        cout << "\033[1;32m" << "\033[16C" << "  " << (unsigned short)temperature.probes[i] << "\n";
+                    else if (temperature.probes[i] >= temperature.stable + temperature.loseless)
+                        cout << "\033[1;31m" << "\033[16C" << "  " << (unsigned short)temperature.probes[i] << "\n";
+                    else
+                        cout << "\033[1;30m" << "\033[16C" << "  " << (unsigned short)temperature.probes[i] << "\n";
+                }
                 else
-                    cout << "\033[1;30m" << "\033[16C" << " " << (unsigned short)temperature.probes[i] << "\n";
+                {
+                    if (temperature.probes[i] <= temperature.stable - temperature.loseless)
+                        cout << "\033[1;32m" << "\033[16C" << " " << (unsigned short)temperature.probes[i] << "\n";
+                    else if (temperature.probes[i] >= temperature.stable + temperature.loseless)
+                        cout << "\033[1;31m" << "\033[16C" << " " << (unsigned short)temperature.probes[i] << "\n";
+                    else
+                        cout << "\033[1;30m" << "\033[16C" << " " << (unsigned short)temperature.probes[i] << "\n";
+                }
             }
             else
-                cout << "\033[1;33m" << "\033[16C" << ">" << (unsigned short)temperature.probes[i] << "\n";
+            {
+                if (temperature.probes[i] < 10)
+                    cout << "\033[1;33m" << "\033[16C" << "> " << (unsigned short)temperature.probes[i] << "\n";
+                else
+                    cout << "\033[1;33m" << "\033[16C" << ">" << (unsigned short)temperature.probes[i] << "\n";
+            }
         }
     }
     else
@@ -2433,7 +2488,7 @@ void Core::gui_refresh ()
     }
     cout << "\033[15A" << "\n\n";
 
-    if (0)
+    if (HDBG.enabled)
         HDBG.print();
 }
 
@@ -2572,26 +2627,32 @@ void hard_dbg::chck_s()
     cout << "\033[" << spacer << "C";
 }
 
-
-
-
-/*
-int main ()
-{
-    Config set;
-    set.readFile ( "./config.cfg" );
-    Core * core = new Core ();
-    core->load_config ( &set );
-    core->gui_init ();
-    core->bulwers_init ();
-    core->run ();
-}
-*/
 Core::Core ( eyes_view * neyes )
 {
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( on_timer_tick () ) );
     eyes = neyes;
+}
+
+void Core::autocalc_init ()
+{
+    autocalc.c_cpu = cpu.stable;
+    autocalc.c_mem = memory.stable;
+    autocalc.c_temp = temperature.stable;
+    autocalc.save_next = autocalc.save_interval;
+}
+
+void Core::autocalc_reload()
+{
+    autocalc.c_cpu = (((100/autocalc.impact)-1)*autocalc.c_cpu + cpu.load)/(100/autocalc.impact);
+    autocalc.c_mem = (((100/autocalc.impact)-1)*autocalc.c_mem + memory.load)/(100/autocalc.impact);
+    autocalc.c_temp = (((100/autocalc.impact)-1)*autocalc.c_temp + temperature.value)/(100/autocalc.impact);
+
+    if (autocalc.save_next == 0)
+    {
+        //zrzut wartości
+        cerr << "[info :] Dropping stable values\n";
+    }
 }
 
 void Core::load_config ( eConfig * cfg )
@@ -2603,7 +2664,9 @@ void Core::load_config ( eConfig * cfg )
     cpu.loseless = cfg->lookupValue ( "core.cpu.adaptation", 10 );
     cpu.buffered = cfg->lookupValue ( "core.cpu.buffered", true );
     cpu.buff_size = cfg->lookupValue ( "core.cpu.buffer_size", 10 );
+
     //mem_section
+
     memory.frequency = cfg->lookupValue ( "core.memory.frequency", 'q' );
     memory.lin_num = cfg->lookupValue ( "core.memory.linear_modifier", 2 );
     memory.stable = cfg->lookupValue ( "core.memory.stable", 25 );
@@ -2611,7 +2674,9 @@ void Core::load_config ( eConfig * cfg )
     memory.loseless = cfg->lookupValue ( "core.memory.adaptation", 10 );
     memory.buffered = cfg->lookupValue ( "core.memory.buffered", true );
     memory.buff_size = cfg->lookupValue ( "core.memory.buffer_size", 10 );
+
     //temperature_section
+
     temperature.frequency = cfg->lookupValue ( "core.temperature.frequency", 'q' );
     temperature.lin_num = cfg->lookupValue ( "core.temperature.linear_modifier", 2 );
     temperature.stable = cfg->lookupValue ( "core.temperature.stable", 56 );
@@ -2620,7 +2685,9 @@ void Core::load_config ( eConfig * cfg )
     temperature.buffered = cfg->lookupValue ( "core.temperature.buffered", true );
     temperature.buff_size = cfg->lookupValue ( "core.temperature.buffer_size", 10 );
     temperature.unit = cfg->lookupValue ( "core.temperature.unit", 1 );
+
     //battery_section
+
     battery_capacity = cfg->lookupValue ( "core.battery.capacity", 4700 );
     battery.frequency = cfg->lookupValue ( "core.battery.frequency", 'l' );
     battery.lin_num = cfg->lookupValue ( "core.battery.linear_modifier", 0 );
@@ -2629,21 +2696,27 @@ void Core::load_config ( eConfig * cfg )
     battery.loseless = cfg->lookupValue ( "core.battery.adaptation", 10 );
     battery.buffered = cfg->lookupValue ( "core.battery.buffered", false );
     battery.buff_size = cfg->lookupValue ( "core.battery.buffer_size", 10 );
+
     //times_sector
+
     times.frequency = cfg->lookupValue ( "core.times.frequency", 'q' );
     times.lin_num = cfg->lookupValue ( "core.times.quad_modifier", 2 );
     times.start = cfg->lookupValue ( "core.times.start", 20 );
     times.steps = cfg->lookupValue ( "core.times.steps", 6 );
     times.end = cfg->lookupValue ( "core.times.end", 6 );
     times.wide = cfg->lookupValue ( "core.times.wide", 6 );
+
     //energy_sector
+
     energy.frequency = cfg->lookupValue ( "core.energy.frequency", 'q' );
     energy.lin_num = cfg->lookupValue ( "core.energy.quad_modifier", 2 );
     energy.start = cfg->lookupValue ( "core.energy.start", 16 );
     energy.steps = cfg->lookupValue ( "core.energy.steps", 6 );
     energy.end = cfg->lookupValue ( "core.energy.end", 0 );
     energy.wide = cfg->lookupValue ( "core.energy.wide", 6 );
+
     //bulwers_walls_sector
+
     bulwers.wall_01 = cfg->lookupValue ("core.bulwers.wall_01", 300 );
     bulwers.wall_02 = cfg->lookupValue ("core.bulwers.wall_02", 500 );
     bulwers.wall_03 = cfg->lookupValue ("core.bulwers.wall_03", 800 );
@@ -2660,6 +2733,16 @@ void Core::load_config ( eConfig * cfg )
     bulwers.wall_14 = cfg->lookupValue ("core.bulwers.wall_14", 159700 );
     bulwers.wall_15 = cfg->lookupValue ("core.bulwers.wall_15", 258400 );
 
+    //basic_sector
+
+    HDBG.enabled = cfg->lookupValue("core.HDBG_enabled", false);
+
+    //autocalc_sector
+
+    autocalc.enabled = cfg->lookupValue("core.autocalc.enabled", true);
+    autocalc.save_interval = cfg->lookupValue("core.autocalc.interval", 300);
+    autocalc.impact = cfg->lookupValue("core.autocalc.impact", 20);
+
 }
 
 void Core::run ()
@@ -2668,6 +2751,11 @@ void Core::run ()
     bulwers_init ();
     cerr << "[info :] bulwers inited\n";
     Core::gui_init();
+    if (autocalc.enabled)
+    {
+        autocalc_init ();
+        cerr << "[info :] autocalc started\n";
+    }
     cerr << "[info :] gui inited\n";
     s_anim.face_prev = "slp_10";
     cerr << "[info :] s_anim.face_prev set to " << s_anim.face_prev.toStdString() << "\n";
