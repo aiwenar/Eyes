@@ -128,6 +128,5 @@ int main ( int argc, char ** argv )
   eyes_window win ( color );
   win.show ();
 
-  info << "(eyes_ui) godbye.\n"
   return app.exec ();
 }
