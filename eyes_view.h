@@ -137,7 +137,6 @@ class eyes_looker : public QObject
     Q_OBJECT
 public:
             eyes_looker ( eyes_view * eyes );
-    void    load_config ( eConfig * set );
     void    run ();
 public slots:
     void    look ();

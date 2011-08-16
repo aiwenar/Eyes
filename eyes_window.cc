@@ -19,14 +19,14 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     eyes = new eyes_view ( this, color );
     ecfg = new eyes_config ( *cfg, (QWidget*)nil );
     ecfg->set_icon ( eyes->get_color_suffix () );
-    info << "loading icon " << ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
+    info << "(eyes_window) loading icon " << ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
     QPixmap tmp;
     tmp.load ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" );
     tico = new QIcon ( tmp );
     setWindowIcon ( *tico );
     if ( tmp.isNull () )
     {
-        error << "file not found. Continuing whiwaut tray icon.\n";
+        error << "(eyes_window) file not found. Continuing whiwaut tray icon.\n";
         isicon = false;
     }
     if ( isicon )
