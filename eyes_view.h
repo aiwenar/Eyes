@@ -113,7 +113,6 @@ public:
     int         get_next_clap_delay ();
     void        run                 ();
     void        set_animation       ( QString nstart, QString nend, int nfrom, int nto );
-    void        load_config         ( eConfig * set );
 public slots:
     void        clap                ();
 private:

@@ -141,7 +141,6 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     looker = new eyes_looker ( this );
     core = new Core ( this );
     open_images ( color );
-    clapper->load_config ( set );
     looker->load_config ( set );
     core->load_config ( set );
     area = new QPixmap ( eyes_w, eyes_h );
