@@ -8,6 +8,7 @@ using namespace std;
 
 eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint )
 {
+    info << "(eyes_window) preparing...\n";
     oldcfg = new eConfig ( "config.cfg" );
     Configuration * cfg = Configuration::getInstance ();
     eyes_w = cfg->lookupValue ( "ui.window.size.width", 320 );
@@ -32,6 +33,7 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     }
     if ( isicon )
     {
+        info << "(eyes_window) preparing tray icon...\n";
         trayico = new QSystemTrayIcon ( this );
         trayico->setIcon ( *tico );
         trayico->setToolTip ( "!eyesy!" );
@@ -48,7 +50,9 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
         //iconend
         trayico->setContextMenu ( timenu );
         trayico->show ();
+        info << "(eyes_window) tray icon ready!\n";
     }
+    info << "(eyes_widnow) ready!\n";
     eyes->show ();
     eyes->update ();
 }

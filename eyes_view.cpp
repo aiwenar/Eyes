@@ -109,6 +109,7 @@ QString get_face_suffix ( QString face )
 
 eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
 {
+    info << "(eyes_view) preparing...\n";
     px = MM_NO_MOTION;
     px = MM_NO_MOTION;
     epx1 = 46;
@@ -122,18 +123,20 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     eye = "blank";
     face = "slp_10";
     face_next = "slp_10";
-    set = new eConfig ( "config.cfg" );
-    string scolor;
     // loading configuration
-    scolor = set->lookupValue ( "ui.color", "green" );
-    eye_s = set->lookupValue ( "ui.eye.size", 60 );
-    eye_m = set->lookupValue ( "ui.eye.mirror", 9 );
+    info << "(eyes_view) loading config...\n";
+    Configuration * cfg = Configuration::getInstance ();
+    string scolor;
+    scolor = cfg->lookupValue ( "ui.color", "green" );
+    eye_s = cfg->lookupValue ( "ui.eye.size", 60 );
+    eye_m = cfg->lookupValue ( "ui.eye.mirror", 9 );
     if ( ( color = get_face_suffix ( ncolor ) ) == "NIL" )
         color = get_face_suffix ( QString ( scolor.c_str () ) );
-    theme = set->lookupValue ( "ui.theme", DEF_THEME );
+    theme = cfg->lookupValue ( "ui.theme", DEF_THEME );
     is_finished = false;
     images_ready = false;
-    // initializing modules and submodules
+    // initializing submodules
+    info << "(eyes_view) initializing submodules...\n";
     time = QTime::currentTime ();
     qsrand ( (uint)time.msec () );
     setMinimumSize ( eyes_w, eyes_h );
