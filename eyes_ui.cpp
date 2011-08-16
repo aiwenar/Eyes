@@ -124,8 +124,10 @@ int main ( int argc, char ** argv )
       }
   }
 
+  info << "(eyes_ui) starting eyes...\n";
   eyes_window win ( color );
   win.show ();
 
+  info << "(eyes_ui) godbye.\n"
   return app.exec ();
 }
