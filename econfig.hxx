@@ -6,37 +6,6 @@
 #include <QMap>
 
 using namespace libconfig;
-/*
-class Configuration
-{
-public:
-    class cfgFile
-    {
-    public:
-        cfgFile ( std::string name );
-        cfgFile ();
-        cfgFile ( const cfgFile & );
-
-        int&    operator[]  ( std::string path )
-        {
-
-        }
-
-    private:
-        Config cfg;
-    };
-
-    static  void    load ( std::string name );
-
-    cfgFile&    operator[]  ( QString name )
-    {
-        return files[name];
-    }
-
-private:
-    static QMap<QString,cfgFile>   files;
-};
-*/
 
 /**
  * \p libconfig configuration wrapper.
@@ -78,13 +47,42 @@ private:
     Config cfg;
 };
 
+/**
+ * Static \p libconfig configuration wrapper.
+ * \page using
+ * To get instance of configuration call \p getInstance
+ */
 class Configuration
 {
 public:
-    static  Configuration   *   getInstance ();
+    /**
+     * Configuration accessor.
+     * @return \p Configuration instance.
+     */
+    static      Configuration   *   getInstance ();
+    /**
+     * @return value from \p path if exists, otherwise \p def.
+     * @param path path to configuration item.
+     * @param def default value, returned if path doesn't exist.
+     */
     bool        lookupValue         ( const char * path, bool def=false );
+    /**
+     * @return value from \p path if exists, otherwise \p def.
+     * @param path path to configuration item.
+     * @param def default value, returned if path doesn't exist.
+     */
     int         lookupValue         ( const char * path, int def=0 );
+    /**
+     * @return value from \p path if exists, otherwise \p def.
+     * @param path path to configuration item.
+     * @param def default value, returned if path doesn't exist.
+     */
     char        lookupValue         ( const char * path, char def='\0' );
+    /**
+     * @return value from \p path if exists, otherwise \p def.
+     * @param path path to configuration item.
+     * @param def default value, returned if path doesn't exist.
+     */
     char      * lookupValue         ( const char * path, char * def="" );
 private:
     Configuration ();
