@@ -2656,8 +2656,9 @@ void Core::autocalc_reload ( eConfig * cfg )
     }
 }
 
-void Core::load_config ( eConfig * cfg )
+void Core::load_config ( eConfig * cfg_ )
 {
+    Configuration * cfg = Configuration::getInstance ();
     cpu.frequency = cfg->lookupValue ( "core.cpu.frequency", 'f' );
     cpu.lin_num = cfg->lookupValue ( "core.cpu.linear_modifier", 0 );
     cpu.stable = cfg->lookupValue ( "core.cpu.stable", 25 );

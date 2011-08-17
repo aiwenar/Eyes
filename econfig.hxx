@@ -84,6 +84,36 @@ public:
      * @param def default value, returned if path doesn't exist.
      */
     char      * lookupValue         ( const char * path, char * def="" );
+    /**
+     * Sets value from \p path to \p value.
+     * @return true, if set succes, else false.
+     * @param path path to value.
+     * @param value value to set.
+     */
+    bool        setValue            ( const char * path, bool value );
+    /**
+     * Sets value from \p path to \p value.
+     * @return true, if set succes, else false.
+     * @param path path to value.
+     * @param value value to set.
+     */
+    bool        setValue            ( const char * path, int value );
+    /**
+     * Sets value from \p path to \p value.
+     * @return true, if set succes, else false.
+     * @param path path to value.
+     * @param value value to set.
+     */
+    bool        setValue            ( const char * path, char value );
+    /**
+     * Sets value from \p path to \p value.
+     * @return true, if set succes, else false.
+     * @param path path to value.
+     * @param value value to set.
+     */
+    bool        setValue            ( const char * path, const char * value );
+    /** Save changes in configuration */
+    void        save                ();
 private:
     Configuration ();
     Config  cfg;

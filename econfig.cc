@@ -4,22 +4,7 @@
 #include <iostream>
 
 using namespace std;
-/*
-Configuration::cfgFile::cfgFile ( std::string name )
-{
-    cfg.readFile ( name.c_str () );
-}
 
-Configuration::cfgFile::cfgFile ( const cfgFile & o )
-{
-    cfg = o.cfg;
-}
-
-void Configuration::load ( std::string name )
-{
-    files.insert ( name, new cfgFile ( name ) );
-}
-*/
 eConfig::eConfig ( QString fname )
 {
     try
@@ -171,4 +156,33 @@ int Configuration::lookupValue ( const char * path, int def )
         return def;
     }
     return tmp;
+}
+
+bool Configuration::setValue (const char *path, bool value)
+{
+    cfg.lookup ( path ) = value;
+    return true;
+}
+
+bool Configuration::setValue ( const char *path, char value )
+{
+    cfg.lookup ( path ) = value;
+    return true;
+}
+
+bool Configuration::setValue ( const char *path, const char *value )
+{
+    cfg.lookup ( path ) = value;
+    return false;
+}
+
+bool Configuration::setValue ( const char *path, int value )
+{
+    cfg.lookup ( path ) = value;
+    return false;
+}
+
+void Configuration::save ()
+{
+    cfg.writeFile ( "config.cfg" );
 }
