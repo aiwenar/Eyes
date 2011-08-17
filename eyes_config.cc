@@ -21,8 +21,8 @@ const static key_info keys [] = {
     { "ui.looker.max_dx",           "integer", "Specyfics maximal eyes x position." },
     { "ui.looker.min_dy",           "integer", "Specyfics minimal eyes y position." },
     { "ui.looker.max_dx",           "integer", "Specyfics maximal etes y position." },
-    { "ui.looker.min_delay",        "integer", "Specyfics minimal delay between looks. (this is (ui.looker.min_delay)*200 milisecounds)" },
-    { "ui.looker.max_delay",        "integer", "Specyfics maximal delay between looks. (this is (ui.looker.max_delay_*200 milisecounds)" },
+    { "ui.looker.delay.min",        "integer", "Specyfics minimal delay between looks. (this is (ui.looker.min_delay)*200 milisecounds)" },
+    { "ui.looker.delay.max",        "integer", "Specyfics maximal delay between looks. (this is (ui.looker.max_delay_*200 milisecounds)" },
     { "ui.clapper.min_delay",       "integer", "Specyfics minimal delay between claps. (this is (ui.looker.min_delay)*200 milisecounds)" },
     { "ui.clapper.max_delay",       "integer", "Specyfics maximal delay between claps. (this is (ui.looker.max_delay_*200 milisecounds)" }
 };

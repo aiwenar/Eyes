@@ -33,6 +33,8 @@ int eye_s,
     eyes_w,
     eyes_h;
 
+void on_destroy ();
+
 int main ( int argc, char ** argv )
 {
   QApplication app ( argc, argv );
