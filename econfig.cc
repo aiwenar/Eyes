@@ -4,7 +4,22 @@
 #include <iostream>
 
 using namespace std;
+/*
+Configuration::cfgFile::cfgFile ( std::string name )
+{
+    cfg.readFile ( name.c_str () );
+}
 
+Configuration::cfgFile::cfgFile ( const cfgFile & o )
+{
+    cfg = o.cfg;
+}
+
+void Configuration::load ( std::string name )
+{
+    files.insert ( name, new cfgFile ( name ) );
+}
+*/
 eConfig::eConfig ( QString fname )
 {
     try

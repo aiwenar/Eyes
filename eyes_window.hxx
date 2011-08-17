@@ -11,10 +11,17 @@
 
 using namespace libconfig;
 
+/**
+ * Main window.
+ */
 class eyes_window : public QWidget
 {
     Q_OBJECT
 public:
+    /**
+     * Construct window and initialize subsystems with eyes color \p color.
+     * @param color color of the eyes.
+     */
     explicit eyes_window ( QString color, QWidget * parent = 0 );
 
     QIcon             * tico;

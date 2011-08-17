@@ -129,7 +129,7 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     eye_m = set->lookupValue ( "ui.eye.mirror", 9 );
     if ( ( color = get_face_suffix ( ncolor ) ) == "NIL" )
         color = get_face_suffix ( QString ( scolor.c_str () ) );
-    theme = set->lookupValue ( "ui.theme", DEF_THEME );
+    //theme = set->lookupValue ( "ui.theme", DEF_THEME );
     is_finished = false;
     images_ready = false;
     // initializing modules and submodules

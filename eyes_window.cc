@@ -15,7 +15,7 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     resize ( eyes_w, eyes_h );
     setWindowTitle ( "!eyesy!" );
     setAttribute ( Qt::WA_TranslucentBackground, true );
-    setWindowFlags ( Qt::SplashScreen );
+    //setWindowFlags ( Qt::SplashScreen );
     eyes = new eyes_view ( this, color );
     ecfg = new eyes_config ( *cfg, (QWidget*)nil );
     ecfg->set_icon ( eyes->get_color_suffix () );
