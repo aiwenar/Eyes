@@ -403,7 +403,7 @@ void bul::update()
     if (outline != 20)
     {
         if (times.value < 7 || times.value >= 19)
-            eye = 1;
+            eye = 5;
         if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
             eye = 2;
         if ((times.value >= 8 && times.value < 9) || (times.value >= 15 && times.value < 16))
@@ -2763,13 +2763,16 @@ void Core::run ()
     do
     {
         cerr << "[info :] Is in wake up\n";
-        times.value = get_time ().hour/3600;
+        //FIXME: until it's works
+        //times.value = get_time ().hour/3600;
+        times.value = 10;
 
         // TODO 03 : It PROPABLY won't work correctly and it should works on config values.
 
         wake_up_prepare();
         eyes->anims_reload();
     } while (!wake_up);
+    times.value = get_time ().hour/3600;
     cerr << "[info :] wake up ended";
     eyes->anims_send ("cusual_01", "slp_10_close", "cusual_01_open", 0, 4);
     eyes->anims_reload();

@@ -15,13 +15,17 @@ static char *claps[] = {
 
 eyes_clapper::eyes_clapper ( eyes_view * neyes )
 {
-    info << "setting up eyes_clapper.\n";
+    info << "(eyes_clapper) preparing...\n";
     register_animations ( &animations );
     eyes = neyes;
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( clap () ) );
     stage = 0;
-    info << "eyes_clapper is ready.\n";
+    info << "(eyes_clapper) loading config...\n";
+    Configuration * cfg = Configuration::getInstance ();
+    min_dl = cfg->lookupValue ( "ui.clapper.min_delay", 5 );
+    max_dl = cfg->lookupValue ( "ui.clapper.max_delay", 35 );
+    info << "(eyes_clapper) ready!\n";
     start = "slp_10_open";
     end = "slp_10_close";
     from = 0;
@@ -54,12 +58,6 @@ void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int 
     end = nend;
     from = nfrom;
     error << "seting animation from " << nstart.toStdString() << " to " << nend.toStdString() << ".\n";
-}
-
-void eyes_clapper::load_config ( eConfig * set )
-{
-    min_dl = set->lookupValue ( "ui.clapper.min_delay", 5 );
-    max_dl = set->lookupValue ( "ui.clapper.max_delay", 35 );
 }
 
 void eyes_clapper::clap ()

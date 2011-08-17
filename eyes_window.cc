@@ -8,7 +8,9 @@ using namespace std;
 
 eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint )
 {
-    cfg = new eConfig ( "config.cfg" );
+    info << "(eyes_window) preparing...\n";
+    oldcfg = new eConfig ( "config.cfg" );
+    Configuration * cfg = Configuration::getInstance ();
     eyes_w = cfg->lookupValue ( "ui.window.size.width", 320 );
     eyes_h = cfg->lookupValue ( "ui.window.size.height", 80 );
     isicon = cfg->lookupValue ( "ui.window.tray_icon", true );
@@ -17,20 +19,21 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     setAttribute ( Qt::WA_TranslucentBackground, true );
     //setWindowFlags ( Qt::SplashScreen );
     eyes = new eyes_view ( this, color );
-    ecfg = new eyes_config ( *cfg, (QWidget*)nil );
+    ecfg = new eyes_config ( *oldcfg, (QWidget*)nil );
     ecfg->set_icon ( eyes->get_color_suffix () );
-    info << "loading icon " << ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
+    info << "(eyes_window) loading icon " << ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
     QPixmap tmp;
     tmp.load ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" );
     tico = new QIcon ( tmp );
     setWindowIcon ( *tico );
     if ( tmp.isNull () )
     {
-        error << "file not found. Continuing whiwaut tray icon.\n";
+        error << "(eyes_window) file not found. Continuing whiwaut tray icon.\n";
         isicon = false;
     }
     if ( isicon )
     {
+        info << "(eyes_window) preparing tray icon...\n";
         trayico = new QSystemTrayIcon ( this );
         trayico->setIcon ( *tico );
         trayico->setToolTip ( "!eyesy!" );
@@ -47,7 +50,9 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
         //iconend
         trayico->setContextMenu ( timenu );
         trayico->show ();
+        info << "(eyes_window) tray icon ready!\n";
     }
+    info << "(eyes_widnow) ready!\n";
     eyes->show ();
     eyes->update ();
 }

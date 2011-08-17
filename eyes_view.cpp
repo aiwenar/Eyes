@@ -6,6 +6,7 @@
 #include <QPainter>
 #include <iostream>
 #include <string>
+#include <sstream>
 
 using namespace std;
 
@@ -108,6 +109,7 @@ QString get_face_suffix ( QString face )
 
 eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
 {
+    info << "(eyes_view) preparing...\n";
     px = MM_NO_MOTION;
     px = MM_NO_MOTION;
     epx1 = 46;
@@ -121,18 +123,20 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     eye = "blank";
     face = "slp_10";
     face_next = "slp_10";
-    set = new eConfig ( "config.cfg" );
-    string scolor;
     // loading configuration
-    scolor = set->lookupValue ( "ui.color", "green" );
-    eye_s = set->lookupValue ( "ui.eye.size", 60 );
-    eye_m = set->lookupValue ( "ui.eye.mirror", 9 );
+    info << "(eyes_view) loading config...\n";
+    Configuration * cfg = Configuration::getInstance ();
+    string scolor;
+    scolor = cfg->lookupValue ( "ui.color", "green" );
+    eye_s = cfg->lookupValue ( "ui.eye.size", 60 );
+    eye_m = cfg->lookupValue ( "ui.eye.mirror", 9 );
     if ( ( color = get_face_suffix ( ncolor ) ) == "NIL" )
         color = get_face_suffix ( QString ( scolor.c_str () ) );
-    //theme = set->lookupValue ( "ui.theme", DEF_THEME );
+    theme = cfg->lookupValue ( "ui.theme", DEF_THEME );
     is_finished = false;
     images_ready = false;
-    // initializing modules and submodules
+    // initializing submodules
+    info << "(eyes_view) initializing submodules...\n";
     time = QTime::currentTime ();
     qsrand ( (uint)time.msec () );
     setMinimumSize ( eyes_w, eyes_h );
@@ -141,8 +145,6 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     looker = new eyes_looker ( this );
     core = new Core ( this );
     open_images ( color );
-    clapper->load_config ( set );
-    looker->load_config ( set );
     core->load_config ( set );
     area = new QPixmap ( eyes_w, eyes_h );
     clapper->run ();
@@ -152,57 +154,80 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
 
 eyes_view::~eyes_view ()
 {
-    info << "destroying eyes.\n";
+    info << "(eyes_view) destroying eyes.\n";
+}
+
+void _som ( int i, int max )
+{
+    static int prew = 0;
+    i ++;
+    max;
+    cerr << "\033[" << prew << "D";
+    std::ostringstream ss;
+    ss << '[' << i << '/' << max << ']';
+    string s = ss.str ();
+    if ( i > max )
+        cerr << "done        \n";
+    else
+        cerr << s;
+    prew = s.length ();
 }
 
 void eyes_view::open_images ( QString color )
 {
     QPixmap * file ;
-    info << color.toStdString () << "\n\n";
+    info << "(eyes_view) loading images...  ";
     bool no_file ( false );
     for ( int i=0 ; i<216 ; i++ )
     {
+        _som ( i, 216 );
         file = new QPixmap ();
         file->load ( QString ( folder ) + files[i] + ".png" );
         if ( file->isNull () )
         {
-            error << "file " << ( QString ( folder ) + files[i] + ".png" ).toStdString () << " is nil.\n";
+            cerr << '\n';
+            error << "(eyes_view) file " << ( QString ( folder ) + files[i] + ".png" ).toStdString () << " is nil.\n";
             no_file = true;
+            break;
         }
         else
         {
             pics.insert ( QString ( files[i] ), file->scaled ( eyes_w, eyes_h, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
-            info << "loading image " << files[i] << ".\n";
             std::cout;
         }
         delete file;
     }
+    _som ( 217, 216 );
+    cerr << '\n';
     if ( no_file )
     {
         c_main.cancel ();
-        error << "Some files may not exist...\n";
         exit ( 2 );
     }
+    info << "(eyes_view) loading images...    ";
     for ( int i=0 ; i<10 ; i++ )
     {
+        _som ( i, 10 );
         file = new QPixmap ();
         file->load ( QString ( folder ) + eyefiles[i] + color + ".png" );
         if ( file->isNull () )
         {
-            error << "file " << ( QString ( folder ) + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";
+            cerr << '\n';
+            error << "(eyes_view) file " << ( QString ( folder ) + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";
             no_file = true;
+            break;
         }
         else
         {
             eyes.insert ( QString ( eyefiles[i] ), file->copy () );
-            info << "loading image " << eyefiles[i] << ".\n";
         }
         delete file;
     }
+    _som ( 11, 10 );
+    cerr << '\n';
     if ( no_file )
     {
         c_main.cancel ();
-        error << "Some files may not exist...\n";
         exit ( 2 );
     }
     images_ready = true;
@@ -248,7 +273,7 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
 
 void eyes_view::closeEvent ( QCloseEvent * ev )
 {
-    info << "close event recived, exiting...\n";
+    info << "(eyes_view) close event recived, exiting...\n";
     ev->accept ();
     is_finished = true;
     c_main.waitForFinished ();
@@ -259,7 +284,7 @@ void eyes_view::set_face ( QString nface )
 {
     if ( not pics.contains ( nface+"_a" ) )
     {
-        warning << "setting face to " << nface.toStdString () << " but it not exists.\n";
+        warning << "(eyes_view) setting face to " << nface.toStdString () << " but it not exists.\n";
         return;
     }
     face = nface;
@@ -282,7 +307,6 @@ void eyes_view::set_mirror_position ( double nx1, double nx2, double ny )
     mpx1 = nx1;
     mpx2 = nx2;
     mpy = ny;
-    clog << "[log :] moving mirrors to x1:" << mpx1 << " x2:" << mpx2 << " py:" << mpy << ".\n";
 }
 
 void eyes_view::set_animation ( QString start, QString end, int from, int to )

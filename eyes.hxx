@@ -5,4 +5,12 @@
 const double version = 0.080001;
 const char *verstr = "0.8 alpha";
 
+/**
+ * \mainpage Eyes
+ *
+ * \section intro Introduction
+ *
+ * Some introduction to Eyes Project
+ */
+
 #endif //eyes_eyes_hxx

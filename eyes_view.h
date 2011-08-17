@@ -141,11 +141,6 @@ public:
     void        run                 ();
     /// Sets actual animation.
     void        set_animation       ( QString nstart, QString nend, int nfrom, int nto );
-    /**
-     * Read configuration.
-     * @param set configuration wrapper.
-     */
-    void        load_config         ( eConfig * set );
 public slots:
     /// Called on timer tick, ...?.
     void        clap                ();
@@ -178,12 +173,6 @@ public:
      * @param neyes pointer to \p eyes_view to controll.
      */
             eyes_looker ( eyes_view * eyes );
-    /**
-    * Read configuration.
-    * @param set configuration wrapper.
-    */
-    void    load_config ( eConfig * set );
-    /// Start timer.
     void    run ();
 public slots:
     /// Called on timer tick, ...?.
