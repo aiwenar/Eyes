@@ -23,8 +23,8 @@ eyes_clapper::eyes_clapper ( eyes_view * neyes )
     stage = 0;
     info << "(eyes_clapper) loading config...\n";
     Configuration * cfg = Configuration::getInstance ();
-    min_dl = cfg->lookupValue ( "ui.clapper.min_delay", 5 );
-    max_dl = cfg->lookupValue ( "ui.clapper.max_delay", 35 );
+    min_dl = cfg->lookupValue ( "ui.clapper.delay.min", 5 );
+    max_dl = cfg->lookupValue ( "ui.clapper.delay.max", 35 );
     info << "(eyes_clapper) ready!\n";
     start = "slp_10_open";
     end = "slp_10_close";
@@ -47,7 +47,7 @@ void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int 
 {
     if ( not animations.contains ( nstart ) or not animations.contains ( nend ) )
     {
-        error << "seting animation from " << nstart.toStdString () << " to " << nend.toStdString () << " but one nit exists.\n";
+        error << "(eyes_clapper) seting animation from " << nstart.toStdString () << " to " << nend.toStdString () << " but one nit exists.\n";
         return;
     }
     if ( nto >= animations[nend]->size )
@@ -57,7 +57,6 @@ void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int 
     start = nstart;
     end = nend;
     from = nfrom;
-    error << "seting animation from " << nstart.toStdString() << " to " << nend.toStdString() << ".\n";
 }
 
 void eyes_clapper::clap ()

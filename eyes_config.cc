@@ -17,14 +17,14 @@ const static key_info keys [] = {
     { "ui.window.tray_icon",        "boolean", "Specyfics is toolbar icon show." },
     { "ui.window.size.width",       "integer", "Specyfics window width {WARNING: currenty not working}" },
     { "ui.window.size.height",      "integer", "Specyfics window height {WARNING: currently not working}" },
-    { "ui.looker.min_dx",           "integer", "Specyfics minimal eyes x position." },
-    { "ui.looker.max_dx",           "integer", "Specyfics maximal eyes x position." },
-    { "ui.looker.min_dy",           "integer", "Specyfics minimal eyes y position." },
-    { "ui.looker.max_dx",           "integer", "Specyfics maximal etes y position." },
+    { "ui.looker.delta_x.min",      "integer", "Specyfics minimal eyes x position." },
+    { "ui.looker.delta_x.max",      "integer", "Specyfics maximal eyes x position." },
+    { "ui.looker.delta_y.min",      "integer", "Specyfics minimal eyes y position." },
+    { "ui.looker.delta_y.max",      "integer", "Specyfics maximal etes y position." },
     { "ui.looker.delay.min",        "integer", "Specyfics minimal delay between looks. (this is (ui.looker.min_delay)*200 milisecounds)" },
     { "ui.looker.delay.max",        "integer", "Specyfics maximal delay between looks. (this is (ui.looker.max_delay_*200 milisecounds)" },
-    { "ui.clapper.min_delay",       "integer", "Specyfics minimal delay between claps. (this is (ui.looker.min_delay)*200 milisecounds)" },
-    { "ui.clapper.max_delay",       "integer", "Specyfics maximal delay between claps. (this is (ui.looker.max_delay_*200 milisecounds)" }
+    { "ui.clapper.delay.min",       "integer", "Specyfics minimal delay between claps. (this is (ui.looker.min_delay)*200 milisecounds)" },
+    { "ui.clapper.delay.max",       "integer", "Specyfics maximal delay between claps. (this is (ui.looker.max_delay_*200 milisecounds)" }
 };
 
 const static int keys_count = 15;

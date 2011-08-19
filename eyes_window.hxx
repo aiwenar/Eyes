@@ -8,6 +8,7 @@
 #include <libconfig.h++>
 #include "eyes_view.h"
 #include "eyes_config.hxx"
+#include <configurator.hxx>
 
 using namespace libconfig;
 
@@ -36,6 +37,7 @@ private:
     QAction           * quitA,
                       * setA;
     eConfig           * oldcfg;
+    Configurator      * config;
 };
 
 #endif // EYES_WINDOW_HXX

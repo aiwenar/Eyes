@@ -198,7 +198,6 @@ void eyes_view::open_images ( QString color )
         delete file;
     }
     _som ( 217, 216 );
-    cerr << '\n';
     if ( no_file )
     {
         c_main.cancel ();
@@ -224,7 +223,6 @@ void eyes_view::open_images ( QString color )
         delete file;
     }
     _som ( 11, 10 );
-    cerr << '\n';
     if ( no_file )
     {
         c_main.cancel ();
