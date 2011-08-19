@@ -8,6 +8,9 @@
 #include <QComboBox>
 #include <QSpinBox>
 #include <QLineEdit>
+#include <QVBoxLayout>
+#include <QHBoxLayout>
+#include <QPushButton>
 
 class Configurator : public QDialog
 {
@@ -15,9 +18,18 @@ class Configurator : public QDialog
 public:
     explicit    Configurator    ( QWidget * parent = 0 );
     void        set_icon        ( QIcon * icn );
+
+    static  void    set_main    ();
+public slots:
+    void    on_accept   ();
+    void    on_cancel   ();
 private:
     QIcon         * icon;
     QTabWidget    * tabs;
+    QVBoxLayout   * ml;
+    QHBoxLayout   * bl;
+    QPushButton   * accept,
+                  * cancel;
 };
 
 class ConfTabUi : public QWidget
