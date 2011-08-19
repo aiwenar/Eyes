@@ -11,6 +11,7 @@
 #include "eyes_window.hxx"
 #include <debug.hxx>
 #include <eyes.hxx>
+#include <configurator.hxx>
 
 using namespace std;
 using namespace libconfig;
@@ -21,6 +22,7 @@ static const char help [] = {
     "\t--help -h\t\tPrint this text ang exit.\n"
     "\t--version -v\t\tPrint version and exit.\n"
     "\t--color=COLOR -c COLOR\tSet eyes color to COLOR.\n"
+    "\t--config\t\tOpen configuration, then quit.\n"
     "\nSee --help colors for colors.\n"
 };
 
@@ -123,6 +125,13 @@ int main ( int argc, char ** argv )
       {
           i++;
           color = arg.at ( i );
+      }
+      else if ( arg.at ( i ) == "--config" )
+      {
+          info << "(eyes_ui) starting eyes::configmode...\n";
+          Configurator * conf = new Configurator ();
+          conf->show ();
+          return app.exec ();
       }
   }
 
