@@ -20,6 +20,7 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     //setWindowFlags ( Qt::SplashScreen );
     eyes = new eyes_view ( this, color );
     ecfg = new eyes_config ( *oldcfg, (QWidget*)nil );
+    config = new Configurator ( (QWidget*)nil );
     ecfg->set_icon ( eyes->get_color_suffix () );
     info << "(eyes_window) loading icon " << ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
     QPixmap tmp;
@@ -37,9 +38,10 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
         trayico = new QSystemTrayIcon ( this );
         trayico->setIcon ( *tico );
         trayico->setToolTip ( "!eyesy!" );
+        config->set_icon ( tico );
         //actions
         setA = new QAction ( tr ( "&Settings" ), this );
-        connect ( setA, SIGNAL ( triggered () ), ecfg, SLOT ( show () ) );
+        connect ( setA, SIGNAL ( triggered () ), config, SLOT ( show () ) );
         quitA = new QAction ( tr ( "&Quit" ), this );
         connect ( quitA, SIGNAL ( triggered () ), qApp, SLOT ( quit () ) );
         //menu
