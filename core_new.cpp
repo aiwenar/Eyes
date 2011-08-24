@@ -19,6 +19,7 @@
 #include <glibtop/uptime.h>
 #include "core_new.hxx"
 #include "eyes_view.h"
+#include "debug.hxx"
 
 using namespace std;
 
@@ -53,14 +54,14 @@ void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned
 }
 void eyes_view::anims_reload()
 {
-    //cerr << "[info :] anims_reload begin\n";
+    //info << "anims_reload begin\n";
 
     //if (s_anim.close == "" || s_anim.open == "")
     //    cerr << "\033[32mOops! My bad :]\n\n";
 
     set_animation(s_anim.open, s_anim.close, s_anim.start, s_anim.end);
 
-    //cerr << "[info :] sended pics:\n" << s_anim.open.toStdString() << " - open anim\n"
+    //info << "sended pics:\n" << s_anim.open.toStdString() << " - open anim\n"
     //     << s_anim.close.toStdString() << " - close anim\n"
     //     << "start/end " << s_anim.start << " " << s_anim.end
     //     << "\nface_next = " << face_next.toStdString() << "\n";
@@ -213,7 +214,7 @@ unsigned short temperatura ()
         if (texcik == "")
             return temperature.stable;
 
-        return (10*(unsigned short)texcik[0] + (unsigned short)texcik[0]);
+        return (10*((unsigned short)texcik[0] - 48) + ((unsigned short)texcik[1] - 48));
     }
     else
     {
@@ -240,6 +241,34 @@ int bat_plugged ()
         string texcik;
         while (calosc.good()){
         texcik+=calosc.get();}
+
+        if (texcik == "")
+        {
+            fstream calosc ("/sys/class/power_supply/BAT1/status", fstream::in);
+
+            string texcik;
+            while (calosc.good()){
+            texcik+=calosc.get();}
+
+            static int pluged = 0;
+
+            if (texcik[0] == 'C' && pluged !=1) //battery has been just pluged
+            {
+                    pluged = 1;
+                    return 1;
+            }
+            if (texcik[0] != 'C' && pluged !=0) //battery has been just unpluged
+            {
+                    pluged = 0;
+                    return 2;
+            }
+            if (texcik[0] == 'C' && pluged == 1) //battery is still pluged
+                    return 3;
+            if (texcik[0] != 'C' && pluged == 0) //battery is still unpluged
+                    return 4;
+
+            else return 5;
+        }
 
         if (texcik[25] == 'n')
         {
@@ -273,6 +302,48 @@ int bateria ()
         string texcik;
         while (calosc.good()){
         texcik+=calosc.get();}
+
+        if (texcik == "")
+        {
+            fstream calosc ("/sys/class/power_supply/BAT1/charge_now", fstream::in);
+            while (calosc.good())
+                    texcik+=calosc.get();
+
+            string texcik2;
+            fstream calosc2 ("/sys/class/power_supply/BAT1/charge_full", fstream::in);
+            while (calosc2.good())
+                    texcik2+=calosc2.get();
+
+            if (texcik == "")
+                return battery.stable;
+
+            if (texcik2 == "")
+                return ((1000000*((unsigned short)texcik[0] - 48) +
+                         100000*((unsigned short)texcik[1] - 48) +
+                         10000*((unsigned short)texcik[2] - 48) +
+                         1000*((unsigned short)texcik[3] - 48) +
+                         100*((unsigned short)texcik[4] - 48) +
+                         10*((unsigned short)texcik[5] - 48) +
+                         ((unsigned short)texcik[6] - 48))) /
+                         (10*battery_capacity);
+
+
+
+            return 100*((1000000*((unsigned short)texcik[0] - 48) +
+                    100000*((unsigned short)texcik[1] - 48) +
+                    10000*((unsigned short)texcik[2] - 48) +
+                    1000*((unsigned short)texcik[3] - 48) +
+                    100*((unsigned short)texcik[4] - 48) +
+                    10*((unsigned short)texcik[5] - 48) +
+                    ((unsigned short)texcik[6] - 48))) /
+                    (1000000*((unsigned short)texcik2[0] - 48) +
+                    100000*((unsigned short)texcik2[1] - 48) +
+                    10000*((unsigned short)texcik2[2] - 48) +
+                    1000*((unsigned short)texcik2[3] - 48) +
+                    100*((unsigned short)texcik2[4] - 48) +
+                    10*((unsigned short)texcik2[5] - 48) +
+                    ((unsigned short)texcik2[6] - 48));
+        }
 
         int baterry=texcik.find_first_of ("capacity:");
 
@@ -403,7 +474,7 @@ void bul::update()
     if (outline != 20)
     {
         if (times.value < 7 || times.value >= 19)
-            eye = 5;
+            eye = 1;
         if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
             eye = 2;
         if ((times.value >= 8 && times.value < 9) || (times.value >= 15 && times.value < 16))
@@ -874,9 +945,9 @@ void percental::get_load( double function )
 
         sector_small[current_probe_small] = function;
         if (sector_small[current_probe_small] > 100)
-            sector_small[current_probe_small] = 0;
+            sector_small[current_probe_small] = stable;
         if (sector_small[current_probe_small] == 100)
-            sector_small[current_probe_small] = 99;
+            sector_small[current_probe_small] = stable;
 
         for (unsigned short i = 0; i< buff_size;i++)
         {
@@ -917,9 +988,9 @@ void unital::get_load( unsigned short function )
         sector_small[current_probe_small] = function;
 
         if (sector_small[current_probe_small] > 100)
-            sector_small[current_probe_small] = 0;
+            sector_small[current_probe_small] = stable;
         if (sector_small[current_probe_small] == 100)
-            sector_small[current_probe_small] = 99;
+            sector_small[current_probe_small] = stable;
 
         for (unsigned short i = 0; i< buff_size;i++)
         {
@@ -1284,7 +1355,7 @@ void eyes_view::graphics_prepare()
                s_anim.face_prev = "slp_10";
 
 
-            //cerr << "[info :] core pics settings begin\n";
+            //info << "core pics settings begin\n";
 
            anims_send (face_send, s_anim.face_prev + "_close", face_send + "_open", anim_num_1, anim_num_2);
 
@@ -2652,13 +2723,14 @@ void Core::autocalc_reload ( eConfig * cfg )
     {
         //zrzut wartości
         cpu.stable = cfg->lookupValue ( "core.cpu.stable", 0);
-        cerr << "[info :] Dropping stable values\n";
+        info << "Dropping stable values\n";
     }
 }
 
-void Core::load_config ( eConfig * cfg_ )
+void Core::load_config ( eConfig * cfg )
 {
     Configuration * cfg = Configuration::getInstance ();
+
     cpu.frequency = cfg->lookupValue ( "core.cpu.frequency", 'f' );
     cpu.lin_num = cfg->lookupValue ( "core.cpu.linear_modifier", 0 );
     cpu.stable = cfg->lookupValue ( "core.cpu.stable", 25 );
@@ -2749,35 +2821,32 @@ void Core::load_config ( eConfig * cfg_ )
 
 void Core::run ()
 {
-    cerr << "[info :] starting core.\n";
+    info << "starting core.\n";
     bulwers_init ();
-    cerr << "[info :] bulwers inited\n";
+    info << "bulwers inited\n";
     Core::gui_init();
     if (autocalc.enabled)
     {
         autocalc_init ();
-        cerr << "[info :] autocalc started\n";
+        info << "autocalc started\n";
     }
-    cerr << "[info :] gui inited\n";
+    info << "gui inited\n";
     s_anim.face_prev = "slp_10";
-    cerr << "[info :] s_anim.face_prev set to " << s_anim.face_prev.toStdString() << "\n";
+    info << "s_anim.face_prev set to " << s_anim.face_prev.toStdString() << "\n";
     do
     {
-        cerr << "[info :] Is in wake up\n";
-        //FIXME: until it's works
-        //times.value = get_time ().hour/3600;
-        times.value = 10;
+        info << "Is in wake up\n";
+        times.value = get_time ().hour/3600;
 
         // TODO 03 : It PROPABLY won't work correctly and it should works on config values.
 
         wake_up_prepare();
         eyes->anims_reload();
     } while (!wake_up);
-    times.value = get_time ().hour/3600;
-    cerr << "[info :] wake up ended";
+    info << "wake up ended";
     eyes->anims_send ("cusual_01", "slp_10_close", "cusual_01_open", 0, 4);
     eyes->anims_reload();
-    cerr << "[info :] end of core preparing\n";
+    info << "end of core preparing\n";
     timer->start( 1000 );
 }
 
