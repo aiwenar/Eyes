@@ -1,0 +1,57 @@
+Stany
+
+Idea jest prosta, określone czynniki mogą wywołać określony stan, który ma określone
+skutki. Stanów jednocześnie może być aktywnych wiele. Stany wpływają na wygląd oczek,
+stan oczek, i siebie na wzajem. Przykładowy stan mógłby wyglądać tak:
+
+states: // tu są zdefiniowane stany
+{
+  przegrzanie:
+  {
+    name: "przegrzanie"; // nazwa, nie wiem po co ale może sie przydać
+    rules: //regóły
+    {
+      apply: //regóły kedy włączyć
+      [
+        "$temperature>70",  // prosty język wyrażeń, $ oznacza zmienną (nie upieram
+                            // się przy czymś takim)
+        "blablabla"
+      ];
+      disable: //regóły kiedy wyłączyć
+      [
+        "$temperature<70 and cośtamcośtam"
+      ];
+    };
+    mod: // określa modyfikatory które nakłada stan
+    [
+      "$sleep-=10",// wyrażenie modyfikatora
+      "blyblybly"
+    ];
+  };
+};
+
+Przy czym zmienne takie jak $temperature i $sleep rejestrowały by konkretne modóły,
+zanim zaczeła by być ładowana lista stanów. Modyfikatory byłyby przeliczane co określony
+czas, po przeliczeniu stanu wyłączenia.
+
+No i w tym wypadku YAML wyglądał by moim zdaniem logicznej :D :
+
+states:
+  przegrzanie:
+    name: przegraznie
+    rules:
+      apply:
+        - !!str $temperature>70
+        - !!str blablabla
+      disable:
+        - !!str $temperature<70 and cośtamcośtam
+        - !!str blablabla
+    mod:
+      - !!str $sleep-=10
+      - !!str blyblybly
+
+Ogulnie byłoby to fajne, bo umożliwiło by dodawanie, usuwanie i zmiane zahowań oczek
+bez potrzeby rekompilacji, łatwe robienie modów (:D) etc.
+
+No, tylko trzeba byłoby to jakoś analizować, ale to nie jest specjalnie trudne.
+(moge to zrobić)
