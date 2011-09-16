@@ -1,31 +1,28 @@
-/*  copyrights © 2010 2011 Damian Chilinski and Krzysztof Mędrzycki
-
-   _______         ______      ______________      _______________
-  /       \\     _/      \\_   \     ____    \\   /              //
- /    __   \\   /   ____   \\   |   ||   \    || |     _________//
-|    // \___|| |   //   \   ||  |   ||    |   || |    ||
-|   ||        /   ||     |  \\  |   ||___/   //  |    ||_______
-|   ||        |   ||     |   || |        ___//   |            ||
-|   ||   ___  \   ||     |   // |   |\   \\      |      ______||
-|    \\_/   || |   \\___/   ||  |   ||\   \\     |    ||_______
- \         //   \_        _//   |   || \   \\    |             \\
-  \_______//      \______//     |___|| /____\\    \_____________\\  By Chiliński Damian
-
-
-Art by Chiliński Damian
-GBS copyright 2010 *all rights reserved.
-
-
-*/
-//-------------------------------------------------------------------
+/* Eyes
+ * Copyright (C) 2011  Krzysztof Mędrzycki, Damian Chiliński
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 
 #include <iostream>
 #include <string.h>
 #include <time.h>
-#include </usr/include/qt4/Qt/qstring.h>
-#include </usr/include/qt4/Qt/qvector.h>
-#include </usr/include/qt4/Qt/qregexp.h>
-#include </usr/include/qt4/Qt/qstringlist.h>
+#include <vector>
+#include <qstring.h>
+#include <qvector.h>
+#include <qregexp.h>
+#include <qstringlist.h>
 #include <cstdlib>
 #include <ctime>
 #include <unistd.h>
@@ -36,2085 +33,87 @@ GBS copyright 2010 *all rights reserved.
 #include <glibtop/mem.h>
 #include <glibtop/proclist.h>
 #include <glibtop/uptime.h>
-
-#include "bulwers.h"
+#include "core_new.hxx"
 #include "eyes_view.h"
-#include "defines.hxx"
-
+#include "debug.hxx"
 
 using namespace std;
 
+unsigned short  battery_state;
+unsigned short  mod_bat_plug;
+unsigned int    temp_t;
+unsigned int    flu_timer;
+unsigned int    prev_bat_plug;
+unsigned int    battery_capacity;
+bool            once_plugged;
+bool            get_flu;
+int             core_step;
+percental       cpu;
+percental       memory;
+percental       battery;
+unital          temperature;
+timal           times;
+timal           energy;
+bul             bulwers;
+sended_anims    s_anim;
+hard_dbg        HDBG;
+auto_calc       autocalc;
+QString         face_send;
 
-struct sdate
+void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto )
 {
-    int day;
-    int month;
-    int day_num;
-    int hour;
-    int year;
-};
-
-sdate       get_time        ();
-static void print           ( char * str );
-static void print           ( char * str, int _pos );
-static void print_gui       ();
-int         temperatura     ();
-int         bat_plugged     ();
-int         bateria         ();
-int         C_LOAD          ();
-int         M_LOAD          ();
-int         P_LIST          ();
-int         U_TIME          ();
-int         about           ();
-int         naglowek_in     (char* version);
-int         naglowek_out    (char* version);
-int         felltext        (char*downgrade);
-int         pulsetext       (char*text, int delay, int repeat, int _position);
-void        bulwers_init    ();
-void        initialization  ( core_stats * input );
-void        reload_stats    ( core_stats * input );
-void        cleanup         ();
-bool        identical       ( pict_layers, pict_layers);
-
-static bool event_now,
-            get_flu,
-            wake_up;
-static int core_step;
-QString     face_prev,
-            face_double_prev;
-int _pos;
-//static int force_bulwers;
-
-//------------------
-
-bulwers_core * bulwers;
-
-void bulwers_init ()
+    s_anim.open = nstart;
+    s_anim.close = nend;
+    s_anim.start = nfrom;
+    s_anim.end = nto;
+    face_next = fac;
+}
+void eyes_view::anims_reload()
 {
-    bulwers = new bulwers_core;
-    bulwers->happy = 0;
-    bulwers->longev = 0;
-    bulwers->special = 0;
-    bulwers->step = 0;
-    bulwers->level = 0;
+    //info << "anims_reload begin\n";
+
+    //if (s_anim.close == "" || s_anim.open == "")
+    //    cerr << "\033[32mOops! My bad :]\n\n";
+
+    set_animation(s_anim.open, s_anim.close, s_anim.start, s_anim.end);
+
+    //info << "sended pics:\n" << s_anim.open.toStdString() << " - open anim\n"
+    //     << s_anim.close.toStdString() << " - close anim\n"
+    //     << "start/end " << s_anim.start << " " << s_anim.end
+    //     << "\nface_next = " << face_next.toStdString() << "\n";
 }
 
-void cleanup ()
+void eyes_view::reload_eyes()
 {
-    // tu musisz dorobić usuwanie zmiennych itp
+    set_eyes ( s_anim.eyes );
 }
 
-void print_event ( char * ev_text )
+void eyes_view::send_eyes( QString neyes )
 {
-    cout << "\033[" << 10+_pos << ";66H" << ev_text << '\n';
-    _pos++;
+    if ( neyes == "" )
+    {
+        //cerr << "033[32mOops! My bad :]";
+        neyes = "eye_06";
+    }
+    s_anim.eyes = neyes;
+    //cerr << "core sets \"" << s_anim.eyes.toStdString() << "\" eye\n";
 }
 
-void eyes_view::update_bulwers ( core_stats * input )
-{
-    static pict_layers pics;
-    static pict_layers prev_pics;
-    //static int input->current_probe = 0;
-        //input->cpu_probes[input->current_probe] = C_LOAD ();
-
-    //input->current_probe++;
-
-
-
-    /*input->core_cpu_load = (input->cpu_probes[0] +
-                         input->cpu_probes[1] +
-                         input->cpu_probes[2] +
-                         input->cpu_probes[3] +
-                         input->cpu_probes[4] +
-                         input->cpu_probes[5] +
-                         input->cpu_probes[6] +
-                         input->cpu_probes[7] +
-                         input->cpu_probes[8] +
-                         input->cpu_probes[9]) / 10;*/
-    //int input->core_memory = M_LOAD ();
-    //int input->core_proclist = P_LIST ();
-    //int input->core_uptime = U_TIME ();
-    //static int input->energy = 54000;
-    //static bool input->once_plugged = false;
-    //static int input->prev_bat_plug = input->core_battery_plugged;
-
-
-    // updacenie debuga
-
-    cout << "\033[2;22H" << input->current_probe+1 << " " << "\033[1;55H"
-         << input->cpu_probes [0] << ' '
-         << input->cpu_probes [1] << ' '
-         << input->cpu_probes [2] << ' '
-         << input->cpu_probes [3] << ' '
-         << input->cpu_probes [4] << ' '
-         << input->cpu_probes [5] << ' '
-         << input->cpu_probes [6] << ' '
-         << input->cpu_probes [7] << ' '
-         << input->cpu_probes [8] << ' '
-         << input->cpu_probes [9] << '\n';
-    cout << "\033[3;22H" << input->current_probe_small+1 << " " << "\033[2;55H"
-         << input->cpu_sector_small [0] << ' '
-         << input->cpu_sector_small [1] << ' '
-         << input->cpu_sector_small [2] << ' '
-         << input->cpu_sector_small [3] << ' '
-         << input->cpu_sector_small [4] << ' '
-         << input->cpu_sector_small [5] << ' '
-         << input->cpu_sector_small [6] << ' '
-         << input->cpu_sector_small [7] << ' '
-         << input->cpu_sector_small [8] << ' '
-         << input->cpu_sector_small [9] << '\n';
-    cout << "\033[3;53H" << input->core_cpu_load;
-    cout << "\033[4;53H" << input->core_memory << "%"
-         << "\033[5;53H" << input->core_proclist
-         << "\033[6;53H" << input->core_uptime << " seconds" //<< "that is: " << input->core_uptime/3600 << " hours" << " and " << (input->core_uptime/60) - ((input->core_uptime/3600)*60) << "minutes"
-         << "\033[4;92H" << input->core_day
-         << "\033[5;92H" << input->core_dnum
-         << "\033[6;92H" << input->core_month
-         << "\033[7;92H" << input->core_year
-         << "\033[8;92H" << input->core_time << " seconds that is:" << input->core_time/3600 << ":" << (input->core_time/60) - ((input->core_time/3600)*60) << ":" << input->core_time - ((input->core_time/60)*60)
-         << "\033[10;17H" << ( input->core_battery_plugged == 1 ? "just pluged" : ( input->core_battery_plugged == 2 ? "just unpluged" : ( input->core_battery_plugged == 3 ? "pluged      " : "unpluged     " ) ) )
-         << "\033[11;17H" << input->core_battery << "MAh   "
-         << "\033[12;17H" << input->core_temperature << "ºC"
-         << '\n';
-
-    //--Proggramer Manual
-    /*
-     Bulwers manual:
-
-       Bulwers classes:
-
-        bulwers->special - runs special ocasion mode
-        bulwers->level - true bulwers status eg. bulwers = 0 - everything is OK.
-        bulwers->longev - long events appears on every bulwers - eg. low battery or high temperature.
-        bulwers->happy - happyness modificator it has appear on some types of non-bad bulwers eg. 0-3
-
-
-
-        bulwers->special list:
-        0 - nothing special
-        1 - weekand!
-        2 - friday thirteenth !
-        3 - start of school term
-        4 - nicolas day
-        5 - christmas
-        6 - new year
-        7 - wielkanoc
-        8 - end of term
-
-        bulwers->level list:
-        0 - everything is OK
-        1 - something goes wrong - speed looking
-        2 - something goes wrong - shocked
-        3 - something happend - surpriced looking
-        4+ - hardware evenst eg. cpu load to high, or mem load(experimental), or longev appears
-
-        bulwers->longev list: (in priority order)
-        1 - battery middle
-        2 - battery low
-        3 - it's late
-        4 - it's warm
-        5 - it's very late
-        6 - it's very warm
-        7 - they're sleeppy
-        8 - it's hot
-        9 - ther're very sleeppy
-        10 - battery critically low
-        11 - they just sleep...
-        12 - it's extremally hot
-        13 - OMG what a temperature!!!
-        14 - they can't stand
-        15 - they're sleepping
-
-
-
-        animations list:
-
-        to_picture_bulwers x
-        to_picture_happy 1-2
-        to_picture_sleeppy 1-3
-
-    */
-
-    //eves checking
-
-    if (input->core_day == 7)
-    {
-        bulwers->special = 1;
-    }
-    if (input->core_day == 5)
-    {
-        if (input->core_dnum == 13)
-        {
-            bulwers->special = 2;
-        }
-    }
-    if (input->core_month == 9)
-    {
-        if (input->core_day == 1)
-        {
-            bulwers->special = 3;
-        }
-    }
-    if (input->core_month == 6)
-    {
-        if (input->core_day == 14)
-        {
-            bulwers->special = 8;
-        }
-    }
-    if (input->core_month == 12)
-    {
-        if (input->core_day == 24)
-        {
-            bulwers->special = 5;
-        }
-        if (input->core_day == 31)
-        {
-            bulwers->special = 6;
-        }
-    }
-
-
-    //--space for others events
-
-    cout << "\033[10;46H" << bulwers->special << " ";
-
-    _pos = 0;
-
-    //--filling input->energy status, Wake up Neo!
-
-
-if (wake_up)
-{
-    if (input->core_day != 7)
-    {
-        if (input->energy >= 10000)
-            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)  " << endl;
-        if (input->energy < 10000 && input->energy >= 1000)
-            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)   " << endl;
-        if (input->energy < 1000 && input->energy >= 100)
-            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)    " << endl;
-        if (input->energy < 100 && input->energy >= 10)
-            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)     " << endl;
-        if (input->energy < 10)
-            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/54000 << "%)      " << endl;
-    }
-
-    else
-    {
-        if (input->energy >= 10000)
-            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/72000 << "%)  " << endl;
-        if (input->energy < 10000 && input->energy >= 1000)
-            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/72000 << "%)   " << endl;
-        if (input->energy < 1000 && input->energy >= 100)
-            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/72000 << "%)    " << endl;
-        if (input->energy < 100 && input->energy >= 10)
-            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/72000 << "%)     " << endl;
-        if (input->energy < 10)
-            cout << "\033[13;17H" << input->energy << " units (" << (100*input->energy)/72000 << "%)      " << endl;
-    }
-
-
-    //--long events checking
-
-
-    //static int input->battery_buffer = 0;
-    if (input->core_battery_plugged == 2) input->battery_buffer = 0;
-    if (input->core_battery_plugged == 4 && input->battery_buffer < 15) input->battery_buffer++;
-
-    if (input->core_battery <= 2500 && bulwers->longev < 1 && input->core_battery_plugged == 4 && input->battery_buffer == 15)
-    {
-        bulwers->longev = 1;
-        print_event ( "ev1 (battery <=2500 MAh)" );
-    }
-
-    if (input->core_battery <= 1500 && bulwers->longev < 2 && input->core_battery_plugged == 4 && input->battery_buffer == 15)
-    {
-        bulwers->longev = 2;
-        print_event ( "ev2 (battery <= 1500 MAh)" );
-    }
-
-    if (input->core_time >= 75600 && bulwers->longev < 3)
-    {
-        bulwers->longev = 3;
-        print_event ( "ev3 (it's late)" );
-    }
-
-    if (input->core_temperature >= 56 && bulwers->longev < 4)
-    {
-        bulwers->longev = 4;
-        print_event ( "ev4 (temperature goes up to 56ºC)" );
-    }
-
-    if (input->core_time >= 82800 && bulwers->longev < 5)
-    {
-        bulwers->longev = 5;
-        print_event ( "ev5 (it's very late)" );
-    }
-
-
-    if ((input->core_uptime >= 36000 || input->energy < 25200) && bulwers->longev < 6)
-    {
-        bulwers->longev = 6;
-        print_event ( "ev6 (they're tired)" );
-    }
-
-    if (input->core_temperature >= 58)
-    {
-        input->energy -=1;
-
-        if(bulwers->longev < 7)
-            bulwers->longev = 7;
-
-        print_event ( "ev7 (temperature goes up to 58ºC)" );
-    }
-
-    if (input->core_temperature >= 60)
-    {
-        input->energy -=2;
-
-        if (bulwers->longev < 8)
-            bulwers->longev = 8;
-
-        print_event ( "ev8 (temperature goes up to 60ºC)" );
-    }
-
-    if ((input->core_uptime >= 28800 || input->energy < 14400) && bulwers->longev < 9)
-    {
-        bulwers->longev = 9;
-        print_event ( "ev9 (they're very tired)" );
-    }
-    if (input->core_battery <= 500 && bulwers->longev < 10 && input->core_battery_plugged == 4 && input->battery_buffer == 15)
-    {
-        bulwers->longev = 10;
-
-        if (bulwers->level < 5)
-            bulwers->level = 5;
-
-        print_event ( "ev10 (battery critical low)" );
-    }
-    if ((input->core_uptime >= 39600 || input->energy < 7200 )&& bulwers->longev < 11)
-    {
-        bulwers->longev = 11;
-
-        if (bulwers->level < 6)
-            bulwers->level = 6;
-
-        print_event ( "ev11 (they've just slept...)" );
-    }
-    if (input->core_temperature >= 62)
-    {
-        input->energy -=3;
-
-        if (bulwers->longev < 12)
-            bulwers->longev = 12;
-
-        if (bulwers->level < 10)
-            bulwers->level = 10;
-
-        print_event ( "ev12 (temperature goes up to 62ºC)" );
-    }
-    if (input->core_temperature >= 64)
-    {
-        input->energy -=4;
-
-        if (bulwers->longev < 13)
-            bulwers->longev = 13;
-
-        if (bulwers->level < 14)
-            bulwers->level = 14;
-
-        print_event ( "ev13 (temperature goes up to 64ºC)" );
-    }
-    if ((input->core_uptime >= 50400 || input->energy < 3600) && bulwers->longev < 14)
-    {
-        bulwers->longev = 14;
-
-        if (bulwers->level < 16)
-            bulwers->level = 16;
-
-        print_event ( "ev14 (they cant' stand)" );
-    }
-    if (input->energy <= 0)
-    {
-        bulwers->level = 17;
-        print_event ( "idiot... <.:zzZ:.>" );
-    }
-
-
-
-
-    //if (input->core_battery <= 2500 && bulwers->longev < 1) bulwers->longev = 1;
-    //if (input->core_battery <= 2500 && bulwers->longev < 2) bulwers->longev = 2;
-
-    cout << "\033[11;46H" << bulwers->longev << " " << '\n';
-
-
-    //--loads checking
-
-
-    //----CPU----
-
-    //----40
-
-    if (input->core_cpu_load >= 40)
-    {
-        if(bulwers->level <= 4 && bulwers->longev < 9)
-        {
-            bulwers->level = 4;
-            input->energy -=1;
-            bulwers->step = 8;
-        }
-
-        if(bulwers->level <= 6 && bulwers->longev >= 9)
-        {
-            bulwers->level = 6;
-            input->energy -=1;
-            bulwers->step = 21;
-        }
-
-        if(bulwers->level <= 10 && bulwers->longev > 11)
-        {
-            bulwers->level = 10;
-            input->energy -=2;
-            bulwers->step = 144;
-        }
-    }
-
-
-
-    if (input->core_cpu_load >= 50)
-    {
-        if (bulwers->level <= 6 && bulwers->longev < 8)
-        {
-            bulwers->level = 6;
-            input->energy -=1;
-            bulwers->step = 21;
-        }
-
-        if (bulwers->level <= 8 && bulwers->longev >= 8)
-        {
-            bulwers->level = 8;
-            input->energy -=1;
-            bulwers->step = 55;
-        }
-
-        if (bulwers->level <= 12 && bulwers->longev > 10)
-        {
-            bulwers->level = 12;
-            input->energy -=2;
-            bulwers->step = 377;
-        }
-    }
-
-
-
-    if (input->core_cpu_load >= 60)
-    {
-        if (bulwers->level <= 8 && bulwers->longev < 7)
-        {
-            bulwers->level = 8;
-            input->energy -=2;
-            bulwers->step = 55;
-        }
-
-        if (bulwers->level <= 10 && bulwers->longev >= 7)
-        {
-            bulwers->level = 10;
-            input->energy -=2;
-            bulwers->step = 144;
-        }
-
-        if (bulwers->level <= 14 && bulwers->longev > 9)
-        {
-            bulwers->level = 14;
-            input->energy -=3;
-            bulwers->step = 987;
-        }
-    }
-
-
-
-    if (input->core_cpu_load >= 70)
-    {
-        if(bulwers->level <= 10 && bulwers->longev < 6)
-        {
-            bulwers->level = 10;
-            input->energy -=2;
-            bulwers->step = 144;
-        }
-
-        if(bulwers->level <= 12 && bulwers->longev >= 6)
-        {
-            bulwers->level = 12;
-            input->energy -=2;
-            bulwers->step = 377;
-        }
-
-        if(bulwers->level <= 15 && bulwers->longev > 8)
-        {
-            bulwers->level = 15;
-            input->energy -=3;
-            bulwers->step = 1597;
-        }
-    }
-
-
-
-    if (input->core_cpu_load >= 80)
-    {
-        if(bulwers->level <= 12 && bulwers->longev < 5)
-        {
-            bulwers->level = 12;
-            input->energy -=3;
-            bulwers->step = 377;
-        }
-
-        if(bulwers->level <= 14 && bulwers->longev >= 5)
-        {
-            bulwers->level = 14;
-            input->energy -=3;
-            bulwers->step = 987;
-        }
-
-        if(bulwers->level <= 16 && bulwers->longev > 7)
-        {
-            bulwers->level = 16;
-            input->energy -=4;
-            bulwers->step = 2584;
-        }
-    }
-
-
-
-    if (input->core_cpu_load >= 90)
-    {
-        if(bulwers->level <= 14 && bulwers->longev < 4)
-        {
-            bulwers->level = 14;
-            input->energy -=3;
-            bulwers->step = 1024;
-        }
-
-        if(bulwers->level <= 15 && bulwers->longev >= 4)
-        {
-            bulwers->level = 15;
-            input->energy -=3;
-            bulwers->step = 2048;
-        }
-
-        if(bulwers->level <= 16 && bulwers->longev > 6)
-        {
-            bulwers->level = 16;
-            input->energy -=4;
-            bulwers->step = 4096;
-        }
-    }
-
-
-    //----MEM----
-
-    //----40
-
-    if (input->core_memory >= 40)
-    {
-        if(bulwers->level <= 4 && bulwers->longev < 9)
-        {
-            bulwers->level = 4;
-            bulwers->step = 8;
-        }
-
-        if(bulwers->level <= 5 && bulwers->longev >= 9)
-        {
-            bulwers->level = 5;
-            bulwers->step = 13;
-        }
-
-        if(bulwers->level <= 7 && bulwers->longev > 11)
-        {
-            bulwers->level = 7;
-            input->energy -=1;
-            bulwers->step = 34;
-        }
-    }
-
-
-
-    if (input->core_memory >= 50)
-    {
-        if(bulwers->level <= 5 && bulwers->longev < 8)
-        {
-            bulwers->level = 5;
-            bulwers->step = 13;
-        }
-
-        if(bulwers->level <= 6 && bulwers->longev >= 8)
-        {
-            bulwers->level = 6;
-            bulwers->step = 21;
-        }
-
-        if(bulwers->level <= 8 && bulwers->longev > 10)
-        {
-            bulwers->level = 8;
-            input->energy -=1;
-            bulwers->step = 55;
-        }
-    }
-
-
-
-    if (input->core_memory >= 60)
-    {
-        if(bulwers->level <= 6 && bulwers->longev < 7)
-        {
-            bulwers->level = 6;
-            input->energy -=1;
-            bulwers->step = 21;
-        }
-
-        if(bulwers->level <= 7 && bulwers->longev >= 7)
-        {
-            bulwers->level = 7;
-            input->energy -=1;
-            bulwers->step = 34;
-        }
-
-        if(bulwers->level <= 9 && bulwers->longev > 9)
-        {
-            bulwers->level = 9;
-            input->energy -=2;
-            bulwers->step = 89;
-        }
-    }
-
-
-
-    if (input->core_memory >= 70)
-    {
-        if(bulwers->level <= 6 && bulwers->longev < 6)
-        {
-            bulwers->level = 7;
-            input->energy -=1;
-            bulwers->step = 34;
-        }
-
-        if(bulwers->level <= 8 && bulwers->longev >= 6)
-        {
-            bulwers->level = 8;
-            input->energy -=1;
-            bulwers->step = 55;
-        }
-
-        if(bulwers->level <= 10 && bulwers->longev > 8)
-        {
-            bulwers->level = 10;
-            input->energy -=2;
-            bulwers->step = 144;
-        }
-    }
-
-
-
-    if (input->core_memory >= 80)
-    {
-        if(bulwers->level <= 8 && bulwers->longev < 5)
-        {
-            bulwers->level = 8;
-            input->energy -=2;
-            bulwers->step = 55;
-        }
-
-        if(bulwers->level <= 9 && bulwers->longev >= 5)
-        {
-            bulwers->level = 9;
-            input->energy -=2;
-            bulwers->step = 89;
-        }
-
-        if(bulwers->level <= 11 && bulwers->longev > 7)
-        {
-            bulwers->level = 11;
-            input->energy -=3;
-            bulwers->step = 233;
-        }
-    }
-
-    cout << "\033[13;46H" << bulwers->level << " " << '\n';
-
-
-    //----events checking
-
-    if (input->core_battery_plugged == 0)
-    {
-        pics.outline = 20;
-        pics.eye = 10;
-        print_event ("No battery !");
-    }
-    else if (pics.outline == 20)
-        pics.outline = 0;
-
-    bulwers->happy = input->prev_happy;
-
-    if (input->once_plugged)
-    {
-        if (input->core_battery_plugged == 2 && input->prev_bat_plug != 2)
-        {
-            if (bulwers->level < 3)
-            {
-                bulwers->level = 3;
-            }
-
-            if (input->prev_bat_plug == 3)
-            {
-                bulwers->happy--;
-            }
-
-            if (input->prev_bat_plug == 1)
-            {
-                bulwers->happy-=2;
-            }
-        }
-        if (input->core_battery_plugged == 1 && input->prev_bat_plug != 1)
-        {
-            bulwers->happy+=2;
-        }
-        if (input->core_battery_plugged == 3 && input->prev_bat_plug != 3)
-        {
-            bulwers->happy--;
-        }
-    }
-    if (!input->once_plugged)
-    {
-        if (input->core_battery_plugged == 1)
-        {
-            input->once_plugged = true;
-            bulwers->happy +=2;
-        }
-        if (input->core_battery_plugged == 3)
-        {
-            input->once_plugged = true;
-            bulwers->happy ++;
-        }
-    }
-    input->prev_bat_plug = input->core_battery_plugged;
-    cout << "\033[12;46H" << bulwers->happy << '\n';
-    input->prev_happy = bulwers->happy;
-
-
-    //---Calming
-
-    static bool last_kill = false;
-    static bool last_plask = false;
-    static bool last_pet = false;
-    static bool pet_success = false;
-
-                //Event ev;
-/*
-    if ( evs->poll ( &ev ) and not event_now )
-    {
-        if ( ev.type == plask )
-        {
-            if (bulwers->level <= 10)
-                bulwers->level++;
-            bulwers->step += 20;
-            pics.hot = 2;
-            last_pet = false;
-            last_kill = false;
-            last_plask = true;
-        }
-        if (ev.type == pet)
-        {
-
-            if (bulwers->level <= 10)
-            {
-                if (!last_pet && bulwers->level <= 10)
-                {
-                    bulwers->happy++;
-                    pet_success = true;
-                    if (bulwers->level <=6)
-                        pics.outline = "to_happy 2";
-                    else
-                        pics.outline = "to_happy 1";
-                }
-            }
-
-            if (bulwers->level > 10)
-            {
-                bulwers->step += 5;
-                pics.outline = "to_bulwers 16";
-            }
-
-
-            last_plask = false;
-            last_kill = false;
-            last_pet = true;
-        }
-        if (last_pet && ev.type != pet && pet_success)
-            bulwers->happy--;
-    }
-
-    else
-    {
-
-     last_kill = false;
-     last_plask = false;
-     last_pet = false;
-     pet_success = false;
-*/
-
-    //---bulwers state
-    if (bulwers->level == 1)
-    {
-        if (bulwers->step == 0)
-        {
-            bulwers->level = 0;
-        }
-        else
-            bulwers->step--;
-    }
-    if (bulwers->level == 2)
-    {
-        if (bulwers->step == 0)
-        {
-            bulwers->level--;
-            bulwers->step = 2;
-        }
-        else
-            bulwers->step--;
-    }
-    if (bulwers->level == 3)
-    {
-        if (bulwers->step == 0)
-        {
-            bulwers->level--;
-            bulwers->step = 3;
-        }
-        else
-            bulwers->step--;
-    }
-    if (bulwers->level == 4)
-    {
-        if ((input->core_memory < 40 && bulwers->longev < 9) && (input->core_cpu_load < 40 && bulwers->longev < 9))
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 5;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-    if (bulwers->level == 5)
-    {
-        if (((input->core_memory < 40 && bulwers->longev >=9) || (input->core_memory < 50 && bulwers->longev < 8)) && bulwers->longev < 10)
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 8;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-    if (bulwers->level == 6)
-    {
-        if (((input->core_cpu_load < 40 && bulwers->longev >= 9) || (input->core_cpu_load < 50 && bulwers->longev < 8)) && ((input->core_memory < 50 && bulwers->longev >= 8) || (input->core_memory < 60 && bulwers->longev < 7)) && bulwers->longev < 11)
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 13;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-    if (bulwers->level == 7)
-    {
-        if ((input->core_memory < 40 && bulwers->longev > 11) || (input->core_memory < 60 && bulwers->longev >= 7) || (input->core_memory < 70 && bulwers->longev < 6))
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 21;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-    if (bulwers->level == 8)
-    {
-        if (((input->core_cpu_load < 50 && bulwers->longev >= 8) || (input->core_cpu_load < 60 && bulwers->longev < 7)) && ((input->core_memory < 50 && bulwers->longev > 10) || (input->core_memory < 70 && bulwers->longev >= 6) || (input->core_memory < 80 && bulwers->longev < 5)))
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 34;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-    if (bulwers->level == 9)
-    {
-        if ((input->core_memory < 60 && bulwers->longev > 9) || (input->core_memory < 80 && bulwers->longev >= 5))
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 55;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-    if (bulwers->level == 10)
-    {
-        if (((input->core_cpu_load < 40 && bulwers->longev > 11) || (input->core_cpu_load < 60 && bulwers->longev >= 7) || (input->core_cpu_load < 70 && bulwers->longev < 6)) && (input->core_memory < 70 && bulwers->longev > 8) && bulwers->longev < 12)
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 89;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-    if (bulwers->level == 11)
-    {
-        if (input->core_memory < 80 && bulwers->longev > 7)
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 144;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-    if (bulwers->level == 12)
-    {
-        if ((input->core_cpu_load < 50 && bulwers->longev > 10) || (input->core_cpu_load < 70 && bulwers->longev >= 6) || (input->core_cpu_load < 80 && bulwers->longev < 5))
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 233;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-    if (bulwers->level == 13)
-    {
-        if (1)
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 377;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-    if (bulwers->level == 14)
-    {
-        if (((input->core_cpu_load < 60 && bulwers->longev > 9) || (input->core_cpu_load < 80 && bulwers->longev >= 5) || (input->core_cpu_load < 90 && bulwers->longev < 4)) && bulwers->longev < 13)
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 610;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-    if (bulwers->level == 15)
-    {
-        if ((input->core_cpu_load < 70 && bulwers->longev > 8) || (input->core_cpu_load < 90 && bulwers->longev >= 4))
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 987;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-    if (bulwers->level == 16)
-    {
-        if (((input->core_cpu_load < 80 && bulwers->longev > 7) || (input->core_cpu_load < 90 && bulwers->longev > 6)) && bulwers->longev < 14)
-        {
-            if (bulwers->step == 0)
-            {
-                bulwers->level--;
-                bulwers->step = 1597;
-            }
-            else
-                bulwers->step--;
-        }
-    }
-
-
-    //---long events
-
-
-
-    if (bulwers->longev == 1)
-    {
-        if (input->core_battery > 2500 || input->core_battery_plugged == 3)
-        {
-            bulwers->longev--;
-        }
-    }
-    if (bulwers->longev == 2)
-    {
-        if (input->core_battery > 1500 || input->core_battery_plugged == 3)
-        {
-            bulwers->longev--;
-        }
-    }
-    if (bulwers->longev == 3)
-    {
-        if (input->core_time < 75600)
-        {
-            bulwers->longev--;
-        }
-    }
-    if (bulwers->longev == 4)
-    {
-        if (input->core_temperature < 56)
-        {
-            bulwers->longev--;
-        }
-    }
-    if (bulwers->longev == 5)
-    {
-        if (input->core_time < 82800)
-        {
-            bulwers->longev--;
-        }
-    }
-    if (bulwers->longev == 6)
-    {
-        if (input->core_uptime < 21600 && input->energy >= 25200)
-        {
-            bulwers->longev--;
-        }
-    }
-    if (bulwers->longev == 7)
-    {
-        if (input->core_temperature < 58)
-        {
-            bulwers->longev--;
-        }
-    }
-
-    if (bulwers->longev == 8)
-    {
-        if (input->core_temperature < 60)
-        {
-            bulwers->longev--;
-        }
-    }
-    if (bulwers->longev == 9)
-    {
-        if (input->core_uptime < 28800 && input->energy >= 14400)
-        {
-            bulwers->longev--;
-        }
-    }
-    if (bulwers->longev == 10)
-    {
-        if (input->core_battery > 500 || input->core_battery_plugged == 3)
-        {
-            bulwers->longev--;
-        }
-    }
-    if (bulwers->longev == 11)
-    {
-        if (input->core_uptime < 39600 && input->energy >= 7200 )
-        {
-            bulwers->longev--;
-        }
-    }
-    if (bulwers->longev == 12)
-    {
-        if (input->core_temperature < 62)
-        {
-            bulwers->longev--;
-        }
-    }
-    if (bulwers->longev == 13)
-    {
-        if (input->core_temperature < 64)
-        {
-            bulwers->longev--;
-        }
-    }
-    if (bulwers->longev == 14)
-    {
-        if (input->core_uptime < 50400 && input->energy >= 3600)
-        {
-            bulwers->longev--;
-        }
-    }
-
-//---bulwers happyness modifications
-
-
-    if (bulwers->happy == 1)
-        if (bulwers->step >=1)
-            bulwers->step--;
-
-    if (bulwers->happy == 2)
-        if (bulwers->step >=2)
-            bulwers->step-=2;
-
-    if (bulwers->happy == 3)
-        if (bulwers->step >=5)
-            bulwers->step-=5;
-
-    if (bulwers->happy >= 4)
-        if (bulwers->step >=10)
-            bulwers->step -=10;
-
-
-if (input->energy > 0)
-    input->energy--;
-}
-
-
-
-
-
-/////////////////////////////////////////////////////
-
-//----END OF BULWERS MANAGING
-
-/////////////////////////////////////////////////////
-
-
-if (bulwers->level != 0 && pics.outline != 20 && pics.outline != 21)
-    pics.outline = bulwers->level + 3;
-if (pics.outline != 20 && bulwers->level == 0)
-    pics.outline = 0;
-
-//eye size
-
-//---winter
-
-/*
-6<  22>
-6-7 18-22
-7-8 16-18
-8-9 15-16
-9-11 14-15
-11-14
-*/
-
-/*
-
-        11-13 -         8
-        10-11/13-14     7
-        10-9/14-15      6
-        8-9/15-16       5
-        7-8/16-17       4
-        6-7/17-18       3
-        5-6/18-19       2
-
-*/
-
-if (input->core_month == 12 || input->core_month == 1 )
-if (pics.outline != 20)
-{
-    if (input->core_time < 7*3600 || input->core_time >= 19*3600)
-        pics.eye = 1;
-    if ((input->core_time >= 7*3600 && input->core_time < 8*3600) || (input->core_time >= 16*3600 && input->core_time < 17*3600))
-        pics.eye = 2;
-    if ((input->core_time >= 8*3600 && input->core_time < 9*3600) || (input->core_time >= 15*3600 && input->core_time < 16*3600))
-        pics.eye = 3;
-    if ((input->core_time >= 9*3600 && input->core_time < 10*3600) || (input->core_time >= 14*3600 && input->core_time < 15*3600))
-        pics.eye = 4;
-    if ((input->core_time >= 10*3600 && input->core_time < 11*3600) || (input->core_time >= 13*3600 && input->core_time < 14*3600))
-        pics.eye = 5;
-    if ((input->core_time >= 11*3600 && input->core_time < 13*3600))
-        pics.eye = 6;
-}
-
-if (input->core_month == 2 || input->core_month == 3 || input->core_month == 10 || input->core_month == 11 )
-if (pics.outline != 20)
-{
-    if (input->core_time < 6*3600 || input->core_time >= 19*3600)
-        pics.eye = 1;
-    if ((input->core_time >= 6*3600 && input->core_time < 7*3600) || (input->core_time >= 17*3600 && input->core_time < 18*3600))
-        pics.eye = 2;
-    if ((input->core_time >= 7*3600 && input->core_time < 8*3600) || (input->core_time >= 16*3600 && input->core_time < 17*3600))
-        pics.eye = 3;
-    if ((input->core_time >= 8*3600 && input->core_time < 9*3600) || (input->core_time >= 15*3600 && input->core_time < 16*3600))
-        pics.eye = 4;
-    if ((input->core_time >= 9*3600 && input->core_time < 10*3600) || (input->core_time >= 14*3600 && input->core_time < 15*3600))
-        pics.eye = 5;
-    if ((input->core_time >= 10*3600 && input->core_time < 11*3600) || (input->core_time >= 13*3600 && input->core_time < 14*3600))
-        pics.eye = 6;
-    if ((input->core_time >= 11*3600 && input->core_time < 13*3600))
-        pics.eye = 7;
-}
-
-if (input->core_month == 4 || input->core_month == 5 || input->core_month == 8 || input->core_month == 9 )
-if (pics.outline != 20)
-    {
-        if (input->core_time < 5*3600 || input->core_time >= 19*3600)
-            pics.eye = 1;
-        if ((input->core_time >= 5*3600 && input->core_time < 6*3600) || (input->core_time >= 18*3600 && input->core_time < 19*3600))
-            pics.eye = 2;
-        if ((input->core_time >= 6*3600 && input->core_time < 7*3600) || (input->core_time >= 17*3600 && input->core_time < 18*3600))
-            pics.eye = 3;
-        if ((input->core_time >= 7*3600 && input->core_time < 8*3600) || (input->core_time >= 16*3600 && input->core_time < 17*3600))
-            pics.eye = 4;
-        if ((input->core_time >= 8*3600 && input->core_time < 9*3600) || (input->core_time >= 15*3600 && input->core_time < 16*3600))
-            pics.eye = 5;
-        if ((input->core_time >= 9*3600 && input->core_time < 10*3600) || (input->core_time >= 14*3600 && input->core_time < 15*3600))
-            pics.eye = 6;
-        if ((input->core_time >= 10*3600 && input->core_time < 11*3600) || (input->core_time >= 13*3600 && input->core_time < 14*3600))
-            pics.eye = 7;
-        if ((input->core_time >= 11*3600 && input->core_time < 13*3600))
-            pics.eye = 8;
-    }
-
-
-if (input->core_month == 6 || input->core_month == 7)
-if (pics.outline != 20)
-    {
-        if (input->core_time < 4*3600 || input->core_time >= 20*3600)
-            pics.eye = 1;
-        if ((input->core_time >= 4*3600 && input->core_time < 5*3600) || (input->core_time >= 19*3600 && input->core_time < 20*3600))
-            pics.eye = 2;
-        if ((input->core_time >= 5*3600 && input->core_time < 6*3600) || (input->core_time >= 18*3600 && input->core_time < 19*3600))
-            pics.eye = 3;
-        if ((input->core_time >= 6*3600 && input->core_time < 7*3600) || (input->core_time >= 17*3600 && input->core_time < 18*3600))
-            pics.eye = 4;
-        if ((input->core_time >= 7*3600 && input->core_time < 8*3600) || (input->core_time >= 16*3600 && input->core_time < 17*3600))
-            pics.eye = 5;
-        if ((input->core_time >= 8*3600 && input->core_time < 9*3600) || (input->core_time >= 15*3600 && input->core_time < 16*3600))
-            pics.eye = 6;
-        if ((input->core_time >= 9*3600 && input->core_time < 10*3600) || (input->core_time >= 14*3600 && input->core_time < 15*3600))
-            pics.eye = 7;
-        if ((input->core_time >= 10*3600 && input->core_time < 11*3600) || (input->core_time >= 13*3600 && input->core_time < 14*3600))
-            pics.eye = 8;
-        if ((input->core_time >= 11*3600 && input->core_time < 13*3600))
-            pics.eye = 9;
-    }
-
-
-
-if (input->core_day != 7)
-{
-    if (input->core_time < 22800 || input->core_time > 75600 || input->energy < 18000)
-    {
-        pics.tired = 1;
-
-        if (pics.outline <= 7)
-            pics.outline = 1;
-
-        if (pics.outline > 7 && pics.outline < 11)
-        {
-            if ((rand () % 1))
-                pics.outline = 1;
-        }
-    }
-    if (input->core_time < 21600 || input->core_time > 79200 || input->energy < 10800)
-    {
-        pics.tired = 2;
-        if (pics.outline <= 8)
-            pics.outline = 1;
-
-        if (pics.outline > 8 && pics.outline < 12)
-        {
-            if ((rand () % 1))
-                pics.outline = 2;
-        }
-    }
-    if (input->core_time < 18000 || input->core_time > 82800 || input->energy < 3600 )
-    {
-        pics.tired = 3;
-        if (pics.outline <= 9)
-            pics.outline = 1;
-
-        if (pics.outline > 9 && pics.outline < 13)
-        {
-            if ((rand () % 1))
-                pics.outline = 3;
-        }
-    }
-    else
-    {
-        if (pics.tired > 0)
-            pics.tired--;
-    }
-}
-else
-{
-    if (input->core_time < 36000 || input->core_time > 82800 || input->energy < 18000)
-    {
-        pics.tired = 1;
-        if (pics.outline <= 7)
-            pics.outline = 1;
-
-        if (pics.outline > 7 && pics.outline < 11)
-        {
-            if ((rand () % 1))
-                pics.outline = 1;
-        }
-    }
-    if ((input->core_time < 28800 && input->core_time > 3600) || input->energy < 10800)
-    {
-        pics.tired = 2;
-        if (pics.outline <= 8)
-            pics.outline = 1;
-
-        if (pics.outline > 8 && pics.outline < 12)
-        {
-            if ((rand () % 1))
-                pics.outline = 2;
-        }
-    }
-    if ((input->core_time < 25200 && input->core_time > 10800) || input->energy < 3600 )
-    {
-        pics.tired = 3;
-        if (pics.outline <= 9)
-            pics.outline = 1;
-
-        if (pics.outline > 9 && pics.outline < 13)
-        {
-            if ((rand () % 1))
-                pics.outline = 3;
-        }
-    }
-    else
-    {
-        if (pics.tired > 0)
-            pics.tired--;
-        if (pics.outline <= 3 && pics.outline >= 1)
-            pics.outline--;
-    }
-}
-/*
-56ºC
-58ºC
-60ºC
-62ºC
-64ºC
-*/
-
-//static int input->temp_t = 0;
-
-if (input->core_temperature >= 56 && input->core_temperature < 58)
-{
-    pics.hot = 1;
-    if (input->temp_t < 30)
-        input->temp_t = 30;
-    if (input->temp_t > 60)
-        get_flu = true;
-}
-if (input->core_temperature >= 58 && input->core_temperature < 60)
-{
-    pics.hot = 2;
-    if (input->temp_t < 60)
-        input->temp_t = 60;
-    if (input->temp_t > 80)
-        get_flu = true;
-}
-if (input->core_temperature >= 60 && input->core_temperature < 62)
-{
-    pics.hot = 3;
-    if (input->temp_t < 80)
-        input->temp_t = 80;
-    if (input->temp_t > 120)
-        get_flu = true;
-}
-if (input->core_temperature >= 62 && input->core_temperature < 64)
-{
-    pics.hot = 4;
-    if (input->temp_t < 120)
-        input->temp_t = 120;
-}
-if (input->core_temperature >= 64)
-{
-    pics.hot = 5;
-    if (input->temp_t < 180)
-        input->temp_t = 180;
-}
-
-else
-{
-    if (pics.hot > 0)
-        pics.hot--;
-}
-
-if (input->temp_t > 0)
-    input->temp_t--;
-
-if (get_flu)
-{
-    print_event ("GET FLU!");
-
-   // static int input->flu_timer = 360;
-
-    if (input->flu_timer > 0)
-        input->flu_timer--;
-
-    if (input->flu_timer <= 240)
-    {
-        pics.hot = 1;
-        pics.shy = 1;
-        pics.tired = 1;
-        if (bulwers->level < 8)
-            bulwers->level = 8;
-    }
-    if (input->flu_timer <= 120)
-    {
-        pics.hot = 2;
-        pics.shy = 2;
-        pics.tired = 2;
-        if (bulwers->level < 8)
-            bulwers->level = 8;
-    }
-    if (input->flu_timer == 0)
-    {
-        pics.hot = 3;
-        pics.shy = 3;
-        pics.tired = 3;
-        if (bulwers->level < 10)
-            bulwers->level = 10;
-        input->energy--;
-    }
-}
-
-/////////////////////////////////
-
-// PICTURE MANAGING
-
-/////////////////////////////////
-
-if (images_ready)
-{
-if (pics.eye == 1)
-    set_eyes ( "eye_01" );
-if (pics.eye == 2)
-    set_eyes ( "eye_02" );
-if (pics.eye == 3)
-    set_eyes ( "eye_03" );
-if (pics.eye == 4)
-    set_eyes ( "eye_04" );
-if (pics.eye == 5)
-    set_eyes ( "eye_05" );
-if (pics.eye == 6)
-    set_eyes ( "eye_06" );
-if (pics.eye == 7)
-    set_eyes ( "eye_07" );
-if (pics.eye == 8)
-    set_eyes ( "eye_08" );
-if (pics.eye == 9)
-    set_eyes ( "eye_09" );
-if (pics.eye == 10)
-    set_eyes ( "eye_10" );
-
-
-
-if (pics.outline == 0)
-{
-    int tmp = rand () % 3;
-    if (tmp == 0)
-        face_send = "cusual_01";
-    if (tmp == 1)
-        face_send = "bul_01";
-    if (tmp == 2)
-        face_send = "bul_02";
-    if (tmp == 3)
-        face_send = "bul_03";
-}
-else
-{
-    if (pics.outline == 1)
-    {
-        int tmp = rand () % 3 + 1;
-        if (tmp == 1)
-            face_send = "slp_01";
-        if (tmp == 2)
-            face_send = "slp_02";
-        if (tmp == 3)
-            face_send = "slp_03";
-        if (tmp == 4)
-            face_send = "slp_04";
-    }
-    if (pics.outline == 2)
-    {
-        int tmp = rand () % 1 + 4;
-        if (tmp == 4)
-            face_send = "slp_04";
-        if (tmp == 5)
-            face_send = "slp_05";
-    }
-    if (pics.outline == 3)
-    {
-        int tmp = rand () % 5 + 1;
-        if (tmp == 5)
-            face_send = "slp_05";
-        if (tmp == 6)
-            face_send = "slp_06";
-    }
-
-    if (pics.outline == 4)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "cusual_01";
-        if (tmp == 1)
-            face_send = "bul_01";
-        if (tmp == 2)
-            face_send = "bul_02";
-    }
-    if (pics.outline == 5)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_01";
-        if (tmp == 1)
-            face_send = "bul_02";
-        if (tmp == 2)
-            face_send = "bul_03";
-    }
-    if (pics.outline == 6)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_02";
-        if (tmp == 1)
-            face_send = "bul_03";
-        if (tmp == 2)
-            face_send = "bul_04";
-    }
-    if (pics.outline == 7)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_03";
-        if (tmp == 1)
-            face_send = "bul_04";
-        if (tmp == 2)
-            face_send = "bul_05";
-    }
-    if (pics.outline == 8)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_04";
-        if (tmp == 1)
-            face_send = "bul_05";
-        if (tmp == 2)
-            face_send = "bul_06";
-    }
-    if (pics.outline == 9)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_05";
-        if (tmp == 1)
-            face_send = "bul_06";
-        if (tmp == 2)
-            face_send = "bul_07";
-    }
-    if (pics.outline == 10)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_06";
-        if (tmp == 1)
-            face_send = "bul_07";
-        if (tmp == 2)
-            face_send = "bul_08";
-    }
-    if (pics.outline == 11)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_07";
-        if (tmp == 1)
-            face_send = "bul_08";
-        if (tmp == 2)
-            face_send = "bul_09";
-    }
-    if (pics.outline == 12)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_08";
-        if (tmp == 1)
-            face_send = "bul_09";
-        if (tmp == 2)
-            face_send = "bul_10";
-    }
-    if (pics.outline == 13)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_09";
-        if (tmp == 1)
-            face_send = "bul_10";
-        if (tmp == 2)
-            face_send = "bul_11";
-    }
-    if (pics.outline == 14)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_10";
-        if (tmp == 1)
-            face_send = "bul_11";
-        if (tmp == 2)
-            face_send = "bul_12";
-    }
-    if (pics.outline == 15)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_11";
-        if (tmp == 1)
-            face_send = "bul_12";
-        if (tmp == 2)
-            face_send = "bul_13";
-    }
-    if (pics.outline == 16)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_12";
-        if (tmp == 1)
-            face_send = "bul_13";
-        if (tmp == 2)
-            face_send = "bul_14";
-    }
-    if (pics.outline == 17)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_13";
-        if (tmp == 1)
-            face_send = "bul_14";
-        if (tmp == 2)
-            face_send = "bul_15";
-    }
-    if (pics.outline == 18)
-    {
-        int tmp = rand () % 2;
-        if (tmp == 0)
-            face_send = "bul_14";
-        if (tmp == 1)
-            face_send = "bul_15";
-        if (tmp == 2)
-            face_send = "bul_16";
-    }
-    if (pics.outline == 19)
-    {
-        int tmp = rand () % 1;
-        if (tmp == 0)
-            face_send = "bul_15";
-        if (tmp == 1)
-            face_send = "bul_16";
-    }
-
-
-}
-
-
-int anim_num_1 = 0;
-int anim_num_2 = 0;
-
-       if (face_prev == "bul_16" ||
-           face_prev == "sh_01"  ||
-           face_prev == "slp_10" ||
-           face_prev == "cusual_01" ||
-           face_prev == "bul_01" ||
-           face_prev == "bul_02" ||
-           face_prev == "bul_03" ||
-           face_prev == "bul_04" ||
-           face_prev == "bul_05" ||
-           face_prev == "bul_06" ||
-           face_prev == "bul_07" ||
-           face_prev == "bul_08" ||
-           face_prev == "bul_09" ||
-           face_prev == "bul_10" ||
-           face_prev == "bul_11" ||
-           face_prev == "bul_12" ||
-           face_prev == "bul_13" ||
-           face_prev == "bul_14" ||
-           face_prev == "bul_15" ||
-           face_prev == "slp_01" ||
-           face_prev == "slp_02" ||
-           face_prev == "slp_03" ||
-           face_prev == "slp_04" ||
-           face_prev == "slp_05" ||
-           face_prev == "slp_06" )
-           anim_num_1 = 0;
-
-
-           anim_num_2 = 0;
-
-       if (face_send == "bul_16" ||
-           face_send == "slp_10" )
-           anim_num_2 = 0;
-       if (face_send == "bul_09" ||
-           face_send == "bul_10" ||
-           face_send == "bul_11" ||
-           face_send == "bul_12" ||
-           face_send == "bul_13" ||
-           face_send == "bul_14" ||
-           face_send == "bul_15" )
-           anim_num_2 = 5;
-       if (face_send == "cusual_01" ||
-           face_send == "bul_01" ||
-           face_send == "bul_02" ||
-           face_send == "bul_03" ||
-           face_send == "bul_04" ||
-           face_send == "slp_01" ||
-           face_send == "slp_02" ||
-           face_send == "slp_03" ||
-           face_send == "slp_04" ||
-           face_send == "slp_05" )
-           anim_num_2 = 4;
-       if (face_send == "bul_05" ||
-           face_send == "bul_06" ||
-           face_send == "bul_07" ||
-           face_send == "bul_08" ||
-           face_send == "slp_06" )
-           anim_num_2 = 3;
-
-
-
-
-       if (face_send == "")
-           face_send = "cusual_01";
-
-
-       if (face_double_prev == face_prev && face_prev == face_send)
-       {}
-
-       else
-       {
-
-       set_animation (face_prev + "_close", face_send + "_open", anim_num_1, anim_num_2);
-
-       if (pics.outline == 20 && prev_pics.outline != 20)
-       {
-           face_send = "sh_01";
-           set_animation (face_prev + "_close", "sh_02_open", anim_num_1, 7);
-       }
-
-       if (pics.outline != 20 && prev_pics.outline == 20)
-       {
-           face_send = "cusual_01";
-           set_animation ("sh_01_close", "cusual_01_open", 0, 4);
-       }
-       if (pics.outline == 20 && prev_pics.outline == 20)
-       {
-           face_send = "sh_01";
-           set_animation ("sh_02_close", "sh_01_open", 0, 0);
-       }
-
-       if (pics.outline == 21)
-       {
-           face_send = "slp_10";
-           set_animation (face_prev + "_close", "slp_10_open", anim_num_1, 0);
-       }
-
-       }
-
-
-
-
-       face_double_prev = face_prev;
-       face_prev = face_send;
-
-cout << "\033[4;22H" << pics.outline << "            ";
-
-}
-
-else
-    cout << "\033[4;22H" << "image loadnig";
-
-
-cout << "\033[5;2H" << pics.eye << " " << pics.hot << " " << pics.layer2 << " " << pics.layer3 << " " << pics.layer4 << " " << pics.outline << " " << pics.shy << " " << pics.tired;
-cout << "\033[6;2H" << prev_pics.eye << " " << prev_pics.hot << " " << prev_pics.layer2 << " " << prev_pics.layer3 << " " << prev_pics.layer4 << " " << prev_pics.outline << " " << prev_pics.shy << " " << prev_pics.tired;
-if (!identical (pics, prev_pics) && images_ready)
-{
-    update ();
-    cout << "\033[5;0H" << "O";
-}
-else
-    cout << "\033[5;0H" << "X";
-
-
-prev_pics = pics;
-
-
-
-
-//---sleepping
-
-if (!wake_up)
-{
-    pics.outline = 21;
-    if (input->core_day != 7)
-    {
-        if (input->core_time >= 22800 )
-        {
-            input->energy = 54000;
-            wake_up = true;
-            pics.outline = 3;
-        }
-        else
-            input->energy = 43200;
-    }
-    else
-    {
-
-        if (input->core_time >= 36000 )
-        {
-            input->energy = 72000;
-            wake_up = true;
-            pics.outline = 3;
-        }
-        else
-            input->energy = 43200;
-    }
-    cout << "\033[13;17H" << "Wake up Neo!" << endl;
-}
-
-
-}
-
-
-bool identical (pict_layers el1, pict_layers el2)
-{
-    if (el1.eye == el2.eye && el1.hot == el2.hot && el1.layer2 == el2.layer2 && el1.layer3 == el2.layer3 && el1.layer4 == el2.layer4 && el1.outline == el2.outline && el1.shy == el2.shy && el1.tired == el2.tired)
-        return true;
-    else return false;
-}
-
-
-void core_main ()
-{
-        bulwers_init ();
-        srand ( time(NULL) );
-        event_now = false;
-        core_step = 0;
-        wake_up = false;
-        cout << "\033[40m" << endl;
-        cout << "\033[2J\033[0;0H";
-        cout << "\033[32m" << endl;
-        naglowek_in ("v.0.0.1a-01");
-        print ( " Welcome in eyes project!" );
-        //cin >> force_bulwers;
-        sleep (2);
-        naglowek_out ("v.0.0.1a-01");
-        cout << "\033[2J\033[0;0H";
-        cout << "\033[90A" << endl;
-        cout << "\033[2J";
-        print_gui ();
-        cout << "\033[1;33m";
-        core_stats input;
-        initialization ( &input );
-while (1)
-{
-    if ( is_finished )
-    {
-        cleanup ();
-        return;
-    }
-    cout << "\033[0;22H" << core_step << '\n';
-    reload_stats ( &input );
-    eyes->update_bulwers ( &input );
-    sleep (1);
-    core_step++;
-}
-
-
-
-
-
-}
-
-
-void initialization ( core_stats * input)
-{
-                input->core_day                 =get_time ().day;
-                input->core_dnum                =get_time ().day_num;
-                input->core_month               =get_time ().month;
-                input->core_year                =get_time ().year;
-                input->core_time                =get_time ().hour;
-                input->core_battery_plugged     =bat_plugged ();
-                input->core_temperature         =temperatura ();
-                input->core_battery             =bateria();
-                input->current_probe            =0;
-                input->current_probe_small      =0;
-                input->cpu_probes[0]            =20;
-                input->cpu_probes[1]            =20;
-                input->cpu_probes[2]            =20;
-                input->cpu_probes[3]            =20;
-                input->cpu_probes[4]            =20;
-                input->cpu_probes[5]            =20;
-                input->cpu_probes[6]            =20;
-                input->cpu_probes[7]            =20;
-                input->cpu_probes[8]            =20;
-                input->cpu_probes[9]            =20;
-                input->cpu_sector_small[0]      =20;
-                input->cpu_sector_small[1]      =20;
-                input->cpu_sector_small[2]      =20;
-                input->cpu_sector_small[3]      =20;
-                input->cpu_sector_small[4]      =20;
-                input->cpu_sector_small[5]      =20;
-                input->cpu_sector_small[6]      =20;
-                input->cpu_sector_small[7]      =20;
-                input->cpu_sector_small[8]      =20;
-                input->cpu_sector_small[9]      =20;
-                input->core_cpu_load            =20;
-                input->core_memory              =M_LOAD ();
-                input->core_proclist            =P_LIST ();
-                input->core_uptime              =U_TIME ();
-                input->energy                   =54000;
-                input->prev_bat_plug            =input->core_battery_plugged;
-                input->battery_buffer           =0;
-                input->temp_t                   =0;
-                input->flu_timer                =360;
-                input->prev_happy               =0;
-                input->once_plugged             =false;
-}
-
-
-void reload_stats ( core_stats * input )
-{
-
-
-                input->core_day                 =get_time ().day;
-                input->core_dnum                =get_time ().day_num;
-                input->core_month               =get_time ().month;
-                input->core_year                =get_time ().year;
-                input->core_time                =get_time ().hour;
-                input->core_battery_plugged     =bat_plugged ();
-                input->core_temperature         =temperatura ();
-                input->core_battery             =bateria();
-                input->current_probe_small      ++;
-                if (input->current_probe_small == 10)
-                    input->current_probe_small = 0;
-                input->cpu_sector_small[input->current_probe_small] = C_LOAD ();
-                if (input->cpu_sector_small[input->current_probe_small] > 100)
-                    input->cpu_sector_small[input->current_probe_small] = 20;
-                if (input->cpu_sector_small[input->current_probe_small] == 100)
-                    input->cpu_sector_small[input->current_probe_small] = 99;
-                input->cpu_probes[input->current_probe] = ((input->cpu_sector_small[0] +
-                                                            input->cpu_sector_small[1] +
-                                                            input->cpu_sector_small[2] +
-                                                            input->cpu_sector_small[3] +
-                                                            input->cpu_sector_small[4] +
-                                                            input->cpu_sector_small[5] +
-                                                            input->cpu_sector_small[6] +
-                                                            input->cpu_sector_small[7] +
-                                                            input->cpu_sector_small[8] +
-                                                            input->cpu_sector_small[9]) / 10);
-                if (core_step % 10 == 0)
-                {
-                input->current_probe            ++;
-                input->core_cpu_load = (input->cpu_probes[0] +
-                                        input->cpu_probes[1] +
-                                        input->cpu_probes[2] +
-                                        input->cpu_probes[3] +
-                                        input->cpu_probes[4] +
-                                        input->cpu_probes[5] +
-                                        input->cpu_probes[6] +
-                                        input->cpu_probes[7] +
-                                        input->cpu_probes[8] +
-                                        input->cpu_probes[9]) / 10;
-                if (input->current_probe == 10)
-                    input->current_probe = 0;
-                }
-                input->core_memory              =M_LOAD ();
-                input->core_proclist            =P_LIST ();
-                input->core_uptime              =U_TIME ();
-}
-
-
-//===========================
-
-inline static void print ( char * str )
-{
-  print ( str, 0 );
-}
-
-static void print ( char * str, int _pos )
-{
-  cout << "\033[1;32m";
-  int plus = _pos+1;
-  for ( int i=0 ; i<strlen(str) ; i++ )
-  {
-    cout << str[i] << '\n';
-    if ( str[i] == '\n' )
-    {
-      usleep ( 50000 );
-      plus = _pos+1;
-    }
-    else if ( str[i] == '.' or str[i] == '!' or str[i] == '?' )
-      usleep ( 30000 );
-    else
-      usleep ( 20000 );
-    cout << "\033[1A \033[" << plus << "C";
-    plus++;
-  }
-}
-
-inline void print_gui ()
-{
-  cout  << "\033[2J \033[0;0H";
-  print ( " stage:\ncurrent cpu probe:\ncureent buffer:\nreturned face:" );
-  cout  << "\033[0;35H";
-  print ( " cpu probes table:\ncpu buffer table", 35 );
-  cout << "\033[3;40H";
-  print ( " cpu:\nmemory:\nproclist:\nuptime:", 40 );
-  cout << "\033[4;75H";
-  print ( " day of week:\nday of month:\nmonth:\nyear:\ntime:\n", 75 );
-  cout << "\033[10;0H";
-  print ( " batery state:\nbatery power:\ntemperature:\ninput->energy:" );
-  cout << "\033[10;35H";
-  print ( " specjal:\nlongev:\nhappy:\nbulwers:", 35 );
-  cout << "\033[10;60H";
-  print ( " o\nt\nh\ne\nr\ns", 60 );
-  cout << "\033[8m";
-}
-
-//---------------------------
-int C_LOAD ()
+double C_LOAD ()
 {
 glibtop_init();
-glibtop_cpu cpu;
-glibtop_get_cpu (&cpu);
+glibtop_cpu gcpu;
+glibtop_get_cpu (&gcpu);
 
-static unsigned short cpu_load = 0;
+static double cpu_load = 0;
 static unsigned long p_idle = 0;
 static unsigned long p_total = 0;
 static unsigned long a_idle = 0;
 static unsigned long a_total = 0;
-static unsigned short d_total = 0;
-static unsigned short d_idle = 0;
-a_idle = cpu.idle;
-a_total = cpu.total;
+static unsigned long d_total = 0;
+static unsigned long d_idle = 0;
+a_idle = gcpu.idle;
+a_total = gcpu.total;
 
         d_total = a_total - p_total;
         d_idle = a_idle - p_idle;
@@ -2125,20 +124,20 @@ a_total = cpu.total;
 return cpu_load;
 }
 //-------------------------
-int M_LOAD ()
+double M_LOAD ()
 {
 glibtop_init();
 glibtop_mem memory;
 glibtop_get_mem(&memory);
 
-//unsigned int mem_total = memory.total;
-//unsigned int mem_used = memory.used;
-//unsigned int mem_load = (100*mem_used)/mem_total;
-
-return 100* ((float)memory.user/(float)memory.total);
+/*unsigned int mem_total = memory.total;
+unsigned int mem_used = memory.user;
+unsigned int mem_load = mem_used/mem_total;
+*/
+return 100*( (double)memory.user / (double)memory.total );
 }
 //-------------------------
-int P_LIST ()
+unsigned short P_LIST ()
 {
 int which,arg;
 
@@ -2214,29 +213,39 @@ sdate get_time ()
 
 //--------------------------
 
-int temperatura ()
+unsigned short temperatura ()
 {
-        fstream calosc ("/proc/acpi/thermal_zone/TZ00/temperature", fstream::in);
+    string texcik;
 
-        string texcik;
+    fstream calosc ("/proc/acpi/thermal_zone/TZ00/temperature", fstream::in);
+    while (calosc.good())
+            texcik+=calosc.get();
+
+    if (texcik == "")
+    {
+        fstream calosc ("/sys/class/thermal/thermal_zone0/temp", fstream::in);
         while (calosc.good())
-                texcik+=calosc.get();
+            texcik+=calosc.get();
 
-        int tempjuczer=texcik.find_first_of ("temperature");
+        if (texcik == "")
+            return temperature.stable;
 
-        int i=0;
-        int a=0;
+        return (10*((unsigned short)texcik[0] - 48) + ((unsigned short)texcik[1] - 48));
+    }
+    else
+    {
+        unsigned short tempjuczer=texcik.find_first_of ("temperature");
+        unsigned short i=0;
+        unsigned short a=0;
         char temp[27];
 
-        for (;i<27;i++) {
+        for (;i<27;i++)
+        {
                 temp[a] = texcik[25+a];
                 a++;
-                }
-
-        int temperature;
-        temperature = atoi (temp);
-
-        return temperature;
+        }
+        return atoi (temp);
+    }
 }
 
 //--------------------------
@@ -2248,6 +257,34 @@ int bat_plugged ()
         string texcik;
         while (calosc.good()){
         texcik+=calosc.get();}
+
+        if (texcik == "")
+        {
+            fstream calosc ("/sys/class/power_supply/BAT1/status", fstream::in);
+
+            string texcik;
+            while (calosc.good()){
+            texcik+=calosc.get();}
+
+            static int pluged = 0;
+
+            if (texcik[0] == 'C' && pluged !=1) //battery has been just pluged
+            {
+                    pluged = 1;
+                    return 1;
+            }
+            if (texcik[0] != 'C' && pluged !=0) //battery has been just unpluged
+            {
+                    pluged = 0;
+                    return 2;
+            }
+            if (texcik[0] == 'C' && pluged == 1) //battery is still pluged
+                    return 3;
+            if (texcik[0] != 'C' && pluged == 0) //battery is still unpluged
+                    return 4;
+
+            else return 5;
+        }
 
         if (texcik[25] == 'n')
         {
@@ -2261,7 +298,7 @@ int bat_plugged ()
                 pluged = 1;
                 return 1;
         }
-         if (texcik[82] != 'c' && pluged !=0) //battery has been just unpluged
+        if (texcik[82] != 'c' && pluged !=0) //battery has been just unpluged
         {
                 pluged = 0;
                 return 2;
@@ -2282,6 +319,48 @@ int bateria ()
         while (calosc.good()){
         texcik+=calosc.get();}
 
+        if (texcik == "")
+        {
+            fstream calosc ("/sys/class/power_supply/BAT1/charge_now", fstream::in);
+            while (calosc.good())
+                    texcik+=calosc.get();
+
+            string texcik2;
+            fstream calosc2 ("/sys/class/power_supply/BAT1/charge_full", fstream::in);
+            while (calosc2.good())
+                    texcik2+=calosc2.get();
+
+            if (texcik == "")
+                return battery.stable;
+
+            if (texcik2 == "")
+                return ((1000000*((unsigned short)texcik[0] - 48) +
+                         100000*((unsigned short)texcik[1] - 48) +
+                         10000*((unsigned short)texcik[2] - 48) +
+                         1000*((unsigned short)texcik[3] - 48) +
+                         100*((unsigned short)texcik[4] - 48) +
+                         10*((unsigned short)texcik[5] - 48) +
+                         ((unsigned short)texcik[6] - 48))) /
+                         (10*battery_capacity);
+
+
+
+            return 100*((1000000*((unsigned short)texcik[0] - 48) +
+                    100000*((unsigned short)texcik[1] - 48) +
+                    10000*((unsigned short)texcik[2] - 48) +
+                    1000*((unsigned short)texcik[3] - 48) +
+                    100*((unsigned short)texcik[4] - 48) +
+                    10*((unsigned short)texcik[5] - 48) +
+                    ((unsigned short)texcik[6] - 48))) /
+                    (1000000*((unsigned short)texcik2[0] - 48) +
+                    100000*((unsigned short)texcik2[1] - 48) +
+                    10000*((unsigned short)texcik2[2] - 48) +
+                    1000*((unsigned short)texcik2[3] - 48) +
+                    100*((unsigned short)texcik2[4] - 48) +
+                    10*((unsigned short)texcik2[5] - 48) +
+                    ((unsigned short)texcik2[6] - 48));
+        }
+
         int baterry=texcik.find_first_of ("capacity:");
 
 
@@ -2298,230 +377,2499 @@ int bateria ()
         static int powr;
         powr = atoi (bat);
 
-        return powr;
+        return 100*powr/battery_capacity;
 }
-//-----------------------------
 
-int pulsetext (char * text, int delay, int repeat, int _position)
+void bul::update()
 {
-    while (repeat>0)
+    total_mod =
+            cpu.mod         +
+            memory.mod      +
+            times.mod       +
+            energy.mod      +
+            temperature.mod -
+            battery.mod     -
+            mod_bat_plug    ;
+    if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
+        step += total_mod;
+    else
+        step = 0;
+
+    if (step < wall_01)
+        value = 0;
+    if (step > wall_01 && step <= wall_02)
+        value = 1;
+    if (step > wall_02 && step <= wall_03)
+        value = 2;
+    if (step > wall_03 && step <= wall_04)
+        value = 3;
+    if (step > wall_04 && step <= wall_05)
+        value = 4;
+    if (step > wall_05 && step <= wall_06)
+        value = 5;
+    if (step > wall_06 && step <= wall_07)
+        value = 6;
+    if (step > wall_07 && step <= wall_08)
+        value = 7;
+    if (step > wall_08 && step <= wall_09)
+        value = 8;
+    if (step > wall_09 && step <= wall_10)
+        value = 9;
+    if (step > wall_10 && step <= wall_11)
+        value = 10;
+    if (step > wall_11 && step <= wall_12)
+        value = 11;
+    if (step > wall_12 && step <= wall_13)
+        value = 12;
+    if (step > wall_13 && step <= wall_14)
+        value = 13;
+    if (step > wall_14 && step <= wall_15)
+        value = 14;
+    if (step > wall_15)
+        value = 15;
+
+    if (step != 0)
+        step--;
+
+
+
+    if (battery_state == 0)
     {
-        if (repeat%2 == 1)
-        cout << text << endl;
+        outline = 20;
+        eye = 10;
+    }
+    else if (outline == 20)
+        outline = 0;
+
+    if (once_plugged)
+    {
+        if (battery_state == 2 && prev_bat_plug != 2)
+        {
+            if (prev_bat_plug == 3)
+            {
+                mod_bat_plug--;
+            }
+
+            if (prev_bat_plug == 1)
+            {
+                mod_bat_plug-=2;
+            }
+        }
+        if (battery_state == 1 && prev_bat_plug != 1)
+        {
+            mod_bat_plug+=2;
+        }
+        if (battery_state == 3 && prev_bat_plug != 3)
+        {
+            mod_bat_plug--;
+        }
+    }
+    if (!once_plugged)
+    {
+        if (battery_state == 1)
+        {
+            once_plugged = true;
+            mod_bat_plug +=2;
+        }
+        if (battery_state == 3)
+        {
+            once_plugged = true;
+            mod_bat_plug++;
+        }
+    }
+    prev_bat_plug = battery_state;
+
+
+    if (value != 0 && outline != 20 && outline != 21)
+        outline = value + 3;
+    if (outline != 20 && value == 0)
+        outline = 0;
+
+
+    if (get_time ().month == 12 || get_time ().month == 1 )
+    if (outline != 20)
+    {
+        if (times.value < 7 || times.value >= 19)
+            eye = 1;
+        if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
+            eye = 2;
+        if ((times.value >= 8 && times.value < 9) || (times.value >= 15 && times.value < 16))
+            eye = 3;
+        if ((times.value >= 9 && times.value < 10) || (times.value >= 14 && times.value < 15))
+            eye = 4;
+        if ((times.value >= 10 && times.value < 11) || (times.value >= 13 && times.value < 14))
+            eye = 5;
+        if ((times.value >= 11 && times.value < 13))
+            eye = 6;
+    }
+
+    if (get_time ().month == 2 || get_time ().month == 3 || get_time ().month == 10 || get_time ().month == 11 )
+    if (outline != 20)
+    {
+        if (times.value < 6 || times.value >= 19)
+            eye = 1;
+        if ((times.value >= 6 && times.value < 7) || (times.value >= 17 && times.value < 18))
+            eye = 2;
+        if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
+            eye = 3;
+        if ((times.value >= 8 && times.value < 9) || (times.value >= 15 && times.value < 16))
+            eye = 4;
+        if ((times.value >= 9 && times.value < 10) || (times.value >= 14 && times.value < 15))
+            eye = 5;
+        if ((times.value >= 10 && times.value < 11) || (times.value >= 13 && times.value < 14))
+            eye = 6;
+        if ((times.value >= 11 && times.value < 13))
+            eye = 7;
+    }
+
+    if (get_time ().month == 4 || get_time ().month == 5 || get_time ().month == 8 || get_time ().month == 9 )
+    if (outline != 20)
+        {
+            if (times.value < 5 || times.value >= 19)
+                eye = 1;
+            if ((times.value >= 5 && times.value < 6) || (times.value >= 18 && times.value < 19))
+                eye = 2;
+            if ((times.value >= 6 && times.value < 7) || (times.value >= 17 && times.value < 18))
+                eye = 3;
+            if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
+                eye = 4;
+            if ((times.value >= 8 && times.value < 9) || (times.value >= 15 && times.value < 16))
+                eye = 5;
+            if ((times.value >= 9 && times.value < 10) || (times.value >= 14 && times.value < 15))
+                eye = 6;
+            if ((times.value >= 10 && times.value < 11) || (times.value >= 13 && times.value < 14))
+                eye = 7;
+            if ((times.value >= 11 && times.value < 13))
+                eye = 8;
+        }
+
+    if (get_time ().month == 6 || get_time ().month == 7 )
+    if (outline != 20)
+    {
+        if (times.value < 3 || times.value >= 21)
+            eye = 1;
+        if ((times.value >= 3 && times.value < 4) || (times.value >= 20 && times.value < 21))
+            eye = 2;
+        if ((times.value >= 4 && times.value < 5) || (times.value >= 19 && times.value < 20))
+            eye = 3;
+        if ((times.value >= 5 && times.value < 6) || (times.value >= 18 && times.value < 19))
+            eye = 4;
+        if ((times.value >= 6 && times.value < 7) || (times.value >= 17 && times.value < 18))
+            eye = 5;
+        if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
+            eye = 6;
+        if ((times.value >= 8 && times.value < 9) || (times.value >= 15 && times.value < 16))
+            eye = 7;
+        if ((times.value >= 9 && times.value < 10) || (times.value >= 14 && times.value < 15))
+            eye = 8;
+        if ((times.value >= 10 && times.value < 11) || (times.value >= 13 && times.value < 14))
+            eye = 9;
+        if ((times.value >= 11 && times.value < 13))
+            eye = 10;
+    }
+
+    //TODO 01: It must works on cfg values, not static.
+
+    if (get_time ().day != 7)
+    {
+        if (times.value < 6 || times.value > 21 || energy.value > energy.start + energy.wide - 5)
+        {
+            tired = 1;
+
+            if (outline <= 7)
+                outline = 1;
+
+            if (outline > 7 && outline < 11)
+            {
+                if ((rand () % 1))
+                    outline = 1;
+            }
+        }
+        if (times.value < 6 || times.value > 22 || energy.value > energy.start + energy.wide - 3)
+        {
+            tired = 2;
+            if (outline <= 8)
+                outline = 1;
+
+            if (outline > 8 && outline < 12)
+            {
+                if ((rand () % 1))
+                    outline = 2;
+            }
+        }
+        if (times.value < 5 || times.value > 23 || energy.value > energy.start + energy.wide - 1 )
+        {
+            tired = 3;
+            if (outline <= 9)
+                outline = 1;
+
+            if (outline > 9 && outline < 13)
+            {
+                if ((rand () % 1))
+                    outline = 3;
+            }
+        }
         else
-        cout << "                    " << endl;
-
-     cout << "\033[1A" << "\033[" << _position << "C";
-     usleep (100*delay);
-     repeat--;
+        {
+            if (tired > 0)
+                tired--;
+        }
     }
-    return 1;
-}
-
-
-int felltext (char*downgrade)
-{
-    cout << "\033[40m" << endl;
-
-    int leng = strlen(downgrade);
-    cout << endl << endl;
-     for ( int i=0 ; i<(leng+2) ; i++ )
+    else
     {
-        usleep (5000);
-        if (i > 0 && i<leng)
+        if (times.value < 10 || times.value > 23 ||  energy.value > energy.start + energy.wide - 5*3600)
         {
-            cout << "\033[32m" << downgrade[i] << endl;
-            cout << "\033[1;30m" << "\033[2A" << downgrade[i-1] << endl;
-            cout << "\033[2A" << " " << endl;
-            cout << "\033[1B" << endl;
+            tired = 1;
+            if (outline <= 7)
+                outline = 1;
+
+            if (outline > 7 && outline < 11)
+            {
+                if ((rand () % 1))
+                    outline = 1;
+            }
         }
-        if (i==0)
+        if ((times.value < 8 && times.value > 1) ||  energy.value > energy.start + energy.wide - 3*3600)
         {
-            cout << "\033[1;32m" << downgrade[i] << endl;
+            tired = 2;
+            if (outline <= 8)
+                outline = 1;
+
+            if (outline > 8 && outline < 12)
+            {
+                if ((rand () % 1))
+                    outline = 2;
+            }
         }
-        if (i==leng)
+        if ((times.value < 7 && times.value > 3) ||  energy.value > energy.start + energy.wide - 3*3600 )
         {
-            cout << " " << endl;
-            cout << "\033[32m" << "\033[2A" << downgrade[i-1] << endl;
-            cout << "\033[2A" << " " << endl;
-            cout << "\033[1B" << endl;
+            tired = 3;
+            if (outline <= 9)
+                outline = 1;
+
+            if (outline > 9 && outline < 13)
+            {
+                if ((rand () % 1))
+                    outline = 3;
+            }
         }
-        if(i==(leng+1))
+        else
         {
-            cout << " " << endl;
-            cout << "\033[2A" << " " << endl;
-            cout << "\033[2A" << " " << endl;
-            cout << "\033[1B" << endl;
+            if (tired > 0)
+                tired--;
+            if (outline <= 3 && outline >= 1)
+                outline--;
         }
     }
-return 1;
-}
 
-int about()
-{
-    cout << "\033[37m" << "\033[40m";
-    int i= 95;
-    while (i>0)
+    //--flue
+
+    if (temperature.value >= 56 && temperature.value < 58)
     {
-        usleep (500);
-        cout << endl;
-        i--;
+        hot = 1;
+        if (temp_t < 30)
+            temp_t = 30;
+        if (temp_t > 60)
+            get_flu = true;
+    }
+    if (temperature.value >= 58 && temperature.value < 60)
+    {
+        hot = 2;
+        if (temp_t < 60)
+            temp_t = 60;
+        if (temp_t > 80)
+            get_flu = true;
+    }
+    if (temperature.value >= 60 && temperature.value < 62)
+    {
+        hot = 3;
+        if (temp_t < 80)
+            temp_t = 80;
+        if (temp_t > 120)
+            get_flu = true;
+    }
+    if (temperature.value >= 62 && temperature.value < 64)
+    {
+        hot = 4;
+        if (temp_t < 120)
+            temp_t = 120;
+    }
+    if (temperature.value >= 64)
+    {
+        hot = 5;
+        if (temp_t < 180)
+            temp_t = 180;
+    }
+
+    else
+    {
+        if (hot > 0)
+            hot--;
+    }
+
+    if (temp_t > 0)
+        temp_t--;
+
+    if (get_flu)
+    {
+
+        if (flu_timer > 0)
+            flu_timer--;
+
+        if (flu_timer <= 240)
+        {
+            hot = 1;
+            shy = 1;
+            tired = 1;
+            if (value < 8)
+                value = 8;
+        }
+        if (flu_timer <= 120)
+        {
+            hot = 2;
+            shy = 2;
+            tired = 2;
+            if (value < 8)
+                value = 8;
+        }
+        if (flu_timer == 0)
+        {
+            hot = 3;
+            shy = 3;
+            tired = 3;
+            if (value < 10)
+                value = 10;
+            energy.value++;
+        }
+    }
+}
+
+unsigned int percental::calculate ()
+{
+    mod_prev = 0;
+    mod = 0;
+    for (unsigned short i = 0; i<=steps; i++)
+    {
+        mod_prev = mod;
+        if (load <= stable - loseless - (i*((stable - loseless)/steps)))
+        {
+            if (frequency == 'l')
+                mod = -i*lin_num;
+            if (frequency == 'q')
+                mod = -i*i;
+            if (frequency == 'f')
+                mod = -i + mod_prev;
+        }
+    }
+
+    for (unsigned short i = 0; i<=steps; i++)
+    {
+        mod_prev = mod;
+        if (load >= stable + loseless + (i*((100-(stable + loseless))/steps)))
+        {
+            if (frequency == 'l')
+                mod = i*lin_num;
+            if (frequency == 'q')
+                mod = i*i;
+            if (frequency == 'f')
+                mod = i + mod_prev;
+        }
+
+    }
+    return mod;
+}
+
+unsigned int unital::calculate()
+{
+    mod = 0;
+    mod_prev = 0;
+    for (unsigned short i = 0; i<=steps; i++)
+    {
+        mod_prev = mod;
+        if (value <= stable - loseless - (i*unit))
+        {
+            if (frequency == 'l')
+                mod = -i*lin_num;
+            if (frequency == 'q')
+                mod = -i*i;
+            if (frequency == 'f')
+                mod = -i + mod_prev;
+        }
+    }
+
+    for (unsigned short i = 0; i<=steps; i++)
+    {
+        mod_prev = mod;
+        if (value >= stable + loseless + (i*unit))
+        {
+            if (frequency == 'l')
+                mod = i*lin_num;
+            if (frequency == 'q')
+                mod = i*i;
+            if (frequency == 'f')
+                mod = i + mod_prev;
+        }
+    }
+    return mod;
+}
+
+unsigned int timal::calculate()
+{
+
+if (value > start)
+{
+    if (frequency == 'l')
+    {
+        for (unsigned short i = 0; i<=steps; i++)
+        {
+            if (value >= (start + (i*(wide/steps))))
+                mod = i;
+
+
+        }
+    }
+    if (frequency == 'q')
+    {
+        unsigned short wall = start;
+        unsigned short sector = wide;
+
+        for (unsigned short i = 0; i<= steps; i++)
+        {
+            if (value >= wall + (sector/2))
+            {
+                sector /= 2;
+                wall += sector;
+                mod = i;
+            }
+
+        }
+    }
+}
+if (value <= end)
+{
+    if (frequency == 'l')
+    {
+        for (unsigned short i = steps; i>=0; i--)
+        {
+            if (value >= (end - (i*(wide/steps))))
+                mod = i;
+
+
+        }
+    }
+    if (frequency == 'q')
+    {
+        unsigned short wall = end;
+        unsigned short sector = wide;
+
+        for (unsigned short i = steps; i>= 0; i--)
+        {
+            if (value >= 0 + (sector/2))
+            {
+                sector /= 2;
+                wall += sector;
+                mod = i;
+            }
+            else break;
+        }
+    }
+}
+return mod;
+}
+
+void Core::bulwers_init ()
+{
+
+if (cpu.buffered)
+{
+    cpu.current_probe        = 0  ;
+    cpu.current_probe_small  = 0  ;
+
+    for (unsigned short i = 0; i<=cpu.buff_size;i++)
+    {
+        cpu.probes.push_back (cpu.stable);
+    }
+    for (unsigned short i = 0; i<=cpu.buff_size;i++)
+    {
+        cpu.sector_small.push_back (cpu.stable);
+    }
+}
+
+if (memory.buffered)
+{
+    memory.current_probe        = 0  ;
+    memory.current_probe_small  = 0  ;
+
+    for (unsigned short i = 0; i<=memory.buff_size;i++)
+    {
+        memory.probes.push_back (memory.stable);
+    }
+    for (unsigned short i = 0; i<=memory.buff_size;i++)
+    {
+        memory.sector_small.push_back (memory.stable);
+    }
+}
+
+if (battery.buffered)
+{
+    battery.current_probe       = 0  ;
+    battery.current_probe_small = 0  ;
+
+    for (unsigned short i = 0; i<=battery.buff_size;i++)
+    {
+        battery.probes.push_back (battery.stable);
+    }
+    for (unsigned short i = 0; i<=battery.buff_size;i++)
+    {
+        battery.sector_small.push_back (battery.stable);
+    }
+}
+
+if (temperature.buffered)
+{
+    temperature.current_probe       = 0  ;
+    temperature.current_probe_small = 0  ;
+
+    for (unsigned short i = 0; i<=temperature.buff_size;i++)
+    {
+        temperature.probes.push_back (temperature.stable);
+    }
+    for (unsigned short i = 0; i<=temperature.buff_size;i++)
+    {
+        temperature.sector_small.push_back (temperature.stable);
+    }
+}
+
+energy.value                      = 0    ;
+energy.start                     *= 3600 ;
+energy.wide                      *= 3600 ;
+once_plugged                      = false;
+mod_bat_plug                      = 0    ;
+bulwers.step                      = 0    ;
+
+
+}
+
+void percental::get_load( double function )
+{
+    if (buffered)
+    {
+        current_probe_small ++;
+
+        if (current_probe_small == buff_size)
+            current_probe_small = 0;
+
+        sector_small[current_probe_small] = function;
+        if (sector_small[current_probe_small] > 100)
+            sector_small[current_probe_small] = stable;
+        if (sector_small[current_probe_small] == 100)
+            sector_small[current_probe_small] = stable;
+
+        for (unsigned short i = 0; i< buff_size;i++)
+        {
+            probes[current_probe] += sector_small[i];
+        }
+        probes [current_probe] /= buff_size + 1;
+
+        if (core_step % 10 == 0)
+        {
+           current_probe ++;
+
+           for (unsigned short i = 0; i<buff_size;i++)
+           {
+               load += probes [i];
+           }
+
+           load /= buff_size + 1;
+
+           if (current_probe == buff_size)
+               current_probe = 0;
+        }
+
+
+    }
+    else
+        load = function;
+}
+
+void unital::get_load( unsigned short function )
+{
+    if (buffered)
+    {
+        current_probe_small ++;
+
+        if (current_probe_small == buff_size)
+            current_probe_small = 0;
+
+        sector_small[current_probe_small] = function;
+
+        if (sector_small[current_probe_small] > 100)
+            sector_small[current_probe_small] = stable;
+        if (sector_small[current_probe_small] == 100)
+            sector_small[current_probe_small] = stable;
+
+        for (unsigned short i = 0; i< buff_size;i++)
+        {
+            probes[current_probe] += sector_small[i];
+        }
+
+        probes [current_probe] /= buff_size + 1;
+
+        if (core_step % 10 == 0)
+        {
+            current_probe ++;
+
+            for (unsigned short i = 0; i<buff_size;i++)
+            {
+                value += probes [i];
+            }
+            value /= buff_size + 1;
+
+            if (current_probe == buff_size)
+                current_probe = 0;
+        }
+    }
+    else
+        value = function;
+}
+
+bool Core::wake_up_prepare()
+{
+
+        wake_up == false;
+        eyes->anims_send ( "slp_10", "slp_10_close", "slp_10_open", 0, 0);
+        bulwers.outline = 21;
+        if (get_time ().day != 7)
+        {
+            if (times.value >= 7 )
+            {
+                wake_up = true;
+                bulwers.outline = 3;
+            }
+            else
+                energy.start = 10;
+        }
+        else
+        {
+
+            if (times.value >= 10 )
+            {
+                energy.start += 4*3600;
+                wake_up = true;
+                bulwers.outline = 3;
+            }
+            else if (times.value >= 7)
+                energy.start = 16;
+            else
+                energy.start = 10;
+        }
+        if (!wake_up)
+            sleep (5);
+}
+
+void eyes_view::graphics_prepare()
+{
+    if (images_ready)
+    {
+    if (bulwers.eye == 1)
+        send_eyes ( "eye_01" );
+    if (bulwers.eye == 2)
+        send_eyes ( "eye_02" );
+    if (bulwers.eye == 3)
+        send_eyes ( "eye_03" );
+    if (bulwers.eye == 4)
+        send_eyes ( "eye_04" );
+    if (bulwers.eye == 5)
+        send_eyes ( "eye_05" );
+    if (bulwers.eye == 6)
+        send_eyes ( "eye_06" );
+    if (bulwers.eye == 7)
+        send_eyes ( "eye_07" );
+    if (bulwers.eye == 8)
+        send_eyes ( "eye_08" );
+    if (bulwers.eye == 9)
+        send_eyes ( "eye_09" );
+    if (bulwers.eye == 10)
+        send_eyes ( "eye_10" );
+
+
+
+    if (bulwers.outline == 0)
+    {
+        int tmp = rand () % 3;
+        if (tmp == 0)
+            face_send = "cusual_01";
+        if (tmp == 1)
+            face_send = "bul_01";
+        if (tmp == 2)
+            face_send = "bul_02";
+        if (tmp == 3)
+            face_send = "bul_03";
+    }
+    else
+    {
+        if (bulwers.outline == 1)
+        {
+            int tmp = rand () % 3 + 1;
+            if (tmp == 1)
+                face_send = "slp_01";
+            if (tmp == 2)
+                face_send = "slp_02";
+            if (tmp == 3)
+                face_send = "slp_03";
+            if (tmp == 4)
+                face_send = "slp_04";
+        }
+        if (bulwers.outline == 2)
+        {
+            int tmp = rand () % 1 + 4;
+            if (tmp == 4)
+                face_send = "slp_04";
+            if (tmp == 5)
+                face_send = "slp_05";
+        }
+        if (bulwers.outline == 3)
+        {
+            int tmp = rand () % 5 + 1;
+            if (tmp == 5)
+                face_send = "slp_05";
+            if (tmp == 6)
+                face_send = "slp_06";
+        }
+
+        if (bulwers.outline == 4)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "cusual_01";
+            if (tmp == 1)
+                face_send = "bul_01";
+            if (tmp == 2)
+                face_send = "bul_02";
+        }
+        if (bulwers.outline == 5)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_01";
+            if (tmp == 1)
+                face_send = "bul_02";
+            if (tmp == 2)
+                face_send = "bul_03";
+        }
+        if (bulwers.outline == 6)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_02";
+            if (tmp == 1)
+                face_send = "bul_03";
+            if (tmp == 2)
+                face_send = "bul_04";
+        }
+        if (bulwers.outline == 7)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_03";
+            if (tmp == 1)
+                face_send = "bul_04";
+            if (tmp == 2)
+                face_send = "bul_05";
+        }
+        if (bulwers.outline == 8)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_04";
+            if (tmp == 1)
+                face_send = "bul_05";
+            if (tmp == 2)
+                face_send = "bul_06";
+        }
+        if (bulwers.outline == 9)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_05";
+            if (tmp == 1)
+                face_send = "bul_06";
+            if (tmp == 2)
+                face_send = "bul_07";
+        }
+        if (bulwers.outline == 10)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_06";
+            if (tmp == 1)
+                face_send = "bul_07";
+            if (tmp == 2)
+                face_send = "bul_08";
+        }
+        if (bulwers.outline == 11)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_07";
+            if (tmp == 1)
+                face_send = "bul_08";
+            if (tmp == 2)
+                face_send = "bul_09";
+        }
+        if (bulwers.outline == 12)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_08";
+            if (tmp == 1)
+                face_send = "bul_09";
+            if (tmp == 2)
+                face_send = "bul_10";
+        }
+        if (bulwers.outline == 13)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_09";
+            if (tmp == 1)
+                face_send = "bul_10";
+            if (tmp == 2)
+                face_send = "bul_11";
+        }
+        if (bulwers.outline == 14)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_10";
+            if (tmp == 1)
+                face_send = "bul_11";
+            if (tmp == 2)
+                face_send = "bul_12";
+        }
+        if (bulwers.outline == 15)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_11";
+            if (tmp == 1)
+                face_send = "bul_12";
+            if (tmp == 2)
+                face_send = "bul_13";
+        }
+        if (bulwers.outline == 16)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_12";
+            if (tmp == 1)
+                face_send = "bul_13";
+            if (tmp == 2)
+                face_send = "bul_14";
+        }
+        if (bulwers.outline == 17)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_13";
+            if (tmp == 1)
+                face_send = "bul_14";
+            if (tmp == 2)
+                face_send = "bul_15";
+        }
+        if (bulwers.outline == 18)
+        {
+            int tmp = rand () % 2;
+            if (tmp == 0)
+                face_send = "bul_14";
+            if (tmp == 1)
+                face_send = "bul_15";
+            if (tmp == 2)
+                face_send = "bul_16";
+        }
+        if (bulwers.outline == 19)
+        {
+            int tmp = rand () % 1;
+            if (tmp == 0)
+                face_send = "bul_15";
+            if (tmp == 1)
+                face_send = "bul_16";
+        }
+
+
     }
 
 
-    cout << "\033[37m";
-    cout << "\033[1;1H";
-    cout << "\033[1;30m";
-    cout << "  ________________     _________________   ___________" << endl
-         << " /   _________   ||   |    /   _______// /     ___   \\\\" << endl
-         << "|   ||______  \\   \\\\_/   /|   ||______  |    //___\\___||" << endl
-         << "|     _____||  \\     ___//|     _____||  \\_______    \\\\" << endl
-         << "|   ||______    \\   \\\\    |   ||________|   \\\\___\\    ||" << endl
-         << "|           \\\\   \\   \\\\   |             |             ||" << endl
-         << " \\___________\\\\   \\___||   \\_____________\\___________//" << endl;
-    usleep (10000);
-    cout << "\033[37m" << "\033[9A";
-    cout << "  ________________     _________________   ___________" << endl
-         << " /   _________   ||   |    /   _______// /     ___   \\\\" << endl
-         << "|   ||______  \\   \\\\_/   /|   ||______  |    //___\\___||" << endl
-         << "|     _____||  \\     ___//|     _____||  \\_______    \\\\" << endl
-         << "|   ||______    \\   \\\\    |   ||________|   \\\\___\\    ||" << endl
-         << "|           \\\\   \\   \\\\   |             |             ||" << endl
-         << " \\___________\\\\   \\___||   \\_____________\\___________//" << endl;
+    int anim_num_1 = 0;
+    int anim_num_2 = 0;
+
+           if (s_anim.face_prev == "bul_16" ||
+               s_anim.face_prev == "sh_01"  ||
+               s_anim.face_prev == "slp_10" ||
+               s_anim.face_prev == "cusual_01" ||
+               s_anim.face_prev == "bul_01" ||
+               s_anim.face_prev == "bul_02" ||
+               s_anim.face_prev == "bul_03" ||
+               s_anim.face_prev == "bul_04" ||
+               s_anim.face_prev == "bul_05" ||
+               s_anim.face_prev == "bul_06" ||
+               s_anim.face_prev == "bul_07" ||
+               s_anim.face_prev == "bul_08" ||
+               s_anim.face_prev == "bul_09" ||
+               s_anim.face_prev == "bul_10" ||
+               s_anim.face_prev == "bul_11" ||
+               s_anim.face_prev == "bul_12" ||
+               s_anim.face_prev == "bul_13" ||
+               s_anim.face_prev == "bul_14" ||
+               s_anim.face_prev == "bul_15" ||
+               s_anim.face_prev == "slp_01" ||
+               s_anim.face_prev == "slp_02" ||
+               s_anim.face_prev == "slp_03" ||
+               s_anim.face_prev == "slp_04" ||
+               s_anim.face_prev == "slp_05" ||
+               s_anim.face_prev == "slp_06" )
+               anim_num_1 = 0;
+
+
+               anim_num_2 = 0;
+
+           if (face_send == "bul_16" ||
+               face_send == "slp_10" )
+               anim_num_2 = 0;
+           if (face_send == "bul_09" ||
+               face_send == "bul_10" ||
+               face_send == "bul_11" ||
+               face_send == "bul_12" ||
+               face_send == "bul_13" ||
+               face_send == "bul_14" ||
+               face_send == "bul_15" )
+               anim_num_2 = 5;
+           if (face_send == "cusual_01" ||
+               face_send == "bul_01" ||
+               face_send == "bul_02" ||
+               face_send == "bul_03" ||
+               face_send == "bul_04" ||
+               face_send == "slp_01" ||
+               face_send == "slp_02" ||
+               face_send == "slp_03" ||
+               face_send == "slp_04" ||
+               face_send == "slp_05" )
+               anim_num_2 = 4;
+           if (face_send == "bul_05" ||
+               face_send == "bul_06" ||
+               face_send == "bul_07" ||
+               face_send == "bul_08" ||
+               face_send == "slp_06" )
+               anim_num_2 = 3;
 
 
 
-    cout << endl << endl << endl;
-    print ( " by Chilinski Damian and Medrzycki Krzysztof" );
-    pulsetext ("...", 500, 4, 45);
-    cout << "\033[90D";
-    print ( "                                                " );
-    cout << endl;
-    cout << "\033[37m";
-    cout << "\033[1;1H";
-    cout << "\033[1;30m";
-    cout << "  ________________     _________________   ___________" << endl
-         << " /   _________   ||   |    /   _______// /     ___   \\\\" << endl
-         << "|   ||______  \\   \\\\_/   /|   ||______  |    //___\\___||" << endl
-         << "|     _____||  \\     ___//|     _____||  \\_______    \\\\" << endl
-         << "|   ||______    \\   \\\\    |   ||________|   \\\\___\\    ||" << endl
-         << "|           \\\\   \\   \\\\   |             |             ||" << endl
-         << " \\___________\\\\   \\___||   \\_____________\\___________//" << endl;
-    usleep (10000);
-    cout << "\033[1;33m";
-return 1;
+
+           if (face_send == "")
+               face_send = "slp_10";
+           if (s_anim.face_prev == "")
+               s_anim.face_prev = "slp_10";
+
+
+            //info << "core pics settings begin\n";
+
+           anims_send (face_send, s_anim.face_prev + "_close", face_send + "_open", anim_num_1, anim_num_2);
+
+           if (bulwers.outline == 20 && bulwers.prev_outline != 20)
+           {
+               face_send = "sh_01";
+               anims_send (face_send, s_anim.face_prev + "_close", "sh_02_open", anim_num_1, 7);
+           }
+
+           if (bulwers.outline != 20 && bulwers.prev_outline == 20)
+           {
+               face_send = "cusual_01";
+               anims_send (face_send, "sh_01_close", "cusual_01_open", 0, 4);
+           }
+           if (bulwers.outline == 20 && bulwers.prev_outline == 20)
+           {
+               face_send = "sh_01";
+               anims_send (face_send, "sh_02_close", "sh_01_open", 0, 0);
+           }
+
+           if (bulwers.outline == 21)
+           {
+               face_send = "slp_10";
+               anims_send ("slp_10", s_anim.face_prev + "_close", "slp_10_open", anim_num_1, 0);
+           }
+
+           s_anim.face_prev = face_send;
+       }
 }
 
-
-int naglowek_in (char* version)
+void Core::bulwers_update ()
 {
-    cout << "\033[37m";
-    cout << "\033[1;1H";
-    cout << "\033[1;30m";
-    cout << "  _______   _______  _____" << endl
-         << " |  ___  \\_/    ___|/  ___|" << endl
-         << " |  ___|\\   /|  ___|\\___  \\" << endl
-         << " |_____| |_| |____________/" << endl
-         << " ===============================" << endl
-         << " " << version << endl;
-    usleep (10000);
-    cout << "\033[37m" << "\033[9A";
-    cout << "  _______   _______  _____" << endl
-         << " |  ___  \\_/    ___|/  ___|" << endl
-         << " |  ___|\\   /|  ___|\\___  \\" << endl
-         << " |_____| |_| |____________/" << endl
-         << " ===============================" << endl
-         << " " << version << endl;
+cpu.get_load(C_LOAD());
+memory.get_load(M_LOAD ());
+if (battery_state != 1 && battery_state != 3 && battery_state != 0)
+    battery.get_load(bateria());
+else if (battery_state == 0)
+    battery.load = 0;
+else
+    battery.load = 100;
+temperature.get_load(temperatura());
+times.value = get_time ().hour/3600;
+energy.value ++;
 
-    cout << endl << endl << endl;
+cpu.mod = cpu.calculate();
+memory.mod = memory.calculate();
+battery.mod = battery.calculate();
+temperature.mod = temperature.calculate();
+times.mod = times.calculate();
+energy.mod = energy.calculate();
+battery_state = bat_plugged ();
+bulwers.update();
+
+//if (autocalc.enabled)
+//    autocalc_reload ( &cfg );
 }
 
-int naglowek_out (char* version)
+void Core::gui_init()
 {
-    cout << "\033[37m";
-    cout << "\033[1;1H";
-    cout << "\033[1;30m";
-    cout << "  _______   _______  _____" << endl
-         << " |  ___  \\_/    ___|/  ___|" << endl
-         << " |  ___|\\   /|  ___|\\___  \\" << endl
-         << " |_____| |_| |____________/" << endl
-         << " ===============================" << endl
-         << " " << version << endl;
-    usleep (10000);
-
+cout << "\033[40m" << "\033[37m" << "\n";
+HDBG.max_s = 10;
+if (cpu.buffered && cpu.buff_size > HDBG.max_s)
+    HDBG.max_s = cpu.buff_size;
+if (memory.buffered && memory.buff_size > HDBG.max_s)
+    HDBG.max_s = memory.buff_size;
+if (temperature.buffered && temperature.buff_size > HDBG.max_s)
+    HDBG.max_s = temperature.buff_size;
+for (unsigned short i = HDBG.max_s+6; i>1; i--)
+{
+    cout << "\n";
 }
+for (unsigned short i = HDBG.max_s+7; i>1; i--)
+{
+    cout << "\033[1A";
+}
+for (unsigned short i = 37; i>1; i--)
+{
+    cout << "-";
+}
+cout << "\033[12D" << "\033[3B";
+for (unsigned short i = 12; i>1; i--)
+{
+    cout << "-";
+}
+cout << "\033[12D" << "\033[3B";
+for (unsigned short i = 12; i>=1; i--)
+{
+    cout << "-";
+}
+cout << "\033[12D" << "\033[3B";
+for (unsigned short i = 12; i>=1; i--)
+{
+    cout << "-";
+}
+cout << "\033[27D" << "\033[9A";
+for (unsigned short i = HDBG.max_s + 4; i>0; i--)
+{
+    cout << "\033[1B" << "\033[1D" << "|";
+}
+for (unsigned short i = HDBG.max_s + 4; i>0; i--)
+{
+    cout << "\033[1A";
+}
+
+cout << "\033[8C";
+for (unsigned short i = HDBG.max_s+4; i>0; i--)
+{
+    cout << "\033[1B" << "\033[1D" << "|";
+}
+for (unsigned short i = HDBG.max_s+4; i>0; i--)
+{
+    cout << "\033[1A";
+}
+cout << "\033[8C";
+for (unsigned short i = HDBG.max_s+4; i>0; i--)
+{
+    cout << "\033[1B" << "\033[1D" << "|";
+}
+for (unsigned short i = HDBG.max_s+4; i>0; i--)
+{
+    cout << "\033[1A";
+}
+cout << "\033[12C" << "\033[1A";
+
+for (unsigned short i = HDBG.max_s+6; i>0; i--)
+{
+    cout << "|" << "\033[1B" << "\033[1D";
+}
+for (unsigned short i = HDBG.max_s+6; i>0; i--)
+{
+    cout << "\033[1A";
+}
+cout << "\033[14C";
+for (unsigned short i = HDBG.max_s+6; i>0; i--)
+{
+    cout << "|" << "\033[1B" << "\033[1D";
+}
+for (unsigned short i = HDBG.max_s+6; i>0; i--)
+{
+    cout << "\033[1A";
+}
+cout << "\n" << "\033[1A" << " " << "step:" << "        " << "special:";
+cout << "\033[2B" << "\033[21D" << "cpu:";
+cout << "\033[4C" << "mem:";
+cout << "\033[4C" << "temp:";
+cout << "\033[3C" << "battery:";
+cout << "\033[8D" << "\033[3B" << "time:";
+cout << "\033[5D" << "\033[3B" << "energy:";
+cout << "\033[7D" << "\033[6B" << "next_wall:";
+cout << "\n" << "\033[15A" << "\033[22C              | " << "mods:       ";
+if (HDBG.enabled)
+    cout << "\033[1C HARDLY DEBUG MODE:";
+cout << "\n\n" << "\033[38C" << "cpu:\n";
+cout << "\033[1A" << "\033[44C" << "load:\n";
+cout << "\n" << "\033[38C" << "mem:\n";
+cout << "\033[1A" << "\033[44C" << "load:\n";
+cout << "\n" << "\033[38C" << "temp:\n";
+cout << "\033[1A" << "\033[44C" << "val:\n";
+cout << "\n" << "\033[38C" << "batt:\n";
+cout << "\033[1A" << "\033[44C" << "perc:\n";
+cout << "\n" << "\033[38C" << "time:\n";
+cout << "\033[1A" << "\033[44C" << "val:\n";
+cout << "\n" << "\033[38C" << "enrg:\n";
+cout << "\033[1A" << "\033[44C" << "val:\n";
+cout << "\n" << "\033[38C" << "plug:\n";
+cout << "\033[1A" << "\033[44C" << "val:\n";
+cout << "\033[14A";
+
+
+
+cout << "\n";
 
 /*
 
-Welcome to Eyes project!
-
-  ________________     _________________   ___________
- /   _________   ||   |    /   _______// /     ___   \\
-|   ||______  \   \\_/   /|   ||______  |    //___\___||
-|     _____||  \     ___//|     _____||  \_______    \\
-|   ||______    \   \\    |   ||________|   \\___\    ||
-|           \\   \   \\   |             |             ||
- \___________\\   \___||   \_____________\___________//
+This is concept debug layout:
 
 
- _______   _______  _____
-|  ___  \_/    ___|/  ___|
-|  ___|\   /|  ___|\___  \
-|_____| |_| |____________/
-===============================
-v.0.0.1a-06
+#######################################################################################################################
+# step:____   special:__             | mods:       | [] [] [] [] [] []        |
+# -----------------------------------|             | [] [] [] [] [] [] bul    |
+# cpu:  | mem:  | temp: | battery:   | cpu:  load: | [] [] [] [] [] [] [t]    |
+#       |       |       | ]]]]]]>><< |             | [] [] [] [] [] [] 10min  |
+# p1 b1 | m1 b1 | t1 b1 |------------| mem:  load: | [] [] [] [] [] []        |
+# p2 b2 | m2 b2 | t2 b2 | time:__    |             | [] [] [] [] [] []        |
+# p3 b3 | m3 b3 | t3 b3 | ========== | temp: val:  | [] [] [] [] [] []        |
+# p4 b4 | m4 b4 | t4 b4 |------------|             | [] [] [] [] [] []        |
+# p5 b5 | m5 b5 | t5 b5 | energy:__  | batt: perc: | [] [] [] [] [] []        |
+# p6 b6 | m6 b6 | t6 b6 | ========== |             | [] [] [] [] [] []        |
+# p7 b7 | m7 b7 | t7 b7 |------------| time: val:  | [] [] [] [] [] []        |
+# p8 b8 | m8 b8 | t8 b8 | RISE||CALM |             | [] [] [] [] [] []        |
+# p9 b9 | m9 b9 | t9 b9 | __________ | enrg: val:  | [] [] [] [] [] []        |
+# p0 b0 | m0 b0 | t0 b0 | __________ |             | [] [] [] [] [] []        |
+#       |       |       | next_wall: | plug: val:  | [] [] [] [] [] []        |
+# ===== | ===== | ===== | __________ |             | [] [] [] [] [] []        |
 
 
- ______   _______  _____
-|  ___ \_/    ___|/  ___|
-|  ___\   /|  ___|\___  \
-|_____||_| |____________/
-===============================
-v.0.0.1a-06
+And for everyone there are terminal instructions for that:
 
 
-  _______________  ___       ___    _______________   ____________
- /              //|   ||    |   || /              // /            \\
-|     _________// |   \\    /   |||     _________// |     _____    ||
-|    ||_______     \   \\__/   // |    ||_______    |    //____\___||
-|            ||     \         //  |            ||   |             \\
-|      ______||      \_     _//   |      ______||    \_______      ||
-|    ||_______         |   ||     |    ||________   |   \\___\     ||
-|             \\       |   ||     |             \\  |              ||
- \_____________\\      |___||      \_____________\\  \____________//
+\033 = [Esc] (up in your keyboard top left corner)
 
+ Colors:
+ \033[30m set foreground color to black
+
+ \033[31m set foreground color to red
+
+ \033[32m set foreground color to green
+
+ \033[33m set foreground color to yellow
+
+ \033[34m set foreground color to blue
+
+ \033[35m set foreground color to magenta (purple)
+
+ \033[36m set foreground color to cyan
+
+ \033[37m set foreground color to white
+
+ \033[40m set background color to black
+
+ \033[41m set background color to red
+
+ \033[42m set background color to green
+
+ \033[43m set background color to yellow
+
+ \033[44m set background color to blue
+
+ \033[45m set background color to magenta (purple)
+
+ \033[46m set background color to cyan
+
+ \033[47m set background color to white
+
+ \033[1;30m set foreground color to dark gray
+
+ \033[1;31m set foreground color to light red
+
+ \033[1;32m set foreground color to light green
+
+ \033[1;33m set foreground color to yellow
+
+ \033[1;34m set foreground color to light blue
+
+ \033[1;35m set foreground color to light magenta (purple)
+
+ \033[1;36m set foreground color to light cyan
+
+ \033[1;37m set foreground color to white
+
+ \033[1;40m set background color to dark gray
+
+ \033[1;41m set background color to light red
+
+ \033[1;42m set background color to light green
+
+ \033[1;43m set background color to yellow
+
+ \033[1;44m set background color to light blue
+
+ \033[1;45m set background color to light magenta (purple)
+
+ \033[1;46m set background color to light cyan
+
+ \033[1;47m set background color to white
+
+ For other features:
+ \033[0m reset; clears all colors and styles (to white on black)
+
+ \033[1m bold on
+
+ \033[3m italics on
+
+ \033[4m underline on
+
+ \033[5m blink on
+
+ \033[7m reverse video on
+
+ \033[8m nondisplayed (invisible)
+
+ \033[x;yH moves cursor to line x, column y
+
+ \033[xA moves cursor up x lines
+
+ \033[xB moves cursor down x lines
+
+ \033[xC moves cursor right x spaces
+
+ \033[xD moves cursor left x spaces
+
+ \033[2J clear screen and home cursor
+
+ END
 
 */
+}
+void Core::gui_refresh ()
+{
+    cout << "\033[1;33m";
+    cout << "\033[2A" << "\033[6C" << core_step << "\n";
+    cout << "\033[1A" << "\033[22C" << "0 \n";
+    cout << "\033[1B" << "\n\n";
+
+    if (cpu.buffered)
+    {
+        for (unsigned short i = 0; i< cpu.buff_size; i++)
+        {
+            if (i != cpu.current_probe)
+            {
+                if (cpu.probes[i] < 10)
+                {
+                    if (cpu.probes[i] <= cpu.stable - cpu.loseless)
+                        cout << "\033[1;32m" << "  " << (unsigned short)cpu.probes[i] << "\n";
+                    else if (cpu.probes[i] >= cpu.stable + cpu.loseless)
+                        cout << "\033[1;31m" << "  " << (unsigned short)cpu.probes[i] << "\n";
+                    else
+                        cout << "\033[1;30m" << "  " << (unsigned short)cpu.probes[i] << "\n";
+                }
+                else
+                {
+                    if (cpu.probes[i] <= cpu.stable - cpu.loseless)
+                        cout << "\033[1;32m" << " " << (unsigned short)cpu.probes[i] << "\n";
+                    else if (cpu.probes[i] >= cpu.stable + cpu.loseless)
+                        cout << "\033[1;31m" << " " << (unsigned short)cpu.probes[i] << "\n";
+                    else
+                        cout << "\033[1;30m" << " " << (unsigned short)cpu.probes[i] << "\n";
+                }
+            }
+            else
+            {
+                if (cpu.probes[i] < 10)
+                    cout << "\033[1;33m" << "> " << (unsigned short)cpu.probes[i] << "\n";
+                else
+                    cout << "\033[1;33m" << ">" << (unsigned short)cpu.probes[i] << "\n";
+            }
+        }
+        for (unsigned short i = 0; i<= cpu.buff_size; i++)
+        {
+            cout << "\033[1A";
+        }
+        cout << "\n";
+
+        for (unsigned short i = 0; i< cpu.buff_size; i++)
+        {
+            if (i != cpu.current_probe_small)
+            {
+                if (cpu.sector_small[i] <= cpu.stable - cpu.loseless)
+                {
+                    if (cpu.sector_small[i] < 10)
+                        cout << "\033[1;32m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;32m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
+                }
+                else if (cpu.sector_small[i] >= cpu.stable + cpu.loseless)
+                {
+                    if (cpu.sector_small[i] < 10)
+                        cout << "\033[1;31m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;31m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
+                }
+                else
+                {
+                    if (cpu.sector_small[i] < 10)
+                        cout << "\033[1;30m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;30m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
+                }
+            }
+            else
+            {
+                if (cpu.sector_small[i] < 10)
+                    cout << "\033[1;33m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << " <\n";
+                else
+                    cout << "\033[1;33m" << "\033[4C" << (unsigned short)cpu.sector_small[i] << "<\n";
+            }
+        }
+    }
+    else
+    {
+        if (cpu.load <= cpu.stable - cpu.loseless)
+            cout << "\033[1;32m" << " " << (unsigned short)cpu.load << " \n";
+        else if (cpu.load >= cpu.stable + cpu.loseless)
+            cout << "\033[1;31m" << " " << (unsigned short)cpu.load << " \n";
+        else
+            cout << "\033[1;30m" << " " << (unsigned short)cpu.load << " \n";
+    }
+
+    cout << "\n" << "\033[1C";
+    if (cpu.frequency == 'l')
+    {
+        if (cpu.mod <= 0)
+        {
+            unsigned short s = 5 * (double(-cpu.mod) / double(cpu.lin_num*cpu.steps));
+            if (s == 0 && cpu.mod < 0)
+                s = 1;
+            cout << "\033[1;32m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+        else
+        {
+            unsigned short s = 5 * (double(cpu.mod) / double(cpu.lin_num*cpu.steps));
+            if (s == 0 && cpu.mod > 0)
+                s = 1;
+            cout << "\033[1;31m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+    }
+    if (cpu.frequency == 'q')
+    {
+        if (cpu.mod <= 0)
+        {
+            unsigned short s = 5 * (double(-cpu.mod) / double(cpu.steps*cpu.steps));
+            if (s == 0 && cpu.mod < 0)
+                s = 1;
+            cout << "\033[1;32m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+        else
+        {
+            unsigned short s = 5 * (double(cpu.mod) / double(cpu.steps*cpu.steps));
+            if (s == 0 && cpu.mod > 0)
+                s = 1;
+            cout << "\033[1;31m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+    }
+
+    if (cpu.frequency == 'f')
+    {
+        unsigned short max_mod = 0;
+        unsigned short max_mod_prev = 0;
+        for (unsigned int i = 0; i <= cpu.steps; i++)
+        {
+            max_mod_prev = max_mod;
+            max_mod = i + max_mod_prev;
+        }
+        if (cpu.mod <= 0)
+        {
+            unsigned short s = 5 * (double(-cpu.mod) / double(max_mod));
+            if (s == 0 && cpu.mod < 0)
+                s = 1;
+            cout << "\033[1;32m";
+            for (unsigned short i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+        else
+        {
+            unsigned short s = 5 * (double(cpu.mod) / double(max_mod));
+            if (s == 0 && cpu.mod > 0)
+                s = 1;
+            cout << "\033[1;31m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+    }
+
+    if (cpu.buffered)
+    {
+
+        for (unsigned short i = 0; i<= cpu.buff_size+1; i++)
+        {
+            cout << "\033[1A";
+        }
+    }
+    else
+        cout << "\033[3A";
+
+    cout << "\033[1A \n\n";
+
+    if (memory.buffered)
+    {
+
+        for (unsigned short i = 0; i< memory.buff_size; i++)
+        {
+            if (i != memory.current_probe)
+            {
+                if (memory.probes[i] < 10)
+                {
+                    if (memory.probes[i] <= memory.stable - memory.loseless)
+                        cout << "\033[1;32m" << "\033[8C" << "  " << (unsigned short)memory.probes[i] << "\n";
+                    else if (memory.probes[i] >= memory.stable + memory.loseless)
+                        cout << "\033[1;31m" << "\033[8C" << "  " << (unsigned short)memory.probes[i] << "\n";
+                    else
+                        cout << "\033[1;30m" << "\033[8C" << "  " << (unsigned short)memory.probes[i] << "\n";
+                }
+                else
+                {
+                    if (memory.probes[i] <= memory.stable - memory.loseless)
+                        cout << "\033[1;32m" << "\033[8C" << " " << (unsigned short)memory.probes[i] << "\n";
+                    else if (memory.probes[i] >= memory.stable + memory.loseless)
+                        cout << "\033[1;31m" << "\033[8C" << " " << (unsigned short)memory.probes[i] << "\n";
+                    else
+                        cout << "\033[1;30m" << "\033[8C" << " " << (unsigned short)memory.probes[i] << "\n";
+                }
+            }
+            else
+            {
+                if (memory.probes[i] < 10)
+                    cout << "\033[1;33m" << "\033[8C" << "> " << (unsigned short)memory.probes[i] << "\n";
+                else
+                    cout << "\033[1;33m" << "\033[8C" << ">" << (unsigned short)memory.probes[i] << "\n";
+            }
+
+        }
+        for (unsigned short i = 0; i<= memory.buff_size; i++)
+        {
+            cout << "\033[1A";
+        }
+        cout << "\n";
+
+        for (unsigned short i = 0; i< memory.buff_size; i++)
+        {
+            if (i != memory.current_probe_small)
+            {
+                if (memory.sector_small[i] <= memory.stable - memory.loseless)
+                {
+                    if (memory.sector_small[i] < 10)
+                        cout << "\033[1;32m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;32m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
+                }
+                else if (memory.sector_small[i] >= memory.stable + memory.loseless)
+                {
+                    if (memory.sector_small[i] < 10)
+                        cout << "\033[1;31m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;31m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
+                }
+                else
+                {
+                    if (memory.sector_small[i] < 10)
+                        cout << "\033[1;30m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;30m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
+                }
+            }
+            else
+            {
+                if (memory.sector_small[i] < 10)
+                    cout << "\033[1;33m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " <\n";
+                else
+                    cout << "\033[1;33m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "<\n";
+            }
+        }
+    }
+    else
+    {
+        if (memory.load <= memory.stable - memory.loseless)
+            cout << "\033[1;32m" << "\033[9C" << (unsigned short)memory.load << " \n";
+        else if (memory.load >= memory.stable + memory.loseless)
+            cout << "\033[1;31m" << "\033[9C" << (unsigned short)memory.load << " \n";
+        else
+            cout << "\033[1;30m" << "\033[9C" << (unsigned short)memory.load << " \n";
+    }
+
+    cout << "\n" << "\033[9C";
+    if (memory.frequency == 'l')
+    {
+        if (memory.mod <= 0)
+        {
+            unsigned short s = 5 * (double(-memory.mod) / double(memory.lin_num*memory.steps));
+            if (s == 0 && memory.mod < 0)
+                s = 1;
+            cout << "\033[1;32m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+        else
+        {
+            unsigned short s = 5 * (double(memory.mod) / double(memory.lin_num*memory.steps));
+            if (s == 0 && memory.mod > 0)
+                s = 1;
+            cout << "\033[1;31m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+    }
+    if (memory.frequency == 'q')
+    {
+        if (memory.mod <= 0)
+        {
+            unsigned short s = 5 * (double(-memory.mod) / double(memory.steps*memory.steps));
+            if (s == 0 && memory.mod < 0)
+                s = 1;
+            cout << "\033[1;32m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+        else
+        {
+            unsigned short s = 5 * (double(memory.mod) / double(memory.steps*memory.steps));
+            if (s == 0 && memory.mod > 0)
+                s = 1;
+            cout << "\033[1;31m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+    }
+
+    if (memory.frequency == 'f')
+    {
+        unsigned short max_mod = 0;
+        unsigned short max_mod_prev = 0;
+        for (unsigned int i = 0; i <= memory.steps; i++)
+        {
+            max_mod_prev = max_mod;
+            max_mod = i + max_mod_prev;
+        }
+        if (memory.mod <= 0)
+        {
+            unsigned short s = 5 * (double(-memory.mod) / double(max_mod));
+            if (s == 0 && memory.mod < 0)
+                s = 1;
+            cout << "\033[1;32m";
+            for (unsigned short i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+        else
+        {
+            unsigned short s = 5 * (double(memory.mod) / double(max_mod));
+            if (s == 0 && memory.mod > 0)
+                s = 1;
+            cout << "\033[1;31m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+    }
+
+    if (memory.buffered)
+    {
+        for (unsigned short i = 0; i<= memory.buff_size+1; i++)
+        {
+            cout << "\033[1A";
+        }
+    }
+    else
+        cout << "\033[3A";
+
+    cout << "\033[1A \n\n";
+
+    if (temperature.buffered)
+    {
+        for (unsigned short i = 0; i< temperature.buff_size; i++)
+        {
+            if (i != temperature.current_probe)
+            {
+                if (temperature.probes[i] < 10)
+                {
+                    if (temperature.probes[i] <= temperature.stable - temperature.loseless)
+                        cout << "\033[1;32m" << "\033[16C" << "  " << (unsigned short)temperature.probes[i] << "\n";
+                    else if (temperature.probes[i] >= temperature.stable + temperature.loseless)
+                        cout << "\033[1;31m" << "\033[16C" << "  " << (unsigned short)temperature.probes[i] << "\n";
+                    else
+                        cout << "\033[1;30m" << "\033[16C" << "  " << (unsigned short)temperature.probes[i] << "\n";
+                }
+                else
+                {
+                    if (temperature.probes[i] <= temperature.stable - temperature.loseless)
+                        cout << "\033[1;32m" << "\033[16C" << " " << (unsigned short)temperature.probes[i] << "\n";
+                    else if (temperature.probes[i] >= temperature.stable + temperature.loseless)
+                        cout << "\033[1;31m" << "\033[16C" << " " << (unsigned short)temperature.probes[i] << "\n";
+                    else
+                        cout << "\033[1;30m" << "\033[16C" << " " << (unsigned short)temperature.probes[i] << "\n";
+                }
+            }
+            else
+            {
+                if (temperature.probes[i] < 10)
+                    cout << "\033[1;33m" << "\033[16C" << "> " << (unsigned short)temperature.probes[i] << "\n";
+                else
+                    cout << "\033[1;33m" << "\033[16C" << ">" << (unsigned short)temperature.probes[i] << "\n";
+            }
+        }
+    }
+    else
+    {
+        if (temperature.value <= temperature.stable - temperature.loseless)
+            cout << "\033[1;32m" << "\033[16C" << " " << (unsigned short)temperature.value << "\n";
+        else if (temperature.value >= temperature.stable + temperature.loseless)
+            cout << "\033[1;31m" << "\033[16C" << " " << (unsigned short)temperature.value << "\n";
+        else
+            cout << "\033[1;30m" << "\033[16C" << " " << (unsigned short)temperature.value << "\n";
+    }
+
+
+    cout << "\n" << "\033[17C";
+    if (temperature.frequency == 'l')
+    {
+        if (temperature.mod <= 0)
+        {
+            unsigned short s = 5 * (double(-temperature.mod) / double(temperature.steps*temperature.lin_num));
+            if (s == 0 && temperature.mod < 0)
+                s = 1;
+            cout << "\033[1;32m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+        else
+        {
+            unsigned short s = 5 * (double(temperature.mod) / double(temperature.steps*temperature.lin_num));
+            if (s == 0 && temperature.mod > 0)
+                s = 1;
+            cout << "\033[1;31m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+    }
+    if (temperature.frequency == 'q')
+    {
+        if (temperature.mod <= 0)
+        {
+            unsigned short s = 5 * (double(-temperature.mod) / double(temperature.steps*temperature.steps));
+            if (s == 0 && temperature.mod < 0)
+                s = 1;
+            cout << "\033[1;32m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+        else
+        {
+            unsigned short s = 5 * (double(temperature.mod) / double(temperature.steps*temperature.steps));
+            if (s == 0 && temperature.mod > 0)
+                s = 1;
+            cout << "\033[1;31m";
+            for ( unsigned int i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+    }
+
+    if (temperature.frequency == 'f')
+    {
+        unsigned short max_mod = 0;
+        unsigned short max_mod_prev = 0;
+        for (unsigned int i = 0; i <= temperature.steps; i++)
+        {
+            max_mod_prev = max_mod;
+            max_mod = i + max_mod_prev;
+        }
+        if (temperature.mod <= 0)
+        {
+            unsigned short s = 5 * (double(-temperature.mod) / double(max_mod));
+            if (s == 0 && temperature.mod < 0)
+                s = 1;
+            cout << "\033[1;32m";
+            for (unsigned short i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+        else
+        {
+            unsigned short s = 5 * (double(temperature.mod) / double(max_mod));
+            if (s == 0 && temperature.mod > 0)
+                s = 1;
+            cout << "\033[1;31m";
+            for (unsigned short i = s; i > 0; i--)
+            {
+                cout << "=";
+            }
+            cout << "\033[1;30m";
+            for (unsigned short m = 5 - s; m > 0; m--)
+            {
+                cout << "=";
+            }
+        }
+    }
+
+    if (temperature.buffered)
+    {
+
+        for (unsigned short i = 0; i<= temperature.buff_size+1; i++)
+        {
+            cout << "\033[1A";
+        }
+        cout << "\n";
+
+        for (unsigned short i = 0; i< temperature.buff_size; i++)
+        {
+            if (i != temperature.current_probe_small)
+            {
+                if (temperature.sector_small[i] <= temperature.stable - temperature.loseless)
+                {
+                    if (temperature.sector_small[i] < 10)
+                        cout << "\033[1;32m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;32m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << " \n";
+                }
+                else if (temperature.sector_small[i] >= temperature.stable + temperature.loseless)
+                {
+                    if (temperature.sector_small[i] < 10)
+                        cout << "\033[1;31m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;31m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << " \n";
+                }
+                else
+                {
+                    if (temperature.sector_small[i] < 10)
+                        cout << "\033[1;30m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << "  \n";
+                    else
+                        cout << "\033[1;30m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << " \n";
+                }
+            }
+            else
+            {
+                if (temperature.sector_small[i] < 10)
+                    cout << "\033[1;33m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << " <\n";
+                else
+                    cout << "\033[1;33m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << "<\n";
+            }
+        }
+        for (unsigned short i = 0; i<= temperature.buff_size; i++)
+        {
+            cout << "\033[1A";
+        }
+    }
+    else
+        cout << "\033[3A";
+
+    cout << "\n";
+
+    cout << "\033[25C" << "\033[1;33m" << "\033[1A";
+    if (battery_state == 0)
+    {
+        cout << "<< NONE >>";
+    }
+    for (unsigned short i = battery.load/10; i > 0; i--)
+    {
+        cout << "]";
+    }
+    if (battery_state == 1)
+    {
+        for (unsigned short i =10 - battery.load/10; i > 0; i--)
+        {
+            cout << "\033[1;31m" << "O";
+        }
+    }
+    if (battery_state == 2)
+    {
+        for (unsigned short i =10 - battery.load/10; i > 0; i--)
+        {
+            cout << "\033[1;32m" << "X";
+        }
+    }
+    if (battery_state == 3)
+    {
+        for (unsigned short i =10 - battery.load/10; i > 0; i--)
+        {
+            cout << "\033[1;32m" << ">";
+        }
+    }
+    if (battery_state == 4)
+    {
+        for (unsigned short i =10 - battery.load/10; i > 0; i--)
+        {
+            cout << "\033[1;31m" << "<";
+        }
+    }
+    cout << "\n \n" << "\033[30C";
+    if (times.mod > 0)
+        cout << "\033[1;31m";
+    else
+        cout << "\033[1;33m";
+    cout << "\n";
+    cout << "\033[25C";
+    cout << "\033[1;31m";
+    for (unsigned short i =10*(double(times.mod)/double(times.steps)); i > 0; i--)
+    {
+        cout << "=";
+    }
+    cout << "\033[1;30m";
+    for (unsigned short i =10 - 10*(double(times.mod)/double(times.steps)); i > 0; i--)
+    {
+        cout << "=";
+    }
+
+    cout << "\n \n" << "\033[32C";
+    if (energy.mod > 0)
+        cout << "\033[1;31m";
+    else
+        cout << "\033[1;33m";
+    cout << "\n";
+    cout << "\033[25C";
+    cout << "\033[1;31m";
+    for (unsigned short i =10*(double(energy.mod)/double(energy.steps)); i > 0; i--)
+    {
+        cout << "=";
+    }
+    cout << "\033[1;30m";
+    for (unsigned short i =10 - 10*(double(energy.mod)/double(energy.steps)); i > 0; i--)
+    {
+        cout << "=";
+    }
+
+
+    cout << "\n \n" << "\033[25C";
+    if (bulwers.total_mod > 1)
+    {
+        cout << "\033[1;31m" << "↑↑↑↑";
+        cout << "\033[1;30m" << "||↓↓↓↓";
+    }
+    else if (bulwers.total_mod < 1)
+    {
+        cout << "\033[1;30m" << "↑↑↑↑||";
+        cout << "\033[1;32m" << "↓↓↓↓";
+    }
+    else
+    {
+        cout << "\033[1;30m" << "↑↑↑↑";
+        cout << "\033[1;34m" << "||";
+        cout << "\033[1;30m" << "↓↓↓↓";
+    }
+    if (bulwers.total_mod > 1)
+        cout << "\033[1;31m";
+    else if (bulwers.total_mod < 1)
+        cout << "\033[1;32m";
+    else
+        cout << "\033[1;30m";
+    cout << "\n" << "\033[25C" << "          " << "\033[10D" << bulwers.total_mod;
+    cout << "\033[1;33m";
+    cout << "\n" << "\033[25C" << "          " << "\033[10D" << bulwers.step;
+    cout << "\n\n" << "\033[25C" << "          " << "\033[10D";
+    if (bulwers.value == 0)
+        cout << bulwers.wall_01;
+    if (bulwers.value == 1)
+        cout << bulwers.wall_02;
+    if (bulwers.value == 2)
+        cout << bulwers.wall_03;
+    if (bulwers.value == 3)
+        cout << bulwers.wall_04;
+    if (bulwers.value == 4)
+        cout << bulwers.wall_05;
+    if (bulwers.value == 5)
+        cout << bulwers.wall_06;
+    if (bulwers.value == 6)
+        cout << bulwers.wall_07;
+    if (bulwers.value == 7)
+        cout << bulwers.wall_08;
+    if (bulwers.value == 8)
+        cout << bulwers.wall_09;
+    if (bulwers.value == 9)
+        cout << bulwers.wall_10;
+    if (bulwers.value == 10)
+        cout << bulwers.wall_11;
+    if (bulwers.value == 11)
+        cout << bulwers.wall_12;
+    if (bulwers.value == 12)
+        cout << bulwers.wall_13;
+    if (bulwers.value == 13)
+        cout << bulwers.wall_14;
+    if (bulwers.value == 14)
+        cout << bulwers.wall_15;
+
+    cout << "\033[14A";
+    if (cpu.mod > 0)
+    {
+        cout << "\033[1;31m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << cpu.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (unsigned short)cpu.load << "%";
+    }
+    else if (cpu.mod < 0)
+    {
+        cout << "\033[1;32m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << cpu.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (unsigned short)cpu.load << "%";
+    }
+    else
+    {
+        cout << "\033[1;33m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << cpu.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (unsigned short)cpu.load << "%";
+    }
+
+    ////
+
+    if (memory.mod > 0)
+    {
+        cout << "\033[1;31m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << memory.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (unsigned short)memory.load << "%";
+    }
+    else if (memory.mod < 0)
+    {
+        cout << "\033[1;32m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << memory.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (unsigned short)memory.load << "%";
+    }
+    else
+    {
+        cout << "\033[1;33m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << memory.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (unsigned short)memory.load << "%";
+    }
+
+    ////
+
+    if (temperature.mod > 0)
+    {
+        cout << "\033[1;31m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << temperature.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << temperature.value << "ºC";
+    }
+    else if (temperature.mod < 0)
+    {
+        cout << "\033[1;32m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << temperature.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << temperature.value << "ºC";
+    }
+    else
+    {
+        cout << "\033[1;33m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << temperature.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << temperature.value << "ºC";
+    }
+
+    ////
+
+    if (battery.mod < 0)
+    {
+        cout << "\033[1;31m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << -battery.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (unsigned short)battery.load << "%";
+    }
+    else if (battery.mod > 0)
+    {
+        cout << "\033[1;32m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << -battery.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (unsigned short)battery.load << "%";
+    }
+    else
+    {
+        cout << "\033[1;33m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << battery.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (unsigned short)battery.load << "%";
+    }
+
+    ////
+
+    if (times.mod > 0)
+    {
+        cout << "\033[1;31m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << times.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << times.value << "h";
+    }
+    else
+    {
+        cout << "\033[1;33m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << times.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << times.value << "h";
+    }
+
+    ////
+
+    if (energy.mod > 0)
+    {
+        cout << "\033[1;31m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << energy.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (energy.start + energy.wide - energy.value)/3600 << "h";
+    }
+    else
+    {
+        cout << "\033[1;33m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << energy.mod;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (energy.start + energy.wide - energy.value)/3600 << "h";
+    }
+
+    ////
+
+    if (mod_bat_plug > 0)
+    {
+        cout << "\033[1;32m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << mod_bat_plug;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << battery_state;
+    }
+    else
+    {
+        cout << "\033[1;33m";
+        cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << mod_bat_plug;
+        cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << battery_state;
+    }
+    cout << "\033[15A" << "\n\n";
+
+    if (HDBG.enabled)
+        HDBG.print();
+}
+
+void hard_dbg::print()
+{
+
+
+    //------------WARNING-------------//
+
+    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+    //   !!! HARDLY DEBUG BEGIN !!!   //
+    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//.
 
 
 
+    spacer = 52;
+    line = 0;
+
+    cout << "\033[" << spacer << "C";
+    cout << "\033[1;32m";
+
+    cout << "cload" << " " << (unsigned short)cpu.load << " %";
+    chck_s ();
+    cout << "cstbl" << " " << (unsigned short)cpu.stable << " %";
+    chck_s ();
+    cout << "closs" << " " << (unsigned short)cpu.loseless;
+    chck_s ();
+    cout << "clnum" << " " << (unsigned short)cpu.lin_num;
+    chck_s ();
+    cout << "cfreq" << " " << cpu.frequency;
+    chck_s ();
+    cout << "mload" << " " << (unsigned short)memory.load << " %";
+    chck_s ();
+    cout << "mstbl" << " " << (unsigned short)memory.stable << " %";
+    chck_s ();
+    cout << "mloss" << " " << (unsigned short)memory.loseless;
+    chck_s ();
+    cout << "mlnum" << " " << (unsigned short)memory.lin_num;
+    chck_s ();
+    cout << "mfreq" << " " << memory.frequency;
+    chck_s ();
+    cout << "bload" << " " << (unsigned short)battery.load << " %";
+    chck_s ();
+    cout << "bstbl" << " " << (unsigned short)battery.stable << " %";
+    chck_s ();
+    cout << "bloss" << " " << (unsigned short)battery.loseless;
+    chck_s ();
+    cout << "blnum" << " " << (unsigned short)battery.lin_num;
+    chck_s ();
+    cout << "bstat" << " " << battery_state;
+    chck_s ();
+    cout << "bfreq" << " " << battery.frequency;
+    chck_s ();
+    cout << "pbplg" << " " << prev_bat_plug;
+    chck_s ();
+    cout << "bcapa" << " " << battery_capacity;
+    chck_s ();
+    cout << "boplg" << " " << once_plugged;
+    chck_s ();
+    cout << "tempv" << " " << (unsigned short)temperature.value << "ºC";
+    chck_s ();
+    cout << "tstbl" << " " << (unsigned short)temperature.stable << "ºC";
+    chck_s ();
+    cout << "tloss" << " " << (unsigned short)temperature.loseless;
+    chck_s ();
+    cout << "tlnum" << " " << (unsigned short)temperature.lin_num;
+    chck_s ();
+    cout << "tunit" << " " << (unsigned short)temperature.unit;
+    chck_s ();
+    cout << "tfreq" << " " << temperature.frequency;
+    chck_s ();
+    cout << "tempt" << " " << temp_t;
+    chck_s ();
+    cout << "flutm" << " " << flu_timer;
+    chck_s ();
+    cout << "gtflu" << " " << get_flu;
+    chck_s ();
+    cout << "timev" << " " << (unsigned short)times.value << " h";
+    chck_s ();
+    cout << "tmstr" << " " << (unsigned short)times.start << " h";
+    chck_s ();
+    cout << "timew" << " " << (unsigned short)times.wide << " h";
+    chck_s ();
+    cout << "tmstp" << " " << (unsigned short)times.steps;
+    chck_s ();
+    cout << "tmlnr" << " " << (unsigned short)times.lin_num;
+    chck_s ();
+    cout << "timef" << " " << times.frequency;
+    chck_s ();
+    cout << "nrgvl" << " " << (unsigned short)energy.value;
+    chck_s ();
+    cout << "nrgst" << " " << (unsigned short)energy.start;
+    chck_s ();
+    cout << "nrgwd" << " " << (unsigned short)energy.wide;
+    chck_s ();
+    cout << "nrstp" << " " << (unsigned short)energy.steps;
+    chck_s ();
+    cout << "nrgln" << " " << (unsigned short)energy.lin_num;
+    chck_s ();
+    cout << "nrgfq" << " " << energy.frequency;
+    chck_s ();
 
 
-//---------------------------------------------------------------------
-/*
-       ________  _________   ________  __________        ________  _____
-      /       ||/        || |   ___//  \_____   ||      /       ||/   //
-     /   __   |/   __    || |  ||__          |  ||     /   __   |/   //
-    /   // |      // |   || |    __||        |  ||    /   // |      //
-   /   //  |     //  |   || |  ||__     __   |  ||   /   //  |     //
-  /   //   |    //   |   || |      \\  |  \_/   //  /   //   |    //
- /___//    |___//    |___|| |_______\\  \______//  /___//    |___// Art by Chiliński Damian 2010
+
+    cout << "\033[" << line+4 << "A\n";
 
 
 
+    //-------------WARNING-------------//
 
- */
-//----------------------------------------------------------------------
-
-
-
-//----------------------------------------
-
-//pict_layers bulwers_init()
+    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
+    //   !!! HARDLY DEBUG ENDING !!!   //
+    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//.
 
 
+}
 
 
-//Version 0.8.0a-01
-//Chiliński Damian
-//GBS
+void hard_dbg::chck_s()
+{
+    if(line >= HDBG.max_s+3 && line >= 10 )
+    {
+        line = 0;
+        spacer += 14;
+        cout << "\033[1;32m\033[" << HDBG.max_s+4 << "A\n";
+    }
+    else
+    {
+        if (line % 2 == 1)
+            cout << "\033[1;32m";
+        else
+            cout << "\033[1;36m";
+        cout << "\n";
+        line++;
+    }
+    cout << "\033[" << spacer << "C";
+}
+
+Core::Core ( eyes_view * neyes )
+{
+    timer = new QTimer ( this );
+    connect ( timer, SIGNAL ( timeout () ), this, SLOT ( on_timer_tick () ) );
+    eyes = neyes;
+}
+
+void Core::autocalc_init ()
+{
+    autocalc.c_cpu = cpu.stable;
+    autocalc.c_mem = memory.stable;
+    autocalc.c_temp = temperature.stable;
+    autocalc.save_next = autocalc.save_interval;
+}
+
+void Core::autocalc_reload ( eConfig * cfg )
+{
+    autocalc.c_cpu = (((100/autocalc.impact)-1)*cpu.stable + cpu.load)/(100/autocalc.impact);
+    autocalc.c_mem = (((100/autocalc.impact)-1)*memory.stable + memory.load)/(100/autocalc.impact);
+    autocalc.c_temp = (((100/autocalc.impact)-1)*temperature.stable + temperature.value)/(100/autocalc.impact);
+
+    if (autocalc.save_next == 0)
+    {
+        //zrzut wartości
+        cpu.stable = cfg->lookupValue ( "core.cpu.stable", 0);
+        info << "Dropping stable values\n";
+    }
+}
+
+void Core::load_config ( eConfig * cfg )
+{
+    Configuration * cfg = Configuration::getInstance ();
+
+    cpu.frequency = cfg->lookupValue ( "core.cpu.frequency", 'f' );
+    cpu.lin_num = cfg->lookupValue ( "core.cpu.linear_modifier", 0 );
+    cpu.stable = cfg->lookupValue ( "core.cpu.stable", 25 );
+    cpu.steps = cfg->lookupValue ( "core.cpu.steps", 10 );
+    cpu.loseless = cfg->lookupValue ( "core.cpu.adaptation", 10 );
+    cpu.buffered = cfg->lookupValue ( "core.cpu.buffered", true );
+    cpu.buff_size = cfg->lookupValue ( "core.cpu.buffer_size", 10 );
+
+    //mem_section
+
+    memory.frequency = cfg->lookupValue ( "core.memory.frequency", 'q' );
+    memory.lin_num = cfg->lookupValue ( "core.memory.linear_modifier", 2 );
+    memory.stable = cfg->lookupValue ( "core.memory.stable", 25 );
+    memory.steps = cfg->lookupValue ( "core.memory.steps", 8 );
+    memory.loseless = cfg->lookupValue ( "core.memory.adaptation", 10 );
+    memory.buffered = cfg->lookupValue ( "core.memory.buffered", true );
+    memory.buff_size = cfg->lookupValue ( "core.memory.buffer_size", 10 );
+
+    //temperature_section
+
+    temperature.frequency = cfg->lookupValue ( "core.temperature.frequency", 'q' );
+    temperature.lin_num = cfg->lookupValue ( "core.temperature.linear_modifier", 2 );
+    temperature.stable = cfg->lookupValue ( "core.temperature.stable", 56 );
+    temperature.steps = cfg->lookupValue ( "core.temperature.steps", 12 );
+    temperature.loseless = cfg->lookupValue ( "core.temperature.adaptation", 2 );
+    temperature.buffered = cfg->lookupValue ( "core.temperature.buffered", true );
+    temperature.buff_size = cfg->lookupValue ( "core.temperature.buffer_size", 10 );
+    temperature.unit = cfg->lookupValue ( "core.temperature.unit", 1 );
+
+    //battery_section
+
+    battery_capacity = cfg->lookupValue ( "core.battery.capacity", 4700 );
+    battery.frequency = cfg->lookupValue ( "core.battery.frequency", 'l' );
+    battery.lin_num = cfg->lookupValue ( "core.battery.linear_modifier", 0 );
+    battery.stable = cfg->lookupValue ( "core.battery.stable", 25 );
+    battery.steps = cfg->lookupValue ( "core.battery.steps", 8 );
+    battery.loseless = cfg->lookupValue ( "core.battery.adaptation", 10 );
+    battery.buffered = cfg->lookupValue ( "core.battery.buffered", false );
+    battery.buff_size = cfg->lookupValue ( "core.battery.buffer_size", 10 );
+
+    //times_sector
+
+    times.frequency = cfg->lookupValue ( "core.times.frequency", 'q' );
+    times.lin_num = cfg->lookupValue ( "core.times.quad_modifier", 2 );
+    times.start = cfg->lookupValue ( "core.times.start", 20 );
+    times.steps = cfg->lookupValue ( "core.times.steps", 6 );
+    times.end = cfg->lookupValue ( "core.times.end", 6 );
+    times.wide = cfg->lookupValue ( "core.times.wide", 6 );
+
+    //energy_sector
+
+    energy.frequency = cfg->lookupValue ( "core.energy.frequency", 'q' );
+    energy.lin_num = cfg->lookupValue ( "core.energy.quad_modifier", 2 );
+    energy.start = cfg->lookupValue ( "core.energy.start", 16 );
+    energy.steps = cfg->lookupValue ( "core.energy.steps", 6 );
+    energy.end = cfg->lookupValue ( "core.energy.end", 0 );
+    energy.wide = cfg->lookupValue ( "core.energy.wide", 6 );
+
+    //bulwers_walls_sector
+
+    bulwers.wall_01 = cfg->lookupValue ("core.bulwers.wall_01", 300 );
+    bulwers.wall_02 = cfg->lookupValue ("core.bulwers.wall_02", 500 );
+    bulwers.wall_03 = cfg->lookupValue ("core.bulwers.wall_03", 800 );
+    bulwers.wall_04 = cfg->lookupValue ("core.bulwers.wall_04", 1300 );
+    bulwers.wall_05 = cfg->lookupValue ("core.bulwers.wall_05", 2100 );
+    bulwers.wall_06 = cfg->lookupValue ("core.bulwers.wall_06", 3400 );
+    bulwers.wall_07 = cfg->lookupValue ("core.bulwers.wall_07", 5500 );
+    bulwers.wall_08 = cfg->lookupValue ("core.bulwers.wall_08", 8900 );
+    bulwers.wall_09 = cfg->lookupValue ("core.bulwers.wall_09", 14400 );
+    bulwers.wall_10 = cfg->lookupValue ("core.bulwers.wall_10", 23300 );
+    bulwers.wall_11 = cfg->lookupValue ("core.bulwers.wall_11", 37700 );
+    bulwers.wall_12 = cfg->lookupValue ("core.bulwers.wall_12", 61600 );
+    bulwers.wall_13 = cfg->lookupValue ("core.bulwers.wall_13", 98700 );
+    bulwers.wall_14 = cfg->lookupValue ("core.bulwers.wall_14", 159700 );
+    bulwers.wall_15 = cfg->lookupValue ("core.bulwers.wall_15", 258400 );
+
+    //basic_sector
+
+    HDBG.enabled = cfg->lookupValue("core.HDBG_enabled", false);
+
+    //autocalc_sector
+
+    autocalc.enabled = cfg->lookupValue("core.autocalc.enabled", true);
+    autocalc.save_interval = cfg->lookupValue("core.autocalc.interval", 300);
+    autocalc.impact = cfg->lookupValue("core.autocalc.impact", 20);
+
+}
+
+void Core::run ()
+{
+    info << "starting core.\n";
+    bulwers_init ();
+    info << "bulwers inited\n";
+    Core::gui_init();
+    if (autocalc.enabled)
+    {
+        autocalc_init ();
+        info << "autocalc started\n";
+    }
+    info << "gui inited\n";
+    s_anim.face_prev = "slp_10";
+    info << "s_anim.face_prev set to " << s_anim.face_prev.toStdString() << "\n";
+    do
+    {
+        info << "Is in wake up\n";
+        times.value = get_time ().hour/3600;
+
+        // TODO 03 : It PROPABLY won't work correctly and it should works on config values.
+
+        wake_up_prepare();
+        eyes->anims_reload();
+    } while (!wake_up);
+    info << "wake up ended";
+    eyes->anims_send ("cusual_01", "slp_10_close", "cusual_01_open", 0, 4);
+    eyes->anims_reload();
+    info << "end of core preparing\n";
+    timer->start( 1000 );
+}
+
+void Core::on_timer_tick ()
+{
+    core_step ++;
+    bulwers_update ();
+    eyes->graphics_prepare();
+    gui_refresh ();
+}

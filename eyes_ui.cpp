@@ -1,3 +1,20 @@
+/* Eyes
+ * Copyright (C) 2011  Krzysztof Mędrzycki, Damian Chiliński
+ * 
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 #include <QtGui>
 #include <QApplication>
 
@@ -24,6 +41,13 @@ static const char help [] = {
     "\t--color=COLOR -c COLOR\tSet eyes color to COLOR.\n"
     "\t--config\t\tOpen configuration, then quit.\n"
     "\nSee --help colors for colors.\n"
+};
+
+static const char version [] = {
+  "eyes  Copyright (C) 2011  Krzysztof Mędrzycki, Damian, Chiliński\n"
+  "This program comes with ABSOLUTELY NO WARRANTY.\n"
+  "This is free software, and you are welcome to redistribute it\n"
+  "under certain conditions.\n"
 };
 
 static const char help_colors [] = {
