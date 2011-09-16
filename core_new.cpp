@@ -2727,7 +2727,7 @@ void Core::autocalc_reload ( eConfig * cfg )
     }
 }
 
-void Core::load_config ( eConfig * cfg )
+void Core::load_config ( eConfig * nothing )
 {
     Configuration * cfg = Configuration::getInstance ();
 
