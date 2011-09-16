@@ -11,11 +11,11 @@ SOURCES	+= \
     animation.cc \
     eyes_looker.cc \
     eyes_cfg.cc \
-    core_new.cpp \
     eyes_window.cc \
     eyes_config.cc \
     econfig.cc \
-    core.cc
+    core.cpp \
+    configurator.cc
 
 HEADERS += \
     eyes_view.h \
@@ -25,18 +25,21 @@ HEADERS += \
     clap_animations.hxx \
     animation.hxx \
     eyes_cfg.hxx \
-    core_new.hxx \
     eyes_window.hxx \
     eyes_config.hxx \
     econfig.hxx \
     debug.hxx \
     eyes.hxx \
-    core.hxx
+    core.hxx \
+    configurator.hxx
 
 OTHER_FILES += \
     README.markdown \
     config.cfg \
-    colors.cfg
+    colors.cfg \
+    configure
+
+# arch detection
 
 ARCH=$$system(arch)
 contains(ARCH, x86_64){
@@ -63,4 +66,5 @@ INCLUDEPATH += /usr/include/glib-2.0 \
     $$system(find /usr/lib -path "*/glib-2.0/include")
 
 LIBS += $${LIBDIR}/libgtop-2.0.so \
-    $$system(find /usr/local -name libconfig++.so)
+    $$system(find /usr/local -name libconfig++.so) \
+    $$system(find /usr/lib -name libconfig++.so)
