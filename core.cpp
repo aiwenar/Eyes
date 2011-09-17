@@ -33,7 +33,7 @@
 #include <glibtop/mem.h>
 #include <glibtop/proclist.h>
 #include <glibtop/uptime.h>
-#include "core_new.hxx"
+#include "core.hxx"
 #include "eyes_view.h"
 #include "debug.hxx"
 
@@ -2743,7 +2743,7 @@ void Core::autocalc_reload ( eConfig * cfg )
     }
 }
 
-void Core::load_config ( eConfig * cfg )
+void Core::load_config ()
 {
     Configuration * cfg = Configuration::getInstance ();
 
