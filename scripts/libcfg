@@ -1,0 +1,15 @@
+#!/bin/bash
+
+FLAGS=`pkg-config $1 $2 --silence-errors`
+
+case "$1" in
+  --cflags)
+    for I in $FLAGS ; do
+      LEN=$[`expr length $I`-2]
+      echo `expr substr $I 3 $LEN`
+    done
+    ;;
+  --libs)
+    echo $FLAGS
+    ;;
+esac
