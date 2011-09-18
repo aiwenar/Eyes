@@ -1,0 +1,36 @@
+#!/bin/bash
+
+LCONF="1.4.7"
+GTOP="2.0"
+QTCORE="4.0.0"
+QTGUI="4.0.0"
+
+GOOD=true
+bad()
+{
+  GOOD=false
+}
+
+check_version()
+{
+  pkg-config --exists $1
+  if [ $? == 0 ] ; then
+    pkg-config --atleast-version=$2 $1
+    if [ $? != 0 ] ; then
+      echo "Required $2 version of package $1 but is only `pkg-config --modversion $1`"
+      bad
+    fi
+  else
+    echo "Package $1 not found!"
+    bad
+  fi
+}
+
+check_version "libconfig++" $LCONF
+check_version "libgtop-2.0" $GTOP
+check_version "QtCore" $QTCORE
+check_version "QtGui" $QTGUI
+
+if [ $GOOD == false ]; then
+  exit 1
+fi
