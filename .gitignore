@@ -1,3 +1,5 @@
 *.o
 Makefile
 eyes
+eyes.pro
+moc*
