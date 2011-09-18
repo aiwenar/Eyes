@@ -55,3 +55,18 @@ bez potrzeby rekompilacji, łatwe robienie modów (:D) etc.
 
 No, tylko trzeba byłoby to jakoś analizować, ale to nie jest specjalnie trudne.
 (moge to zrobić)
+
+
+
+//------------------------------
+
+Ok no mi sie to podoba generalnie pasuje to i mozna to calkiem ciekawie zmergowac z tym co ja wymyslilem.
+Tylko trzeba to troche rozbudować. Po pierwsze - myślę, że te "zasady" powinny być tak skonstruowane, żeby
+te "stany" mogly byc nie tylko statyczne w sensie - np przegrzanie - żeby nie było tak ot jak jest temp<70,
+tylko żeby od 70 do jakiejstam wartosci naliczał mnożnik skutku w jakiejs skali np od x1 do x5 i potem określone
+skutki w mod byłyby podawane (nie wszystkie oczywiscie ale te co chcemy) jako np. sleep-=10 x $X albo $ coś
+co by oznaczalo zmienną mnożnika. - przez to skutki bylby proporcjonalne do zmiany warunków. Tylko wlasnie 
+jest tu pewien problem. Chodzi o to, że tak czy srak trzeba to jakoś usystematyzować. Wprowadzanie zbyt duzej
+liczby czynnikow nie ma sensu i jest zbedne wszestkie wejscia mozna skupiec mysle do tych trzech czynnikow SLP,
+hrd i hot, ktore bylyby modyfikowane przez te mody. Generalnie mysle ze ten twoj system jest w stanie z powodzeniem
+być następcą przestarzelego bulwersa. Pozostaje tylko kwestia jak sprowadzić to do stanu finalnego
