@@ -33,7 +33,7 @@
 #include <glibtop/mem.h>
 #include <glibtop/proclist.h>
 #include <glibtop/uptime.h>
-#include "core_new.hxx"
+#include "core.hxx"
 #include "eyes_view.h"
 #include "debug.hxx"
 
@@ -1599,7 +1599,7 @@ And for everyone there are terminal instructions for that:
  \033[43m set background color to yellow
 
  \033[44m set background color to blue
-
+MsSQL
  \033[45m set background color to magenta (purple)
 
  \033[46m set background color to cyan
@@ -2743,7 +2743,7 @@ void Core::autocalc_reload ( eConfig * cfg )
     }
 }
 
-void Core::load_config ( eConfig * cfg )
+void Core::load_config ()
 {
     Configuration * cfg = Configuration::getInstance ();
 

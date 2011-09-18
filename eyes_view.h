@@ -218,7 +218,7 @@ public:
                     bulwers_init    (),
                     gui_refresh     (),
                     gui_init        (),
-                    load_config     ( eConfig * set ),
+                    load_config     (),
                     run             (),
                     graphics_prepare(),
                     autocalc_reload ( eConfig * set ),
