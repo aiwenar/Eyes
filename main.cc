@@ -22,7 +22,7 @@
 #include <string>
 #include <libconfig.h++>
 
-#include "eyes_window.hxx"
+#include "window.hxx"
 #include "debug.hxx"
 #include "eyes.hxx"
 #include "configurator.hxx"

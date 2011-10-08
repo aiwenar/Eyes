@@ -18,6 +18,9 @@
 #ifndef _eyes_animation_hxx
 #define _eyes_animation_hxx
 
+#include <QMap>
+#include <QString>
+
 /**
  * Class represented eyes animation.
  */
@@ -34,6 +37,8 @@ public:
      * @param f frame.
      */
     animation * add_frame ( char * f );
+
+    static  void  registerAnimations  ( QMap<QString,animation*> * );
 
     /// List of animation frames.
     char ** frames;
