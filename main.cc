@@ -117,14 +117,14 @@ int main ( int argc, char ** argv )
       }
       else if ( arg.at ( i ) == "--config" )
       {
-          info << "(eyes_ui) starting eyes::configmode...\n";
+          info << "(main) starting eyes::configmode...\n";
           Configurator * conf = new Configurator ();
           conf->show ();
           return app.exec ();
       }
   }
 
-  info << "(eyes_ui) starting eyes...\n";
+  info << "(main) starting eyes...\n";
   eyes_window win ( color );
   win.show ();
 

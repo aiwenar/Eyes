@@ -33,17 +33,17 @@ static char *claps[] = {
 eyes_clapper::eyes_clapper ( eyes_view * neyes ) :
   animations ()
 {
-    info << "(eyes_clapper) preparing...\n";
+    info << "(clapper) preparing...\n";
     animation::registerAnimations ( &animations );
     eyes = neyes;
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( clap () ) );
     stage = 0;
-    info << "(eyes_clapper) loading config...\n";
+    info << "(clapper) loading config...\n";
     Configuration * cfg = Configuration::getInstance ();
     min_dl = cfg->lookupValue ( "ui.clapper.delay.min", 5 );
     max_dl = cfg->lookupValue ( "ui.clapper.delay.max", 35 );
-    info << "(eyes_clapper) ready!\n";
+    info << "(clapper) ready!\n";
     start = "slp_10_open";
     end = "slp_10_close";
     from = 0;
@@ -65,7 +65,7 @@ void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int 
 {
     if ( not animations.contains ( nstart ) or not animations.contains ( nend ) )
     {
-        error << "(eyes_clapper) seting animation from " << nstart.toStdString () << " to " << nend.toStdString () << " but one nit exists.\n";
+        error << "(clapper) seting animation from " << nstart.toStdString () << " to " << nend.toStdString () << " but one nit exists.\n";
         return;
     }
     if ( nto >= animations[nend]->size )

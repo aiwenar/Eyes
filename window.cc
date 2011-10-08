@@ -25,7 +25,7 @@ using namespace std;
 
 eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint )
 {
-    info << "(eyes_window) preparing...\n";
+    info << "(window) preparing...\n";
     Configuration * cfg = Configuration::getInstance ();
     eyes_w = cfg->lookupValue ( "ui.window.size.width", 320 );
     eyes_h = cfg->lookupValue ( "ui.window.size.height", 80 );
@@ -36,19 +36,19 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     //setWindowFlags ( Qt::SplashScreen );
     eyes = new eyes_view ( this, color );
     config = new Configurator ( (QWidget*)nil );
-    info << "(eyes_window) loading icon " << ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
+    info << "(window) loading icon " << ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
     QPixmap tmp;
     tmp.load ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" );
     tico = new QIcon ( tmp );
     setWindowIcon ( *tico );
     if ( tmp.isNull () )
     {
-        error << "(eyes_window) file not found. Continuing whiwaut tray icon.\n";
+        error << "(window) file not found. Continuing whiwaut tray icon.\n";
         isicon = false;
     }
     if ( isicon )
     {
-        info << "(eyes_window) preparing tray icon...\n";
+        info << "(window) preparing tray icon...\n";
         trayico = new QSystemTrayIcon ( this );
         trayico->setIcon ( *tico );
         trayico->setToolTip ( "!eyesy!" );
@@ -66,7 +66,7 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
         //iconend
         trayico->setContextMenu ( timenu );
         trayico->show ();
-        info << "(eyes_window) tray icon ready!\n";
+        info << "(window) tray icon ready!\n";
     }
     info << "(eyes_widnow) ready!\n";
     eyes->show ();

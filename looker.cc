@@ -24,12 +24,12 @@ using namespace std;
 
 eyes_looker::eyes_looker ( eyes_view * neyes )
 {
-    info << "(eyes_looker) preparing...\n";
+    info << "(looker) preparing...\n";
     eyes = neyes;
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout() ), this, SLOT ( look() ) );
     timer->setInterval ( ( qrand () % 30 + 1 )*200 );
-    info << "(eyes_looker) loading config...\n";
+    info << "(looker) loading config...\n";
     Configuration * cfg = Configuration::getInstance ();
     min_dx = cfg->lookupValue ( "ui.looker.delta_x.min", 0 );
     max_dx = cfg->lookupValue ( "ui.looker.delta_x.max", 14 );
@@ -41,12 +41,12 @@ eyes_looker::eyes_looker ( eyes_view * neyes )
     bmax_y = cfg->lookupValue ( "ui.looker.bounds_y.max", 14 );
     min_dl = cfg->lookupValue ( "ui.looker.delay.min", 1 );
     max_dl = cfg->lookupValue ( "ui.looker.delay.max", 30 );
-    info << "(eyes_looker) ready!\n";
+    info << "(looker) ready!\n";
 }
 
 void eyes_looker::run ()
 {
-    info << "(eyes_looker) working...\n";
+    info << "(looker) working...\n";
     timer->start ();
 }
 
