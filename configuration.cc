@@ -15,18 +15,25 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "configurator.hxx"
+#include "configuration.hxx"
 #include <debug.hxx>
 
 #include <iostream>
 
 using namespace std;
 
+Configuration * Configuration::_cfg = 0;
+
 Configuration * Configuration::getInstance ()
 {
     if ( _cfg == 0 )
         _cfg = new Configuration ();
     return _cfg;
+}
+
+Configuration::Configuration ()
+{
+  cfg.readFile ( "config.cfg" );
 }
 
 bool Configuration::lookupValue ( const char * path, bool def )

@@ -93,6 +93,7 @@ public:
     void        save                ();
 private:
     Configuration ();
+    static Configuration * _cfg;
     Config  cfg;
 };
 
