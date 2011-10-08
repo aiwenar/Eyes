@@ -7,33 +7,25 @@ DEPENDENCY_INCLUDES += \
   libgtop-2.0
 
 SOURCES += \ 
-  eyes_ui.cpp\
-  eyes_view.cpp\
-  eyes_clapper.cc\
+  main.cc \
+  eyes.cc \
+  clapper.cc\
   animation.cc\
-  eyes_looker.cc\
-  eyes_cfg.cc\
-  eyes_window.cc\
-  eyes_config.cc\
-  econfig.cc\
+  looker.cc\
+  window.cc\
   core.cpp\
-  configurator.cc
+  configurator.cc \
+  configuration.cc
 
 HEADERS += \ 
-  eyes_view.h\
-  bulwers.h\
-  eyes_info.h\
   defines.hxx\
-  clap_animations.hxx\
   animation.hxx\
-  eyes_cfg.hxx\
-  eyes_window.hxx\
-  eyes_config.hxx\
-  econfig.hxx\
+  window.hxx\
   debug.hxx\
   eyes.hxx\
   core.hxx\
-  configurator.hxx
+  configurator.hxx \
+  configuration.hxx
 
 OTHER_FILES += \ 
   README.markdown\
@@ -42,6 +34,8 @@ OTHER_FILES += \
   configure
 
 system(./scripts/checklibs)
+
+QMAKE_CXXFLAGS += -std=c++0x
 
 INCLUDEPATH += \
   $$system(./scripts/libcfg --cflags glib-2.0) \
@@ -52,4 +46,3 @@ LIBS += \
   $$system(./scripts/libcfg --libs glib-2.0) \
   $$system(./scripts/libcfg --libs libgtop-2.0) \
   $$system(./scripts/libcfg --libs libconfig++)
-
