@@ -18,8 +18,8 @@
 #include <QGridLayout>
 #include <QLabel>
 #include <QApplication>
-#include <econfig.hxx>
 #include "configurator.hxx"
+#include "configuration.hxx"
 #include <debug.hxx>
 
 Configurator::Configurator ( QWidget * parent ) : QDialog ( parent )
