@@ -71,38 +71,6 @@ int main ( int argc, char ** argv )
   Config set;
   set.readFile ( "./config.cfg" );
 
-  if ( arg.size () > 1 )
-  {
-    if ( arg.at ( 1 ) == "config" )
-    {
-      if ( arg.at ( 2 ) == "list" )
-        list_keys ( &set );
-      else
-      {
-        if ( not set.exists ( arg.at ( 2 ).toStdString () ) )
-        {
-          error << "requested path dosn't exist. See `help config` for help.\n";
-          exit ( 126 );
-        }
-        if ( arg.size () > 3 )
-        {
-
-        }
-        else
-        {
-          try
-          {
-            cout << set.lookup ( arg.at ( 2 ).toStdString () ).c_str () << '\n';
-          }
-          catch ( SettingTypeException e )
-          {
-            cout << e.what ();
-          }
-        }
-      }
-      exit ( 0 );
-    }
-  }
   for ( int i = 0 ; i < arg.size () ; i++ )
   {
       if ( arg.at ( i ) == "-h" or arg.at ( i ) == "--help" )
