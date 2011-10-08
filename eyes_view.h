@@ -33,10 +33,21 @@
 #include <libconfig.h++>
 #include <ostream>
 
-#include "bulwers.h"
 #include "defines.hxx"
 #include "animation.hxx"
 #include "econfig.hxx"
+
+#define EYE_S       60
+#define EYE_M       9
+#define NUM_LAYERS  3
+
+extern int  eye_s,
+            eye_m,
+            eyes_w,
+            eyes_h;
+
+#define EYES_W  320
+#define EYES_H  80
 
 using namespace libconfig;
 using namespace std;
@@ -59,6 +70,13 @@ class eyes_view : public QWidget
 {
     Q_OBJECT
 public:
+    enum Layers
+    {
+        HOT     = 0,
+        SHY     = 1,
+        SLEEPY  = 2
+    };
+
     /**
      * Construct eyes_view with color \p color.
      * @param color Color of the eyes.
@@ -81,6 +99,8 @@ public:
     void                set_animation       ( QString start, QString end, int from, int to );
     void                anims_send          ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto );
     void                send_eyes           ( QString neyes );
+    void                toggle_layer        ( Layers layer, bool onoff );
+    void                set_layer           ( Layers layer, QString face );
     void                reload_eyes         ();
     void                graphics_prepare    ();
     void                anims_reload        ();
@@ -109,7 +129,14 @@ public slots:
     void                mousePressEvent     ( QMouseEvent * ev );
     void                mouseMoveEvent      ( QMouseEvent * ev );
 private:
+    struct _layer
+    {
+        QString face;
+        bool    drawable;
+    };
+
     void                open_images         ( QString folder );
+    _layer                * layers;
     QTimer                * timer;
     QTime                   time;
     QWidget               * win;
