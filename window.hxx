@@ -23,8 +23,7 @@
 #include <QStringList>
 #include <QMenu>
 #include <libconfig.h++>
-#include "eyes_view.h"
-#include "eyes_config.hxx"
+#include "eyes.hxx"
 #include <configurator.hxx>
 
 using namespace libconfig;
@@ -48,12 +47,10 @@ public slots:
 private:
     bool                isicon;
     eyes_view         * eyes;
-    eyes_config       * ecfg;
     QSystemTrayIcon   * trayico;
     QMenu             * timenu;
     QAction           * quitA,
                       * setA;
-    eConfig           * oldcfg;
     Configurator      * config;
 };
 
