@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "econfig.hxx"
+#include "configurator.hxx"
 #include <debug.hxx>
 
 #include <iostream>
