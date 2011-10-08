@@ -30,7 +30,7 @@ using namespace std;
 #define DEF_THEME "draw"
 
 static char   folder[]    = "./pics/";
-static char * files[]     = {
+static const char * files[]     = {
     "bul_01_a", "bul_01_m", "bul_01_o", "bul_01_s",                 //4
     "bul_02_a", "bul_02_m", "bul_02_o", "bul_02_s",                 //8
     "bul_03_a", "bul_03_m", "bul_03_o", "bul_03_s",                 //12
@@ -87,7 +87,7 @@ static char * files[]     = {
     "tired_01", "tired_02", "tired_03",                             //139
     "spec"                                                          //140
 };
-static char * eyefiles[]  = {
+static const char * eyefiles[]  = {
     "eye_01", "eye_02", "eye_03", "eye_04", "eye_05",   // 5
     "eye_06", "eye_07", "eye_08", "eye_09", "eye_10",
     "blank"    // 10
@@ -183,7 +183,6 @@ void _som ( int i, int max )
 {
     static int prew = 0;
     i ++;
-    max;
     cerr << "\033[" << prew << "D";
     std::ostringstream ss;
     ss << '[' << i << '/' << max << ']';
@@ -215,7 +214,6 @@ void eyes_view::open_images ( QString color )
         else
         {
             pics.insert ( QString ( files[i] ), file->scaled ( eyes_w, eyes_h, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
-            std::cout;
         }
         delete file;
     }

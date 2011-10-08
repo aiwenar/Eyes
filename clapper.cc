@@ -25,11 +25,6 @@
 
 using namespace std;
 
-// actually unused.
-static char *claps[] = {
-    "clap_01", "clap_02", "clap_03", "clap_04", "clap_05", "clap_04", "clap_03", "clap_02", "clap_01",
-};
-
 eyes_clapper::eyes_clapper ( eyes_view * neyes ) :
   animations ()
 {

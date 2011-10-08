@@ -34,14 +34,14 @@ public:
                 animation ( int nsize );
     /**
      * Add frame to animation.
-     * @param f frame.
+     * @paramchar f frame.
      */
-    animation * add_frame ( char * f );
+    animation * add_frame ( const char * f );
 
     static  void  registerAnimations  ( QMap<QString,animation*> * );
 
     /// List of animation frames.
-    char ** frames;
+    const char ** frames;
     /// Noumber of frames in animation.
     int     size;
 private:

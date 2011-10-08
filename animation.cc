@@ -26,7 +26,7 @@ using namespace std;
 
 animation::animation ( int nsize ) : size ( nsize ), act_frame ( 0 )
 {
-    frames = new char*[size];
+    frames = new const char*[size];
     if ( frames == nil )
     {
         error << "(animation) cannot allocate memory.\n";
@@ -34,7 +34,7 @@ animation::animation ( int nsize ) : size ( nsize ), act_frame ( 0 )
     }
 }
 
-animation * animation::add_frame ( char * f )
+animation * animation::add_frame ( const char * f )
 {
     if ( act_frame+1 > size )
     {
