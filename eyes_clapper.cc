@@ -20,7 +20,7 @@
 #include <iostream>
 
 #include "eyes_view.h"
-#include "clap_animations.hxx"
+#include "animation.hxx"
 #include <debug.hxx>
 
 using namespace std;
@@ -30,10 +30,11 @@ static char *claps[] = {
     "clap_01", "clap_02", "clap_03", "clap_04", "clap_05", "clap_04", "clap_03", "clap_02", "clap_01",
 };
 
-eyes_clapper::eyes_clapper ( eyes_view * neyes )
+eyes_clapper::eyes_clapper ( eyes_view * neyes ) :
+  animations ()
 {
     info << "(eyes_clapper) preparing...\n";
-    register_animations ( &animations );
+    animation::registerAnimations ( &animations );
     eyes = neyes;
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( clap () ) );
