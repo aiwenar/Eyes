@@ -18,8 +18,8 @@
 #ifndef _eyes_eyes_hxx
 #define _eyes_eyes_hxx
 
-const double versiond = 0.080001;
-const char *verstr = "0.8 alpha";
+extern const double versiond;
+extern const char *verstr;
 
 /**
  * \mainpage Eyes
@@ -46,7 +46,7 @@ const char *verstr = "0.8 alpha";
 
 #include "defines.hxx"
 #include "animation.hxx"
-#include "econfig.hxx"
+#include "configuration.hxx"
 
 #define EYE_S       60
 #define EYE_M       9
@@ -56,6 +56,7 @@ extern int  eye_s,
             eye_m,
             eyes_w,
             eyes_h;
+extern bool images_ready;
 
 #define EYES_W  320
 #define EYES_H  80
@@ -102,7 +103,6 @@ public:
      * Called by \p Core when \p bulwers is updated.
      * @param core_stats state of bulwers.
      */
-    void                update_bulwers      ( core_stats * color );
     void                set_face            ( QString nface );
     void                set_eyes            ( QString neyes );
     void                set_eyes_position   ( int nx1, int nx2, int ny );
@@ -175,7 +175,7 @@ private:
     void                  * locker;
     eyes_clapper          * clapper;
     eyes_looker           * looker;
-    eConfig               * set;
+    Configuration         * set;
     Core                  * core;
 };
 
@@ -259,7 +259,7 @@ public:
                     load_config     (),
                     run             (),
                     graphics_prepare(),
-                    autocalc_reload ( eConfig * set ),
+                    autocalc_reload ( Configuration * set ),
                     autocalc_init   ();
     bool            wake_up_prepare ();
 

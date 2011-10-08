@@ -93,6 +93,9 @@ static char * eyefiles[]  = {
     "blank"    // 10
 };
 
+const double versiond = 0.080001;
+const char *verstr = "0.8 alpha";
+
 void core_main ();
 bool is_finished;
 bool images_ready;
@@ -263,13 +266,13 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.drawPixmap ( int(mpx2), int(mpy), eye_m, eye_m, pics[spec] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_m"] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_o"] );
-    area->setMask ( pics[face+"_a"].mask () );
     for ( int i=0 ; i<NUM_LAYERS ; i++ )
     {
         if ( layers[i].drawable )
             parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[layers[i].face] );
     }
     parea.end ();
+    area->setMask ( pics[face+"_a"].mask () );
     paint.drawPixmap ( 0, 0, eyes_w, eyes_h, *area );
 }
 
