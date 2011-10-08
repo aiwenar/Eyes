@@ -15,8 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#include "eyes_view.h"
-#include "eyes_info.h"
+#include "eyes.hxx"
 
 #include <debug.hxx>
 
@@ -127,6 +126,7 @@ QString get_face_suffix ( QString face )
 eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
 {
     info << "(eyes_view) preparing...\n";
+    layers = new _layer[NUM_LAYERS];
     px = MM_NO_MOTION;
     px = MM_NO_MOTION;
     epx1 = 46;
@@ -162,6 +162,8 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     looker = new eyes_looker ( this );
     core = new Core ( this );
     open_images ( color );
+    set_layer ( SLEEPY, "tired_03" );
+    toggle_layer ( SLEEPY, true );
     core->load_config ();
     area = new QPixmap ( eyes_w, eyes_h );
     clapper->run ();
@@ -261,8 +263,13 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.drawPixmap ( int(mpx2), int(mpy), eye_m, eye_m, pics[spec] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_m"] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_o"] );
-    parea.end ();
     area->setMask ( pics[face+"_a"].mask () );
+    for ( int i=0 ; i<NUM_LAYERS ; i++ )
+    {
+        if ( layers[i].drawable )
+            parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[layers[i].face] );
+    }
+    parea.end ();
     paint.drawPixmap ( 0, 0, eyes_w, eyes_h, *area );
 }
 
@@ -327,6 +334,16 @@ void eyes_view::set_mirror_position ( double nx1, double nx2, double ny )
 void eyes_view::set_animation ( QString start, QString end, int from, int to )
 {
     clapper->set_animation ( start, end, from ,to );
+}
+
+void eyes_view::set_layer ( Layers layer, QString face )
+{
+    layers[layer].face = face;
+}
+
+void eyes_view::toggle_layer ( Layers layer, bool onoff )
+{
+    layers[layer].drawable = onoff;
 }
 
 int eyes_view::heightForWidth ( int w ) const

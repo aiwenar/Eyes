@@ -18,7 +18,7 @@
 #include <iostream>
 #include <QApplication>
 #include "eyes_window.hxx"
-#include "eyes_info.h"
+#include "eyes.hxx"
 #include <debug.hxx>
 
 using namespace std;

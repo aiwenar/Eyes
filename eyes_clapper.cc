@@ -19,7 +19,7 @@
 #include <QChar>
 #include <iostream>
 
-#include "eyes_view.h"
+#include "eyes.hxx"
 #include "animation.hxx"
 #include <debug.hxx>
 

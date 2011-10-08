@@ -22,13 +22,10 @@
 #include <string>
 #include <libconfig.h++>
 
-#include "eyes_view.h"
-#include "eyes_info.h"
-#include "eyes_cfg.hxx"
 #include "eyes_window.hxx"
-#include <debug.hxx>
-#include <eyes.hxx>
-#include <configurator.hxx>
+#include "debug.hxx"
+#include "eyes.hxx"
+#include "configurator.hxx"
 
 using namespace std;
 using namespace libconfig;

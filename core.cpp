@@ -34,7 +34,7 @@
 #include <glibtop/proclist.h>
 #include <glibtop/uptime.h>
 #include "core.hxx"
-#include "eyes_view.h"
+#include "eyes.hxx"
 #include "debug.hxx"
 
 using namespace std;
