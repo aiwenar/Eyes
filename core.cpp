@@ -2729,7 +2729,7 @@ void Core::autocalc_init ()
     autocalc.save_next = autocalc.save_interval;
 }
 
-void Core::autocalc_reload ( eConfig * cfg )
+void Core::autocalc_reload ( Configuration * cfg )
 {
     autocalc.c_cpu = (((100/autocalc.impact)-1)*cpu.stable + cpu.load)/(100/autocalc.impact);
     autocalc.c_mem = (((100/autocalc.impact)-1)*memory.stable + memory.load)/(100/autocalc.impact);

@@ -7,7 +7,7 @@
 #include <QTimer>
 #include <libconfig.h++>
 
-#include "eyes_view.h"
+#include "eyes.hxx"
 
 using namespace std;
 using namespace libconfig;
