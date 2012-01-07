@@ -161,6 +161,7 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     qsrand ( (uint)time.msec () );
     setMinimumSize ( eyes_w, eyes_h );
     setMaximumSize ( eyes_w, eyes_h );
+    setMouseTracking ( true );
     clapper = new eyes_clapper ( this );
     looker = new eyes_looker ( this );
     core = new Core ( this );
@@ -281,17 +282,19 @@ void eyes_view::mousePressEvent ( QMouseEvent * ev )
 
 void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
 {
-    ev->accept ();
-    if ( px == MM_NO_MOTION or py == MM_NO_MOTION )
+    ev->ignore ();
+    /*if ( px == MM_NO_MOTION or py == MM_NO_MOTION )
     {
-        px = ev->x ();
-        py = ev->y ();
+        px = ev->globalX ();
+        py = ev->globalY ();
         return;
+    }*/
+    if ( ev->buttons () & Qt::LeftButton )
+    {
+      win->move ( ev->globalX (), ev->globalY () );
+      repaint ();
     }
-    int dx = ( ( px > ev->x () ? -1 : 1 ) * px ) + ev->x ();
-    int dy = ( ( py > ev->y () ? -1 : 1 ) * py ) + ev->y ();
-    win->move ( 10, 10 );
-    repaint ();
+    emit mousemoved ( ev->x (), ev->y () );
 }
 
 void eyes_view::closeEvent ( QCloseEvent * ev )

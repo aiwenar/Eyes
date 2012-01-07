@@ -133,9 +133,10 @@ public:
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            ()                                      const;
     QString             get_face            ();
-    QString	        get_face_next       ();
+    QString	            get_face_next       ();
     QString             get_color_suffix    () { return color; }
 signals:
+    void                mousemoved          ( int x, int y );
 public slots:
     void                mousePressEvent     ( QMouseEvent * ev );
     void                mouseMoveEvent      ( QMouseEvent * ev );
@@ -267,6 +268,7 @@ public:
     bool    wake_up;
 public slots:
     void    on_timer_tick   ();
+    void    handle_mouse    ( int x, int y );
 private:
     QTimer        * timer;
     eyes_view     * eyes;

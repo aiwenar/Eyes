@@ -2718,6 +2718,7 @@ Core::Core ( eyes_view * neyes )
 {
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( on_timer_tick () ) );
+    connect ( neyes, SIGNAL ( mousemoved (int,int) ), this, SLOT ( handle_mouse(int,int) ) );
     eyes = neyes;
 }
 
@@ -2872,4 +2873,8 @@ void Core::on_timer_tick ()
     bulwers_update ();
     eyes->graphics_prepare();
     gui_refresh ();
+}
+
+void Core::handle_mouse ( int x, int y )
+{
 }
