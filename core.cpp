@@ -2719,6 +2719,7 @@ Core::Core ( eyes_view * neyes )
     timer = new QTimer ( this );
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( on_timer_tick () ) );
     connect ( neyes, SIGNAL ( mousemoved (int,int) ), this, SLOT ( handle_mouse(int,int) ) );
+    connect ( neyes, SIGNAL ( mouseentered () ), this, SLOT ( handle_enter () ) );
     eyes = neyes;
 }
 
@@ -2877,4 +2878,9 @@ void Core::on_timer_tick ()
 
 void Core::handle_mouse ( int x, int y )
 {
+}
+
+void Core::handle_enter ()
+{
+    info << "(core) mouse entered\n";
 }

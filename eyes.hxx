@@ -137,9 +137,11 @@ public:
     QString             get_color_suffix    () { return color; }
 signals:
     void                mousemoved          ( int x, int y );
+    void                mouseentered        ();
 public slots:
     void                mousePressEvent     ( QMouseEvent * ev );
     void                mouseMoveEvent      ( QMouseEvent * ev );
+    void                enterEvent          ( QEvent * );
 private:
     struct _layer
     {
@@ -269,6 +271,7 @@ public:
 public slots:
     void    on_timer_tick   ();
     void    handle_mouse    ( int x, int y );
+    void    handle_enter    ();
 private:
     QTimer        * timer;
     eyes_view     * eyes;
