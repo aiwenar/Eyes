@@ -180,25 +180,26 @@ eyes_view::~eyes_view ()
     info << "(eyes) destroying eyes.\n";
 }
 
+char * _s;
 void _som ( int i, int max )
 {
-    static int prew = 0;
     i ++;
-    cerr << "\033[" << prew << "D";
-    std::ostringstream ss;
-    ss << '[' << i << '/' << max << ']';
-    string s = ss.str ();
-    if ( i > max )
-        cerr << "done        \n";
+    cerr << "\033[2K\033[100D" << _s;
+    if ( i < max )
+    {
+      std::ostringstream ss;
+      ss << '[' << i << '/' << max << ']';
+      string s = ss.str ();
+      cerr << s;
+    }
     else
-        cerr << s;
-    prew = s.length ();
+        cerr << "[ done ]\n";
 }
 
 void eyes_view::open_images ( QString color )
 {
-    QPixmap * file ;
-    info << "(eyes) loading images...  ";
+    QPixmap * file;
+    _s = "(eyes) loading images...  ";
     bool no_file ( false );
     for ( int i=0 ; i<216 ; i++ )
     {
@@ -224,7 +225,6 @@ void eyes_view::open_images ( QString color )
         c_main.cancel ();
         exit ( 2 );
     }
-    info << "(eyes) loading images...    ";
     for ( int i=0 ; i<10 ; i++ )
     {
         _som ( i, 10 );
@@ -295,6 +295,11 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
       repaint ();
     }
     emit mousemoved ( ev->x (), ev->y () );
+}
+
+void eyes_view::enterEvent ( QEvent * )
+{
+    emit mouseentered ();
 }
 
 void eyes_view::closeEvent ( QCloseEvent * ev )

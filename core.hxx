@@ -148,4 +148,14 @@ struct sended_anims
                                 end;
 };
 
+class mouse_actions
+{
+public:
+    int                         cur,
+                                buff_size;
+    vector<int>                 buffer_x,
+                                buffer_y;
+    void                        convert();
+};
+
 #endif //gbssl_core_new_hxx
