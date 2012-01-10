@@ -60,6 +60,7 @@ hard_dbg        HDBG;
 auto_calc       autocalc;
 mouse_actions   mousea;
 QString         face_send;
+QTime           mousetime;
 
 void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto )
 {
@@ -490,7 +491,7 @@ void bul::update()
     if (get_time ().month == 12 || get_time ().month == 1 )
     if (outline != 20)
     {
-        if (times.value < 7 || times.value >= 19)
+        if (times.value < 7 || times.value >= 18)
             eye = 1;
         if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
             eye = 2;
@@ -946,8 +947,7 @@ mousea.cur                          = 0    ;
 
 for (unsigned int i = 0; i<=mousea.buff_size; i++)
 {
-    mousea.buffer_x.push_back (temperature.stable);
-    mousea.buffer_y.push_back (temperature.stable);
+    mousea.buffer.push_back (temperature.stable);
 }
 
 energy.value                        = 0    ;
@@ -1433,6 +1433,7 @@ temperature.mod = temperature.calculate();
 times.mod = times.calculate();
 energy.mod = energy.calculate();
 battery_state = bat_plugged ();
+mousea.convert();
 bulwers.update();
 
 //if (autocalc.enabled)
@@ -2687,10 +2688,14 @@ void hard_dbg::print()
     chck_s ();
     cout << "nrgfq" << " " << energy.frequency;
     chck_s ();
+    cout << "creye" << " " << bulwers.eye;
+    chck_s ();
+    cout << "tmmon" << " " << get_time().month;
+    chck_s ();
 
 
 
-    cout << "\033[" << line+4 << "A\n";
+    cout << "\033[" << line+1 << "A\n";
 
 
 
@@ -2883,7 +2888,6 @@ void Core::on_timer_tick ()
     bulwers_update ();
     eyes->graphics_prepare();
     gui_refresh ();
-    mousea.convert();
 }
 
 void Core::handle_mouse ( int x, int y )
@@ -2892,17 +2896,55 @@ void Core::handle_mouse ( int x, int y )
     {
         mousea.cur = 0;
     }
-    mousea.buffer_x[mousea.cur] = x;
-    mousea.buffer_y[mousea.cur] = y;
+
+    long double t_result = mousetime.elapsed();
+
+    if (t_result < 400 && t_result > 1)
+    {
+        mousea.buffer[mousea.cur] = 1000*(long double)sqrt((mousea.prev_x - x)*(mousea.prev_x - x) + (mousea.prev_y - y)*(mousea.prev_y - y))/t_result;
+    }
+    else
+        mousea.buffer[mousea.cur] = 0;
+
+    //1500
+    //3000
+
+    //cout << mousea.buffer[mousea.cur] << "\n";
+    //cout << mousea.prev_x << " " << mousea.prev_y << "\n";
+    //cout << x << " " << y << "\n";
+    //cout << (long double)sqrt((mousea.prev_x - x)*(mousea.prev_x - x) + (mousea.prev_y - y)*(mousea.prev_y - y)) << "\n";
+    //cout << t_result << "\n";
+    //cout << mousea.buffer[mousea.cur] << "\n";
+    //cout << mousetime.elapsed() << "\n";
+
+    mousea.prev_x = x;
+    mousea.prev_y = y;
     mousea.cur++;
+    mousetime.start();
+    mousetime.restart();
 }
 
 void mouse_actions::convert()
 {
+    int sum = 0;
+    int tr = 0;
     for (int i = 0; i <= buff_size; i++)
     {
-        cout << buffer_x[i] << " ";
-        cout << buffer_y[i] << " " << cur << "\n";
+        if (buffer[i] != 0)
+        {
+            sum+=buffer[i];
+            buffer[i] = 0;
+            tr++;
+        }
+    }
+    if (tr == 0)
+        result = 0;
+    else
+        result = sum/tr;
+
+    if (result > 1500)
+    {
+        cout << "PLASK " << result << "\n";
     }
 }
 

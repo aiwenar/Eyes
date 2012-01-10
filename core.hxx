@@ -152,9 +152,11 @@ class mouse_actions
 {
 public:
     int                         cur,
-                                buff_size;
-    vector<int>                 buffer_x,
-                                buffer_y;
+                                buff_size,
+                                prev_x,
+                                prev_y,
+                                result;
+    vector<long double>         buffer;
     void                        convert();
 };
 
