@@ -2905,3 +2905,8 @@ void mouse_actions::convert()
         cout << buffer_y[i] << " " << cur << "\n";
     }
 }
+
+void Core::handle_enter ()
+{
+    info << "(core) mouse entered\n";
+}
