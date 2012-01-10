@@ -58,6 +58,7 @@ bul             bulwers;
 sended_anims    s_anim;
 hard_dbg        HDBG;
 auto_calc       autocalc;
+mouse_actions   mousea;
 QString         face_send;
 
 void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto )
@@ -885,11 +886,11 @@ if (cpu.buffered)
     cpu.current_probe        = 0  ;
     cpu.current_probe_small  = 0  ;
 
-    for (unsigned short i = 0; i<=cpu.buff_size;i++)
+    for (unsigned short i = 0; i<=cpu.buff_size; i++)
     {
         cpu.probes.push_back (cpu.stable);
     }
-    for (unsigned short i = 0; i<=cpu.buff_size;i++)
+    for (unsigned short i = 0; i<=cpu.buff_size; i++)
     {
         cpu.sector_small.push_back (cpu.stable);
     }
@@ -900,11 +901,11 @@ if (memory.buffered)
     memory.current_probe        = 0  ;
     memory.current_probe_small  = 0  ;
 
-    for (unsigned short i = 0; i<=memory.buff_size;i++)
+    for (unsigned short i = 0; i<=memory.buff_size; i++)
     {
         memory.probes.push_back (memory.stable);
     }
-    for (unsigned short i = 0; i<=memory.buff_size;i++)
+    for (unsigned short i = 0; i<=memory.buff_size; i++)
     {
         memory.sector_small.push_back (memory.stable);
     }
@@ -915,11 +916,11 @@ if (battery.buffered)
     battery.current_probe       = 0  ;
     battery.current_probe_small = 0  ;
 
-    for (unsigned short i = 0; i<=battery.buff_size;i++)
+    for (unsigned short i = 0; i<=battery.buff_size; i++)
     {
         battery.probes.push_back (battery.stable);
     }
-    for (unsigned short i = 0; i<=battery.buff_size;i++)
+    for (unsigned short i = 0; i<=battery.buff_size; i++)
     {
         battery.sector_small.push_back (battery.stable);
     }
@@ -930,22 +931,31 @@ if (temperature.buffered)
     temperature.current_probe       = 0  ;
     temperature.current_probe_small = 0  ;
 
-    for (unsigned short i = 0; i<=temperature.buff_size;i++)
+    for (unsigned short i = 0; i<=temperature.buff_size; i++)
     {
         temperature.probes.push_back (temperature.stable);
     }
-    for (unsigned short i = 0; i<=temperature.buff_size;i++)
+    for (unsigned short i = 0; i<=temperature.buff_size; i++)
     {
         temperature.sector_small.push_back (temperature.stable);
     }
 }
 
-energy.value                      = 0    ;
-energy.start                     *= 3600 ;
-energy.wide                      *= 3600 ;
-once_plugged                      = false;
-mod_bat_plug                      = 0    ;
-bulwers.step                      = 0    ;
+mousea.buff_size = 120;
+mousea.cur                          = 0    ;
+
+for (unsigned int i = 0; i<=mousea.buff_size; i++)
+{
+    mousea.buffer_x.push_back (temperature.stable);
+    mousea.buffer_y.push_back (temperature.stable);
+}
+
+energy.value                        = 0    ;
+energy.start                       *= 3600 ;
+energy.wide                        *= 3600 ;
+once_plugged                        = false;
+mod_bat_plug                        = 0    ;
+bulwers.step                        = 0    ;
 
 
 }
@@ -2873,8 +2883,25 @@ void Core::on_timer_tick ()
     bulwers_update ();
     eyes->graphics_prepare();
     gui_refresh ();
+    mousea.convert();
 }
 
 void Core::handle_mouse ( int x, int y )
 {
+    if (mousea.cur > mousea.buff_size)
+    {
+        mousea.cur = 0;
+    }
+    mousea.buffer_x[mousea.cur] = x;
+    mousea.buffer_y[mousea.cur] = y;
+    mousea.cur++;
+}
+
+void mouse_actions::convert()
+{
+    for (int i = 0; i <= buff_size; i++)
+    {
+        cout << buffer_x[i] << " ";
+        cout << buffer_y[i] << " " << cur << "\n";
+    }
 }
