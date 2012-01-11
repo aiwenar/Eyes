@@ -61,6 +61,7 @@ auto_calc       autocalc;
 mouse_actions   mousea;
 QString         face_send;
 QTime           mousetime;
+eMu_zone        eMu;
 
 void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto )
 {
@@ -391,7 +392,9 @@ void bul::update()
             energy.mod      +
             temperature.mod -
             battery.mod     -
-            mod_bat_plug    ;
+            mod_bat_plug    -
+            friendship/100  -
+            mousea.mod      ;
     if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
         step += total_mod;
     else
@@ -433,7 +436,7 @@ void bul::update()
     if (step != 0)
         step--;
 
-
+    mousea.multiplier = 1;//= (double)value/10.0;
 
     if (battery_state == 0)
     {
@@ -491,7 +494,7 @@ void bul::update()
     if (get_time ().month == 12 || get_time ().month == 1 )
     if (outline != 20)
     {
-        if (times.value < 7 || times.value >= 18)
+        if (times.value < 7 || times.value >= 17)
             eye = 1;
         if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
             eye = 2;
@@ -508,7 +511,7 @@ void bul::update()
     if (get_time ().month == 2 || get_time ().month == 3 || get_time ().month == 10 || get_time ().month == 11 )
     if (outline != 20)
     {
-        if (times.value < 6 || times.value >= 19)
+        if (times.value < 6 || times.value >= 18)
             eye = 1;
         if ((times.value >= 6 && times.value < 7) || (times.value >= 17 && times.value < 18))
             eye = 2;
@@ -569,6 +572,13 @@ void bul::update()
         if ((times.value >= 11 && times.value < 13))
             eye = 10;
     }
+
+    if (eye == 0)
+    {
+        cerr << "eye sieze recognize failed!: setting emergency value (6)\n";
+        eye = 6;
+    }
+
 
     //TODO 01: It must works on cfg values, not static.
 
@@ -942,12 +952,15 @@ if (temperature.buffered)
     }
 }
 
-mousea.buff_size = 120;
 mousea.cur                          = 0    ;
+mousea.result                       = 0    ;
+mousea.prev_x                       = 0    ;
+mousea.prev_y                       = 0    ;
+mousea.hit_time                     = 1    ;
 
 for (unsigned int i = 0; i<=mousea.buff_size; i++)
 {
-    mousea.buffer.push_back (temperature.stable);
+    mousea.buffer.push_back (0);
 }
 
 energy.value                        = 0    ;
@@ -1414,17 +1427,68 @@ void eyes_view::graphics_prepare()
 
 void Core::bulwers_update ()
 {
-cpu.get_load(C_LOAD());
-memory.get_load(M_LOAD ());
-if (battery_state != 1 && battery_state != 3 && battery_state != 0)
-    battery.get_load(bateria());
-else if (battery_state == 0)
-    battery.load = 0;
-else
-    battery.load = 100;
-temperature.get_load(temperatura());
-times.value = get_time ().hour/3600;
-energy.value ++;
+    if (eMu.cpu)
+    {
+        cpu.get_load(eMu.cpu_val);
+    }
+    else
+    {
+        cpu.get_load(C_LOAD());
+    }
+    if (eMu.mem)
+    {
+        memory.get_load(eMu.mem_val);
+    }
+    else
+    {
+        memory.get_load(M_LOAD ());
+    }
+    if (eMu.temp)
+    {
+        temperature.get_load(eMu.temp_val);
+    }
+    else
+    {
+        temperature.get_load(temperatura());
+    }
+    if (eMu.batt)
+    {
+        battery.get_load(eMu.batt_val);
+    }
+    else
+    {
+        if (battery_state != 1 && battery_state != 3 && battery_state != 0)
+            battery.get_load(bateria());
+        else if (battery_state == 0)
+            battery.load = 0;
+        else
+            battery.load = 100;
+    }
+    if (eMu.time)
+    {
+        times.value = eMu.time_val;
+    }
+    else
+    {
+        times.value = get_time ().hour/3600;
+    }
+    if (eMu.energy)
+    {
+        energy.value = eMu.energy_val;
+    }
+    else
+    {
+        energy.value ++;
+    }
+    if (eMu.batt_s)
+    {
+        battery_state = eMu.batt_s_val;
+    }
+    else
+    {
+        battery_state = bat_plugged ();
+    }
+
 
 cpu.mod = cpu.calculate();
 memory.mod = memory.calculate();
@@ -1432,8 +1496,7 @@ battery.mod = battery.calculate();
 temperature.mod = temperature.calculate();
 times.mod = times.calculate();
 energy.mod = energy.calculate();
-battery_state = bat_plugged ();
-mousea.convert();
+mousea.mod = mousea.impact*mousea.convert()/100;
 bulwers.update();
 
 //if (autocalc.enabled)
@@ -1458,26 +1521,41 @@ for (unsigned short i = HDBG.max_s+7; i>1; i--)
 {
     cout << "\033[1A";
 }
-for (unsigned short i = 37; i>1; i--)
+for (unsigned short i = 65; i>1; i--)
 {
     cout << "-";
 }
-cout << "\033[12D" << "\033[3B";
-for (unsigned short i = 12; i>1; i--)
+cout << "\033[40D" << "\033[3B";
+for (unsigned short i = 13; i>1; i--)
 {
     cout << "-";
 }
-cout << "\033[12D" << "\033[3B";
-for (unsigned short i = 12; i>=1; i--)
+cout << "\033[13D" << "\033[3B";
+for (unsigned short i = 13; i>=1; i--)
 {
     cout << "-";
 }
-cout << "\033[12D" << "\033[3B";
-for (unsigned short i = 12; i>=1; i--)
+cout << "\033[13D" << "\033[3B";
+for (unsigned short i = 13; i>=1; i--)
 {
     cout << "-";
 }
-cout << "\033[27D" << "\033[9A";
+cout << "\033[6A" << "\033[14C";
+for (unsigned short i = 14; i>=1; i--)
+{
+    cout << "-";
+}
+cout << "\033[14D" << "\033[3B";
+for (unsigned short i = 14; i>=1; i--)
+{
+    cout << "-";
+}
+cout << "\033[14D" << "\033[5B";
+for (unsigned short i = 14; i>=1; i--)
+{
+    cout << "-";
+}
+cout << "\033[56D" << "\033[11A";
 for (unsigned short i = HDBG.max_s + 4; i>0; i--)
 {
     cout << "\033[1B" << "\033[1D" << "|";
@@ -1505,9 +1583,18 @@ for (unsigned short i = HDBG.max_s+4; i>0; i--)
 {
     cout << "\033[1A";
 }
-cout << "\033[12C" << "\033[1A";
+cout << "\033[12C" << "\033[1B";
 
-for (unsigned short i = HDBG.max_s+6; i>0; i--)
+for (unsigned short i = HDBG.max_s+4; i>0; i--)
+{
+    cout << "|" << "\033[1B" << "\033[1D";
+}
+for (unsigned short i = HDBG.max_s+4; i>0; i--)
+{
+    cout << "\033[1A";
+}
+cout << "\033[14C";
+for (unsigned short i = HDBG.max_s+4; i>0; i--)
 {
     cout << "|" << "\033[1B" << "\033[1D";
 }
@@ -1532,7 +1619,7 @@ cout << "\033[3C" << "battery:";
 cout << "\033[8D" << "\033[3B" << "time:";
 cout << "\033[5D" << "\033[3B" << "energy:";
 cout << "\033[7D" << "\033[6B" << "next_wall:";
-cout << "\n" << "\033[15A" << "\033[22C              | " << "mods:       ";
+cout << "\n" << "\033[15A" << "\033[22C      basic     " << "   mods       mouse debug ";
 if (HDBG.enabled)
     cout << "\033[1C HARDLY DEBUG MODE:";
 cout << "\n\n" << "\033[38C" << "cpu:\n";
@@ -1551,6 +1638,14 @@ cout << "\n" << "\033[38C" << "plug:\n";
 cout << "\033[1A" << "\033[44C" << "val:\n";
 cout << "\033[14A";
 
+cout << "\n" << "\033[52C" << "X:    Y:\n";
+cout << "\n\n" << "\033[52C" << "friendship:";
+cout << "\n\n\n" << "\033[52C" << "delay:";
+cout << "\n\n" << "\033[52C" << "result:";
+cout << "\n" << "\033[56C" << "[Mpx/s]";
+cout << "\n\n" << "\033[52C" << "mouse mod:";
+cout << "\n\n" << "\033[52C" << "buffers:";
+cout << "\033[14A";
 
 
 cout << "\n";
@@ -1561,22 +1656,22 @@ This is concept debug layout:
 
 
 #######################################################################################################################
-# step:____   special:__             | mods:       | [] [] [] [] [] []        |
-# -----------------------------------|             | [] [] [] [] [] [] bul    |
-# cpu:  | mem:  | temp: | battery:   | cpu:  load: | [] [] [] [] [] [] [t]    |
-#       |       |       | ]]]]]]>><< |             | [] [] [] [] [] [] 10min  |
-# p1 b1 | m1 b1 | t1 b1 |------------| mem:  load: | [] [] [] [] [] []        |
-# p2 b2 | m2 b2 | t2 b2 | time:__    |             | [] [] [] [] [] []        |
-# p3 b3 | m3 b3 | t3 b3 | ========== | temp: val:  | [] [] [] [] [] []        |
-# p4 b4 | m4 b4 | t4 b4 |------------|             | [] [] [] [] [] []        |
-# p5 b5 | m5 b5 | t5 b5 | energy:__  | batt: perc: | [] [] [] [] [] []        |
-# p6 b6 | m6 b6 | t6 b6 | ========== |             | [] [] [] [] [] []        |
-# p7 b7 | m7 b7 | t7 b7 |------------| time: val:  | [] [] [] [] [] []        |
-# p8 b8 | m8 b8 | t8 b8 | RISE||CALM |             | [] [] [] [] [] []        |
-# p9 b9 | m9 b9 | t9 b9 | __________ | enrg: val:  | [] [] [] [] [] []        |
-# p0 b0 | m0 b0 | t0 b0 | __________ |             | [] [] [] [] [] []        |
-#       |       |       | next_wall: | plug: val:  | [] [] [] [] [] []        |
-# ===== | ===== | ===== | __________ |             | [] [] [] [] [] []        |
+# step:____   special:__    basic         mods       mouse debug |
+# ---------------------------------------------------------------|
+# cpu:  | mem:  | temp: | battery:   | cpu:  load: | X:___ Y:___ |
+#       |       |       | ]]]]]]>><< |             |    <===>    |
+# p1 b1 | m1 b1 | t1 b1 |------------| mem:  load: |-------------|
+# p2 b2 | m2 b2 | t2 b2 | time:__    |             | friendship: |
+# p3 b3 | m3 b3 | t3 b3 | ========== | temp: val:  | ______ <___ |
+# p4 b4 | m4 b4 | t4 b4 |------------|             |-------------|
+# p5 b5 | m5 b5 | t5 b5 | energy:__  | batt: perc: | delay:      |
+# p6 b6 | m6 b6 | t6 b6 | ========== |             | ___________ |
+# p7 b7 | m7 b7 | t7 b7 |------------| time: val:  | result:     |
+# p8 b8 | m8 b8 | t8 b8 | RISE||CALM |             | ____[Mpx/s] |
+# p9 b9 | m9 b9 | t9 b9 | __________ | enrg: val:  |-------------|
+# p0 b0 | m0 b0 | t0 b0 | __________ |             | mouse.mod:  |
+#       |       |       | next_wall: | plug: val:  | ____        |
+# ===== | ===== | ===== | __________ |             | buffers:___ |
 
 
 And for everyone there are terminal instructions for that:
@@ -1680,6 +1775,47 @@ MsSQL
 
 */
 }
+
+void spacefill (int input, unsigned short lenght)
+{
+    unsigned int pivot = 1;
+    string sign = "";
+    if (input < 0)
+    {
+        lenght--;
+        input=-input;
+        sign = "-";
+    }
+    for (unsigned short i = 0; i < lenght; i++)
+    {
+        pivot*=10;
+    }
+    if (input >= pivot)
+    {
+        unsigned int deleted = 0;
+        while (input >= pivot/100)
+        {
+            input/=10;
+            deleted++;
+        }
+        cout << sign << input << "^" << deleted;
+    }
+    else
+    {
+        cout << sign << input;
+        unsigned short inleng = 0;
+        while (input >= 10)
+        {
+            input/=10;
+            inleng++;
+        }
+        for (unsigned short i = 1; i < lenght-inleng; i++)
+        {
+            cout << " ";
+        }
+    }
+}
+
 void Core::gui_refresh ()
 {
     cout << "\033[1;33m";
@@ -2584,6 +2720,50 @@ void Core::gui_refresh ()
         cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << mod_bat_plug;
         cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << battery_state;
     }
+
+    cout << "\033[15A" << "\n\n";
+    cout << "\033[52C\033[33m";
+
+    cout << "\033[2C";
+    spacefill(mousea.prev_x, 3);
+
+    cout << "\033[2C";
+    spacefill(mousea.prev_y, 3);
+
+    cout << "\n\033[55C";
+    if(mousetime.elapsed() < 400)
+        cout << "\033[37m<===>";
+    else
+        cout << "\033[1;30m<===>";;
+    cout << " \033[33m\n\n\n\033[52C";
+    spacefill(bulwers.friendship, 6);
+
+    cout << "\n\033[1A\033[60C";
+    if (mousea.mod > 0)
+    {
+        cout << "<";
+        spacefill(mousea.goodstep, 3);
+    }
+    else if (mousea.mod < 0)
+    {
+        cout << ">";
+        spacefill(mousea.badstep, 3);
+    }
+    else
+        cout << " --";
+
+    cout << "\n\n\n\033[52C";
+    spacefill(mousetime.elapsed(), 11);
+
+    cout << "\n\n\033[52C";
+    spacefill(mousea.result, 4);
+
+    cout << "\n\n\n\033[52C";
+    spacefill(mousea.mod, 11);
+
+    cout << "\n\033[60C";
+    spacefill(mousea.tr, 3);
+
     cout << "\033[15A" << "\n\n";
 
     if (HDBG.enabled)
@@ -2592,16 +2772,6 @@ void Core::gui_refresh ()
 
 void hard_dbg::print()
 {
-
-
-    //------------WARNING-------------//
-
-    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
-    //   !!! HARDLY DEBUG BEGIN !!!   //
-    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//.
-
-
-
     spacer = 52;
     line = 0;
 
@@ -2696,16 +2866,6 @@ void hard_dbg::print()
 
 
     cout << "\033[" << line+1 << "A\n";
-
-
-
-    //-------------WARNING-------------//
-
-    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//
-    //   !!! HARDLY DEBUG ENDING !!!   //
-    //>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>//.
-
-
 }
 
 
@@ -2763,91 +2923,123 @@ void Core::load_config ()
 {
     Configuration * cfg = Configuration::getInstance ();
 
-    cpu.frequency = cfg->lookupValue ( "core.cpu.frequency", 'f' );
-    cpu.lin_num = cfg->lookupValue ( "core.cpu.linear_modifier", 0 );
-    cpu.stable = cfg->lookupValue ( "core.cpu.stable", 25 );
-    cpu.steps = cfg->lookupValue ( "core.cpu.steps", 10 );
-    cpu.loseless = cfg->lookupValue ( "core.cpu.adaptation", 10 );
-    cpu.buffered = cfg->lookupValue ( "core.cpu.buffered", true );
-    cpu.buff_size = cfg->lookupValue ( "core.cpu.buffer_size", 10 );
+    cpu.frequency           = cfg->lookupValue ( "core.cpu.frequency",                  'f'         );
+    cpu.lin_num             = cfg->lookupValue ( "core.cpu.linear_modifier",            0           );
+    cpu.stable              = cfg->lookupValue ( "core.cpu.stable",                     25          );
+    cpu.steps               = cfg->lookupValue ( "core.cpu.steps",                      10          );
+    cpu.loseless            = cfg->lookupValue ( "core.cpu.adaptation",                 10          );
+    cpu.buffered            = cfg->lookupValue ( "core.cpu.buffered",                   true        );
+    cpu.buff_size           = cfg->lookupValue ( "core.cpu.buffer_size",                10          );
 
     //mem_section
 
-    memory.frequency = cfg->lookupValue ( "core.memory.frequency", 'q' );
-    memory.lin_num = cfg->lookupValue ( "core.memory.linear_modifier", 2 );
-    memory.stable = cfg->lookupValue ( "core.memory.stable", 25 );
-    memory.steps = cfg->lookupValue ( "core.memory.steps", 8 );
-    memory.loseless = cfg->lookupValue ( "core.memory.adaptation", 10 );
-    memory.buffered = cfg->lookupValue ( "core.memory.buffered", true );
-    memory.buff_size = cfg->lookupValue ( "core.memory.buffer_size", 10 );
+    memory.frequency        = cfg->lookupValue ( "core.memory.frequency",               'q'         );
+    memory.lin_num          = cfg->lookupValue ( "core.memory.linear_modifier",         2           );
+    memory.stable           = cfg->lookupValue ( "core.memory.stable",                  25          );
+    memory.steps            = cfg->lookupValue ( "core.memory.steps",                   8           );
+    memory.loseless         = cfg->lookupValue ( "core.memory.adaptation",              10          );
+    memory.buffered         = cfg->lookupValue ( "core.memory.buffered",                true        );
+    memory.buff_size        = cfg->lookupValue ( "core.memory.buffer_size",             10          );
 
     //temperature_section
 
-    temperature.frequency = cfg->lookupValue ( "core.temperature.frequency", 'q' );
-    temperature.lin_num = cfg->lookupValue ( "core.temperature.linear_modifier", 2 );
-    temperature.stable = cfg->lookupValue ( "core.temperature.stable", 56 );
-    temperature.steps = cfg->lookupValue ( "core.temperature.steps", 12 );
-    temperature.loseless = cfg->lookupValue ( "core.temperature.adaptation", 2 );
-    temperature.buffered = cfg->lookupValue ( "core.temperature.buffered", true );
-    temperature.buff_size = cfg->lookupValue ( "core.temperature.buffer_size", 10 );
-    temperature.unit = cfg->lookupValue ( "core.temperature.unit", 1 );
+    temperature.frequency   = cfg->lookupValue ( "core.temperature.frequency",          'q'         );
+    temperature.lin_num     = cfg->lookupValue ( "core.temperature.linear_modifier",    2           );
+    temperature.stable      = cfg->lookupValue ( "core.temperature.stable",             56          );
+    temperature.steps       = cfg->lookupValue ( "core.temperature.steps",              12          );
+    temperature.loseless    = cfg->lookupValue ( "core.temperature.adaptation",         2           );
+    temperature.buffered    = cfg->lookupValue ( "core.temperature.buffered",           true        );
+    temperature.buff_size   = cfg->lookupValue ( "core.temperature.buffer_size",        10          );
+    temperature.unit        = cfg->lookupValue ( "core.temperature.unit",               1           );
 
     //battery_section
 
-    battery_capacity = cfg->lookupValue ( "core.battery.capacity", 4700 );
-    battery.frequency = cfg->lookupValue ( "core.battery.frequency", 'l' );
-    battery.lin_num = cfg->lookupValue ( "core.battery.linear_modifier", 0 );
-    battery.stable = cfg->lookupValue ( "core.battery.stable", 25 );
-    battery.steps = cfg->lookupValue ( "core.battery.steps", 8 );
-    battery.loseless = cfg->lookupValue ( "core.battery.adaptation", 10 );
-    battery.buffered = cfg->lookupValue ( "core.battery.buffered", false );
-    battery.buff_size = cfg->lookupValue ( "core.battery.buffer_size", 10 );
+    battery_capacity        = cfg->lookupValue ( "core.battery.capacity",               4700        );
+    battery.frequency       = cfg->lookupValue ( "core.battery.frequency",              'l'         );
+    battery.lin_num         = cfg->lookupValue ( "core.battery.linear_modifier",        0           );
+    battery.stable          = cfg->lookupValue ( "core.battery.stable",                 25          );
+    battery.steps           = cfg->lookupValue ( "core.battery.steps",                  8           );
+    battery.loseless        = cfg->lookupValue ( "core.battery.adaptation",             10          );
+    battery.buffered        = cfg->lookupValue ( "core.battery.buffered",               false       );
+    battery.buff_size       = cfg->lookupValue ( "core.battery.buffer_size",            10          );
 
     //times_sector
 
-    times.frequency = cfg->lookupValue ( "core.times.frequency", 'q' );
-    times.lin_num = cfg->lookupValue ( "core.times.quad_modifier", 2 );
-    times.start = cfg->lookupValue ( "core.times.start", 20 );
-    times.steps = cfg->lookupValue ( "core.times.steps", 6 );
-    times.end = cfg->lookupValue ( "core.times.end", 6 );
-    times.wide = cfg->lookupValue ( "core.times.wide", 6 );
+    times.frequency         = cfg->lookupValue ( "core.times.frequency",                'q'         );
+    times.lin_num           = cfg->lookupValue ( "core.times.quad_modifier",            2           );
+    times.start             = cfg->lookupValue ( "core.times.start",                    20          );
+    times.steps             = cfg->lookupValue ( "core.times.steps",                    6           );
+    times.end               = cfg->lookupValue ( "core.times.end",                      6           );
+    times.wide              = cfg->lookupValue ( "core.times.wide",                     6           );
 
     //energy_sector
 
-    energy.frequency = cfg->lookupValue ( "core.energy.frequency", 'q' );
-    energy.lin_num = cfg->lookupValue ( "core.energy.quad_modifier", 2 );
-    energy.start = cfg->lookupValue ( "core.energy.start", 16 );
-    energy.steps = cfg->lookupValue ( "core.energy.steps", 6 );
-    energy.end = cfg->lookupValue ( "core.energy.end", 0 );
-    energy.wide = cfg->lookupValue ( "core.energy.wide", 6 );
+    energy.frequency        = cfg->lookupValue ( "core.energy.frequency",               'q'         );
+    energy.lin_num          = cfg->lookupValue ( "core.energy.quad_modifier",           2           );
+    energy.start            = cfg->lookupValue ( "core.energy.start",                   16          );
+    energy.steps            = cfg->lookupValue ( "core.energy.steps",                   6           );
+    energy.end              = cfg->lookupValue ( "core.energy.end",                     0           );
+    energy.wide             = cfg->lookupValue ( "core.energy.wide",                    6           );
 
     //bulwers_walls_sector
 
-    bulwers.wall_01 = cfg->lookupValue ("core.bulwers.wall_01", 300 );
-    bulwers.wall_02 = cfg->lookupValue ("core.bulwers.wall_02", 500 );
-    bulwers.wall_03 = cfg->lookupValue ("core.bulwers.wall_03", 800 );
-    bulwers.wall_04 = cfg->lookupValue ("core.bulwers.wall_04", 1300 );
-    bulwers.wall_05 = cfg->lookupValue ("core.bulwers.wall_05", 2100 );
-    bulwers.wall_06 = cfg->lookupValue ("core.bulwers.wall_06", 3400 );
-    bulwers.wall_07 = cfg->lookupValue ("core.bulwers.wall_07", 5500 );
-    bulwers.wall_08 = cfg->lookupValue ("core.bulwers.wall_08", 8900 );
-    bulwers.wall_09 = cfg->lookupValue ("core.bulwers.wall_09", 14400 );
-    bulwers.wall_10 = cfg->lookupValue ("core.bulwers.wall_10", 23300 );
-    bulwers.wall_11 = cfg->lookupValue ("core.bulwers.wall_11", 37700 );
-    bulwers.wall_12 = cfg->lookupValue ("core.bulwers.wall_12", 61600 );
-    bulwers.wall_13 = cfg->lookupValue ("core.bulwers.wall_13", 98700 );
-    bulwers.wall_14 = cfg->lookupValue ("core.bulwers.wall_14", 159700 );
-    bulwers.wall_15 = cfg->lookupValue ("core.bulwers.wall_15", 258400 );
+    bulwers.wall_01         = cfg->lookupValue ("core.bulwers.wall_01",                 300         );
+    bulwers.wall_02         = cfg->lookupValue ("core.bulwers.wall_02",                 500         );
+    bulwers.wall_03         = cfg->lookupValue ("core.bulwers.wall_03",                 800         );
+    bulwers.wall_04         = cfg->lookupValue ("core.bulwers.wall_04",                 1300        );
+    bulwers.wall_05         = cfg->lookupValue ("core.bulwers.wall_05",                 2100        );
+    bulwers.wall_06         = cfg->lookupValue ("core.bulwers.wall_06",                 3400        );
+    bulwers.wall_07         = cfg->lookupValue ("core.bulwers.wall_07",                 5500        );
+    bulwers.wall_08         = cfg->lookupValue ("core.bulwers.wall_08",                 8900        );
+    bulwers.wall_09         = cfg->lookupValue ("core.bulwers.wall_09",                 14400       );
+    bulwers.wall_10         = cfg->lookupValue ("core.bulwers.wall_10",                 23300       );
+    bulwers.wall_11         = cfg->lookupValue ("core.bulwers.wall_11",                 37700       );
+    bulwers.wall_12         = cfg->lookupValue ("core.bulwers.wall_12",                 61600       );
+    bulwers.wall_13         = cfg->lookupValue ("core.bulwers.wall_13",                 98700       );
+    bulwers.wall_14         = cfg->lookupValue ("core.bulwers.wall_14",                 159700      );
+    bulwers.wall_15         = cfg->lookupValue ("core.bulwers.wall_15",                 258400      );
+    bulwers.fship_at_calm   = cfg->lookupValue ("core.bulwers.friendship_autocalm_del", 3600        );
+    bulwers.friendship      = cfg->lookupValue ("core.bulwers.friendship",              0           );
 
     //basic_sector
 
-    HDBG.enabled = cfg->lookupValue("core.HDBG_enabled", false);
+    HDBG.enabled            = cfg->lookupValue("core.HDBG_enabled",                     false       );
 
     //autocalc_sector
 
-    autocalc.enabled = cfg->lookupValue("core.autocalc.enabled", true);
-    autocalc.save_interval = cfg->lookupValue("core.autocalc.interval", 300);
-    autocalc.impact = cfg->lookupValue("core.autocalc.impact", 20);
+    autocalc.enabled        = cfg->lookupValue("core.autocalc.enabled",                 true        );
+    autocalc.save_interval  = cfg->lookupValue("core.autocalc.interval",                300         );
+    autocalc.impact         = cfg->lookupValue("core.autocalc.impact",                  20          );
+
+    //eMu_sector
+
+    eMu.cpu                 = cfg->lookupValue ("core.eMu_zone.cpu",                    false       );
+    eMu.cpu_val             = cfg->lookupValue ("core.eMu_zone.cpu_val",                0           );
+    eMu.mem                 = cfg->lookupValue ("core.eMu_zone.mem",                    false       );
+    eMu.mem_val             = cfg->lookupValue ("core.eMu_zone.mem_val",                0           );
+    eMu.temp                = cfg->lookupValue ("core.eMu_zone.temp",                   false       );
+    eMu.temp_val            = cfg->lookupValue ("core.eMu_zone.temp_val",               0           );
+    eMu.batt                = cfg->lookupValue ("core.eMu_zone.batt",                   false       );
+    eMu.batt_val            = cfg->lookupValue ("core.eMu_zone.batt_val",               0           );
+    eMu.batt_s              = cfg->lookupValue ("core.eMu_zone.batt_s",                 false       );
+    eMu.batt_val            = cfg->lookupValue ("core.eMu_zone.batt_s_val",             0           );
+    eMu.time                = cfg->lookupValue ("core.eMu_zone.time",                   false       );
+    eMu.time_val            = cfg->lookupValue ("core.eMu_zone.time_val",               0           );
+    eMu.energy              = cfg->lookupValue ("core.eMu_zone.energy",                 false       );
+    eMu.energy_val          = cfg->lookupValue ("core.eMu_zone.energy_val",             0           );
+
+    //mousea_actions_sector
+
+    mousea.buff_size        = cfg->lookupValue ("core.mouse_actions.buff_size",         120         );
+    mousea.goodstep         = cfg->lookupValue ("core.mouse_actions.goodstep",          1           );
+    mousea.badstep          = cfg->lookupValue ("core.mouse_actions.badstep",           10          );
+    mousea.scale            = cfg->lookupValue ("core.mouse_actions.scale",             8000        );
+    mousea.wall             = cfg->lookupValue ("core.mouse_actions.wall",              500         );
+    mousea.force_wall       = cfg->lookupValue ("core.mouse_actions.force_wall",        3000        );
+    mousea.opt_speed        = cfg->lookupValue ("core.mouse_actions.opt_speed",         250         );
+    mousea.impact           = cfg->lookupValue ("core.mouse_actions.impact",            10          );
+    mousea.hit_time_multi   = cfg->lookupValue ("core.mouse_actions.hit_multi",         2           );
+    mousea.heavycalm        = cfg->lookupValue ("core.mouse_actions.heavycalm",         100         );
 
 }
 
@@ -2875,7 +3067,7 @@ void Core::run ()
         wake_up_prepare();
         eyes->anims_reload();
     } while (!wake_up);
-    info << "wake up ended";
+    info << "wake up finished\n";
     eyes->anims_send ("cusual_01", "slp_10_close", "cusual_01_open", 0, 4);
     eyes->anims_reload();
     info << "end of core preparing\n";
@@ -2906,6 +3098,13 @@ void Core::handle_mouse ( int x, int y )
     else
         mousea.buffer[mousea.cur] = 0;
 
+    if (mousea.buffer[mousea.cur] > mousea.force_wall)
+    {
+        bulwers.friendship-=(mousea.badstep*mousea.hit_time);
+        mousea.hit_time*=mousea.hit_time_multi;
+        info << "You\'ve hit Eyes. Be carefull!\n";
+    }
+
     //1500
     //3000
 
@@ -2924,10 +3123,10 @@ void Core::handle_mouse ( int x, int y )
     mousetime.restart();
 }
 
-void mouse_actions::convert()
+int mouse_actions::convert()
 {
     int sum = 0;
-    int tr = 0;
+    tr = 0;
     for (int i = 0; i <= buff_size; i++)
     {
         if (buffer[i] != 0)
@@ -2938,13 +3137,40 @@ void mouse_actions::convert()
         }
     }
     if (tr == 0)
-        result = 0;
+        return 0;
     else
-        result = sum/tr;
-
-    if (result > 1500)
     {
-        cout << "PLASK " << result << "\n";
+        result = sum/tr;
+        if (result > 0 )
+        {
+            if (result >= wall*multiplier)
+            {
+                bulwers.friendship-=(badstep*hit_time);
+                return -(100*result/scale);
+                hit_time*=hit_time_multi;
+            }
+            else
+            {
+                if (bulwers.friendship > -heavycalm*goodstep)
+                {
+                    bulwers.friendship+=goodstep;
+                }
+                else
+                    bulwers.friendship-=bulwers.friendship/heavycalm;
+
+                if(mousea.hit_time != 1)
+                    mousea.hit_time/=2;
+
+                if ( result > opt_speed )
+                {
+                    return (100*((wall*multiplier)-result)/((wall*multiplier)-opt_speed));
+                }
+                else
+                {
+                    return (100*result/opt_speed);
+                }
+            }
+        }
     }
 }
 

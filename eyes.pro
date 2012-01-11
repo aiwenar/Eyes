@@ -47,3 +47,5 @@ LIBS += \
   $$system(./scripts/libcfg --libs libgtop-2.0) \
   $$system(./scripts/libcfg --libs libconfig++) \
   -lrt
+
+

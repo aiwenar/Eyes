@@ -84,7 +84,8 @@ public:
 class bul
 {
 public:
-    int                         total_mod;
+    int                         total_mod,
+                                friendship;
     unsigned int                step,
                                 wall_01,
                                 wall_02,
@@ -110,7 +111,8 @@ public:
                                 layer2,
                                 layer3,
                                 layer4,
-                                value;
+                                value,
+                                fship_at_calm;
     void                        update();
 };
 
@@ -155,9 +157,39 @@ public:
                                 buff_size,
                                 prev_x,
                                 prev_y,
-                                result;
+                                result,
+                                mod,
+                                tr,
+                                impact,
+                                heavycalm,
+                                convert();
     vector<long double>         buffer;
-    void                        convert();
+    unsigned int                wall,
+                                force_wall,
+                                scale,
+                                goodstep,
+                                badstep,
+                                hit_time,
+                                hit_time_multi,
+                                opt_speed;
+    double                      multiplier;
+};
+struct eMu_zone
+{
+    bool                        cpu,
+                                mem,
+                                temp,
+                                time,
+                                energy,
+                                batt,
+                                batt_s;
+    unsigned short              cpu_val,
+                                mem_val,
+                                temp_val,
+                                time_val,
+                                batt_s_val;
+    unsigned int                energy_val,
+                                batt_val;
 };
 
 #endif //gbssl_core_new_hxx
