@@ -47,6 +47,7 @@ unsigned int    prev_bat_plug;
 unsigned int    battery_capacity;
 bool            once_plugged;
 bool            get_flu;
+bool            cdebug;
 int             core_step;
 percental       cpu;
 percental       memory;
@@ -437,6 +438,13 @@ void bul::update()
         step--;
 
     mousea.multiplier = 1;//= (double)value/10.0;
+    if (mousea.hit_time > 1)
+        mousea.hit_time--;
+
+    if (core_step%fship_at_calm == 0)
+    {
+        friendship-=calm_perc*friendship/100;
+    }
 
     if (battery_state == 0)
     {
@@ -1643,7 +1651,7 @@ cout << "\n\n" << "\033[52C" << "friendship:";
 cout << "\n\n\n" << "\033[52C" << "delay:";
 cout << "\n\n" << "\033[52C" << "result:";
 cout << "\n" << "\033[56C" << "[Mpx/s]";
-cout << "\n\n" << "\033[52C" << "mouse mod:";
+cout << "\n\n" << "\033[52C" << "mod:   hit:";
 cout << "\n\n" << "\033[52C" << "buffers:";
 cout << "\033[14A";
 
@@ -2727,41 +2735,65 @@ void Core::gui_refresh ()
     cout << "\033[2C";
     spacefill(mousea.prev_x, 3);
 
-    cout << "\033[2C";
+    cout << "\033[3C";
     spacefill(mousea.prev_y, 3);
 
     cout << "\n\033[55C";
-    if(mousetime.elapsed() < 400)
+    if(mousetime.elapsed() < mousea.max_delay)
         cout << "\033[37m<===>";
     else
         cout << "\033[1;30m<===>";;
     cout << " \033[33m\n\n\n\033[52C";
+    if (bulwers.friendship < 0)
+        cout << "\033[31m";
+    else
+        cout << "\033[32m";
     spacefill(bulwers.friendship, 6);
 
-    cout << "\n\033[1A\033[60C";
+    cout << "\033[33m\n\033[1A\033[60C";
     if (mousea.mod > 0)
     {
-        cout << "<";
+        cout << "\033[32m<";
         spacefill(mousea.goodstep, 3);
     }
     else if (mousea.mod < 0)
     {
-        cout << ">";
-        spacefill(mousea.badstep, 3);
+        cout << "\033[31m>";
+        if (bulwers.friendship < -mousea.heavycalm)
+            spacefill(bulwers.friendship/mousea.heavycalm, 3);
+        else
+            spacefill(mousea.badstep, 3);
     }
     else
         cout << " --";
 
-    cout << "\n\n\n\033[52C";
-    spacefill(mousetime.elapsed(), 11);
+    cout << "\033[33m\n\n\n\033[52C";
+    if (mousetime.elapsed() <= mousea.max_delay)
+        spacefill(mousetime.elapsed(), 11);
+    else
+        cout << "\033[1;30m  ignored  ";
 
-    cout << "\n\n\033[52C";
+    cout << "\033[33m\n\n\033[52C";
+    if (100*mousea.result/mousea.wall >= 80)
+        cout << "\033[31m";
+    else if (100*mousea.result/mousea.wall <= 20)
+        cout << "\033[33m";
+    else
+        cout << "\033[32m";
     spacefill(mousea.result, 4);
 
-    cout << "\n\n\n\033[52C";
-    spacefill(mousea.mod, 11);
+    cout << "\033[33m\n\n\n\033[52C";
+    if (mousea.mod < 0)
+        cout << "\033[31m";
+    else if (mousea.mod == 0)
+        cout << "\033[33m";
+    else
+        cout << "\033[32m";
+    spacefill(mousea.mod, 6);
+    cout << " ";
+    spacefill(mousea.hit_time, 4);
 
-    cout << "\n\033[60C";
+    cout << "\033[33m\n\033[60C";
     spacefill(mousea.tr, 3);
 
     cout << "\033[15A" << "\n\n";
@@ -2772,7 +2804,7 @@ void Core::gui_refresh ()
 
 void hard_dbg::print()
 {
-    spacer = 52;
+    spacer = 66;
     line = 0;
 
     cout << "\033[" << spacer << "C";
@@ -3000,10 +3032,12 @@ void Core::load_config ()
     bulwers.wall_15         = cfg->lookupValue ("core.bulwers.wall_15",                 258400      );
     bulwers.fship_at_calm   = cfg->lookupValue ("core.bulwers.friendship_autocalm_del", 3600        );
     bulwers.friendship      = cfg->lookupValue ("core.bulwers.friendship",              0           );
+    bulwers.calm_perc       = cfg->lookupValue ("core.bulwers.fship_calm_percentage",   1           );
 
     //basic_sector
 
-    HDBG.enabled            = cfg->lookupValue("core.HDBG_enabled",                     false       );
+    cdebug                  = cfg->lookupValue("debug.cdebug.on",                       true        );
+    HDBG.enabled            = cfg->lookupValue("debug.HDBG_enabled",                    false       );
 
     //autocalc_sector
 
@@ -3040,6 +3074,7 @@ void Core::load_config ()
     mousea.impact           = cfg->lookupValue ("core.mouse_actions.impact",            10          );
     mousea.hit_time_multi   = cfg->lookupValue ("core.mouse_actions.hit_multi",         2           );
     mousea.heavycalm        = cfg->lookupValue ("core.mouse_actions.heavycalm",         100         );
+    mousea.max_delay        = cfg->lookupValue ("core.mouse_actions.max_delay",         400         );
 
 }
 
@@ -3048,7 +3083,8 @@ void Core::run ()
     info << "starting core.\n";
     bulwers_init ();
     info << "bulwers inited\n";
-    Core::gui_init();
+    if (cdebug)
+        Core::gui_init();
     if (autocalc.enabled)
     {
         autocalc_init ();
@@ -3079,7 +3115,8 @@ void Core::on_timer_tick ()
     core_step ++;
     bulwers_update ();
     eyes->graphics_prepare();
-    gui_refresh ();
+    if (cdebug)
+        gui_refresh ();
 }
 
 void Core::handle_mouse ( int x, int y )
@@ -3091,7 +3128,7 @@ void Core::handle_mouse ( int x, int y )
 
     long double t_result = mousetime.elapsed();
 
-    if (t_result < 400 && t_result > 1)
+    if (t_result < mousea.max_delay && t_result > 1)
     {
         mousea.buffer[mousea.cur] = 1000*(long double)sqrt((mousea.prev_x - x)*(mousea.prev_x - x) + (mousea.prev_y - y)*(mousea.prev_y - y))/t_result;
     }
@@ -3099,11 +3136,7 @@ void Core::handle_mouse ( int x, int y )
         mousea.buffer[mousea.cur] = 0;
 
     if (mousea.buffer[mousea.cur] > mousea.force_wall)
-    {
-        bulwers.friendship-=(mousea.badstep*mousea.hit_time);
-        mousea.hit_time*=mousea.hit_time_multi;
         info << "You\'ve hit Eyes. Be carefull!\n";
-    }
 
     //1500
     //3000
@@ -3151,7 +3184,7 @@ int mouse_actions::convert()
             }
             else
             {
-                if (bulwers.friendship > -heavycalm*goodstep)
+                if (bulwers.friendship > -(int)heavycalm*(int)goodstep)
                 {
                     bulwers.friendship+=goodstep;
                 }

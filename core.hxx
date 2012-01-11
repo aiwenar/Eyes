@@ -112,7 +112,8 @@ public:
                                 layer3,
                                 layer4,
                                 value,
-                                fship_at_calm;
+                                fship_at_calm,
+                                calm_perc;
     void                        update();
 };
 
@@ -171,6 +172,7 @@ public:
                                 badstep,
                                 hit_time,
                                 hit_time_multi,
+                                max_delay,
                                 opt_speed;
     double                      multiplier;
 };
