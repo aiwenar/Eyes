@@ -15,7 +15,8 @@ SOURCES += \
   window.cc\
   core.cpp\
   configurator.cc \
-  configuration.cc
+  configuration.cc \
+    memory.cc
 
 HEADERS += \ 
   defines.hxx\
@@ -25,7 +26,8 @@ HEADERS += \
   eyes.hxx\
   core.hxx\
   configurator.hxx \
-  configuration.hxx
+  configuration.hxx \
+    memory.hxx
 
 OTHER_FILES += \ 
   README.markdown\
@@ -47,5 +49,7 @@ LIBS += \
   $$system(./scripts/libcfg --libs libgtop-2.0) \
   $$system(./scripts/libcfg --libs libconfig++) \
   -lrt
+
+
 
 
