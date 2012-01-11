@@ -438,7 +438,7 @@ void bul::update()
         step--;
 
     mousea.multiplier = 1;//= (double)value/10.0;
-    if (mousea.hit_time > 1)
+    if (mousea.hit_time > 2 && core_step%10 == 0)
         mousea.hit_time--;
 
     if (core_step%fship_at_calm == 0)
@@ -3179,8 +3179,8 @@ int mouse_actions::convert()
             if (result >= wall*multiplier)
             {
                 bulwers.friendship-=(badstep*hit_time);
-                return -(100*result/scale);
                 hit_time*=hit_time_multi;
+                return -(100*result/scale);
             }
             else
             {
@@ -3191,8 +3191,8 @@ int mouse_actions::convert()
                 else
                     bulwers.friendship-=bulwers.friendship/heavycalm;
 
-                if(mousea.hit_time != 1)
-                    mousea.hit_time/=2;
+                if( hit_time != 1 )
+                    hit_time--;
 
                 if ( result > opt_speed )
                 {
