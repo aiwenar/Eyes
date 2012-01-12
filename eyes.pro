@@ -16,7 +16,9 @@ SOURCES += \
   core.cpp\
   configurator.cc \
   configuration.cc \
-    memory.cc
+    memory.cc \
+    hardware.cc \
+    cdbg.cc
 
 HEADERS += \ 
   defines.hxx\
@@ -27,7 +29,9 @@ HEADERS += \
   core.hxx\
   configurator.hxx \
   configuration.hxx \
-    memory.hxx
+    memory.hxx \
+    cdbg.hxx \
+    hardware.hxx
 
 OTHER_FILES += \ 
   README.markdown\
@@ -49,6 +53,10 @@ LIBS += \
   $$system(./scripts/libcfg --libs libgtop-2.0) \
   $$system(./scripts/libcfg --libs libconfig++) \
   -lrt
+
+
+
+
 
 
 

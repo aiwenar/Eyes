@@ -250,6 +250,8 @@ private:
                 bmax_y;
 };
 
+class cdbg;
+
 class Core : public QObject
 {
     Q_OBJECT
@@ -257,8 +259,6 @@ public:
                     Core            ( eyes_view * );
     void            bulwers_update  (),
                     bulwers_init    (),
-                    gui_refresh     (),
-                    gui_init        (),
                     load_config     (),
                     run             (),
                     graphics_prepare(),
@@ -268,6 +268,8 @@ public:
 
     QString face_prev;
     bool    wake_up;
+
+    friend class cdbg;
 public slots:
     void    on_timer_tick   ();
     void    handle_mouse    ( int x, int y );
@@ -275,6 +277,7 @@ public slots:
 private:
     QTimer        * timer;
     eyes_view     * eyes;
+    cdbg          * _cdbg;
 };
 
 extern eyes_view * eyes;

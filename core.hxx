@@ -112,20 +112,9 @@ public:
                                 layer3,
                                 layer4,
                                 value,
-                                fship_at_calm;
+                                fship_at_calm,
+                                calm_perc;
     void                        update();
-};
-
-class hard_dbg
-{
-private:
-    unsigned short              line    ,
-                                spacer  ;
-    void                        chck_s();
-public:
-    unsigned short              max_s   ;
-    void                        print() ;
-    bool                        enabled ;
 };
 
 class auto_calc
@@ -171,6 +160,7 @@ public:
                                 badstep,
                                 hit_time,
                                 hit_time_multi,
+                                max_delay,
                                 opt_speed;
     double                      multiplier;
 };
