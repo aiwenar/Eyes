@@ -241,7 +241,7 @@ cdbg::cdbg ( Core * c ) :
           "\033[8D\033[3Btime:\033[5D\033[3Benergy:\033[7D"
           "\033[6Bnext_wall:\n\033[15A\033[22C      basic     "
           "   mods       mouse debug ";
-  if (false)
+  if (true)
       cout << "\033[1C HARDLY DEBUG MODE:";
   cout << "\n\n\033[38Ccpu:\n\033[1A\033[44Cload:\n"
           "\n\033[38Cmem:\n\033[1A\033[44Cload:\n\n"
@@ -1139,7 +1139,7 @@ void cdbg::on_timer_tick ()
 
   cout << "\033[15A" << "\n\n";
 
-  if (false)
+  if (true)
   {
     spacer = 66;
     line = 0;
