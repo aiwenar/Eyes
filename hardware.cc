@@ -1,3 +1,4 @@
+#include <fstream>
 #include <glibtop.h>
 #include <glibtop/cpu.h>
 #include <glibtop/mem.h>
@@ -113,4 +114,173 @@ sdate get_time ()
     }
 
     return get_date;
+}
+
+
+
+unsigned short temperatura ()
+{
+    string texcik;
+
+    fstream calosc ("/proc/acpi/thermal_zone/TZ00/temperature", fstream::in);
+    while (calosc.good())
+            texcik+=calosc.get();
+
+    if (texcik == "")
+    {
+        fstream calosc ("/sys/class/thermal/thermal_zone0/temp", fstream::in);
+        while (calosc.good())
+            texcik+=calosc.get();
+
+        if (texcik == "")
+            return temperature.stable;
+
+        return (10*((unsigned short)texcik[0] - 48) + ((unsigned short)texcik[1] - 48));
+    }
+    else
+    {
+        unsigned short tempjuczer=texcik.find_first_of ("temperature");
+        unsigned short i=0;
+        unsigned short a=0;
+        char temp[27];
+
+        for (;i<27;i++)
+        {
+                temp[a] = texcik[25+a];
+                a++;
+        }
+        return atoi (temp);
+    }
+}
+
+
+
+int bat_plugged ()
+{
+        fstream calosc ("/proc/acpi/battery/BAT1/state", fstream::in);
+
+        string texcik;
+        while (calosc.good()){
+        texcik+=calosc.get();}
+
+        if (texcik == "")
+        {
+            fstream calosc ("/sys/class/power_supply/BAT1/status", fstream::in);
+
+            string texcik;
+            while (calosc.good()){
+            texcik+=calosc.get();}
+
+            static int pluged = 0;
+
+            if (texcik[0] == 'C' && pluged !=1) //battery has been just pluged
+            {
+                    pluged = 1;
+                    return 1;
+            }
+            if (texcik[0] != 'C' && pluged !=0) //battery has been just unpluged
+            {
+                    pluged = 0;
+                    return 2;
+            }
+            if (texcik[0] == 'C' && pluged == 1) //battery is still pluged
+                    return 3;
+            if (texcik[0] != 'C' && pluged == 0) //battery is still unpluged
+                    return 4;
+
+            else return 5;
+        }
+
+        if (texcik[25] == 'n')
+        {
+                return 0;
+        }
+
+        static int pluged = 0;
+
+        if (texcik[82] == 'c' && pluged !=1) //battery has been just pluged
+        {
+                pluged = 1;
+                return 1;
+        }
+        if (texcik[82] != 'c' && pluged !=0) //battery has been just unpluged
+        {
+                pluged = 0;
+                return 2;
+        }
+        if (texcik[82] == 'c' && pluged == 1) //battery is still pluged
+                return 3;
+        if (texcik[82] != 'c' && pluged == 0) //battery is still unpluged
+                return 4;
+
+        else return 5;
+    }
+
+int bateria ()
+{
+        fstream calosc ("/proc/acpi/battery/BAT1/state", fstream::in);
+
+        string texcik;
+        while (calosc.good()){
+        texcik+=calosc.get();}
+
+        if (texcik == "")
+        {
+            fstream calosc ("/sys/class/power_supply/BAT1/charge_now", fstream::in);
+            while (calosc.good())
+                    texcik+=calosc.get();
+
+            string texcik2;
+            fstream calosc2 ("/sys/class/power_supply/BAT1/charge_full", fstream::in);
+            while (calosc2.good())
+                    texcik2+=calosc2.get();
+
+            if (texcik == "")
+                return battery.stable;
+
+            if (texcik2 == "")
+                return ((1000000*((unsigned short)texcik[0] - 48) +
+                         100000*((unsigned short)texcik[1] - 48) +
+                         10000*((unsigned short)texcik[2] - 48) +
+                         1000*((unsigned short)texcik[3] - 48) +
+                         100*((unsigned short)texcik[4] - 48) +
+                         10*((unsigned short)texcik[5] - 48) +
+                         ((unsigned short)texcik[6] - 48))) /
+                         (10*battery_capacity);
+
+
+
+            return 100*((1000000*((unsigned short)texcik[0] - 48) +
+                    100000*((unsigned short)texcik[1] - 48) +
+                    10000*((unsigned short)texcik[2] - 48) +
+                    1000*((unsigned short)texcik[3] - 48) +
+                    100*((unsigned short)texcik[4] - 48) +
+                    10*((unsigned short)texcik[5] - 48) +
+                    ((unsigned short)texcik[6] - 48))) /
+                    (1000000*((unsigned short)texcik2[0] - 48) +
+                    100000*((unsigned short)texcik2[1] - 48) +
+                    10000*((unsigned short)texcik2[2] - 48) +
+                    1000*((unsigned short)texcik2[3] - 48) +
+                    100*((unsigned short)texcik2[4] - 48) +
+                    10*((unsigned short)texcik2[5] - 48) +
+                    ((unsigned short)texcik2[6] - 48));
+        }
+
+        int baterry=texcik.find_first_of ("capacity:");
+
+
+        int i=0;
+        int a=0;
+        char bat[155];
+
+        for (;i<155;i++)
+        {
+                bat[a] = texcik[151+a];
+                a++;
+        }
+
+        static int powr;
+        powr = atoi (bat);
+
+        return 100*powr/battery_capacity;
 }
