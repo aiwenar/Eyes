@@ -8,6 +8,7 @@ sdate           get_time    ();
 int             bateria     ();
 int             bat_plugged ();
 unsigned short  temperatura ();
+
 extern          unital          temperature;
 extern          percental       battery;
 extern          unsigned int    battery_capacity;
