@@ -241,7 +241,7 @@ cdbg::cdbg ( Core * c ) :
           "\033[8D\033[3Btime:\033[5D\033[3Benergy:\033[7D"
           "\033[6Bnext_wall:\n\033[15A\033[22C      basic     "
           "   mods       mouse debug ";
-  if (true)
+  if (false)
       cout << "\033[1C HARDLY DEBUG MODE:";
   cout << "\n\n\033[38Ccpu:\n\033[1A\033[44Cload:\n"
           "\n\033[38Cmem:\n\033[1A\033[44Cload:\n\n"
@@ -263,167 +263,188 @@ void cdbg::on_timer_tick ()
   cout << "\033[1;33m\033[2A\033[6C"
        << core_step
        << "\n\033[1A\033[22C0\n\033[1B\n\n";
-  if ( cpu.buffered )
+  if (cpu.buffered)
   {
-    for ( int i=0 ; i<cpu.buff_size ; ++i )
-    {
-      if ( i != cpu.current_probe )
+      for (unsigned short i = 0; i< cpu.buff_size; i++)
       {
-        if ( cpu.probes[i] <= cpu.stable - cpu.loseless )
-          cout << "\033[1;32m " << cpu.probes[i] << '\n';
-        else if ( cpu.probes[i] >= cpu.stable + cpu.loseless )
-          cout << "\033[1;31 " << cpu.probes[i] << '\n';
-        else
-          cout << "\033[1;30m " << cpu.probes[i] << '\n';
-      }
-      else
-        cout << "\033[1;33m>" << (cpu.probes[i]<10?" ":"") << cpu.probes[i] << '\n';
-    }
-    for ( int i=0 ; i<=cpu.buff_size ; ++i ) cout << "\033[1A";
-    cout << '\n';
-    for ( int i=0 ; i<cpu.buff_size ; ++i )
-    {
-      if ( i != cpu.current_probe_small )
-      {
-        if ( cpu.sector_small[i] <= cpu.stable - cpu.loseless )
-          cout << "\033[1;32m\033[4C" << cpu.sector_small[i] << '\n';
-        else if ( cpu.sector_small[i] >= cpu.stable + cpu.loseless )
-          cout << "\033[1;31m\033[4C" << cpu.sector_small[i] << '\n';
-        else
-          cout << "\033[1;30m\033[4C" << cpu.sector_small[i] << '\n';
-      }
-      else
-        cout << "\033[1;33m\033[4C" << cpu.sector_small[i] << "<\n";
-    }
-  }
-  else
-  {
-    if ( cpu.load <= cpu.stable - cpu.loseless )
-      cout << "\033[1;32m " << cpu.load << " \n";
-    else if ( cpu.load >= cpu.stable + cpu.load )
-      cout << "\033[1;31m " << cpu.load << '\n';
-    else
-      cout << "\033[1;30m " << cpu.load << '\n';
-  }
-  cout << "\n\033[1C";
-
-  switch ( cpu.frequency )
-  {
-  case '1':
-    if ( cpu.mod <= 0 )
-    {
-      int s = 5*(double(-cpu.mod)/double(cpu.lin_num*cpu.steps));
-      if ( s == 0 and cpu.mod < 0 )
-        s = 1;
-      cout << "\033[1;32m";
-      for ( int i=s ; i>0 ; --i ) cout << '=';
-      cout << "\033[1;30m";
-      for ( int i=s ; i>0 ; --i ) cout << '=';
-    }
-    else
-    {
-      int s = 5*(double(cpu.mod)/double(cpu.lin_num*cpu.steps));
-      if ( s == 0 and cpu.mod > 0 )
-        s = 1;
-      cout << "\033[1;31m";
-      for ( int i=s ; i>0 ; --i ) cout << '=';
-      cout << "\033[1;30m";
-      for ( int i=5-s ; i>0 ; --i ) cout << '=';
-    }
-    break;
-
-  case 'q':
-    if ( cpu.mod <= 0 )
-    {
-      int s = 5*(double(-cpu.mod)/double(cpu.steps*cpu.stable));
-      if ( s == 0 and cpu.mod < 0 )
-        s = 1;
-      cout << "\033[1;32m";
-      for ( int i=s ; i>0 ; --i ) cout << '=';
-      cout << "\033[1;30m";
-      for ( int i=5 ; i>0 ; --i ) cout << '=';
-    }
-    else
-    {
-      int s = 5*(double(cpu.mod)/double(cpu.steps*cpu.stable));
-      if ( s == 0 and cpu.mod > 0 )
-        s = 1;
-      cout << "\033[1;31m";
-      for ( int i=s ; i>0 ; --i ) cout << '=';
-      cout << "\033[1;30m";
-      for ( int i=5-s ; i>0 ; --i ) cout << '=';
-    }
-    break;
-
-  case 'f':
-    int max_mod = 0, max_mod_prev = 0;
-    for ( int i=0 ; i<=cpu.steps ; i++ )
-    {
-      max_mod_prev = max_mod;
-      max_mod      = i+max_mod_prev;
-    }
-    if (cpu.mod <= 0)
-    {
-        unsigned short s = 5 * (double(-cpu.mod) / double(max_mod));
-        if (s == 0 && cpu.mod < 0)
-            s = 1;
-        cout << "\033[1;32m";
-        for (unsigned short i = s; i > 0; i--) cout << "=";
-        cout << "\033[1;30m";
-        for (unsigned short m = 5 - s; m > 0; m--) cout << "=";
-    }
-    else
-    {
-        unsigned short s = 5 * (double(cpu.mod) / double(max_mod));
-        if (s == 0 && cpu.mod > 0)
-            s = 1;
-        cout << "\033[1;31m";
-        for ( unsigned int i = s; i > 0; i--) cout << "=";
-        cout << "\033[1;30m";
-        for (unsigned short m = 5 - s; m > 0; m--) cout << "=";
-    }
-  }
-
-  cout << "\033[1A \n\n\n\033[9C";
-  if (memory.buffered)
-  {
-
-      for (unsigned short i = 0; i< memory.buff_size; i++)
-      {
-          if (i != memory.current_probe)
+          if (i != cpu.current_probe)
           {
-              if (memory.probes[i] < 10)
+              if (cpu.probes[i] <= cpu.stable - cpu.loseless)
+                  cout << "\033[1;32m " << (unsigned short)cpu.probes[i] << "\n";
+              else if (cpu.probes[i] >= cpu.stable + cpu.loseless)
+                  cout << "\033[1;31m " << (unsigned short)cpu.probes[i] << "\n";
+              else
+                  cout << "\033[1;30m " << (unsigned short)cpu.probes[i] << "\n";
+          }
+          else
+              cout << "\033[1;33m>" << (unsigned short)cpu.probes[i] << "\n";
+      }
+      for (unsigned short i = 0; i<= cpu.buff_size; i++)
+          cout << "\033[1A";
+      cout << "\n";
+
+      for (unsigned short i = 0; i< cpu.buff_size; i++)
+      {
+          if (i != cpu.current_probe_small)
+          {
+              if (cpu.sector_small[i] <= cpu.stable - cpu.loseless)
               {
-                  if (memory.probes[i] <= memory.stable - memory.loseless)
-                      cout << "\033[1;32m" << "\033[8C" << "  " << (unsigned short)memory.probes[i] << "\n";
-                  else if (memory.probes[i] >= memory.stable + memory.loseless)
-                      cout << "\033[1;31m" << "\033[8C" << "  " << (unsigned short)memory.probes[i] << "\n";
+                  if (cpu.sector_small[i] < 10)
+                      cout << "\033[1;32m\033[4C" << (unsigned short)cpu.sector_small[i] << "  \n";
                   else
-                      cout << "\033[1;30m" << "\033[8C" << "  " << (unsigned short)memory.probes[i] << "\n";
+                      cout << "\033[1;32m\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
+              }
+              else if (cpu.sector_small[i] >= cpu.stable + cpu.loseless)
+              {
+                  if (cpu.sector_small[i] < 10)
+                      cout << "\033[1;31m\033[4C" << (unsigned short)cpu.sector_small[i] << "  \n";
+                  else
+                      cout << "\033[1;31m\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
               }
               else
               {
-                  if (memory.probes[i] <= memory.stable - memory.loseless)
-                      cout << "\033[1;32m" << "\033[8C" << " " << (unsigned short)memory.probes[i] << "\n";
-                  else if (memory.probes[i] >= memory.stable + memory.loseless)
-                      cout << "\033[1;31m" << "\033[8C" << " " << (unsigned short)memory.probes[i] << "\n";
+                  if (cpu.sector_small[i] < 10)
+                      cout << "\033[1;30m\033[4C" << (unsigned short)cpu.sector_small[i] << "  \n";
                   else
-                      cout << "\033[1;30m" << "\033[8C" << " " << (unsigned short)memory.probes[i] << "\n";
+                      cout << "\033[1;30m\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
               }
           }
           else
           {
-              if (memory.probes[i] < 10)
-                  cout << "\033[1;33m" << "\033[8C" << "> " << (unsigned short)memory.probes[i] << "\n";
+              if (cpu.sector_small[i] < 10)
+                  cout << "\033[1;33m\033[4C" << (unsigned short)cpu.sector_small[i] << " <\n";
               else
-                  cout << "\033[1;33m" << "\033[8C" << ">" << (unsigned short)memory.probes[i] << "\n";
+                  cout << "\033[1;33m\033[4C" << (unsigned short)cpu.sector_small[i] << "<\n";
           }
+      }
+  }
+  else
+  {
+      if (cpu.load <= cpu.stable - cpu.loseless)
+          cout << "\033[1;32m " << (unsigned short)cpu.load << " \n";
+      else if (cpu.load >= cpu.stable + cpu.loseless)
+          cout << "\033[1;31m " << (unsigned short)cpu.load << " \n";
+      else
+          cout << "\033[1;30m " << (unsigned short)cpu.load << " \n";
+  }
+
+  cout << "\n" << "\033[1C";
+
+  switch ( cpu.frequency )
+  {
+  case 'l':
+      if (cpu.mod <= 0)
+      {
+          unsigned short s = 5 * (double(-cpu.mod) / double(cpu.lin_num*cpu.steps));
+          if (s == 0 && cpu.mod < 0)
+              s = 1;
+          cout << "\033[1;32m";
+          for ( unsigned int i = s; i > 0; i--)
+              cout << "=";
+          cout << "\033[1;30m";
+          for (unsigned short m = 5 - s; m > 0; m--)
+              cout << "=";
+      }
+      else
+      {
+          unsigned short s = 5 * (double(cpu.mod) / double(cpu.lin_num*cpu.steps));
+          if (s == 0 && cpu.mod > 0)
+              s = 1;
+          cout << "\033[1;31m";
+          for ( unsigned int i = s; i > 0; i--)
+              cout << "=";
+          cout << "\033[1;30m";
+          for (unsigned short m = 5 - s; m > 0; m--)
+              cout << "=";
+      }
+
+  case 'q':
+      if (cpu.mod <= 0)
+      {
+          unsigned short s = 5 * (double(-cpu.mod) / double(cpu.steps*cpu.steps));
+          if (s == 0 && cpu.mod < 0)
+              s = 1;
+          cout << "\033[1;32m";
+          for ( unsigned int i = s; i > 0; i--)
+              cout << "=";
+          cout << "\033[1;30m";
+          for (unsigned short m = 5 - s; m > 0; m--)
+              cout << "=";
+      }
+      else
+      {
+          unsigned short s = 5 * (double(cpu.mod) / double(cpu.steps*cpu.steps));
+          if (s == 0 && cpu.mod > 0)
+              s = 1;
+          cout << "\033[1;31m";
+          for ( unsigned int i = s; i > 0; i--)
+              cout << "=";
+          cout << "\033[1;30m";
+          for (unsigned short m = 5 - s; m > 0; m--)
+              cout << "=";
+      }
+
+  case 'f':
+      unsigned short max_mod = 0;
+      unsigned short max_mod_prev = 0;
+      for (unsigned int i = 0; i <= cpu.steps; i++)
+      {
+          max_mod_prev = max_mod;
+          max_mod = i + max_mod_prev;
+      }
+      if (cpu.mod <= 0)
+      {
+          unsigned short s = 5 * (double(-cpu.mod) / double(max_mod));
+          if (s == 0 && cpu.mod < 0)
+              s = 1;
+          cout << "\033[1;32m";
+          for (unsigned short i = s; i > 0; i--)
+              cout << "=";
+          cout << "\033[1;30m";
+          for (unsigned short m = 5 - s; m > 0; m--)
+              cout << "=";
+      }
+      else
+      {
+          unsigned short s = 5 * (double(cpu.mod) / double(max_mod));
+          if (s == 0 && cpu.mod > 0)
+              s = 1;
+          cout << "\033[1;31m";
+          for ( unsigned int i = s; i > 0; i--)
+              cout << "=";
+          cout << "\033[1;30m";
+          for (unsigned short m = 5 - s; m > 0; m--)
+              cout << "=";
+      }
+  }
+
+  if (cpu.buffered)
+      for (unsigned short i = 0; i<= cpu.buff_size+1; i++)
+          cout << "\033[1A";
+  else
+      cout << "\033[3A";
+
+  cout << "\033[1A \n\n";
+
+  if (memory.buffered)
+  {
+      for (unsigned short i = 0; i< memory.buff_size; i++)
+      {
+          if (i != memory.current_probe)
+          {
+              if (memory.probes[i] <= memory.stable - memory.loseless)
+                  cout << "\033[1;32m\033[8C " << (unsigned short)memory.probes[i] << "\n";
+              else if (memory.probes[i] >= memory.stable + memory.loseless)
+                  cout << "\033[1;31m\033[8C " << (unsigned short)memory.probes[i] << "\n";
+              else
+                  cout << "\033[1;30m\033[8C " << (unsigned short)memory.probes[i] << "\n";
+          }
+          else
+              cout << "\033[1;33m\033[8C>" << (unsigned short)memory.probes[i] << "\n";
 
       }
       for (unsigned short i = 0; i<= memory.buff_size; i++)
-      {
           cout << "\033[1A";
-      }
       cout << "\n";
 
       for (unsigned short i = 0; i< memory.buff_size; i++)
@@ -433,44 +454,45 @@ void cdbg::on_timer_tick ()
               if (memory.sector_small[i] <= memory.stable - memory.loseless)
               {
                   if (memory.sector_small[i] < 10)
-                      cout << "\033[1;32m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
+                      cout << "\033[1;32m\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
                   else
-                      cout << "\033[1;32m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
+                      cout << "\033[1;32m\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
               }
               else if (memory.sector_small[i] >= memory.stable + memory.loseless)
               {
                   if (memory.sector_small[i] < 10)
-                      cout << "\033[1;31m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
+                      cout << "\033[1;31m\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
                   else
-                      cout << "\033[1;31m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
+                      cout << "\033[1;31m\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
               }
               else
               {
                   if (memory.sector_small[i] < 10)
-                      cout << "\033[1;30m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
+                      cout << "\033[1;30m\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
                   else
-                      cout << "\033[1;30m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
+                      cout << "\033[1;30m\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
               }
           }
           else
           {
               if (memory.sector_small[i] < 10)
-                  cout << "\033[1;33m" << "\033[12C" << (unsigned short)memory.sector_small[i] << " <\n";
+                  cout << "\033[1;33m\033[12C" << (unsigned short)memory.sector_small[i] << " <\n";
               else
-                  cout << "\033[1;33m" << "\033[12C" << (unsigned short)memory.sector_small[i] << "<\n";
+                  cout << "\033[1;33m\033[12C" << (unsigned short)memory.sector_small[i] << "<\n";
           }
       }
   }
   else
   {
       if (memory.load <= memory.stable - memory.loseless)
-          cout << "\033[1;32m" << "\033[9C" << (unsigned short)memory.load << " \n";
+          cout << "\033[1;32m\033[9C" << (unsigned short)memory.load << " \n";
       else if (memory.load >= memory.stable + memory.loseless)
-          cout << "\033[1;31m" << "\033[9C" << (unsigned short)memory.load << " \n";
+          cout << "\033[1;31m\033[9C" << (unsigned short)memory.load << " \n";
       else
-          cout << "\033[1;30m" << "\033[9C" << (unsigned short)memory.load << " \n";
+          cout << "\033[1;30m\033[9C" << (unsigned short)memory.load << " \n";
   }
 
+  cout << "\n" << "\033[9C";
   if (memory.frequency == 'l')
   {
       if (memory.mod <= 0)
@@ -1139,7 +1161,7 @@ void cdbg::on_timer_tick ()
 
   cout << "\033[15A" << "\n\n";
 
-  if (true)
+  if (false)
   {
     spacer = 66;
     line = 0;

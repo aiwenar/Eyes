@@ -1233,7 +1233,6 @@ Core::Core ( eyes_view * neyes )
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( on_timer_tick () ) );
     connect ( neyes, SIGNAL ( mousemoved (int,int) ), this, SLOT ( handle_mouse(int,int) ) );
     eyes = neyes;
-    _cdbg = new cdbg ( this );
 }
 
 void Core::autocalc_init ()
@@ -1412,6 +1411,7 @@ void Core::run ()
     eyes->anims_reload();
     info << "(core) end of core preparing\n";
     timer->start ( 1000 );
+    _cdbg = new cdbg ( this );
 }
 
 void Core::on_timer_tick ()

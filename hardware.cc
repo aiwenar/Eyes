@@ -5,6 +5,7 @@
 #include <glibtop/proclist.h>
 #include <glibtop/uptime.h>
 #include "core.hxx"
+#include "hardware.hxx"
 
 double C_LOAD ()
 {
