@@ -1234,7 +1234,6 @@ Core::Core ( eyes_view * neyes )
     connect ( neyes, SIGNAL ( mousemoved (int,int) ), this, SLOT ( handle_mouse(int,int) ) );
     eyes = neyes;
     _cdbg = new cdbg ( this );
-    _cdbg->startTimer ( 1000 );
 }
 
 void Core::autocalc_init ()
@@ -1387,15 +1386,15 @@ void Core::load_config ()
 
 void Core::run ()
 {
-    info << "starting core.\n";
+    info << "(core) starting core.\n";
     bulwers_init ();
-    info << "bulwers inited\n";
+    info << "(core) bulwers inited\n";
     if (autocalc.enabled)
     {
         autocalc_init ();
         info << "autocalc started\n";
     }
-    info << "gui inited\n";
+    info << "(core) gui inited\n";
     s_anim.face_prev = "slp_10";
     info << "s_anim.face_prev set to " << s_anim.face_prev.toStdString() << "\n";
     do
@@ -1408,10 +1407,11 @@ void Core::run ()
         wake_up_prepare();
         eyes->anims_reload();
     } while (!wake_up);
-    info << "wake up finished\n";
+    info << "(core) wake up finished\n";
     eyes->anims_send ("cusual_01", "slp_10_close", "cusual_01_open", 0, 4);
     eyes->anims_reload();
-    info << "end of core preparing\n";
+    info << "(core) end of core preparing\n";
+    timer->start ( 1000 );
 }
 
 void Core::on_timer_tick ()
