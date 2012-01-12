@@ -53,7 +53,7 @@ int eyes_clapper::get_next_clap_delay ()
 void eyes_clapper::run ()
 {
     timer->start ( get_next_clap_delay () * 200 );
-    info << "starting eyes_clapper.\n";
+    info << "(clapper) sstarting eyes_clapper.\n";
 }
 
 void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int nto )
