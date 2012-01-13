@@ -25,46 +25,6 @@ extern unsigned int   temp_t;
 extern unsigned int   prev_bat_plug;
 extern int            core_step;
 
-void spacefill (int input, int lenght)
-{
-    unsigned int pivot = 1;
-    string sign = "";
-    if (input < 0)
-    {
-        lenght--;
-        input=-input;
-        sign = "-";
-    }
-    for (int i = 0; i < lenght; i++)
-    {
-        pivot*=10;
-    }
-    if (input >= pivot)
-    {
-        unsigned int deleted = 0;
-        while (input >= pivot/100)
-        {
-            input/=10;
-            deleted++;
-        }
-        cout << sign << input << "^" << deleted;
-    }
-    else
-    {
-        cout << sign << input;
-        int inleng = 0;
-        while (input >= 10)
-        {
-            input/=10;
-            inleng++;
-        }
-        for (int i = 1; i < lenght-inleng; i++)
-        {
-            cout << " ";
-        }
-    }
-}
-
 /*
 
 This is concept debug layout:
@@ -190,6 +150,46 @@ MsSQL
 
 */
 
+void spacefill (int input, int lenght)
+{
+    unsigned int pivot = 1;
+    string sign = "";
+    if (input < 0)
+    {
+        lenght--;
+        input=-input;
+        sign = "-";
+    }
+    for (int i = 0; i < lenght; i++)
+    {
+        pivot*=10;
+    }
+    if (input >= pivot)
+    {
+        unsigned int deleted = 0;
+        while (input >= pivot/100)
+        {
+            input/=10;
+            deleted++;
+        }
+        cout << sign << input << "^" << deleted;
+    }
+    else
+    {
+        cout << sign << input;
+        int inleng = 0;
+        while (input >= 10)
+        {
+            input/=10;
+            inleng++;
+        }
+        for (int i = 1; i < lenght-inleng; i++)
+        {
+            cout << " ";
+        }
+    }
+}
+
 cdbg::cdbg ( Core * c ) :
   core  ( c ),
   max_s ( 0 ),
@@ -270,14 +270,34 @@ void cdbg::on_timer_tick ()
           if (i != cpu.current_probe)
           {
               if (cpu.probes[i] <= cpu.stable - cpu.loseless)
-                  cout << "\033[1;32m " << (unsigned short)cpu.probes[i] << "\n";
+              {
+                  if (cpu.probes[i] < 10)
+                    cout << "\033[1;32m  "  << (unsigned short)cpu.probes[i] << "\n";
+                  else
+                    cout << "\033[1;32m "  << (unsigned short)cpu.probes[i] << "\n";
+              }
               else if (cpu.probes[i] >= cpu.stable + cpu.loseless)
-                  cout << "\033[1;31m " << (unsigned short)cpu.probes[i] << "\n";
+              {
+                  if (cpu.probes[i] < 10)
+                    cout << "\033[1;31m  " << (unsigned short)cpu.probes[i] << "\n";
+                  else
+                    cout << "\033[1;31m " << (unsigned short)cpu.probes[i] << "\n";
+              }
               else
-                  cout << "\033[1;30m " << (unsigned short)cpu.probes[i] << "\n";
+              {
+                  if (cpu.probes[i] < 10)
+                    cout << "\033[1;30m  " << (unsigned short)cpu.probes[i] << "\n";
+                  else
+                    cout << "\033[1;30m " << (unsigned short)cpu.probes[i] << "\n";
+              }
           }
           else
-              cout << "\033[1;33m>" << (unsigned short)cpu.probes[i] << "\n";
+          {
+              if (cpu.probes[i] < 10)
+                cout << "\033[1;33m> " << (unsigned short)cpu.probes[i] << "\n";
+              else
+                cout << "\033[1;33m>" << (unsigned short)cpu.probes[i] << "\n";
+          }
       }
       for (unsigned short i = 0; i<= cpu.buff_size; i++)
           cout << "\033[1A";
@@ -433,14 +453,34 @@ void cdbg::on_timer_tick ()
           if (i != memory.current_probe)
           {
               if (memory.probes[i] <= memory.stable - memory.loseless)
-                  cout << "\033[1;32m\033[8C " << (unsigned short)memory.probes[i] << "\n";
+              {
+                  if (memory.probes[i] < 10)
+                    cout << "\033[1;32m\033[8C  " << (unsigned short)memory.probes[i] << "\n";
+                  else
+                    cout << "\033[1;32m\033[8C " << (unsigned short)memory.probes[i] << "\n";
+              }
               else if (memory.probes[i] >= memory.stable + memory.loseless)
-                  cout << "\033[1;31m\033[8C " << (unsigned short)memory.probes[i] << "\n";
+              {
+                  if (memory.probes[i] < 10)
+                    cout << "\033[1;31m\033[8C  " << (unsigned short)memory.probes[i] << "\n";
+                  else
+                    cout << "\033[1;31m\033[8C " << (unsigned short)memory.probes[i] << "\n";
+              }
               else
-                  cout << "\033[1;30m\033[8C " << (unsigned short)memory.probes[i] << "\n";
+              {
+                  if (memory.probes[i] < 10)
+                    cout << "\033[1;30m\033[8C  " << (unsigned short)memory.probes[i] << "\n";
+                  else
+                    cout << "\033[1;30m\033[8C " << (unsigned short)memory.probes[i] << "\n";
+              }
           }
           else
-              cout << "\033[1;33m\033[8C>" << (unsigned short)memory.probes[i] << "\n";
+          {
+              if (memory.probes[i] < 10)
+                cout << "\033[1;33m\033[8C> " << (unsigned short)memory.probes[i] << "\n";
+              else
+                cout << "\033[1;33m\033[8C>" << (unsigned short)memory.probes[i] << "\n";
+          }
 
       }
       for (unsigned short i = 0; i<= memory.buff_size; i++)
@@ -502,14 +542,10 @@ void cdbg::on_timer_tick ()
               s = 1;
           cout << "\033[1;32m";
           for ( unsigned int i = s; i > 0; i--)
-          {
               cout << "=";
-          }
           cout << "\033[1;30m";
           for (unsigned short m = 5 - s; m > 0; m--)
-          {
               cout << "=";
-          }
       }
       else
       {
@@ -518,14 +554,10 @@ void cdbg::on_timer_tick ()
               s = 1;
           cout << "\033[1;31m";
           for ( unsigned int i = s; i > 0; i--)
-          {
               cout << "=";
-          }
           cout << "\033[1;30m";
           for (unsigned short m = 5 - s; m > 0; m--)
-          {
               cout << "=";
-          }
       }
   }
   if (memory.frequency == 'q')
@@ -537,14 +569,10 @@ void cdbg::on_timer_tick ()
               s = 1;
           cout << "\033[1;32m";
           for ( unsigned int i = s; i > 0; i--)
-          {
               cout << "=";
-          }
           cout << "\033[1;30m";
           for (unsigned short m = 5 - s; m > 0; m--)
-          {
               cout << "=";
-          }
       }
       else
       {
@@ -553,14 +581,10 @@ void cdbg::on_timer_tick ()
               s = 1;
           cout << "\033[1;31m";
           for ( unsigned int i = s; i > 0; i--)
-          {
               cout << "=";
-          }
           cout << "\033[1;30m";
           for (unsigned short m = 5 - s; m > 0; m--)
-          {
               cout << "=";
-          }
       }
   }
 
@@ -580,14 +604,10 @@ void cdbg::on_timer_tick ()
               s = 1;
           cout << "\033[1;32m";
           for (unsigned short i = s; i > 0; i--)
-          {
               cout << "=";
-          }
           cout << "\033[1;30m";
           for (unsigned short m = 5 - s; m > 0; m--)
-          {
               cout << "=";
-          }
       }
       else
       {

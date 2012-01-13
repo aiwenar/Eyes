@@ -12,6 +12,7 @@ unsigned short  temperatura ();
 extern          unital          temperature;
 extern          percental       battery;
 extern          unsigned int    battery_capacity;
+extern          data_source     d_src;
 
 using namespace std;
 

@@ -215,7 +215,7 @@ int bat_plugged ()
                 return 4;
 
         else return 5;
-    }
+}
 
 int bateria ()
 {
@@ -285,3 +285,287 @@ int bateria ()
 
         return 100*powr/battery_capacity;
 }
+
+
+unsigned int percental::calculate ()
+{
+    mod_prev = 0;
+    mod = 0;
+    for (unsigned short i = 0; i<=steps; i++)
+    {
+        mod_prev = mod;
+        if (load <= stable - loseless - (i*((stable - loseless)/steps)))
+        {
+            switch (frequency)
+            {
+            case 'l':
+                mod = -i*lin_num;
+            case 'q':
+                mod = -i*i;
+            case 'f':
+                mod = -i + mod_prev;
+            }
+        }
+    }
+
+    for (unsigned short i = 0; i<=steps; i++)
+    {
+        mod_prev = mod;
+        if (load >= stable + loseless + (i*((100-(stable + loseless))/steps)))
+        {
+            switch (frequency)
+            {
+            case 'l':
+                mod = i*lin_num;
+            case 'q':
+                mod = i*i;
+            case 'f':
+                mod = i + mod_prev;
+            }
+        }
+
+    }
+    return mod;
+}
+
+unsigned int unital::calculate()
+{
+    mod = 0;
+    mod_prev = 0;
+    for (unsigned short i = 0; i<=steps; i++)
+    {
+        mod_prev = mod;
+        if (value <= stable - loseless - (i*unit))
+        {
+            switch (frequency)
+            {
+            case 'l':
+                mod = -i*lin_num;
+            case 'q':
+                mod = -i*i;
+            case 'f':
+                mod = -i + mod_prev;
+            }
+        }
+    }
+
+    for (unsigned short i = 0; i<=steps; i++)
+    {
+        mod_prev = mod;
+        if (value >= stable + loseless + (i*unit))
+        {
+            switch (frequency)
+            {
+            case 'l':
+                mod = i*lin_num;
+            case 'q':
+                mod = i*i;
+            case 'f':
+                mod = i + mod_prev;
+            }
+        }
+    }
+    return mod;
+}
+
+unsigned int timal::calculate()
+{
+
+    if (value > start)
+    {
+        if (frequency == 'l')
+        {
+            for (unsigned short i = 0; i<=steps; i++)
+            {
+                if (value >= (start + (i*(wide/steps))))
+                    mod = i;
+
+
+            }
+        }
+        if (frequency == 'q')
+        {
+            unsigned short wall = start;
+            unsigned short sector = wide;
+
+            for (unsigned short i = 0; i<= steps; i++)
+            {
+                if (value >= wall + (sector/2))
+                {
+                    sector /= 2;
+                    wall += sector;
+                    mod = i;
+                }
+
+            }
+        }
+    }
+    if (value <= end)
+    {
+        switch (frequency)
+        {
+        case 'l':
+            {
+                for (unsigned short i = steps; i>=0; i--)
+                {
+                    if (value >= (end - (i*(wide/steps))))
+                        mod = i;
+
+
+                }
+            }
+        case 'q':
+            {
+                unsigned short wall = end;
+                unsigned short sector = wide;
+
+                for (unsigned short i = steps; i>= 0; i--)
+                {
+                    if (value >= 0 + (sector/2))
+                    {
+                        sector /= 2;
+                        wall += sector;
+                        mod = i;
+                    }
+                    else break;
+                }
+            }
+        }
+    }
+    return mod;
+}
+/*
+void check_hardware()
+{
+    d_src.batt_pow_max = 0;
+    d_src.batt_pow_now = 0;
+    d_src.batt_stat = 0;
+    d_src.temp = 0;
+
+    //batterysrc
+    fstream calosc ("/proc/acpi/battery/BAT1/state", fstream::in);
+
+    string texcik;
+    while (calosc.good()){
+    texcik+=calosc.get();}
+
+    if (texcik != "")
+        d_src.batt_pow_now = 1;
+    else
+    {
+        fstream calosc ("/sys/class/power_supply/BAT1/charge_now", fstream::in);
+        while (calosc.good())
+                texcik+=calosc.get();
+
+        string texcik2;
+        fstream calosc2 ("/sys/class/power_supply/BAT1/charge_full", fstream::in);
+        while (calosc2.good())
+                texcik2+=calosc2.get();
+
+        if (texcik != "")
+            d_src.batt_pow_now = 2;
+
+        if (texcik2 != "")
+            d_src.batt_pow_max = 2;
+    }
+
+
+
+
+    //batterystate
+
+    fstream calosc ("/proc/acpi/battery/BAT1/state", fstream::in);
+
+    string texcik;
+    while (calosc.good()){
+    texcik+=calosc.get();}
+
+    if (texcik == "")
+    {
+        fstream calosc ("/sys/class/power_supply/BAT1/status", fstream::in);
+
+        string texcik;
+        while (calosc.good()){
+        texcik+=calosc.get();}
+
+        static int pluged = 0;
+
+        if (texcik[0] == 'C' && pluged !=1) //battery has been just pluged
+        {
+                pluged = 1;
+                return 1;
+        }
+        if (texcik[0] != 'C' && pluged !=0) //battery has been just unpluged
+        {
+                pluged = 0;
+                return 2;
+        }
+        if (texcik[0] == 'C' && pluged == 1) //battery is still pluged
+                return 3;
+        if (texcik[0] != 'C' && pluged == 0) //battery is still unpluged
+                return 4;
+
+        else return 5;
+    }
+
+    if (texcik[25] == 'n')
+    {
+            return 0;
+    }
+
+    static int pluged = 0;
+
+    if (texcik[82] == 'c' && pluged !=1) //battery has been just pluged
+    {
+            pluged = 1;
+            return 1;
+    }
+    if (texcik[82] != 'c' && pluged !=0) //battery has been just unpluged
+    {
+            pluged = 0;
+            return 2;
+    }
+    if (texcik[82] == 'c' && pluged == 1) //battery is still pluged
+            return 3;
+    if (texcik[82] != 'c' && pluged == 0) //battery is still unpluged
+            return 4;
+
+    else return 5;
+
+
+    //temperature
+
+
+    string texcik;
+
+    fstream calosc ("/proc/acpi/thermal_zone/TZ00/temperature", fstream::in);
+    while (calosc.good())
+            texcik+=calosc.get();
+
+    if (texcik == "")
+    {
+        fstream calosc ("/sys/class/thermal/thermal_zone0/temp", fstream::in);
+        while (calosc.good())
+            texcik+=calosc.get();
+
+        if (texcik == "")
+            return temperature.stable;
+
+        return (10*((unsigned short)texcik[0] - 48) + ((unsigned short)texcik[1] - 48));
+    }
+    else
+    {
+        unsigned short tempjuczer=texcik.find_first_of ("temperature");
+        unsigned short i=0;
+        unsigned short a=0;
+        char temp[27];
+
+        for (;i<27;i++)
+        {
+                temp[a] = texcik[25+a];
+                a++;
+        }
+        return atoi (temp);
+    }
+}
+*/

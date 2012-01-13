@@ -58,6 +58,7 @@ mouse_actions   mousea;
 QString         face_send;
 QTime           mousetime;
 eMu_zone        eMu;
+data_source     d_src;
 
 void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto )
 {
@@ -478,139 +479,6 @@ void bul::update()
             energy.value++;
         }
     }
-}
-
-unsigned int percental::calculate ()
-{
-    mod_prev = 0;
-    mod = 0;
-    for (unsigned short i = 0; i<=steps; i++)
-    {
-        mod_prev = mod;
-        if (load <= stable - loseless - (i*((stable - loseless)/steps)))
-        {
-            if (frequency == 'l')
-                mod = -i*lin_num;
-            if (frequency == 'q')
-                mod = -i*i;
-            if (frequency == 'f')
-                mod = -i + mod_prev;
-        }
-    }
-
-    for (unsigned short i = 0; i<=steps; i++)
-    {
-        mod_prev = mod;
-        if (load >= stable + loseless + (i*((100-(stable + loseless))/steps)))
-        {
-            if (frequency == 'l')
-                mod = i*lin_num;
-            if (frequency == 'q')
-                mod = i*i;
-            if (frequency == 'f')
-                mod = i + mod_prev;
-        }
-
-    }
-    return mod;
-}
-
-unsigned int unital::calculate()
-{
-    mod = 0;
-    mod_prev = 0;
-    for (unsigned short i = 0; i<=steps; i++)
-    {
-        mod_prev = mod;
-        if (value <= stable - loseless - (i*unit))
-        {
-            if (frequency == 'l')
-                mod = -i*lin_num;
-            if (frequency == 'q')
-                mod = -i*i;
-            if (frequency == 'f')
-                mod = -i + mod_prev;
-        }
-    }
-
-    for (unsigned short i = 0; i<=steps; i++)
-    {
-        mod_prev = mod;
-        if (value >= stable + loseless + (i*unit))
-        {
-            if (frequency == 'l')
-                mod = i*lin_num;
-            if (frequency == 'q')
-                mod = i*i;
-            if (frequency == 'f')
-                mod = i + mod_prev;
-        }
-    }
-    return mod;
-}
-
-unsigned int timal::calculate()
-{
-
-if (value > start)
-{
-    if (frequency == 'l')
-    {
-        for (unsigned short i = 0; i<=steps; i++)
-        {
-            if (value >= (start + (i*(wide/steps))))
-                mod = i;
-
-
-        }
-    }
-    if (frequency == 'q')
-    {
-        unsigned short wall = start;
-        unsigned short sector = wide;
-
-        for (unsigned short i = 0; i<= steps; i++)
-        {
-            if (value >= wall + (sector/2))
-            {
-                sector /= 2;
-                wall += sector;
-                mod = i;
-            }
-
-        }
-    }
-}
-if (value <= end)
-{
-    if (frequency == 'l')
-    {
-        for (unsigned short i = steps; i>=0; i--)
-        {
-            if (value >= (end - (i*(wide/steps))))
-                mod = i;
-
-
-        }
-    }
-    if (frequency == 'q')
-    {
-        unsigned short wall = end;
-        unsigned short sector = wide;
-
-        for (unsigned short i = steps; i>= 0; i--)
-        {
-            if (value >= 0 + (sector/2))
-            {
-                sector /= 2;
-                wall += sector;
-                mod = i;
-            }
-            else break;
-        }
-    }
-}
-return mod;
 }
 
 void Core::bulwers_init ()

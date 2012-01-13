@@ -182,4 +182,12 @@ struct eMu_zone
                                 batt_val;
 };
 
+struct data_source
+{
+    char                        batt_pow_now,
+                                batt_pow_max,
+                                batt_stat,
+                                temp;
+};
+
 #endif //gbssl_core_new_hxx
