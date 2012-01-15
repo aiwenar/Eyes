@@ -19,7 +19,7 @@ extern unsigned short battery_state;
 extern unsigned short mod_bat_plug;
 extern bool           get_flu;
 extern bool           once_plugged;
-extern unsigned int   battery_capacity;
+extern hardware       HRDWR;
 extern unsigned int   flu_timer;
 extern unsigned int   temp_t;
 extern unsigned int   prev_bat_plug;
@@ -241,7 +241,7 @@ cdbg::cdbg ( Core * c ) :
           "\033[8D\033[3Btime:\033[5D\033[3Benergy:\033[7D"
           "\033[6Bnext_wall:\n\033[15A\033[22C      basic     "
           "   mods       mouse debug ";
-  if (false)
+  if (1)
       cout << "\033[1C HARDLY DEBUG MODE:";
   cout << "\n\n\033[38Ccpu:\n\033[1A\033[44Cload:\n"
           "\n\033[38Cmem:\n\033[1A\033[44Cload:\n\n"
@@ -1181,7 +1181,7 @@ void cdbg::on_timer_tick ()
 
   cout << "\033[15A" << "\n\n";
 
-  if (false)
+  if (1)
   {
     spacer = 66;
     line = 0;
@@ -1223,7 +1223,7 @@ void cdbg::on_timer_tick ()
     chck_s ();
     cout << "pbplg" << " " << prev_bat_plug;
     chck_s ();
-    cout << "bcapa" << " " << battery_capacity;
+    cout << "bcapa" << " " << HRDWR.battery_capacity;
     chck_s ();
     cout << "boplg" << " " << once_plugged;
     chck_s ();

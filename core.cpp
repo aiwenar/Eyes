@@ -40,7 +40,6 @@ unsigned short  mod_bat_plug;
 unsigned int    temp_t;
 unsigned int    flu_timer;
 unsigned int    prev_bat_plug;
-unsigned int    battery_capacity;
 bool            once_plugged;
 bool            get_flu;
 bool            cdebug;
@@ -1025,7 +1024,7 @@ void Core::bulwers_update ()
     }
     else
     {
-        cpu.get_load(C_LOAD());
+        cpu.get_load(HRDWR.C_LOAD());
     }
     if (eMu.mem)
     {
@@ -1033,7 +1032,7 @@ void Core::bulwers_update ()
     }
     else
     {
-        memory.get_load(M_LOAD ());
+        memory.get_load(HRDWR.M_LOAD ());
     }
     if (eMu.temp)
     {
@@ -1041,7 +1040,7 @@ void Core::bulwers_update ()
     }
     else
     {
-        temperature.get_load(temperatura());
+        temperature.get_load(HRDWR.temperatura());
     }
     if (eMu.batt)
     {
@@ -1050,7 +1049,7 @@ void Core::bulwers_update ()
     else
     {
         if (battery_state != 1 && battery_state != 3 && battery_state != 0)
-            battery.get_load(bateria());
+            battery.get_load(HRDWR.bateria());
         else if (battery_state == 0)
             battery.load = 0;
         else
@@ -1078,7 +1077,7 @@ void Core::bulwers_update ()
     }
     else
     {
-        battery_state = bat_plugged ();
+        battery_state = HRDWR.bat_plugged ();
     }
 
 
@@ -1160,7 +1159,6 @@ void Core::load_config ()
 
     //battery_section
 
-    battery_capacity        = cfg->lookupValue ( "core.battery.capacity",               4700        );
     battery.frequency       = cfg->lookupValue ( "core.battery.frequency",              'l'         );
     battery.lin_num         = cfg->lookupValue ( "core.battery.linear_modifier",        0           );
     battery.stable          = cfg->lookupValue ( "core.battery.stable",                 25          );
@@ -1249,6 +1247,14 @@ void Core::load_config ()
     mousea.heavycalm        = cfg->lookupValue ("core.mouse_actions.heavycalm",         100         );
     mousea.max_delay        = cfg->lookupValue ("core.mouse_actions.max_delay",         400         );
 
+    // hardware_section
+
+    HRDWR.battery_capacity  = cfg->lookupValue ( "core.hardware.batt_capacity",         4700        );
+    HRDWR.special_batname   = cfg->lookupValue ( "core.hardware.use_batname",           false       );
+    HRDWR.special_thername  = cfg->lookupValue ( "core.hardware.use_thername",          false       );
+    HRDWR.cfg_battname      = cfg->lookupValue ( "core.hardware.battname",              "BAT0"      );
+    HRDWR.cfg_thername      = cfg->lookupValue ( "core.hardware.thername",              "thermal_zone0"        );
+
 }
 
 void Core::run ()
@@ -1277,6 +1283,7 @@ void Core::run ()
     info << "(core) wake up finished\n";
     eyes->anims_send ("cusual_01", "slp_10_close", "cusual_01_open", 0, 4);
     eyes->anims_reload();
+    HRDWR.system_check();
     info << "(core) end of core preparing\n";
     timer->start ( 1000 );
     _cdbg = new cdbg ( this );

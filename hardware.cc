@@ -6,8 +6,151 @@
 #include <glibtop/uptime.h>
 #include "core.hxx"
 #include "hardware.hxx"
+#include "debug.hxx"
 
-double C_LOAD ()
+hardware        HRDWR;
+sdate           get_time    ();
+
+string hardware::get_file (char* path)
+{
+        fstream file (path, fstream::in);
+                string out;
+                while (file.good())
+                        out+=file.get();
+        return out;
+}
+
+unsigned short hardware::proc_temp (string path)
+{
+    string input = get_file(&path[0]);
+        string temp = "";
+        int x = input.find ("temperature:");
+        x+=9;
+        while (input[x] == ' ')
+                x++;
+        for (int i = 0; i<2; i++)
+        {
+                if (input[x+i] == ' ')
+                        break;
+                temp += input[x+i];
+        }
+        return atoi (&temp[0]);
+}
+
+unsigned short hardware::proc_bat_now (string path)
+{
+    string input = get_file(&path[0]);
+        string bat = "";
+        int x = input.find ("capacity:");
+        x+=9;
+        while (input[x] == ' ')
+                x++;
+        for (int i = 0; i<10; i++)
+        {
+                if (input[x+i] == ' ')
+                        break;
+                bat += input[x+i];
+        }
+        return atoi (&bat[0]);
+}
+
+unsigned short hardware::proc_bat_full (string path)
+{
+    string input = get_file(&path[0]);
+        string bat = "";
+        int x = input.find ("last full capacity:");
+        x+=19;
+        while (input[x] == ' ')
+                x++;
+        for (int i = 0; i<10; i++)
+        {
+                if (input[x+i] == ' ')
+                        break;
+                bat += input[x+i];
+        }
+        return atoi (&bat[0]);
+}
+
+unsigned short hardware::proc_bat_state (string path)
+{
+    string input = get_file(&path[0]);
+        int x = input.find ("present:");
+        x+=8;
+        while (input[x] == ' ')
+                x++;
+        if (input[x] == 'n')
+                return 0;
+
+        x = input.find ("charging state:");
+        x+=15;
+        while (input[x] == ' ')
+                x++;
+
+        static char pluged = 0;
+
+        if (input[x] == 'c' && pluged !=1) //battery has been just pluged
+        {
+                pluged = 1;
+                return 1;
+        }
+        if (input[x] != 'c' && pluged !=0) //battery has been just unpluged
+        {
+                pluged = 0;
+                return 2;
+        }
+        if (input[x] == 'c' && pluged == 1) //battery is still pluged
+                return 3;
+        if (input[x] != 'c' && pluged == 0) //battery is still unpluged
+                return 4;
+
+        return 5;
+}
+
+unsigned short hardware::sys_temp (string path)
+{
+    string input = get_file(&path[0]);
+        string temp = "";
+        for (int i = 0; i<input.size()-2; i++)
+                temp+=input[i];
+        return atoi (&temp[0])/1000;
+}
+
+unsigned short hardware::sys_bat_uni (string path)
+{
+    string input = get_file(&path[0]);
+        string bat = "";
+        for (int i = 0; i<input.size()-2; i++)
+                bat+=input[i];
+        return atoi (&bat[0])/1000;
+}
+
+unsigned short hardware::sys_bat_state (string path)
+{
+    string input = get_file(&path[0]);
+        if (input == "")
+            return 0;
+
+        static char pluged = 0;
+
+        if (input[0] == 'C' && pluged !=1) //battery has been just pluged
+        {
+            pluged = 1;
+            return 1;
+        }
+        if (input[0] != 'C' && pluged !=0) //battery has been just unpluged
+        {
+            pluged = 0;
+            return 2;
+        }
+        if (input[0] == 'C' && pluged == 1) //battery is still pluged
+            return 3;
+        if (input[0] != 'C' && pluged == 0) //battery is still unpluged
+            return 4;
+
+        return 5;
+}
+
+double hardware::C_LOAD ()
 {
   glibtop_init();
   glibtop_cpu gcpu;
@@ -32,7 +175,7 @@ double C_LOAD ()
   return cpu_load;
 }
 
-double M_LOAD ()
+double hardware::M_LOAD ()
 {
   glibtop_init();
   glibtop_mem memory;
@@ -45,7 +188,7 @@ double M_LOAD ()
   return 100*( (double)memory.user / (double)memory.total );
 }
 
-unsigned short P_LIST ()
+unsigned short hardware::P_LIST ()
 {
   int which,arg;
 
@@ -56,7 +199,7 @@ unsigned short P_LIST ()
   return proclist.number;
 }
 
-int U_TIME ()
+int hardware::U_TIME ()
 {
   glibtop_init();
   glibtop_uptime uptime;
@@ -119,173 +262,30 @@ sdate get_time ()
 
 
 
-unsigned short temperatura ()
+unsigned short hardware::temperatura ()
 {
-    string texcik;
-
-    fstream calosc ("/proc/acpi/thermal_zone/TZ00/temperature", fstream::in);
-    while (calosc.good())
-            texcik+=calosc.get();
-
-    if (texcik == "")
-    {
-        fstream calosc ("/sys/class/thermal/thermal_zone0/temp", fstream::in);
-        while (calosc.good())
-            texcik+=calosc.get();
-
-        if (texcik == "")
-            return temperature.stable;
-
-        return (10*((unsigned short)texcik[0] - 48) + ((unsigned short)texcik[1] - 48));
-    }
-    else
-    {
-        unsigned short tempjuczer=texcik.find_first_of ("temperature");
-        unsigned short i=0;
-        unsigned short a=0;
-        char temp[27];
-
-        for (;i<27;i++)
-        {
-                temp[a] = texcik[25+a];
-                a++;
-        }
-        return atoi (temp);
-    }
+    return (this->*src_temp)(final_path_temp);
 }
 
-
-
-int bat_plugged ()
+int hardware::bat_plugged ()
 {
-        fstream calosc ("/proc/acpi/battery/BAT1/state", fstream::in);
-
-        string texcik;
-        while (calosc.good()){
-        texcik+=calosc.get();}
-
-        if (texcik == "")
-        {
-            fstream calosc ("/sys/class/power_supply/BAT1/status", fstream::in);
-
-            string texcik;
-            while (calosc.good()){
-            texcik+=calosc.get();}
-
-            static int pluged = 0;
-
-            if (texcik[0] == 'C' && pluged !=1) //battery has been just pluged
-            {
-                    pluged = 1;
-                    return 1;
-            }
-            if (texcik[0] != 'C' && pluged !=0) //battery has been just unpluged
-            {
-                    pluged = 0;
-                    return 2;
-            }
-            if (texcik[0] == 'C' && pluged == 1) //battery is still pluged
-                    return 3;
-            if (texcik[0] != 'C' && pluged == 0) //battery is still unpluged
-                    return 4;
-
-            else return 5;
-        }
-
-        if (texcik[25] == 'n')
-        {
-                return 0;
-        }
-
-        static int pluged = 0;
-
-        if (texcik[82] == 'c' && pluged !=1) //battery has been just pluged
-        {
-                pluged = 1;
-                return 1;
-        }
-        if (texcik[82] != 'c' && pluged !=0) //battery has been just unpluged
-        {
-                pluged = 0;
-                return 2;
-        }
-        if (texcik[82] == 'c' && pluged == 1) //battery is still pluged
-                return 3;
-        if (texcik[82] != 'c' && pluged == 0) //battery is still unpluged
-                return 4;
-
-        else return 5;
+    return (this->*src_batt_state)(final_path_state);
 }
 
-int bateria ()
+int hardware::bateria ()
 {
-        fstream calosc ("/proc/acpi/battery/BAT1/state", fstream::in);
-
-        string texcik;
-        while (calosc.good()){
-        texcik+=calosc.get();}
-
-        if (texcik == "")
-        {
-            fstream calosc ("/sys/class/power_supply/BAT1/charge_now", fstream::in);
-            while (calosc.good())
-                    texcik+=calosc.get();
-
-            string texcik2;
-            fstream calosc2 ("/sys/class/power_supply/BAT1/charge_full", fstream::in);
-            while (calosc2.good())
-                    texcik2+=calosc2.get();
-
-            if (texcik == "")
-                return battery.stable;
-
-            if (texcik2 == "")
-                return ((1000000*((unsigned short)texcik[0] - 48) +
-                         100000*((unsigned short)texcik[1] - 48) +
-                         10000*((unsigned short)texcik[2] - 48) +
-                         1000*((unsigned short)texcik[3] - 48) +
-                         100*((unsigned short)texcik[4] - 48) +
-                         10*((unsigned short)texcik[5] - 48) +
-                         ((unsigned short)texcik[6] - 48))) /
-                         (10*battery_capacity);
-
-
-
-            return 100*((1000000*((unsigned short)texcik[0] - 48) +
-                    100000*((unsigned short)texcik[1] - 48) +
-                    10000*((unsigned short)texcik[2] - 48) +
-                    1000*((unsigned short)texcik[3] - 48) +
-                    100*((unsigned short)texcik[4] - 48) +
-                    10*((unsigned short)texcik[5] - 48) +
-                    ((unsigned short)texcik[6] - 48))) /
-                    (1000000*((unsigned short)texcik2[0] - 48) +
-                    100000*((unsigned short)texcik2[1] - 48) +
-                    10000*((unsigned short)texcik2[2] - 48) +
-                    1000*((unsigned short)texcik2[3] - 48) +
-                    100*((unsigned short)texcik2[4] - 48) +
-                    10*((unsigned short)texcik2[5] - 48) +
-                    ((unsigned short)texcik2[6] - 48));
-        }
-
-        int baterry=texcik.find_first_of ("capacity:");
-
-
-        int i=0;
-        int a=0;
-        char bat[155];
-
-        for (;i<155;i++)
-        {
-                bat[a] = texcik[151+a];
-                a++;
-        }
-
-        static int powr;
-        powr = atoi (bat);
-
-        return 100*powr/battery_capacity;
+    return 100*(this->*src_batt_now)(final_path_now)/battery_capacity;
 }
 
+unsigned short hardware::emubat(string path)
+{
+    return battery_capacity*battery.stable;
+}
+
+unsigned short hardware::emustat(string path)
+{
+    return 4;
+}
 
 unsigned int percental::calculate ()
 {
@@ -379,8 +379,6 @@ unsigned int timal::calculate()
             {
                 if (value >= (start + (i*(wide/steps))))
                     mod = i;
-
-
             }
         }
         if (frequency == 'q')
@@ -410,8 +408,6 @@ unsigned int timal::calculate()
                 {
                     if (value >= (end - (i*(wide/steps))))
                         mod = i;
-
-
                 }
             }
         case 'q':
@@ -434,138 +430,259 @@ unsigned int timal::calculate()
     }
     return mod;
 }
-/*
-void check_hardware()
+
+void hardware::system_check()
 {
-    d_src.batt_pow_max = 0;
-    d_src.batt_pow_now = 0;
-    d_src.batt_stat = 0;
-    d_src.temp = 0;
+    info << "System checking...\n";
+        final_now_solution = 0;
+        final_full_solution = 0;
+        final_state_solution = 0;
+        final_temp_solution = 0;
 
-    //batterysrc
-    fstream calosc ("/proc/acpi/battery/BAT1/state", fstream::in);
-
-    string texcik;
-    while (calosc.good()){
-    texcik+=calosc.get();}
-
-    if (texcik != "")
-        d_src.batt_pow_now = 1;
-    else
-    {
-        fstream calosc ("/sys/class/power_supply/BAT1/charge_now", fstream::in);
-        while (calosc.good())
-                texcik+=calosc.get();
-
-        string texcik2;
-        fstream calosc2 ("/sys/class/power_supply/BAT1/charge_full", fstream::in);
-        while (calosc2.good())
-                texcik2+=calosc2.get();
-
-        if (texcik != "")
-            d_src.batt_pow_now = 2;
-
-        if (texcik2 != "")
-            d_src.batt_pow_max = 2;
-    }
-
-
-
-
-    //batterystate
-
-    fstream calosc ("/proc/acpi/battery/BAT1/state", fstream::in);
-
-    string texcik;
-    while (calosc.good()){
-    texcik+=calosc.get();}
-
-    if (texcik == "")
-    {
-        fstream calosc ("/sys/class/power_supply/BAT1/status", fstream::in);
-
-        string texcik;
-        while (calosc.good()){
-        texcik+=calosc.get();}
-
-        static int pluged = 0;
-
-        if (texcik[0] == 'C' && pluged !=1) //battery has been just pluged
+        for (int i = 0; i < 10; i++)
         {
-                pluged = 1;
-                return 1;
+                string input = "";
+                string path = "/proc/acpi/battery/BAT";
+                path += i+48;
+                path += "/state";
+                input = get_file (&path[0]);
+                if (input == "")
+                        info << "proc(BAT" << i << ") - failed\n";
+                else
+                {
+                        final_now_solution = 1;
+                        final_state_solution = 1;
+                        final_path_now = path;
+                        final_path_full = "/proc/acpi/battery/BAT";
+                        final_path_full += i+48;
+                        final_path_full += "/info";
+                        info << "battery found on: " << path << "\n";
+                        break;
+                }
         }
-        if (texcik[0] != 'C' && pluged !=0) //battery has been just unpluged
+        if (special_batname)
         {
-                pluged = 0;
-                return 2;
+                string input = "";
+                string path = "/proc/acpi/battery/";
+                path += cfg_battname;
+                path += "/state";
+                input = get_file (&path[0]);
+                if (input == "")
+                        info << "searching for custom battery path - failed\n";
+                else
+                {
+                        final_now_solution = 1;
+                        final_state_solution = 1;
+                        final_path_now = path;
+                        final_path_full = "/proc/acpi/battery/";
+                        final_path_full += cfg_battname;
+                        final_path_full += "/info";
+                        info << "searching for custom battery path - success\n";
+                }
         }
-        if (texcik[0] == 'C' && pluged == 1) //battery is still pluged
-                return 3;
-        if (texcik[0] != 'C' && pluged == 0) //battery is still unpluged
-                return 4;
-
-        else return 5;
-    }
-
-    if (texcik[25] == 'n')
-    {
-            return 0;
-    }
-
-    static int pluged = 0;
-
-    if (texcik[82] == 'c' && pluged !=1) //battery has been just pluged
-    {
-            pluged = 1;
-            return 1;
-    }
-    if (texcik[82] != 'c' && pluged !=0) //battery has been just unpluged
-    {
-            pluged = 0;
-            return 2;
-    }
-    if (texcik[82] == 'c' && pluged == 1) //battery is still pluged
-            return 3;
-    if (texcik[82] != 'c' && pluged == 0) //battery is still unpluged
-            return 4;
-
-    else return 5;
-
-
-    //temperature
-
-
-    string texcik;
-
-    fstream calosc ("/proc/acpi/thermal_zone/TZ00/temperature", fstream::in);
-    while (calosc.good())
-            texcik+=calosc.get();
-
-    if (texcik == "")
-    {
-        fstream calosc ("/sys/class/thermal/thermal_zone0/temp", fstream::in);
-        while (calosc.good())
-            texcik+=calosc.get();
-
-        if (texcik == "")
-            return temperature.stable;
-
-        return (10*((unsigned short)texcik[0] - 48) + ((unsigned short)texcik[1] - 48));
-    }
-    else
-    {
-        unsigned short tempjuczer=texcik.find_first_of ("temperature");
-        unsigned short i=0;
-        unsigned short a=0;
-        char temp[27];
-
-        for (;i<27;i++)
+        final_path_state = final_path_full;
+        string input = "";
+        input = get_file (&final_path_full[0]);
+        if (input == "")
+                info << "battery capacity searching - failed\n";
+        else
         {
-                temp[a] = texcik[25+a];
-                a++;
+                final_full_solution = 1;
+                info << "battery capacity searching - success\n";
         }
-        return atoi (temp);
-    }
+
+        /*
+        if (final_now_solution == 1)
+                cout << proc_bat_now (get_file (&final_path_now[0])) << "\n";
+        if (final_full_solution == 1)
+                cout << proc_bat_full (get_file (&final_path_full[0])) << "\n";
+        if (final_state_solution == 1)
+                cout << proc_bat_state (get_file (&final_path_state[0])) << "\n";
+        */
+
+
+        for (int i = 0; i < 10; i++)
+        {
+                string input = "";
+                string path = "/sys/class/power_supply/BAT";
+                path += i+48;
+                path += "/charge_now";
+                input = get_file (&path[0]);
+                if (input == "")
+                        info << "sys(BAT" << i << ") - failed\n";
+                else
+                {
+                        final_now_solution = 2;
+                        final_path_now = path;
+                        final_path_full = "/sys/class/power_supply/BAT";
+                        final_path_full += i+48;
+                        final_path_full += "/charge_full";
+                        final_path_state = "/sys/class/power_supply/BAT";
+                        final_path_state += i+48;
+                        final_path_state += "/status";
+                        info << "battery found on: " << path << "\n";
+                        break;
+                }
+        }
+        if (special_batname)
+        {
+                string input = "";
+                string path = "/sys/class/power_supply/";
+                path += cfg_battname;
+                path += "/charge_now";
+                input = get_file (&path[0]);
+                if (input == "")
+                        info << "searching for custom battery path - failed\n";
+                else
+                {
+                        final_now_solution = 2;
+                        final_path_now = path;
+                        final_path_full = "/sys/class/power_supply/";
+                        final_path_full += cfg_battname;
+                        final_path_full += "/charge_full";
+                        final_path_state = "/sys/class/power_supply/";
+                        final_path_state += cfg_battname;
+                        final_path_state += "/status";
+                        info << "searching for custom battery path - success\n";
+                }
+        }
+        input = "";
+        input = get_file (&final_path_full[0]);
+        if (input == "")
+                info << "battery capacity searching - failed\n";
+        else
+        {
+                final_full_solution = 2;
+                info << "battery capacity searching - success\n";
+        }
+        input = "";
+        input = get_file (&final_path_state[0]);
+        if (input == "")
+                info << "battery status searching - failed\n";
+        else
+        {
+                final_state_solution = 2;
+                info << "battery status searching - success\n";
+        }
+
+        /*
+        if (final_now_solution == 2)
+                cout << sys_bat_uni (get_file (&final_path_now[0])) << "\n";
+        if (final_full_solution == 2)
+                cout << sys_bat_uni (get_file (&final_path_full[0])) << "\n";
+        if (final_state_solution == 2)
+                cout << sys_bat_state (get_file (&final_path_state[0])) << "\n";
+        */
+
+        if (final_now_solution == 0)
+            cerr << "No battery found!\n";
+
+        switch (final_now_solution)
+        {
+        case 0:
+            src_batt_now = &hardware::emubat;
+        case 1:
+            src_batt_now = &hardware::proc_bat_now;
+        case 2:
+            src_batt_now = &hardware::sys_bat_uni;
+        }
+        switch (final_full_solution)
+        {
+        case 0:
+            battery_capacity = battery_capacity;
+        case 1:
+            battery_capacity = proc_bat_full(final_path_full);
+        case 2:
+            battery_capacity = sys_bat_uni(final_path_full);
+        }
+        switch (final_state_solution)
+        {
+        case 0:
+            src_batt_state = &hardware::emustat;
+        case 1:
+            src_batt_state = &hardware::proc_bat_state;
+        case 2:
+            src_batt_state = &hardware::sys_bat_uni;
+        }
+
+        for (int i = 0; i < 10; i++)
+        {
+                string input = "";
+                string path = "/proc/acpi/thermal_zone/TZ0";
+                path += i+48;
+                path += "/temperature";
+                input = get_file (&path[0]);
+                if (input == "")
+                        info << "proc(TZ0" << i << ") - failed\n";
+                else
+                {
+                        final_temp_solution = 1;
+                        final_path_temp = path;
+                        info << "temperature sensor found on: " << path << "\n";
+                        break;
+                }
+        }
+        if (special_thername)
+        {
+                string input = "";
+                string path = "/proc/acpi/thermal_zone/";
+                path += cfg_thername;
+                path += "/temperature";
+                input = get_file (&path[0]);
+                if (input == "")
+                        info << "searching for custom battery path - failed\n";
+                else
+                {
+                        final_temp_solution = 1;
+                        final_path_temp = path;
+                        info << "searching for custom battery path - success\n";
+                }
+        }
+
+        /*
+        if (final_temp_solution == 1)
+                cout << proc_temp (get_file (&final_path_temp[0])) << "\n";
+        */
+
+        for (int i = 0; i < 10; i++)
+        {
+                string input = "";
+                string path = "/sys/class/thermal/thermal_zone";
+                path += i+48;
+                path += "/temp";
+                input = get_file (&path[0]);
+                if (input == "")
+                        info << "sys(thermal_zone" << i << ") - failed\n";
+                else
+                {
+                        final_temp_solution = 2;
+                        final_path_temp = path;
+                        info << "thermal sensor found on: " << path << "\n";
+                        break;
+                }
+        }
+        if (special_batname)
+        {
+                string input = "";
+                string path = "/sys/class/thermal/";
+                path += cfg_battname;
+                path += "/temp";
+                input = get_file (&path[0]);
+                if (input == "")
+                        info << "searching for custom battery path - failed\n";
+                else
+                {
+                        final_temp_solution = 2;
+                        final_path_temp = path;
+                        info << "searching for custom battery path - success\n";
+                }
+        }
+        if (final_temp_solution == 0)
+            cerr << "No thermal sensors found!\n";
+
+        /*
+        if (final_temp_solution == 2)
+                cout << sys_temp (get_file (&final_path_temp[0])) << "\n";
+        */
+
 }
-*/
