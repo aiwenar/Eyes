@@ -623,7 +623,7 @@ void hardware::system_check()
             info << "battery state: proc\n";
             break;
         case 2:
-            src_batt_state = &hardware::sys_bat_uni;
+            src_batt_state = &hardware::sys_bat_state;
             info << "battery state: sys\n";
             break;
         }
