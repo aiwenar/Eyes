@@ -279,12 +279,17 @@ int hardware::bateria ()
 
 unsigned short hardware::emubat(string path)
 {
-    return battery_capacity*battery.stable;
+    return battery_capacity*battery.stable/100;
 }
 
 unsigned short hardware::emustat(string path)
 {
     return 4;
+}
+
+unsigned short hardware::emutemp(string path)
+{
+    return temperature.stable;
 }
 
 unsigned int percental::calculate ()
@@ -581,28 +586,46 @@ void hardware::system_check()
         {
         case 0:
             src_batt_now = &hardware::emubat;
+            info << "battery source: emubat\n";
+            break;
         case 1:
             src_batt_now = &hardware::proc_bat_now;
+            info << "battery source: proc\n";
+            break;
         case 2:
             src_batt_now = &hardware::sys_bat_uni;
+            info << "battery source: sys\n";
+            break;
         }
         switch (final_full_solution)
         {
         case 0:
             battery_capacity = battery_capacity;
+            info << "battery full: config capacity\n";
+            break;
         case 1:
             battery_capacity = proc_bat_full(final_path_full);
+            info << "battery full: proc\n";
+            break;
         case 2:
             battery_capacity = sys_bat_uni(final_path_full);
+            info << "battery full: sys\n";
+            break;
         }
         switch (final_state_solution)
         {
         case 0:
             src_batt_state = &hardware::emustat;
+            info << "battery state: emustate\n";
+            break;
         case 1:
             src_batt_state = &hardware::proc_bat_state;
+            info << "battery state: proc\n";
+            break;
         case 2:
             src_batt_state = &hardware::sys_bat_uni;
+            info << "battery state: sys\n";
+            break;
         }
 
         for (int i = 0; i < 10; i++)
@@ -684,5 +707,21 @@ void hardware::system_check()
         if (final_temp_solution == 2)
                 cout << sys_temp (get_file (&final_path_temp[0])) << "\n";
         */
+
+        switch (final_now_solution)
+        {
+        case 0:
+            src_temp = &hardware::emutemp;
+            info << "thermal sensor: emutemp\n";
+            break;
+        case 1:
+            src_temp = &hardware::proc_temp;
+            info << "thermal sensor: proc\n";
+            break;
+        case 2:
+            src_temp = &hardware::sys_temp;
+            info << "thermal sensor: sys\n";
+            break;
+        }
 
 }

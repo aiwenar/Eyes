@@ -17,6 +17,7 @@ public:
                             temperatura         (),
                             emubat              (string path),
                             emustat             (string path),
+                            emutemp (string path),
                             (hardware::*src_batt_now)     (string),
                             (hardware::*src_batt_state)   (string),
                             (hardware::*src_temp)         (string),
