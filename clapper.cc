@@ -91,6 +91,7 @@ void eyes_clapper::clap ()
         {
             eyes->set_face ( face );
             eyes->update ();
+            eyes->anims_reload();
             timer->setInterval ( get_next_clap_delay () * 200 );
             stage = from;
             return;
@@ -99,6 +100,5 @@ void eyes_clapper::clap ()
     }
     eyes->repaint ();
     stage ++;
-    eyes->anims_reload();
     timer->setInterval ( 20 );
 }
