@@ -54,6 +54,8 @@ LIBS += \
   $$system(./scripts/libcfg --libs libconfig++) \
   -lrt
 
+system ( echo "Eyes configured." )
+system ( echo "  type 'make' to build Eyes." )
 
 
 
