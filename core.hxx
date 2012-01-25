@@ -172,14 +172,16 @@ struct eMu_zone
                                 time,
                                 energy,
                                 batt,
-                                batt_s;
+                                batt_s,
+                                bulwers;
     unsigned short              cpu_val,
                                 mem_val,
                                 temp_val,
                                 time_val,
                                 batt_s_val;
     unsigned int                energy_val,
-                                batt_val;
+                                batt_val,
+                                bulwers_val;
 };
 
 struct data_source

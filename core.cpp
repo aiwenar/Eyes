@@ -153,6 +153,9 @@ void bul::update()
     if (step != 0)
         step--;
 
+    if (eMu.bulwers)
+        value = eMu.bulwers_val;
+
     mousea.multiplier = 1;//= (double)value/10.0;
     if (mousea.hit_time > 2 && core_step%10 == 0)
         mousea.hit_time--;
@@ -1232,6 +1235,8 @@ void Core::load_config ()
     eMu.time_val            = cfg->lookupValue ("core.eMu_zone.time_val",               0           );
     eMu.energy              = cfg->lookupValue ("core.eMu_zone.energy",                 false       );
     eMu.energy_val          = cfg->lookupValue ("core.eMu_zone.energy_val",             0           );
+    eMu.bulwers             = cfg->lookupValue ("core.eMu_zone.bulwers",                false       );
+    eMu.bulwers_val         = cfg->lookupValue ("core.eMu_zone.bulwers_val",            0           );
 
     //mousea_actions_sector
 
