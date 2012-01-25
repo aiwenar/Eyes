@@ -70,6 +70,7 @@ void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int 
     start = nstart;
     end = nend;
     from = nfrom;
+    stage = from;
 }
 
 void eyes_clapper::clap ()
@@ -82,7 +83,7 @@ void eyes_clapper::clap ()
         eyes->reload_eyes();
     }
     if ( stage < size1 )
-        eyes->set_face ( QString ( animations[start]->frames[stage] ) );
+      eyes->set_face ( QString ( animations[start]->frames[stage] ) );
 
     else
     {
