@@ -292,6 +292,8 @@ unsigned short hardware::emutemp(string path)
     return temperature.stable;
 }
 
+/*
+
 unsigned int percental::calculate ()
 {
     mod_prev = 0;
@@ -333,6 +335,52 @@ unsigned int percental::calculate ()
     return mod;
 }
 
+*/
+
+unsigned int percental::calculate ()
+{
+    int curstep = 0;
+    int perc = 0;
+    for (int i = 0; i<=EQsize; i++)
+    {
+        if (load >= (100/EQsize)*i)
+            curstep = i;
+        else
+            break;
+    }
+    if (curstep == EQsize)
+        return EQ[EQsize];
+    else
+    {
+        perc = 100*(load-(100/EQsize)*curstep)/(100/EQsize);
+        return EQ[curstep] + perc*(EQ[curstep+1]-EQ[curstep])/100;
+    }
+}
+
+unsigned int unital::calculate()
+{
+    int curstep = 0;
+    int perc = 0;
+    if (value < EQbegin)
+        return EQ[0];
+    for (int i = 0; i<=EQsize; i++)
+    {
+        if (value >= EQbegin + ((EQend-EQbegin)/EQsize)*i)
+            curstep = i;
+        else
+            break;
+    }
+    if (curstep == EQsize)
+        return EQ[EQsize];
+    else
+    {
+        perc = 100*(value-(EQbegin + ((EQend-EQbegin)/EQsize)*curstep))/((EQend-EQbegin)/EQsize);
+        return EQ[curstep] + perc*(EQ[curstep+1]-EQ[curstep])/100;
+    }
+}
+
+/*
+
 unsigned int unital::calculate()
 {
     mod = 0;
@@ -372,6 +420,8 @@ unsigned int unital::calculate()
     }
     return mod;
 }
+
+*/
 
 unsigned int timal::calculate()
 {

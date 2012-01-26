@@ -31,12 +31,14 @@ public:
     double                      load,
                                 stable;
     unsigned int                buff_size,
+                                EQsize,
                                 steps,
                                 lin_num,
                                 current_probe,
                                 current_probe_small,
                                 loseless,
                                 calculate();
+    vector <int>                EQ;
     char                        frequency;
     void                        get_load (double),
                                 init (QString adress);
@@ -53,6 +55,9 @@ public:
     unsigned int                value,
                                 stable,
                                 buff_size,
+                                EQsize,
+                                EQbegin,
+                                EQend,
                                 steps,
                                 unit,
                                 lin_num,
@@ -60,6 +65,7 @@ public:
                                 current_probe_small,
                                 loseless,
                                 calculate();
+    vector <int>                EQ;
     char                        frequency;
     void                        get_load (unsigned short),
                                 init (QString adress);
@@ -114,7 +120,9 @@ public:
                                 value,
                                 fship_at_calm,
                                 calm_perc;
-    void                        update();
+    void                        update(),
+                                flue_check(),
+                                critical_services();
 };
 
 class auto_calc
