@@ -31,22 +31,22 @@ This is concept debug layout:
 
 
 #######################################################################################################################
-# step:____   special:__    basic         mods       mouse debug |
-# ---------------------------------------------------------------|
-# cpu:  | mem:  | temp: | battery:   | cpu:  load: | X:___ Y:___ |
-#       |       |       | ]]]]]]>><< |             |    <===>    |
-# p1 b1 | m1 b1 | t1 b1 |------------| mem:  load: |-------------|
-# p2 b2 | m2 b2 | t2 b2 | time:__    |             | friendship: |
-# p3 b3 | m3 b3 | t3 b3 | ========== | temp: val:  | ______ <___ |
-# p4 b4 | m4 b4 | t4 b4 |------------|             |-------------|
-# p5 b5 | m5 b5 | t5 b5 | energy:__  | batt: perc: | delay:      |
-# p6 b6 | m6 b6 | t6 b6 | ========== |             | ___________ |
-# p7 b7 | m7 b7 | t7 b7 |------------| time: val:  | result:     |
-# p8 b8 | m8 b8 | t8 b8 | RISE||CALM |             | ____[Mpx/s] |
-# p9 b9 | m9 b9 | t9 b9 | __________ | enrg: val:  |-------------|
-# p0 b0 | m0 b0 | t0 b0 | __________ |             | mouse.mod:  |
-#       |       |       | next_wall: | plug: val:  | ____        |
-# ===== | ===== | ===== | __________ |             | buffers:___ |
+# step:____   special:__    basic         mods       mouse debug | EQzone: _______ (__)              |
+# ---------------------------------------------------------------| final value: ___%                 |
+# cpu:  | mem:  | temp: | battery:   | cpu:  load: | X:___ Y:___ | [x10%]                            |
+#       |       |       | ]]]]]]>><< |             |    <===>    | 10 |[]                            |
+# p1 b1 | m1 b1 | t1 b1 |------------| mem:  load: |-------------| 9  |[] []                         |
+# p2 b2 | m2 b2 | t2 b2 | time:__    |             | friendship: | 8  |[] [] []                      |
+# p3 b3 | m3 b3 | t3 b3 | ========== | temp: val:  | ______ <___ | 7  |[] [] [] []                   |
+# p4 b4 | m4 b4 | t4 b4 |------------|             |-------------| 6  |[] [] [] [] []                |
+# p5 b5 | m5 b5 | t5 b5 | energy:__  | batt: perc: | delay:      | 5  |[] [] [] [] [] []             |
+# p6 b6 | m6 b6 | t6 b6 | ========== |             | ___________ | 4  |[] [] [] [] [] [] []          |
+# p7 b7 | m7 b7 | t7 b7 |------------| time: val:  | result:     | 3  |[] [] [] [] [] [] [] []       |
+# p8 b8 | m8 b8 | t8 b8 | RISE||CALM |             | ____[Mpx/s] | 2  |[] [] [] [] [] [] [] [] []    |
+# p9 b9 | m9 b9 | t9 b9 | __________ | enrg: val:  |-------------| 1  |[] [] [] [] [] [] [] [] [] [] |
+# p0 b0 | m0 b0 | t0 b0 | __________ |             | mouse.mod:  | 0  |[] [] [] [] [] [] [] [] [] [] |
+#       |       |       | next_wall: | plug: val:  | ____        |    +----------------------------- |
+# ===== | ===== | ===== | __________ |             | buffers:___ |     01 __ __ __ __ __ __ __ __ __ |
 
 
 And for everyone there are terminal instructions for that:
@@ -193,6 +193,7 @@ void spacefill (int input, int lenght)
 cdbg::cdbg ( Core * c ) :
   core  ( c ),
   max_s ( 0 ),
+  max_EQ( 6 ),
   timer ()
 {
   if ( cpu.buffered and cpu.buff_size > max_s )
@@ -201,6 +202,12 @@ cdbg::cdbg ( Core * c ) :
     max_s = memory.buff_size;
   if ( temperature.buffered and temperature.buff_size > max_s )
     max_s = temperature.buff_size;
+  if ( cpu.EQsize > max_EQ )
+    max_EQ = cpu.EQsize;
+  if ( memory.EQsize > max_EQ )
+    max_EQ = memory.EQsize;
+  if ( battery.EQsize > max_EQ )
+    max_EQ = battery.EQsize;
 
   cout << "\033[40m\033[37m\n";
   for ( int i = max_s+6 ; i>1 ; --i ) cout << '\n';
@@ -236,12 +243,38 @@ cdbg::cdbg ( Core * c ) :
   cout << "\033[14C";
   for (int i = max_s+6; i>0; i--)    cout << "|\033[1B\033[1D";
   for (int i = max_s+6; i>0; i--)    cout << "\033[1A";
+  cout << "\n\033[1A";
+  for (int i = max_s+6; i>0; i--)
+  {
+      cout << "\033[71C";
+      for (int i = max_EQ; i>=0; i--)     cout << "   ";
+      cout << "|\n";
+  }
+  for (int i = max_s+3; i>0; i--)    cout << "\033[1A";
+  for (int i = 11; i>0; i--)         cout << "\033[69C|\n";
+  cout << "\033[69C|";
+  for (int i = max_EQ; i>=0; i--)     cout << "---";
+  cout << "\n\033[1A\033[69C+";
+  for (int i = 11+3; i>0; i--)    cout << "\033[1A";
+
   cout << "\n\033[1A step:        special:\033[2B\033[21D"
           "cpu:\033[4Cmem:\033[4Ctemp:\033[3Cbattery:"
           "\033[8D\033[3Btime:\033[5D\033[3Benergy:\033[7D"
           "\033[6Bnext_wall:\n\033[15A\033[22C      basic     "
-          "   mods       mouse debug ";
-  if (1)
+          "   mods       mouse debug \033[1C EQzone:         "
+          "(  )\n\033[65C final value:    %\n\033[65C [x10%]\n"
+          "\033[65C 10 \n"
+          "\033[65C  9 \n"
+          "\033[65C  8 \n"
+          "\033[65C  7 \n"
+          "\033[65C  6 \n"
+          "\033[65C  5 \n"
+          "\033[65C  4 \n"
+          "\033[65C  3 \n"
+          "\033[65C  2 \n"
+          "\033[65C  1 \n"
+          "\033[65C  0 \n\033[14A";
+  if (0)
       cout << "\033[1C HARDLY DEBUG MODE:";
   cout << "\n\n\033[38Ccpu:\n\033[1A\033[44Cload:\n"
           "\n\033[38Cmem:\n\033[1A\033[44Cload:\n\n"
@@ -685,6 +718,7 @@ void cdbg::on_timer_tick ()
 
 
   cout << "\n" << "\033[17C";
+  /*
   if (temperature.frequency == 'l')
   {
       if (temperature.mod <= 0)
@@ -755,7 +789,6 @@ void cdbg::on_timer_tick ()
           }
       }
   }
-
   if (temperature.frequency == 'f')
   {
       unsigned short max_mod = 0;
@@ -798,6 +831,7 @@ void cdbg::on_timer_tick ()
           }
       }
   }
+  */
 
   if (temperature.buffered)
   {
@@ -1179,9 +1213,158 @@ void cdbg::on_timer_tick ()
   cout << "\033[33m\n\033[60C";
   spacefill(mousea.tr, 3);
 
-  cout << "\033[15A" << "\n\n";
+  cout << "\033[15A\n\033[1A\033[74C";
+  if (core_step % 40 < 10)
+  {
+      cout << "cpu    " << "\033[2C\033[1;30m";
+      spacefill(10 - (core_step%40), 2);
+      cout << "\n\033[79C\033[33m" << cpu.calculate() << "\n\n\033[70C";
+      for (int i = 10; i>=0; i--)
+      {
+          for (int j = 0; j<=cpu.EQsize;j++)
+          {
+              cout << "   ";
+          }
+          cout << "\n\033[70C";
+      }
+      cout << "\n\033[12A\033[70C";
+      for (int i = 10; i>=0; i--)
+      {
+          for (int j = 0; j<=cpu.EQsize;j++)
+          {
+              if (cpu.EQ[j] >= i*10)
+              {
+                  if (cpu.load >= (100/cpu.EQsize)*j && cpu.load < (100/cpu.EQsize)*(j+1))
+                      cout << "\033[1;34m[] ";
+                  else
+                      cout << "\033[1;36m[] ";
+              }
+              else
+                  cout << "   ";
+          }
+          cout << "\033[1;33m\n\033[70C";
+      }
 
-  if (1)
+      cout << "\n\033[70C";
+      for (int i = 0; i<=cpu.EQsize; i++)
+      {
+          spacefill((100/cpu.EQsize)*i, 3);
+      }
+  }
+  else if (core_step % 40 >= 10 && core_step % 40 < 20)
+  {
+      cout << "memory " << "\033[2C\033[1;30m";
+      spacefill(20 - (core_step%40), 2);
+      cout << "\n\033[79C\033[33m" << memory.calculate() << "\n\n\033[70C";
+      for (int i = 10; i>=0; i--)
+      {
+          for (int j = 0; j<=memory.EQsize;j++)
+          {
+              cout << "   ";
+          }
+          cout << "\n\033[70C";
+      }
+      cout << "\n\033[12A\033[70C";
+      for (int i = 10; i>=0; i--)
+      {
+          for (int j = 0; j<=memory.EQsize;j++)
+          {
+              if (memory.EQ[j] >= i*10)
+              {
+                  if (memory.load >= (100/memory.EQsize)*j && memory.load < (100/memory.EQsize)*(j+1))
+                      cout << "\033[1;34m[] ";
+                  else
+                      cout << "\033[1;36m[] ";
+              }
+              else
+                  cout << "   ";
+          }
+          cout << "\033[1;33m\n\033[70C";
+      }
+
+      cout << "\n\033[70C";
+      for (int i = 0; i<=memory.EQsize; i++)
+      {
+          spacefill((100/memory.EQsize)*i, 3);
+      }
+  }
+  else if (core_step % 40 >= 20 && core_step % 40 < 30)
+  {
+      cout << "thermal" << "\033[2C\033[1;30m";
+      spacefill(30 - (core_step%40), 2);
+      cout << "\n\033[79C\033[33m" << temperature.calculate() << "\n\n\033[70C";
+      for (int i = 10; i>=0; i--)
+      {
+          for (int j = 0; j<=temperature.EQsize;j++)
+          {
+              cout << "   ";
+          }
+          cout << "\n\033[70C";
+      }
+      cout << "\n\033[12A\033[70C";
+      for (int i = 10; i>=0; i--)
+      {
+          for (int j = 0; j<=temperature.EQsize;j++)
+          {
+              if (temperature.EQ[j] >= i*10)
+              {
+                  if (temperature.value >= temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*j && temperature.value < temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*(j+1))
+                      cout << "\033[1;34m[] ";
+                  else
+                      cout << "\033[1;36m[] ";
+              }
+              else
+                  cout << "   ";
+          }
+          cout << "\033[1;33m\n\033[70C";
+      }
+
+      cout << "\n\033[70C";
+      for (int i = 0; i<=temperature.EQsize; i++)
+      {
+          spacefill(temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*i, 3);
+      }
+  }
+  else
+  {
+      cout << "battery" << "\033[2C\033[1;30m";
+      spacefill(40 - (core_step%40), 2);
+      cout << "\n\033[79C\033[33m" << battery.calculate() << "\n\n\033[70C";
+      for (int i = 10; i>=0; i--)
+      {
+          for (int j = 0; j<=battery.EQsize;j++)
+          {
+              cout << "   ";
+          }
+          cout << "\n\033[70C";
+      }
+      cout << "\n\033[12A\033[70C";
+      for (int i = 10; i>=0; i--)
+      {
+          for (int j = 0; j<=battery.EQsize;j++)
+          {
+              if (battery.EQ[j] >= i*10)
+              {
+                  if (battery.load >= (100/battery.EQsize)*j && battery.load < (100/battery.EQsize)*(j+1))
+                      cout << "\033[1;34m[] ";
+                  else
+                      cout << "\033[1;36m[] ";
+              }
+              else
+                  cout << "   ";
+          }
+          cout << "\033[1;33m\n\033[70C";
+      }
+
+      cout << "\n\033[70C";
+      for (int i = 0; i<=battery.EQsize; i++)
+      {
+          spacefill((100/battery.EQsize)*i, 3);
+      }
+  }
+      cout << "\n\033[14A";
+
+  if (0)
   {
     spacer = 66;
     line = 0;

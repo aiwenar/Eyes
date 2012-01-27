@@ -17,6 +17,7 @@
 
 #include <iostream>
 #include <string.h>
+#include <sstream>
 #include <time.h>
 #include <vector>
 #include <qstring.h>
@@ -98,64 +99,8 @@ void eyes_view::send_eyes( QString neyes )
     //cerr << "core sets \"" << s_anim.eyes.toStdString() << "\" eye\n";
 }
 
-
-
-void bul::update()
+void bul::critical_services()
 {
-    total_mod =
-            cpu.mod         +
-            memory.mod      +
-            times.mod       +
-            energy.mod      +
-            temperature.mod -
-            battery.mod     -
-            mod_bat_plug    -
-            friendship/100  -
-            mousea.mod      ;
-    if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
-        step += total_mod;
-    else
-        step = 0;
-
-    if (step < wall_01)
-        value = 0;
-    if (step > wall_01 && step <= wall_02)
-        value = 1;
-    if (step > wall_02 && step <= wall_03)
-        value = 2;
-    if (step > wall_03 && step <= wall_04)
-        value = 3;
-    if (step > wall_04 && step <= wall_05)
-        value = 4;
-    if (step > wall_05 && step <= wall_06)
-        value = 5;
-    if (step > wall_06 && step <= wall_07)
-        value = 6;
-    if (step > wall_07 && step <= wall_08)
-        value = 7;
-    if (step > wall_08 && step <= wall_09)
-        value = 8;
-    if (step > wall_09 && step <= wall_10)
-        value = 9;
-    if (step > wall_10 && step <= wall_11)
-        value = 10;
-    if (step > wall_11 && step <= wall_12)
-        value = 11;
-    if (step > wall_12 && step <= wall_13)
-        value = 12;
-    if (step > wall_13 && step <= wall_14)
-        value = 13;
-    if (step > wall_14 && step <= wall_15)
-        value = 14;
-    if (step > wall_15)
-        value = 15;
-
-    if (step != 0)
-        step--;
-
-    if (eMu.bulwers)
-        value = eMu.bulwers_val;
-
     mousea.multiplier = 1;//= (double)value/10.0;
     if (mousea.hit_time > 2 && core_step%10 == 0)
         mousea.hit_time--;
@@ -164,59 +109,6 @@ void bul::update()
     {
         friendship-=calm_perc*friendship/100;
     }
-
-    if (battery_state == 0)
-    {
-        outline = 20;
-        eye = 10;
-    }
-    else if (outline == 20)
-        outline = 0;
-
-    if (once_plugged)
-    {
-        if (battery_state == 2 && prev_bat_plug != 2)
-        {
-            if (prev_bat_plug == 3)
-            {
-                mod_bat_plug--;
-            }
-
-            if (prev_bat_plug == 1)
-            {
-                mod_bat_plug-=2;
-            }
-        }
-        if (battery_state == 1 && prev_bat_plug != 1)
-        {
-            mod_bat_plug+=2;
-        }
-        if (battery_state == 3 && prev_bat_plug != 3)
-        {
-            mod_bat_plug--;
-        }
-    }
-    if (!once_plugged)
-    {
-        if (battery_state == 1)
-        {
-            once_plugged = true;
-            mod_bat_plug +=2;
-        }
-        if (battery_state == 3)
-        {
-            once_plugged = true;
-            mod_bat_plug++;
-        }
-    }
-    prev_bat_plug = battery_state;
-
-
-    if (value != 0 && outline != 20 && outline != 21)
-        outline = value + 3;
-    if (outline != 20 && value == 0)
-        outline = 0;
-
 
     if (get_time ().month == 12 || get_time ().month == 1 )
     if (outline != 20)
@@ -400,7 +292,10 @@ void bul::update()
                 outline--;
         }
     }
+}
 
+void bul::flue_check()
+{
     //--flue
 
     if (temperature.value >= 56 && temperature.value < 58)
@@ -481,6 +376,115 @@ void bul::update()
             energy.value++;
         }
     }
+}
+
+void bul::update()
+{
+    total_mod =
+            cpu.mod         +
+            memory.mod      +
+            times.mod       +
+            energy.mod      +
+            temperature.mod -
+            battery.mod     -
+            mod_bat_plug    -
+            friendship/100  -
+            mousea.mod      ;
+    if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
+        step += total_mod;
+    else
+        step = 0;
+
+    if (step < wall_01)
+        value = 0;
+    if (step > wall_01 && step <= wall_02)
+        value = 1;
+    if (step > wall_02 && step <= wall_03)
+        value = 2;
+    if (step > wall_03 && step <= wall_04)
+        value = 3;
+    if (step > wall_04 && step <= wall_05)
+        value = 4;
+    if (step > wall_05 && step <= wall_06)
+        value = 5;
+    if (step > wall_06 && step <= wall_07)
+        value = 6;
+    if (step > wall_07 && step <= wall_08)
+        value = 7;
+    if (step > wall_08 && step <= wall_09)
+        value = 8;
+    if (step > wall_09 && step <= wall_10)
+        value = 9;
+    if (step > wall_10 && step <= wall_11)
+        value = 10;
+    if (step > wall_11 && step <= wall_12)
+        value = 11;
+    if (step > wall_12 && step <= wall_13)
+        value = 12;
+    if (step > wall_13 && step <= wall_14)
+        value = 13;
+    if (step > wall_14 && step <= wall_15)
+        value = 14;
+    if (step > wall_15)
+        value = 15;
+
+    if (step != 0)
+        step--;
+
+    if (eMu.bulwers)
+        value = eMu.bulwers_val;
+
+    if (battery_state == 0)
+    {
+        outline = 20;
+        eye = 10;
+    }
+    else if (outline == 20)
+        outline = 0;
+
+    if (once_plugged)
+    {
+        if (battery_state == 2 && prev_bat_plug != 2)
+        {
+            if (prev_bat_plug == 3)
+            {
+                mod_bat_plug--;
+            }
+
+            if (prev_bat_plug == 1)
+            {
+                mod_bat_plug-=2;
+            }
+        }
+        if (battery_state == 1 && prev_bat_plug != 1)
+        {
+            mod_bat_plug+=2;
+        }
+        if (battery_state == 3 && prev_bat_plug != 3)
+        {
+            mod_bat_plug--;
+        }
+    }
+    if (!once_plugged)
+    {
+        if (battery_state == 1)
+        {
+            once_plugged = true;
+            mod_bat_plug +=2;
+        }
+        if (battery_state == 3)
+        {
+            once_plugged = true;
+            mod_bat_plug++;
+        }
+    }
+    prev_bat_plug = battery_state;
+
+
+    if (value != 0 && outline != 20 && outline != 21)
+        outline = value + 3;
+    if (outline != 20 && value == 0)
+        outline = 0;
 }
 
 void Core::bulwers_init ()
@@ -1091,6 +1095,8 @@ temperature.mod = temperature.calculate();
 times.mod = times.calculate();
 energy.mod = energy.calculate();
 mousea.mod = mousea.impact*mousea.convert()/100;
+bulwers.critical_services();
+bulwers.flue_check();
 bulwers.update();
 
 //if (autocalc.enabled)
@@ -1138,6 +1144,13 @@ void Core::load_config ()
     cpu.loseless            = cfg->lookupValue ( "core.cpu.adaptation",                 10          );
     cpu.buffered            = cfg->lookupValue ( "core.cpu.buffered",                   true        );
     cpu.buff_size           = cfg->lookupValue ( "core.cpu.buffer_size",                10          );
+    cpu.EQsize              = cfg->lookupValue ( "core.cpu.EQsize",                     0           );
+    for (unsigned short i = 0; i<=cpu.EQsize; i++)
+    {
+        stringstream ss;
+        ss << i;
+        cpu.EQ.push_back (cfg->lookupValue ( &("core.cpu.EQ"+ss.str())[0], 20 ));
+    }
 
     //mem_section
 
@@ -1148,6 +1161,13 @@ void Core::load_config ()
     memory.loseless         = cfg->lookupValue ( "core.memory.adaptation",              10          );
     memory.buffered         = cfg->lookupValue ( "core.memory.buffered",                true        );
     memory.buff_size        = cfg->lookupValue ( "core.memory.buffer_size",             10          );
+    memory.EQsize           = cfg->lookupValue ( "core.memory.EQsize",                  0           );
+    for (unsigned short i = 0; i<=memory.EQsize; i++)
+    {
+        stringstream ss;
+        ss << i;
+        memory.EQ.push_back (cfg->lookupValue ( &("core.memory.EQ"+ss.str())[0], 20 ));
+    }
 
     //temperature_section
 
@@ -1159,6 +1179,15 @@ void Core::load_config ()
     temperature.buffered    = cfg->lookupValue ( "core.temperature.buffered",           true        );
     temperature.buff_size   = cfg->lookupValue ( "core.temperature.buffer_size",        10          );
     temperature.unit        = cfg->lookupValue ( "core.temperature.unit",               1           );
+    temperature.EQbegin     = cfg->lookupValue ( "core.temperature.EQbegin",            30          );
+    temperature.EQend       = cfg->lookupValue ( "core.temperature.EQend",              70          );
+    temperature.EQsize      = cfg->lookupValue ( "core.temperature.EQsize",             0           );
+    for (unsigned short i = 0; i<=temperature.EQsize; i++)
+    {
+        stringstream ss;
+        ss << i;
+        temperature.EQ.push_back (cfg->lookupValue ( &("core.temperature.EQ"+ss.str())[0], 20 ));
+    }
 
     //battery_section
 
@@ -1169,6 +1198,13 @@ void Core::load_config ()
     battery.loseless        = cfg->lookupValue ( "core.battery.adaptation",             10          );
     battery.buffered        = cfg->lookupValue ( "core.battery.buffered",               false       );
     battery.buff_size       = cfg->lookupValue ( "core.battery.buffer_size",            10          );
+    battery.EQsize          = cfg->lookupValue ( "core.battery.EQsize",                 0           );
+    for (unsigned short i = 0; i<=battery.EQsize; i++)
+    {
+        stringstream ss;
+        ss << i;
+        battery.EQ.push_back (cfg->lookupValue ( &("core.battery.EQ"+ss.str())[0], 20 ));
+    }
 
     //times_sector
 

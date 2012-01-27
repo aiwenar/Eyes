@@ -21,6 +21,7 @@ private:
     Core          * core;
     QTimer          timer;
     unsigned  short max_s,
+                    max_EQ,
                     line,
                     spacer;
 };
