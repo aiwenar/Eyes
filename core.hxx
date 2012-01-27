@@ -169,8 +169,10 @@ public:
                                 hit_time,
                                 hit_time_multi,
                                 max_delay,
-                                opt_speed;
+                                opt_speed,
+                                max_hpp_bul;
     double                      multiplier;
+    bool                        hpp_active;
 };
 struct eMu_zone
 {

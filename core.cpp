@@ -76,11 +76,12 @@ void eyes_view::anims_reload()
     //    cerr << "\033[32mOops! My bad :]\n\n";
 
     set_animation(s_anim.open, s_anim.close, s_anim.start, s_anim.end);
+    s_anim.face_prev = face_next;
 
     //info << "sended pics:\n" << s_anim.open.toStdString() << " - open anim\n"
     //     << s_anim.close.toStdString() << " - close anim\n"
     //     << "start/end " << s_anim.start << " " << s_anim.end
-    //     << "\nface_next = " << face_next.toStdString() << "\n";
+    //     << "\nface_next = " << face_next.toStdString() << "\n\n";
 }
 
 void eyes_view::reload_eyes()
@@ -380,6 +381,7 @@ void bul::flue_check()
 
 void bul::update()
 {
+    /*
     total_mod =
             cpu.mod         +
             memory.mod      +
@@ -390,6 +392,8 @@ void bul::update()
             mod_bat_plug    -
             friendship/100  -
             mousea.mod      ;
+            */
+    total_mod = 0;
     if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
         step += total_mod;
     else
@@ -555,6 +559,7 @@ mousea.result                       = 0    ;
 mousea.prev_x                       = 0    ;
 mousea.prev_y                       = 0    ;
 mousea.hit_time                     = 1    ;
+mousea.hpp_active                   = false;
 
 for (unsigned int i = 0; i<=mousea.buff_size; i++)
 {
@@ -1019,7 +1024,60 @@ void eyes_view::graphics_prepare()
                anims_send ("slp_10", s_anim.face_prev + "_close", "slp_10_open", anim_num_1, 0);
            }
 
-           s_anim.face_prev = face_send;
+           //cerr << bulwers.outline << " " << face_send.toStdString() << " " << s_anim.face_prev.toStdString() << " " << mousea.hpp_active << "\n";
+
+           if (s_anim.face_prev == "hpp_07")
+           {
+               if (!mousea.hpp_active)
+               {
+                   //cerr << "hpp07 N\n";
+                   anim_num_1 = 0;
+                   if (bulwers.outline <= 4)
+                   {
+                       anims_send (face_send, "hpp_continue", "hpp_01_open", anim_num_1, 6);
+                   }
+                   else if (bulwers.outline <= 6)
+                   {
+                       anims_send (face_send, "hpp_continue", "hpp_02_open", anim_num_1, 5);
+                   }
+                   else if (bulwers.outline <= 8)
+                   {
+                       anims_send (face_send, "hpp_continue", "hpp_03_open", anim_num_1, 4);
+                   }
+                   else
+                   {
+                       anims_send (face_send, "hpp_continue", "hpp_04_open", anim_num_1, 3);
+                   }
+               }
+               else
+               {
+                   //cerr << "hpp07 Y\n";
+                   mousea.hpp_active = false;
+                   anims_send ("hpp_07", "hpp_continue", "hpp_continue", 0, 0);
+               }
+           }
+           else if (mousea.hpp_active && bulwers.outline <= mousea.max_hpp_bul+3)
+           {
+               //cerr << "hppbegin\n";
+               anim_num_1 = 0;
+               mousea.hpp_active = false;
+               if (bulwers.outline <= 4)
+               {
+                   anims_send ("hpp_07", "hpp_01_close", "hpp_continue", anim_num_1, 0);
+               }
+               else if (bulwers.outline <= 6)
+               {
+                   anims_send ("hpp_07", "hpp_02_close", "hpp_continue", anim_num_1, 0);
+               }
+               else if (bulwers.outline <= 8)
+               {
+                   anims_send ("hpp_07", "hpp_03_close", "hpp_continue", anim_num_1, 0);
+               }
+               else
+               {
+                   anims_send ("hpp_07", "hpp_04_close", "hpp_continue", anim_num_1, 0);
+               }
+           }
        }
 }
 
@@ -1088,16 +1146,16 @@ void Core::bulwers_update ()
     }
 
 
-cpu.mod = cpu.calculate();
-memory.mod = memory.calculate();
-battery.mod = battery.calculate();
-temperature.mod = temperature.calculate();
-times.mod = times.calculate();
-energy.mod = energy.calculate();
-mousea.mod = mousea.impact*mousea.convert()/100;
-bulwers.critical_services();
-bulwers.flue_check();
-bulwers.update();
+    cpu.mod = cpu.calculate();
+    memory.mod = memory.calculate();
+    battery.mod = battery.calculate();
+    temperature.mod = temperature.calculate();
+    times.mod = times.calculate();
+    energy.mod = energy.calculate();
+    mousea.mod = mousea.impact*mousea.convert()/100;
+    bulwers.critical_services();
+    bulwers.flue_check();
+    bulwers.update();
 
 //if (autocalc.enabled)
 //    autocalc_reload ( &cfg );
@@ -1287,6 +1345,7 @@ void Core::load_config ()
     mousea.hit_time_multi   = cfg->lookupValue ("core.mouse_actions.hit_multi",         2           );
     mousea.heavycalm        = cfg->lookupValue ("core.mouse_actions.heavycalm",         100         );
     mousea.max_delay        = cfg->lookupValue ("core.mouse_actions.max_delay",         400         );
+    mousea.max_hpp_bul      = cfg->lookupValue ("core.mouse_actions.max_hpp_bul",       5           );
 
     // hardware_section
 
@@ -1323,7 +1382,6 @@ void Core::run ()
     } while (!wake_up);
     info << "(core) wake up finished\n";
     eyes->anims_send ("cusual_01", "slp_10_close", "cusual_01_open", 0, 4);
-    eyes->anims_reload();
     HRDWR.system_check();
     info << "(core) end of core preparing\n";
     timer->start ( 1000 );
@@ -1402,6 +1460,7 @@ int mouse_actions::convert()
             }
             else
             {
+                hpp_active = true;
                 if (bulwers.friendship > -(int)heavycalm*(int)goodstep)
                 {
                     bulwers.friendship+=goodstep;
