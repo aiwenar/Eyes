@@ -199,6 +199,8 @@ public:
     void        run                 ();
     /// Sets actual animation.
     void        set_animation       ( QString nstart, QString nend, int nfrom, int nto );
+    /// interrupts current animation and replaces it with a new one
+    void        interrupt           ( QString nstart, QString nend, int nfrom, int nto );
 public slots:
     /// Called on timer tick, ...?.
     void        clap                ();
