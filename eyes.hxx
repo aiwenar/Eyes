@@ -111,6 +111,7 @@ public:
     void                interrupt           ( QString nstart, QString nend, int nfrom, int nto );
     void                anims_send          ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto );
     void                send_eyes           ( QString neyes );
+    void                hpp_evoke           ();
     void                toggle_layer        ( Layers layer, bool onoff );
     void                set_layer           ( Layers layer, QString face );
     void                reload_eyes         ();

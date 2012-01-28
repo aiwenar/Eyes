@@ -1050,33 +1050,7 @@ void eyes_view::graphics_prepare()
                    }
                }
                else
-               {
-                   //cerr << "hpp07 Y\n";
-                   mousea.hpp_active = false;
                    anims_send ("hpp_07", "hpp_continue", "hpp_continue", 0, 0);
-               }
-           }
-           else if (mousea.hpp_active && bulwers.outline <= mousea.max_hpp_bul+3)
-           {
-               //cerr << "hppbegin\n";
-               anim_num_1 = 0;
-               mousea.hpp_active = false;
-               if (bulwers.outline <= 4)
-               {
-                   anims_send ("hpp_07", "hpp_01_close", "hpp_continue", anim_num_1, 0);
-               }
-               else if (bulwers.outline <= 6)
-               {
-                   anims_send ("hpp_07", "hpp_02_close", "hpp_continue", anim_num_1, 0);
-               }
-               else if (bulwers.outline <= 8)
-               {
-                   anims_send ("hpp_07", "hpp_03_close", "hpp_continue", anim_num_1, 0);
-               }
-               else
-               {
-                   anims_send ("hpp_07", "hpp_04_close", "hpp_continue", anim_num_1, 0);
-               }
            }
        }
 }
@@ -1460,7 +1434,7 @@ int mouse_actions::convert()
             }
             else
             {
-                hpp_active = true;
+                eyes->hpp_evoke();
                 if (bulwers.friendship > -(int)heavycalm*(int)goodstep)
                 {
                     bulwers.friendship+=goodstep;
@@ -1481,6 +1455,31 @@ int mouse_actions::convert()
                 }
             }
         }
+    }
+}
+
+void eyes_view::hpp_evoke()
+{
+    mousea.hpp_active = true;
+    if (bulwers.outline <= mousea.max_hpp_bul+3 && face_next != "hpp_07")
+    {
+        if (bulwers.outline <= 4)
+        {
+            interrupt ("hpp_01_close", "hpp_continue", 0, 0);
+        }
+        else if (bulwers.outline <= 6)
+        {
+            interrupt ("hpp_02_close", "hpp_continue", 0, 0);
+        }
+        else if (bulwers.outline <= 8)
+        {
+            interrupt ("hpp_03_close", "hpp_continue", 0, 0);
+        }
+        else
+        {
+            interrupt ("hpp_04_close", "hpp_continue", 0, 0);
+        }
+        face_next = "hpp_07";
     }
 }
 

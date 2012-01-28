@@ -173,7 +173,9 @@ public:
                                 max_hpp_bul;
     double                      multiplier;
     bool                        hpp_active;
+    eyes_view                   * eyes;
 };
+
 struct eMu_zone
 {
     bool                        cpu,
@@ -201,5 +203,7 @@ struct data_source
                                 batt_stat,
                                 temp;
 };
+
+extern eyes_view     * eyes;
 
 #endif //gbssl_core_new_hxx
