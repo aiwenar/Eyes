@@ -108,7 +108,7 @@ public:
     void                set_eyes_position   ( int nx1, int nx2, int ny );
     void                set_mirror_position ( double nx1, double nx2, double ny );
     void                set_animation       ( QString start, QString end, int from, int to );
-    void                interrupt           ( QString nstart, QString nend, int nfrom, int nto );
+    void                interrupt           ();// QString nstart, QString nend, int nfrom, int nto );
     void                anims_send          ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto );
     void                send_eyes           ( QString neyes );
     void                hpp_evoke           ();
@@ -202,7 +202,7 @@ public:
     /// Sets actual animation.
     void        set_animation       ( QString nstart, QString nend, int nfrom, int nto );
     /// interrupts current animation and replaces it with a new one
-    void        interrupt           ( QString nstart, QString nend, int nfrom, int nto );
+    void        interrupt           ();// QString nstart, QString nend, int nfrom, int nto );
 public slots:
     /// Called on timer tick, ...?.
     void        clap                ();

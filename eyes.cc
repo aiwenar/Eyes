@@ -345,9 +345,9 @@ void eyes_view::set_animation ( QString start, QString end, int from, int to )
     clapper->set_animation ( start, end, from ,to );
 }
 
-void eyes_view::interrupt ( QString start, QString end, int from, int to )
+void eyes_view::interrupt ()// QString start, QString end, int from, int to )
 {
-  clapper->interrupt ( start, end, from ,to );
+  clapper->interrupt ();// start, end, from ,to );
 }
 
 void eyes_view::set_layer ( Layers layer, QString face )

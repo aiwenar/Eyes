@@ -73,10 +73,10 @@ void eyes_clapper::set_animation ( QString nstart, QString nend, int nfrom, int 
     stage = from;
 }
 
-void eyes_clapper::interrupt ( QString nstart, QString nend, int nfrom, int nto )
+void eyes_clapper::interrupt ()// QString nstart, QString nend, int nfrom, int nto )
 {
   timer->stop ();
-  set_animation ( nstart, nend, nfrom, nto );
+  //set_animation ( nstart, nend, nfrom, nto );
   timer->setInterval ( 20 );
   timer->start ();
 }
