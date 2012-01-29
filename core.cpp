@@ -722,7 +722,7 @@ void eyes_view::graphics_prepare()
 
     if (bulwers.outline == 0)
     {
-        int tmp = rand () % 3;
+        int tmp = rand () % 4;
         if (tmp == 0)
             face_send = "cusual_01";
         if (tmp == 1)
@@ -736,36 +736,36 @@ void eyes_view::graphics_prepare()
     {
         if (bulwers.outline == 1)
         {
-            int tmp = rand () % 3 + 1;
-            if (tmp == 1)
+            int tmp = rand () % 4;
+            if (tmp == 0)
                 face_send = "slp_01";
-            if (tmp == 2)
+            if (tmp == 1)
                 face_send = "slp_02";
-            if (tmp == 3)
+            if (tmp == 2)
                 face_send = "slp_03";
-            if (tmp == 4)
+            if (tmp == 3)
                 face_send = "slp_04";
         }
         if (bulwers.outline == 2)
         {
-            int tmp = rand () % 1 + 4;
-            if (tmp == 4)
+            int tmp = rand () % 2;
+            if (tmp == 0)
                 face_send = "slp_04";
-            if (tmp == 5)
+            if (tmp == 1)
                 face_send = "slp_05";
         }
         if (bulwers.outline == 3)
         {
-            int tmp = rand () % 5 + 1;
-            if (tmp == 5)
+            int tmp = rand () % 2;
+            if (tmp == 0)
                 face_send = "slp_05";
-            if (tmp == 6)
+            if (tmp == 1)
                 face_send = "slp_06";
         }
 
         if (bulwers.outline == 4)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "cusual_01";
             if (tmp == 1)
@@ -775,7 +775,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 5)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_01";
             if (tmp == 1)
@@ -785,7 +785,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 6)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_02";
             if (tmp == 1)
@@ -795,7 +795,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 7)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_03";
             if (tmp == 1)
@@ -805,7 +805,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 8)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_04";
             if (tmp == 1)
@@ -815,7 +815,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 9)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_05";
             if (tmp == 1)
@@ -825,7 +825,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 10)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_06";
             if (tmp == 1)
@@ -835,7 +835,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 11)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_07";
             if (tmp == 1)
@@ -845,7 +845,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 12)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_08";
             if (tmp == 1)
@@ -855,7 +855,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 13)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_09";
             if (tmp == 1)
@@ -865,7 +865,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 14)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_10";
             if (tmp == 1)
@@ -875,7 +875,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 15)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_11";
             if (tmp == 1)
@@ -885,7 +885,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 16)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_12";
             if (tmp == 1)
@@ -895,7 +895,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 17)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_13";
             if (tmp == 1)
@@ -905,7 +905,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 18)
         {
-            int tmp = rand () % 2;
+            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "bul_14";
             if (tmp == 1)
@@ -915,7 +915,7 @@ void eyes_view::graphics_prepare()
         }
         if (bulwers.outline == 19)
         {
-            int tmp = rand () % 1;
+            int tmp = rand () % 2;
             if (tmp == 0)
                 face_send = "bul_15";
             if (tmp == 1)
@@ -1048,6 +1048,7 @@ void eyes_view::graphics_prepare()
                    {
                        anims_send (face_send, "hpp_continue", "hpp_04_open", anim_num_1, 3);
                    }
+                   interrupt();
                }
                else
                {
@@ -1059,6 +1060,11 @@ void eyes_view::graphics_prepare()
            {
                hpp_evoke();
                mousea.hpp_active = false;
+           }
+           if (mousea.hit_active)
+           {
+               mousea.hit_active = 0;
+               interrupt();
            }
        }
 }
@@ -1394,7 +1400,12 @@ void Core::handle_mouse ( int x, int y )
         mousea.buffer[mousea.cur] = 0;
 
     if (mousea.buffer[mousea.cur] > mousea.force_wall)
+    {
+        mousea.hit_active = 1;
+        eyes->anims_send("bul_16", "hit_close", "hit_continue", 0, 0);
+        eyes->interrupt();
         info << "You\'ve hit Eyes. Be carefull!\n";
+    }
 
     //1500
     //3000

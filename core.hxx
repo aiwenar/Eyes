@@ -172,7 +172,8 @@ public:
                                 opt_speed,
                                 max_hpp_bul;
     double                      multiplier;
-    bool                        hpp_active;
+    bool                        hpp_active,
+                                hit_active;
     eyes_view                   * eyes;
 };
 

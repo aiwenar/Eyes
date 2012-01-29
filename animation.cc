@@ -108,7 +108,7 @@ void animation::registerAnimations ( QMap <QString,animation*> * map )
     map->insert ( "hpp_03_open", ( new animation ( 4 ) )->add_frame("hpp_06")->add_frame("hpp_05")->add_frame("hpp_04")->add_frame("hpp_03") );
     map->insert ( "hpp_04_close", ( new animation ( 4 ) )->add_frame("hpp_04")->add_frame("hpp_05")->add_frame("hpp_06")->add_frame("hpp_07") );
     map->insert ( "hpp_04_open", ( new animation ( 3 ) )->add_frame("hpp_06")->add_frame("hpp_05")->add_frame("hpp_04") );
-    map->insert ( "hit_close", ( new animation ( 2 ) )->add_frame ( "bhclap_01" )->add_frame ( "bhclap_03" ) );
+    map->insert ( "hit_close", ( new animation ( 2 ) )->add_frame ( "bhclap_02" )->add_frame ( "bul_16" ) );
     map->insert ( "hit_open", ( new animation ( 4 ) )->add_frame ( "slp_09" )->add_frame ( "slp_08" )->add_frame ( "slp_07" )->add_frame ( "slp_07" ) );
     map->insert ( "hpp_continue", ( new animation ( 0 ) ) );
     map->insert ( "hit_continue", ( new animation ( 0 ) ) );
