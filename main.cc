@@ -33,7 +33,7 @@ using namespace libconfig;
 static const char help [] = {
     "usage: eyes [ARGUMENT [OPTION]]\n\n"
     "Arguments:\n"
-    "\t--help -h\t\tPrint this text ang exit.\n"
+    "\t--help -h\t\tPrint this text and exit.\n"
     "\t--version -v\t\tPrint version and exit.\n"
     "\t--color=COLOR -c COLOR\tSet eyes color to COLOR.\n"
     "\t--config\t\tOpen configuration, then quit.\n"
@@ -41,7 +41,7 @@ static const char help [] = {
 };
 
 static const char version [] = {
-  "eyes Copyright (C) 2011  Krzysztof Mędrzycki, Damian, Chiliński\n"
+  "eyes Copyright (C) 2011  Krzysztof Mędrzycki, Damian Chiliński\n"
   "This program comes with ABSOLUTELY NO WARRANTY.\n"
   "This is free software, and you are welcome to redistribute it\n"
   "under certain conditions.\n"
