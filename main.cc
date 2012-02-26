@@ -1,5 +1,5 @@
 /* Eyes
- * Copyright (C) 2011  Krzysztof Mędrzycki, Damian Chiliński
+ * Copyright (C) 2011, 2012  Krzysztof Mędrzycki, Damian Chiliński
  * 
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -66,7 +66,16 @@ int main ( int argc, char ** argv )
   QString color = "";
 
   Config set;
-  set.readFile ( "./config.cfg" );
+  /*try
+  {*/
+    set.readFile ( "./config.cfg" );
+  /*}
+  catch ( libconfig parse exception )
+  {
+    print that is error in config
+    set config to default
+    contiune
+  }*/
 
   for ( int i = 0 ; i < arg.size () ; i++ )
   {
