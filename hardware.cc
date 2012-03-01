@@ -775,7 +775,7 @@ void hardware::system_check()
                 cout << sys_temp (get_file (&final_path_temp[0])) << "\n";
         */
 
-        switch (final_now_solution)
+        switch (final_temp_solution)
         {
         case 0:
             src_temp = &hardware::emutemp;
