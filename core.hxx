@@ -54,7 +54,8 @@ public:
                                 current_probe,
                                 current_probe_small,
                                 loseless,
-                                calculate();
+                                calculate(),
+                                convert(unsigned short val);
     vector <int>                EQ;
     char                        frequency;
     void                        get_load (double),
@@ -81,7 +82,8 @@ public:
                                 current_probe,
                                 current_probe_small,
                                 loseless,
-                                calculate();
+                                calculate(),
+                                convert(unsigned short val);
     vector <int>                EQ;
     char                        frequency;
     void                        get_load (unsigned short),

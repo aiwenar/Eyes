@@ -309,16 +309,16 @@ unsigned short hardware::emutemp(string path)
     return temperature.stable;
 }
 
-/*
 
-unsigned int percental::calculate ()
+
+unsigned int percental::convert(unsigned short val)
 {
     mod_prev = 0;
     mod = 0;
     for (unsigned short i = 0; i<=steps; i++)
     {
         mod_prev = mod;
-        if (load <= stable - loseless - (i*((stable - loseless)/steps)))
+        if (val <= stable - loseless - (i*((stable - loseless)/steps)))
         {
             switch (frequency)
             {
@@ -335,7 +335,7 @@ unsigned int percental::calculate ()
     for (unsigned short i = 0; i<=steps; i++)
     {
         mod_prev = mod;
-        if (load >= stable + loseless + (i*((100-(stable + loseless))/steps)))
+        if (val >= stable + loseless + (i*((100-(stable + loseless))/steps)))
         {
             switch (frequency)
             {
@@ -352,7 +352,7 @@ unsigned int percental::calculate ()
     return mod;
 }
 
-*/
+
 
 unsigned int percental::calculate ()
 {
@@ -396,16 +396,16 @@ unsigned int unital::calculate()
     }
 }
 
-/*
 
-unsigned int unital::calculate()
+
+unsigned int unital::convert(unsigned short val)
 {
     mod = 0;
     mod_prev = 0;
     for (unsigned short i = 0; i<=steps; i++)
     {
         mod_prev = mod;
-        if (value <= stable - loseless - (i*unit))
+        if (val <= stable - loseless - (i*unit))
         {
             switch (frequency)
             {
@@ -422,7 +422,7 @@ unsigned int unital::calculate()
     for (unsigned short i = 0; i<=steps; i++)
     {
         mod_prev = mod;
-        if (value >= stable + loseless + (i*unit))
+        if (val >= stable + loseless + (i*unit))
         {
             switch (frequency)
             {
@@ -438,7 +438,7 @@ unsigned int unital::calculate()
     return mod;
 }
 
-*/
+
 
 unsigned int timal::calculate()
 {

@@ -381,7 +381,7 @@ void bul::flue_check()
 
 void bul::update()
 {
-    /*
+
     total_mod =
             cpu.mod         +
             memory.mod      +
@@ -392,7 +392,7 @@ void bul::update()
             mod_bat_plug    -
             friendship/100  -
             mousea.mod      ;
-            */
+
     total_mod = 0;
     if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
         step += total_mod;
@@ -589,7 +589,7 @@ void percental::get_load( double function )
         if (sector_small[current_probe_small] > 100)
             sector_small[current_probe_small] = stable;
         if (sector_small[current_probe_small] == 100)
-            sector_small[current_probe_small] = stable;
+            sector_small[current_probe_small] = 99;
 
         for (unsigned short i = 0; i< buff_size;i++)
         {
@@ -632,7 +632,7 @@ void unital::get_load( unsigned short function )
         if (sector_small[current_probe_small] > 100)
             sector_small[current_probe_small] = stable;
         if (sector_small[current_probe_small] == 100)
-            sector_small[current_probe_small] = stable;
+            sector_small[current_probe_small] = 99;
 
         for (unsigned short i = 0; i< buff_size;i++)
         {
@@ -1134,10 +1134,10 @@ void Core::bulwers_update ()
     }
 
 
-    cpu.mod = cpu.calculate();
-    memory.mod = memory.calculate();
-    battery.mod = battery.calculate();
-    temperature.mod = temperature.calculate();
+    cpu.mod = cpu.convert(cpu.calculate());
+    memory.mod = memory.convert(memory.calculate());
+    battery.mod = battery.convert(battery.calculate());
+    temperature.mod = temperature.convert(temperature.calculate());
     times.mod = times.calculate();
     energy.mod = energy.calculate();
     mousea.mod = mousea.impact*mousea.convert()/100;
