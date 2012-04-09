@@ -109,6 +109,10 @@ public:
 class bul
 {
 public:
+    char                        wkup_reason,
+                                wkup_active;
+    bool                        wake_up,
+                                no_update;
     int                         total_mod,
                                 friendship;
     unsigned int                step,
@@ -138,10 +142,30 @@ public:
                                 layer4,
                                 value,
                                 fship_at_calm,
-                                calm_perc;
+                                calm_perc,
+                                wake_up_delay,
+                                current_wkup_delay,
+                                nrg_low,
+                                nrg_std,
+                                nrg_boost,
+                                wkup_time,
+                                wkup_timew,
+                                timelow_1,
+                                timelow_2,
+                                timelow_3,
+                                timehigh_1,
+                                timehigh_2,
+                                timehigh_3,
+                                timelow_1w,
+                                timelow_2w,
+                                timelow_3w,
+                                timehigh_1w,
+                                timehigh_2w,
+                                timehigh_3w;
     void                        update(),
                                 flue_check(),
-                                critical_services();
+                                critical_services(),
+                                wake_up_chk();
 };
 
 class auto_calc
