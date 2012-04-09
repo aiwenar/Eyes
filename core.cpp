@@ -1328,7 +1328,8 @@ void Core::load_config ()
 
     //basic_sector
 
-    cdebug                  = cfg->lookupValue("debug.cdebug.on",                       true        );
+    cdbg_enabled            = cfg->lookupValue("debug.cdebug.on",                       true        );
+    hdbg_enabled            = cfg->lookupValue("debug.HDBG_enabled",                    false       );
 
     //autocalc_sector
 
@@ -1394,7 +1395,8 @@ void Core::run ()
     s_anim.face_prev = "slp_10";
     info << "s_anim.face_prev set to " << s_anim.face_prev.toStdString() << "\n";
     info << "(core) wake up finished\n";
-    eyes->anims_send ("cusual_01", "slp_10_close", "cusual_01_open", 0, 4);
+    if (!core_only_mode)
+        eyes->anims_send ("cusual_01", "slp_10_close", "cusual_01_open", 0, 4);
     HRDWR.system_check();
     info << "(core) end of core preparing\n";
     timer->start ( 1000 );
@@ -1405,7 +1407,8 @@ void Core::on_timer_tick ()
 {
     core_step ++;
     bulwers_update ();
-    eyes->graphics_prepare();
+    if (!core_only_mode)
+        eyes->graphics_prepare();
 }
 
 void Core::handle_mouse ( int x, int y )

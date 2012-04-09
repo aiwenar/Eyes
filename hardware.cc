@@ -518,8 +518,8 @@ void hardware::system_check()
                 path += i+48;
                 path += "/state";
                 input = get_file (&path[0]);
-                if (input == "")
-                        info << "proc(BAT" << i << ") - failed\n";
+                if (input == "");
+                        //info << "proc(BAT" << i << ") - failed\n";
                 else
                 {
                         final_now_solution = 1;
@@ -539,8 +539,8 @@ void hardware::system_check()
                 path += cfg_battname;
                 path += "/state";
                 input = get_file (&path[0]);
-                if (input == "")
-                        info << "searching for custom battery path - failed\n";
+                if (input == "");
+                        //info << "searching for custom battery path - failed\n";
                 else
                 {
                         final_now_solution = 1;
@@ -556,7 +556,7 @@ void hardware::system_check()
         string input = "";
         input = get_file (&final_path_full[0]);
         if (input == "")
-                info << "battery capacity searching - failed\n";
+                warning << "battery capacity searching - failed\n";
         else
         {
                 final_full_solution = 1;
@@ -580,8 +580,8 @@ void hardware::system_check()
                 path += i+48;
                 path += "/charge_now";
                 input = get_file (&path[0]);
-                if (input == "")
-                        info << "sys(BAT" << i << ") - failed\n";
+                if (input == "");
+                        //info << "sys(BAT" << i << ") - failed\n";
                 else
                 {
                         final_now_solution = 2;
@@ -603,8 +603,8 @@ void hardware::system_check()
                 path += cfg_battname;
                 path += "/charge_now";
                 input = get_file (&path[0]);
-                if (input == "")
-                        info << "searching for custom battery path - failed\n";
+                if (input == "");
+                        //info << "searching for custom battery path - failed\n";
                 else
                 {
                         final_now_solution = 2;
@@ -621,7 +621,7 @@ void hardware::system_check()
         input = "";
         input = get_file (&final_path_full[0]);
         if (input == "")
-                info << "battery capacity searching - failed\n";
+                warning << "battery capacity searching - failed\n";
         else
         {
                 final_full_solution = 2;
@@ -629,8 +629,8 @@ void hardware::system_check()
         }
         input = "";
         input = get_file (&final_path_state[0]);
-        if (input == "")
-                info << "battery status searching - failed\n";
+        if (input == "");
+                //info << "battery status searching - failed\n";
         else
         {
                 final_state_solution = 2;
@@ -647,7 +647,7 @@ void hardware::system_check()
         */
 
         if (final_now_solution == 0)
-            cerr << "No battery found!\n";
+            warning << "No battery found!\n";
 
         switch (final_now_solution)
         {
@@ -702,8 +702,8 @@ void hardware::system_check()
                 path += i+48;
                 path += "/temperature";
                 input = get_file (&path[0]);
-                if (input == "")
-                        info << "proc(TZ0" << i << ") - failed\n";
+                if (input == "");
+                        //info << "proc(TZ0" << i << ") - failed\n";
                 else
                 {
                         final_temp_solution = 1;
@@ -719,8 +719,8 @@ void hardware::system_check()
                 path += cfg_thername;
                 path += "/temperature";
                 input = get_file (&path[0]);
-                if (input == "")
-                        info << "searching for custom battery path - failed\n";
+                if (input == "");
+                        //info << "searching for custom battery path - failed\n";
                 else
                 {
                         final_temp_solution = 1;
@@ -741,8 +741,8 @@ void hardware::system_check()
                 path += i+48;
                 path += "/temp";
                 input = get_file (&path[0]);
-                if (input == "")
-                        info << "sys(thermal_zone" << i << ") - failed\n";
+                if (input == "");
+                        //info << "sys(thermal_zone" << i << ") - failed\n";
                 else
                 {
                         final_temp_solution = 2;
@@ -758,8 +758,8 @@ void hardware::system_check()
                 path += cfg_battname;
                 path += "/temp";
                 input = get_file (&path[0]);
-                if (input == "")
-                        info << "searching for custom battery path - failed\n";
+                if (input == "");
+                        //info << "searching for custom battery path - failed\n";
                 else
                 {
                         final_temp_solution = 2;
@@ -768,7 +768,7 @@ void hardware::system_check()
                 }
         }
         if (final_temp_solution == 0)
-            cerr << "No thermal sensors found!\n";
+            warning << "No thermal sensors found!\n";
 
         /*
         if (final_temp_solution == 2)

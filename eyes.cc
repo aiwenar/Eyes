@@ -165,6 +165,7 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     clapper = new eyes_clapper ( this );
     looker = new eyes_looker ( this );
     core = new Core ( this );
+    core->core_only_mode = false;
     open_images ( color );
     set_layer ( SLEEPY, "tired_03" );
     toggle_layer ( SLEEPY, true );
