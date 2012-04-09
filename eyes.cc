@@ -132,12 +132,12 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     layers = new _layer[NUM_LAYERS];
     px = MM_NO_MOTION;
     px = MM_NO_MOTION;
-    epx1 = 46;
-    epx2 = 213;
-    mpx1 = 83;
-    mpx2 = 252;
-    epy = 10;
-    mpy = 24;
+    epx1 = eyes_w * .14375; //46;
+    epx2 = eyes_w * .665625; //213;
+    mpx1 = eyes_w * .259375;
+    mpx2 = eyes_w * .7875; //252;
+    epy = eyes_h * .125; //10;
+    mpy = eyes_h * .3; //24;
     win = parent;
     spec = "spec";
     eye = "blank";
@@ -263,13 +263,15 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_s"] );
     parea.drawPixmap ( int(mpx1), int(mpy), eye_m, eye_m, pics[spec] );
     parea.drawPixmap ( int(mpx2), int(mpy), eye_m, eye_m, pics[spec] );
-    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_m"] );
-    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_o"] );
+//    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_m"] );
+//    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_o"] );
     for ( int i=0 ; i<NUM_LAYERS ; i++ )
     {
         if ( layers[i].drawable )
             parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[layers[i].face] );
     }
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_m"] ); // for test
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_o"] ); // for test
     parea.end ();
     area->setMask ( pics[face+"_a"].mask () );
     paint.drawPixmap ( 0, 0, eyes_w, eyes_h, *area );
