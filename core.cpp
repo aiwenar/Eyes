@@ -100,6 +100,220 @@ void eyes_view::send_eyes( QString neyes )
     //cerr << "core sets \"" << s_anim.eyes.toStdString() << "\" eye\n";
 }
 
+void bul::wake_up_chk()
+{
+    if (wake_up)
+        return;
+    no_update = true;
+    bulwers.outline = 21;
+    if (get_time ().day != 7)
+    {
+        if (times.value >= wkup_time )
+        {
+            energy.start = nrg_std*3600;
+            wake_up = true;
+        }
+        else
+            energy.start = nrg_low*3600;
+    }
+    else
+    {
+        if (times.value >= wkup_timew )
+        {
+            energy.start = nrg_boost*3600;
+            wake_up = true;
+        }
+        else if (times.value >= wkup_time)
+            energy.start = nrg_std*3600;
+        else
+            energy.start = nrg_low*3600;
+    }
+    //if (!wake_up)
+    //    sleep (5);
+}
+
+void bul::update()
+{
+
+    total_mod =
+            cpu.mod         +
+            memory.mod      +
+            times.mod       +
+            energy.mod      +
+            temperature.mod -
+            battery.mod     -
+            mod_bat_plug    -
+            friendship/100  -
+            mousea.mod      ;
+
+    total_mod = 0;
+    if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
+        step += total_mod;
+    else
+        step = 0;
+
+    if (step < wall_01)
+        value = 0;
+    if (step > wall_01 && step <= wall_02)
+        value = 1;
+    if (step > wall_02 && step <= wall_03)
+        value = 2;
+    if (step > wall_03 && step <= wall_04)
+        value = 3;
+    if (step > wall_04 && step <= wall_05)
+        value = 4;
+    if (step > wall_05 && step <= wall_06)
+        value = 5;
+    if (step > wall_06 && step <= wall_07)
+        value = 6;
+    if (step > wall_07 && step <= wall_08)
+        value = 7;
+    if (step > wall_08 && step <= wall_09)
+        value = 8;
+    if (step > wall_09 && step <= wall_10)
+        value = 9;
+    if (step > wall_10 && step <= wall_11)
+        value = 10;
+    if (step > wall_11 && step <= wall_12)
+        value = 11;
+    if (step > wall_12 && step <= wall_13)
+        value = 12;
+    if (step > wall_13 && step <= wall_14)
+        value = 13;
+    if (step > wall_14 && step <= wall_15)
+        value = 14;
+    if (step > wall_15)
+        value = 15;
+
+    if (step != 0)
+        step--;
+
+    if (eMu.bulwers)
+        value = eMu.bulwers_val;
+
+    if (once_plugged)
+    {
+        if (battery_state == 2 && prev_bat_plug != 2)
+        {
+            if (prev_bat_plug == 3)
+            {
+                mod_bat_plug--;
+            }
+
+            if (prev_bat_plug == 1)
+            {
+                mod_bat_plug-=2;
+            }
+        }
+        if (battery_state == 1 && prev_bat_plug != 1)
+        {
+            mod_bat_plug+=2;
+        }
+        if (battery_state == 3 && prev_bat_plug != 3)
+        {
+            mod_bat_plug--;
+        }
+    }
+    if (!once_plugged)
+    {
+        if (battery_state == 1)
+        {
+            once_plugged = true;
+            mod_bat_plug +=2;
+        }
+        if (battery_state == 3)
+        {
+            once_plugged = true;
+            mod_bat_plug++;
+        }
+    }
+    prev_bat_plug = battery_state;
+}
+
+void bul::flue_check()
+{
+    //--flue
+
+    if (temperature.value >= 56 && temperature.value < 58)
+    {
+        hot = 1;
+        if (temp_t < 30)
+            temp_t = 30;
+        if (temp_t > 60)
+            get_flu = true;
+    }
+    if (temperature.value >= 58 && temperature.value < 60)
+    {
+        hot = 2;
+        if (temp_t < 60)
+            temp_t = 60;
+        if (temp_t > 80)
+            get_flu = true;
+    }
+    if (temperature.value >= 60 && temperature.value < 62)
+    {
+        hot = 3;
+        if (temp_t < 80)
+            temp_t = 80;
+        if (temp_t > 120)
+            get_flu = true;
+    }
+    if (temperature.value >= 62 && temperature.value < 64)
+    {
+        hot = 4;
+        if (temp_t < 120)
+            temp_t = 120;
+    }
+    if (temperature.value >= 64)
+    {
+        hot = 5;
+        if (temp_t < 180)
+            temp_t = 180;
+    }
+
+    else
+    {
+        if (hot > 0)
+            hot--;
+    }
+
+    if (temp_t > 0)
+        temp_t--;
+
+    if (get_flu)
+    {
+
+        if (flu_timer > 0)
+            flu_timer--;
+
+        if (flu_timer <= 240)
+        {
+            hot = 1;
+            shy = 1;
+            tired = 1;
+            if (value < 8)
+                value = 8;
+        }
+        if (flu_timer <= 120)
+        {
+            hot = 2;
+            shy = 2;
+            tired = 2;
+            if (value < 8)
+                value = 8;
+        }
+        if (flu_timer == 0)
+        {
+            hot = 3;
+            shy = 3;
+            tired = 3;
+            if (value < 10)
+                value = 10;
+            energy.value++;
+        }
+    }
+}
+
 void bul::critical_services()
 {
     mousea.multiplier = 1;//= (double)value/10.0;
@@ -199,12 +413,17 @@ void bul::critical_services()
         eye = 6;
     }
 
+    if (value != 0 && outline != 20 && outline != 21)
+        outline = value + 3;
+    if (outline != 20 && value == 0)
+        outline = 0;
+
 
     //TODO 01: It must works on cfg values, not static.
 
     if (get_time ().day != 7)
     {
-        if (times.value < 6 || times.value > 21 || energy.value > energy.start + energy.wide - 5)
+        if (times.value < timehigh_1 || times.value > timehigh_1 || energy.value > energy.start + energy.wide - 5)
         {
             tired = 1;
 
@@ -213,11 +432,11 @@ void bul::critical_services()
 
             if (outline > 7 && outline < 11)
             {
-                if ((rand () % 1))
+                if ((rand () % 2))
                     outline = 1;
             }
         }
-        if (times.value < 6 || times.value > 22 || energy.value > energy.start + energy.wide - 3)
+        if (times.value < timelow_2 || times.value > timehigh_2 || energy.value > energy.start + energy.wide - 3)
         {
             tired = 2;
             if (outline <= 8)
@@ -225,11 +444,11 @@ void bul::critical_services()
 
             if (outline > 8 && outline < 12)
             {
-                if ((rand () % 1))
+                if ((rand () % 2))
                     outline = 2;
             }
         }
-        if (times.value < 5 || times.value > 23 || energy.value > energy.start + energy.wide - 1 )
+        if (times.value < timelow_3 || times.value > timehigh_3 || energy.value > energy.start + energy.wide - 1 )
         {
             tired = 3;
             if (outline <= 9)
@@ -237,7 +456,7 @@ void bul::critical_services()
 
             if (outline > 9 && outline < 13)
             {
-                if ((rand () % 1))
+                if ((rand () % 2))
                     outline = 3;
             }
         }
@@ -249,7 +468,7 @@ void bul::critical_services()
     }
     else
     {
-        if (times.value < 10 || times.value > 23 ||  energy.value > energy.start + energy.wide - 5*3600)
+        if (times.value < timelow_1w || times.value > timehigh_1w ||  energy.value > energy.start + energy.wide - 5*3600)
         {
             tired = 1;
             if (outline <= 7)
@@ -257,23 +476,23 @@ void bul::critical_services()
 
             if (outline > 7 && outline < 11)
             {
-                if ((rand () % 1))
+                if ((rand () % 2))
                     outline = 1;
             }
         }
-        if ((times.value < 8 && times.value > 1) ||  energy.value > energy.start + energy.wide - 3*3600)
+        if (times.value < timelow_2w || times.value > timehigh_2w ||  energy.value > energy.start + energy.wide - 4*3600)
         {
             tired = 2;
             if (outline <= 8)
-                outline = 1;
+                outline = 2;
 
             if (outline > 8 && outline < 12)
             {
-                if ((rand () % 1))
+                if ((rand () % 2))
                     outline = 2;
             }
         }
-        if ((times.value < 7 && times.value > 3) ||  energy.value > energy.start + energy.wide - 3*3600 )
+        if (times.value < timelow_3w || times.value > timehigh_3w ||  energy.value > energy.start + energy.wide - 3*3600 )
         {
             tired = 3;
             if (outline <= 9)
@@ -281,7 +500,7 @@ void bul::critical_services()
 
             if (outline > 9 && outline < 13)
             {
-                if ((rand () % 1))
+                if ((rand () % 2))
                     outline = 3;
             }
         }
@@ -293,201 +512,31 @@ void bul::critical_services()
                 outline--;
         }
     }
-}
-
-void bul::flue_check()
-{
-    //--flue
-
-    if (temperature.value >= 56 && temperature.value < 58)
+    if(current_wkup_delay > 0)
     {
-        hot = 1;
-        if (temp_t < 30)
-            temp_t = 30;
-        if (temp_t > 60)
-            get_flu = true;
-    }
-    if (temperature.value >= 58 && temperature.value < 60)
-    {
-        hot = 2;
-        if (temp_t < 60)
-            temp_t = 60;
-        if (temp_t > 80)
-            get_flu = true;
-    }
-    if (temperature.value >= 60 && temperature.value < 62)
-    {
-        hot = 3;
-        if (temp_t < 80)
-            temp_t = 80;
-        if (temp_t > 120)
-            get_flu = true;
-    }
-    if (temperature.value >= 62 && temperature.value < 64)
-    {
-        hot = 4;
-        if (temp_t < 120)
-            temp_t = 120;
-    }
-    if (temperature.value >= 64)
-    {
-        hot = 5;
-        if (temp_t < 180)
-            temp_t = 180;
-    }
-
-    else
-    {
-        if (hot > 0)
-            hot--;
-    }
-
-    if (temp_t > 0)
-        temp_t--;
-
-    if (get_flu)
-    {
-
-        if (flu_timer > 0)
-            flu_timer--;
-
-        if (flu_timer <= 240)
+        current_wkup_delay--;
+        if (100*current_wkup_delay/wake_up_delay > 60 && outline < 3)
         {
-            hot = 1;
-            shy = 1;
-            tired = 1;
-            if (value < 8)
-                value = 8;
-        }
-        if (flu_timer <= 120)
-        {
-            hot = 2;
-            shy = 2;
-            tired = 2;
-            if (value < 8)
-                value = 8;
-        }
-        if (flu_timer == 0)
-        {
-            hot = 3;
-            shy = 3;
+            outline = 3;
             tired = 3;
-            if (value < 10)
-                value = 10;
-            energy.value++;
+        }
+        else if (100*current_wkup_delay/wake_up_delay > 30 && outline < 2)
+        {
+            outline = 2;
+            tired = 2;
+        }
+        else if (outline < 1)
+        {
+            outline = 1;
+            tired = 1;
         }
     }
-}
-
-void bul::update()
-{
-
-    total_mod =
-            cpu.mod         +
-            memory.mod      +
-            times.mod       +
-            energy.mod      +
-            temperature.mod -
-            battery.mod     -
-            mod_bat_plug    -
-            friendship/100  -
-            mousea.mod      ;
-
-    total_mod = 0;
-    if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
-        step += total_mod;
-    else
-        step = 0;
-
-    if (step < wall_01)
-        value = 0;
-    if (step > wall_01 && step <= wall_02)
-        value = 1;
-    if (step > wall_02 && step <= wall_03)
-        value = 2;
-    if (step > wall_03 && step <= wall_04)
-        value = 3;
-    if (step > wall_04 && step <= wall_05)
-        value = 4;
-    if (step > wall_05 && step <= wall_06)
-        value = 5;
-    if (step > wall_06 && step <= wall_07)
-        value = 6;
-    if (step > wall_07 && step <= wall_08)
-        value = 7;
-    if (step > wall_08 && step <= wall_09)
-        value = 8;
-    if (step > wall_09 && step <= wall_10)
-        value = 9;
-    if (step > wall_10 && step <= wall_11)
-        value = 10;
-    if (step > wall_11 && step <= wall_12)
-        value = 11;
-    if (step > wall_12 && step <= wall_13)
-        value = 12;
-    if (step > wall_13 && step <= wall_14)
-        value = 13;
-    if (step > wall_14 && step <= wall_15)
-        value = 14;
-    if (step > wall_15)
-        value = 15;
-
-    if (step != 0)
-        step--;
-
-    if (eMu.bulwers)
-        value = eMu.bulwers_val;
-
     if (battery_state == 0)
     {
         outline = 20;
         eye = 10;
     }
     else if (outline == 20)
-        outline = 0;
-
-    if (once_plugged)
-    {
-        if (battery_state == 2 && prev_bat_plug != 2)
-        {
-            if (prev_bat_plug == 3)
-            {
-                mod_bat_plug--;
-            }
-
-            if (prev_bat_plug == 1)
-            {
-                mod_bat_plug-=2;
-            }
-        }
-        if (battery_state == 1 && prev_bat_plug != 1)
-        {
-            mod_bat_plug+=2;
-        }
-        if (battery_state == 3 && prev_bat_plug != 3)
-        {
-            mod_bat_plug--;
-        }
-    }
-    if (!once_plugged)
-    {
-        if (battery_state == 1)
-        {
-            once_plugged = true;
-            mod_bat_plug +=2;
-        }
-        if (battery_state == 3)
-        {
-            once_plugged = true;
-            mod_bat_plug++;
-        }
-    }
-    prev_bat_plug = battery_state;
-
-
-    if (value != 0 && outline != 20 && outline != 21)
-        outline = value + 3;
-    if (outline != 20 && value == 0)
         outline = 0;
 }
 
@@ -572,7 +621,8 @@ energy.wide                        *= 3600 ;
 once_plugged                        = false;
 mod_bat_plug                        = 0    ;
 bulwers.step                        = 0    ;
-
+bulwers.wake_up                     = false;
+bulwers.no_update                   = false;
 
 }
 
@@ -657,40 +707,6 @@ void unital::get_load( unsigned short function )
     }
     else
         value = function;
-}
-
-bool Core::wake_up_prepare()
-{
-
-        wake_up == false;
-        eyes->anims_send ( "slp_10", "slp_10_close", "slp_10_open", 0, 0);
-        bulwers.outline = 21;
-        if (get_time ().day != 7)
-        {
-            if (times.value >= 7 )
-            {
-                wake_up = true;
-                bulwers.outline = 3;
-            }
-            else
-                energy.start = 10;
-        }
-        else
-        {
-
-            if (times.value >= 10 )
-            {
-                energy.start += 4*3600;
-                wake_up = true;
-                bulwers.outline = 3;
-            }
-            else if (times.value >= 7)
-                energy.start = 16;
-            else
-                energy.start = 10;
-        }
-        if (!wake_up)
-            sleep (5);
 }
 
 void eyes_view::graphics_prepare()
@@ -1141,9 +1157,14 @@ void Core::bulwers_update ()
     times.mod = times.calculate();
     energy.mod = energy.calculate();
     mousea.mod = mousea.impact*mousea.convert()/100;
-    bulwers.critical_services();
-    bulwers.flue_check();
-    bulwers.update();
+    bulwers.wake_up_chk();
+    if (!bulwers.no_update)
+    {
+        bulwers.update();
+        bulwers.flue_check();
+        bulwers.critical_services();
+    }
+    bulwers.no_update = false;
 
 //if (autocalc.enabled)
 //    autocalc_reload ( &cfg );
@@ -1270,7 +1291,7 @@ void Core::load_config ()
     energy.end              = cfg->lookupValue ( "core.energy.end",                     0           );
     energy.wide             = cfg->lookupValue ( "core.energy.wide",                    6           );
 
-    //bulwers_walls_sector
+    //bulwers_sector
 
     bulwers.wall_01         = cfg->lookupValue ("core.bulwers.wall_01",                 300         );
     bulwers.wall_02         = cfg->lookupValue ("core.bulwers.wall_02",                 500         );
@@ -1290,6 +1311,25 @@ void Core::load_config ()
     bulwers.fship_at_calm   = cfg->lookupValue ("core.bulwers.friendship_autocalm_del", 3600        );
     bulwers.friendship      = cfg->lookupValue ("core.bulwers.friendship",              0           );
     bulwers.calm_perc       = cfg->lookupValue ("core.bulwers.fship_calm_percentage",   1           );
+    bulwers.nrg_boost       = cfg->lookupValue ("core.bulwers.energyboost",             20          );
+    bulwers.nrg_std         = cfg->lookupValue ("core.bulwers.energystd",               16          );
+    bulwers.nrg_low         = cfg->lookupValue ("core.bulwers.energylow",               10          );
+    bulwers.timelow_1       = cfg->lookupValue ("core.bulwers.timelow_1",               7           );
+    bulwers.timelow_2       = cfg->lookupValue ("core.bulwers.timelow_2",               6           );
+    bulwers.timelow_3       = cfg->lookupValue ("core.bulwers.timelow_3",               5           );
+    bulwers.timehigh_1      = cfg->lookupValue ("core.bulwers.timehigh_1",              21          );
+    bulwers.timehigh_2      = cfg->lookupValue ("core.bulwers.timehigh_2",              22          );
+    bulwers.timehigh_3      = cfg->lookupValue ("core.bulwers.timehigh_3",              23          );
+    bulwers.timelow_1w      = cfg->lookupValue ("core.bulwers.timelow_1",               10          );
+    bulwers.timelow_2w      = cfg->lookupValue ("core.bulwers.timelow_2",               7           );
+    bulwers.timelow_3w      = cfg->lookupValue ("core.bulwers.timelow_3",               5           );
+    bulwers.timehigh_1w     = cfg->lookupValue ("core.bulwers.timehigh_1",              23          );
+    bulwers.timehigh_2w     = cfg->lookupValue ("core.bulwers.timehigh_2",              1           );
+    bulwers.timehigh_3w     = cfg->lookupValue ("core.bulwers.timehigh_3",              3           );
+    bulwers.wkup_time       = cfg->lookupValue ("core.bulwers.wkup_time",               7           );
+    bulwers.wkup_timew      = cfg->lookupValue ("core.bulwers.wkup_time_weekend",       10          );
+    bulwers.wake_up_delay   = cfg->lookupValue ("core.bulwers.wkup_delay",              120         );
+    bulwers.current_wkup_delay = bulwers.wake_up_delay;
 
     //basic_sector
 
@@ -1358,16 +1398,6 @@ void Core::run ()
     info << "(core) gui inited\n";
     s_anim.face_prev = "slp_10";
     info << "s_anim.face_prev set to " << s_anim.face_prev.toStdString() << "\n";
-    do
-    {
-        info << "Is in wake up\n";
-        times.value = get_time ().hour/3600;
-
-        // TODO 03 : It PROPABLY won't work correctly and it should works on config values.
-
-        wake_up_prepare();
-        eyes->anims_reload();
-    } while (!wake_up);
     info << "(core) wake up finished\n";
     eyes->anims_send ("cusual_01", "slp_10_close", "cusual_01_open", 0, 4);
     HRDWR.system_check();
@@ -1385,6 +1415,8 @@ void Core::on_timer_tick ()
 
 void Core::handle_mouse ( int x, int y )
 {
+    bulwers.wake_up = true;
+
     if (mousea.cur > mousea.buff_size)
     {
         mousea.cur = 0;

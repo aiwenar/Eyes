@@ -487,7 +487,7 @@ unsigned int timal::calculate()
                 unsigned short wall = end;
                 unsigned short sector = wide;
 
-                for (unsigned short i = steps; i>= 0; i--)
+                for (unsigned short i = steps+1; i> 0; i--)
                 {
                     if (value >= 0 + (sector/2))
                     {

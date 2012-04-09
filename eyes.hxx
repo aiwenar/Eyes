@@ -268,10 +268,8 @@ public:
                     graphics_prepare(),
                     autocalc_reload ( Configuration * set ),
                     autocalc_init   ();
-    bool            wake_up_prepare ();
 
     QString face_prev;
-    bool    wake_up;
 
     friend class cdbg;
 public slots:
