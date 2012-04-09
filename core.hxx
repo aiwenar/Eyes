@@ -112,6 +112,7 @@ public:
     char                        wkup_reason,
                                 wkup_active;
     bool                        wake_up,
+                                flue,
                                 no_update;
     int                         total_mod,
                                 friendship;
@@ -130,7 +131,8 @@ public:
                                 wall_12,
                                 wall_13,
                                 wall_14,
-                                wall_15;
+                                wall_15,
+                                fluetimer;
     unsigned short              outline,
                                 prev_outline,
                                 eye,
@@ -161,7 +163,12 @@ public:
                                 timelow_3w,
                                 timehigh_1w,
                                 timehigh_2w,
-                                timehigh_3w;
+                                timehigh_3w,
+                                flueamplitude,
+                                flueimpact,
+                                fluestepdelay;
+    double                      fluelowval,
+                                fluehighval;
     void                        update(),
                                 flue_check(),
                                 critical_services(),
