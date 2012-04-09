@@ -356,6 +356,8 @@ unsigned int percental::convert(unsigned short val)
 
 unsigned int percental::calculate ()
 {
+    if (EQsize == 1)
+        return load;
     int curstep = 0;
     int perc = 0;
     for (int i = 0; i<=EQsize; i++)
@@ -376,6 +378,8 @@ unsigned int percental::calculate ()
 
 unsigned int unital::calculate()
 {
+    if (EQsize == 1)
+        return value;
     int curstep = 0;
     int perc = 0;
     if (value < EQbegin)
