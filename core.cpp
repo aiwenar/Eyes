@@ -1328,7 +1328,8 @@ void Core::load_config ()
 
     //basic_sector
 
-    cdebug                  = cfg->lookupValue("debug.cdebug.on",                       true        );
+    cdbg_enabled            = cfg->lookupValue("debug.cdebug.on",                       true        );
+    hdbg_enabled            = cfg->lookupValue("debug.HDBG_enabled",                    false       );
 
     //autocalc_sector
 

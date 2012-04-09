@@ -210,6 +210,8 @@ cdbg::cdbg ( Core * c ) :
   max_EQ( 6 ),
   timer ()
 {
+    if (!core->cdbg_enabled)
+        return;
   if ( cpu.buffered and cpu.buff_size > max_s )
     max_s = cpu.buff_size;
   if ( memory.buffered and memory.buff_size > max_s )
@@ -300,8 +302,8 @@ cdbg::cdbg ( Core * c ) :
           "\033[65C  2 \033[" << max_EQ*3 + 7 << "Cbuffer:\n"
           "\033[65C  1 \n"
           "\033[65C  0 \033[" << max_EQ*3 + 7 << "Camplit.\n\033[14A";
-  if (0)
-      cout << "\033[1C HARDLY DEBUG MODE:";
+  if (core->hdbg_enabled)
+      cout << "\033[" << max_EQ*3 + 85 << "C HARDLY DEBUG MODE:";
   cout << "\n\n\033[38Ccpu:\n\033[1A\033[44Cload:\n"
           "\n\033[38Cmem:\n\033[1A\033[44Cload:\n\n"
           "\033[38Ctemp:\n\033[1A\033[44Cval:\n\n"
@@ -319,6 +321,8 @@ cdbg::cdbg ( Core * c ) :
 
 void cdbg::on_timer_tick ()
 {
+    if (!core->cdbg_enabled)
+        return;
   cout << "\033[1;33m\033[2A\033[6C"
        << core_step
        << "\n\033[1A\033[22C0\n\033[1B\n\n";
@@ -1430,9 +1434,9 @@ void cdbg::on_timer_tick ()
       cout << "º>";
       cout << "\033[1A\n\033[13A";
 
-  if (0)
+  if (core->hdbg_enabled)
   {
-    spacer = 66;
+    spacer = max_EQ*3 + 86;
     line = 0;
 
     cout << "\033[" << spacer << "C";
