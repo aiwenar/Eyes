@@ -1204,7 +1204,7 @@ void Core::load_config ()
     cpu.loseless            = cfg->lookupValue ( "core.cpu.adaptation",                 10          );
     cpu.buffered            = cfg->lookupValue ( "core.cpu.buffered",                   true        );
     cpu.buff_size           = cfg->lookupValue ( "core.cpu.buffer_size",                10          );
-    cpu.EQsize              = cfg->lookupValue ( "core.cpu.EQsize",                     0           );
+    cpu.EQsize              = cfg->lookupValue ( "core.cpu.EQsize",                     1           );
     for (unsigned short i = 0; i<=cpu.EQsize; i++)
     {
         stringstream ss;
@@ -1221,7 +1221,7 @@ void Core::load_config ()
     memory.loseless         = cfg->lookupValue ( "core.memory.adaptation",              10          );
     memory.buffered         = cfg->lookupValue ( "core.memory.buffered",                true        );
     memory.buff_size        = cfg->lookupValue ( "core.memory.buffer_size",             10          );
-    memory.EQsize           = cfg->lookupValue ( "core.memory.EQsize",                  0           );
+    memory.EQsize           = cfg->lookupValue ( "core.memory.EQsize",                  1           );
     for (unsigned short i = 0; i<=memory.EQsize; i++)
     {
         stringstream ss;
@@ -1241,7 +1241,7 @@ void Core::load_config ()
     temperature.unit        = cfg->lookupValue ( "core.temperature.unit",               1           );
     temperature.EQbegin     = cfg->lookupValue ( "core.temperature.EQbegin",            30          );
     temperature.EQend       = cfg->lookupValue ( "core.temperature.EQend",              70          );
-    temperature.EQsize      = cfg->lookupValue ( "core.temperature.EQsize",             0           );
+    temperature.EQsize      = cfg->lookupValue ( "core.temperature.EQsize",             1           );
     for (unsigned short i = 0; i<=temperature.EQsize; i++)
     {
         stringstream ss;
@@ -1258,7 +1258,7 @@ void Core::load_config ()
     battery.loseless        = cfg->lookupValue ( "core.battery.adaptation",             10          );
     battery.buffered        = cfg->lookupValue ( "core.battery.buffered",               false       );
     battery.buff_size       = cfg->lookupValue ( "core.battery.buffer_size",            10          );
-    battery.EQsize          = cfg->lookupValue ( "core.battery.EQsize",                 0           );
+    battery.EQsize          = cfg->lookupValue ( "core.battery.EQsize",                 1           );
     for (unsigned short i = 0; i<=battery.EQsize; i++)
     {
         stringstream ss;
