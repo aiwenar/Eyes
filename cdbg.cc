@@ -34,11 +34,8 @@ extern QTime      mousetime;
 extern mouse_actions  mousea;
 extern unsigned short battery_state;
 extern unsigned short mod_bat_plug;
-extern bool           get_flu;
 extern bool           once_plugged;
 extern hardware       HRDWR;
-extern unsigned int   flu_timer;
-extern unsigned int   temp_t;
 extern unsigned int   prev_bat_plug;
 extern int            core_step;
 
@@ -57,13 +54,13 @@ This is concept debug layout:
 # p3 b3 | m3 b3 | t3 b3 | ========== | temp: val:  | ______ <___ | 7  |[] [] [] []                   | reason: |
 # p4 b4 | m4 b4 | t4 b4 |------------|             |-------------| 6  |[] [] [] [] []                | _______ |
 # p5 b5 | m5 b5 | t5 b5 | energy:__  | batt: perc: | delay:      | 5  |[] [] [] [] [] []             |---------|
-# p6 b6 | m6 b6 | t6 b6 | ========== |             | ___________ | 4  |[] [] [] [] [] [] []          |         |
-# p7 b7 | m7 b7 | t7 b7 |------------| time: val:  | result:     | 3  |[] [] [] [] [] [] [] []       |         |
-# p8 b8 | m8 b8 | t8 b8 | RISE||CALM |             | ____[Mpx/s] | 2  |[] [] [] [] [] [] [] [] []    |         |
-# p9 b9 | m9 b9 | t9 b9 | __________ | enrg: val:  |-------------| 1  |[] [] [] [] [] [] [] [] [] [] |         |
-# p0 b0 | m0 b0 | t0 b0 | __________ |             | mouse.mod:  | 0  |[] [] [] [] [] [] [] [] [] [] |         |
-#       |       |       | next_wall: | plug: val:  | ____        |    +----------------------------- |         |
-# ===== | ===== | ===== | __________ |             | buffers:___ |     01 __ __ __ __ __ __ __ __ __ |         |
+# p6 b6 | m6 b6 | t6 b6 | ========== |             | ___________ | 4  |[] [] [] [] [] [] []          | flue: _ |
+# p7 b7 | m7 b7 | t7 b7 |------------| time: val:  | result:     | 3  |[] [] [] [] [] [] [] []       |---------|
+# p8 b8 | m8 b8 | t8 b8 | RISE||CALM |             | ____[Mpx/s] | 2  |[] [] [] [] [] [] [] [] []    | buffer: |
+# p9 b9 | m9 b9 | t9 b9 | __________ | enrg: val:  |-------------| 1  |[] [] [] [] [] [] [] [] [] [] | _______ |
+# p0 b0 | m0 b0 | t0 b0 | __________ |             | mouse.mod:  | 0  |[] [] [] [] [] [] [] [] [] [] | amplit. |
+#       |       |       | next_wall: | plug: val:  | ____        |    +----------------------------- | __º __º |
+# ===== | ===== | ===== | __________ |             | buffers:___ |     01 __ __ __ __ __ __ __ __ __ |  <__º>  |
 
 
 And for everyone there are terminal instructions for that:
@@ -278,7 +275,8 @@ cdbg::cdbg ( Core * c ) :
   for (int i = max_EQ; i>=0; i--)     cout << "---";
   cout << "\n\033[1A\033[69C+";
   for (int i = 11+3; i>0; i--)    cout << "\033[1A";
-  cout << "\n\033[" << 75+max_EQ*3 << "C---------\n\033[2A";
+  cout << "\n\033[" << 75+max_EQ*3 << "C---------"
+          "\033[7B\033[9D---------\033[2B\033[9D---------\n\033[11A";
   cout << "\n\033[1A\033[" << 84+max_EQ*3 << "C";
   for (int i = max_s+5; i>0; i--)    cout << "|\033[1B\033[1D";
   cout << "|\033[1D";
@@ -297,11 +295,11 @@ cdbg::cdbg ( Core * c ) :
           "\033[65C  7 \033[" << max_EQ*3 + 7 << "Cremain:\n"
           "\033[65C  6 \n"
           "\033[65C  5 \n"
-          "\033[65C  4 \n"
+          "\033[65C  4 \033[" << max_EQ*3 + 7 << "Cflue:\n"
           "\033[65C  3 \n"
-          "\033[65C  2 \n"
+          "\033[65C  2 \033[" << max_EQ*3 + 7 << "Cbuffer:\n"
           "\033[65C  1 \n"
-          "\033[65C  0 \n\033[14A";
+          "\033[65C  0 \033[" << max_EQ*3 + 7 << "Camplit.\n\033[14A";
   if (0)
       cout << "\033[1C HARDLY DEBUG MODE:";
   cout << "\n\n\033[38Ccpu:\n\033[1A\033[44Cload:\n"
@@ -1415,7 +1413,22 @@ void cdbg::on_timer_tick ()
           cout << " both ";
       cout << "\n\n\033[" << max_EQ*3 + 76 << "C";
       spacefill (bulwers.current_wkup_delay, 7);
-      cout << "\n\033[6A";
+      cout << "\n\n\033[" << max_EQ*3 + 82 << "C";
+      if (bulwers.flue)
+          cout << "X";
+      else
+          cout << " ";
+      cout << "\n\n\n\033[" << max_EQ*3 + 76 << "C ";
+      spacefill(100*(bulwers.fluehighval-bulwers.fluelowval)/bulwers.flueamplitude, 3);
+      cout << "%\n\n\033[" << max_EQ*3 + 76 << "C";
+      spacefill(bulwers.fluelowval, 2);
+      cout << "º ";
+      spacefill(bulwers.fluehighval, 2);
+      cout << "º";
+      cout << "\n\033[" << max_EQ*3 + 76 << "C <";
+      spacefill(bulwers.fluehighval-bulwers.fluelowval, 2);
+      cout << "º>";
+      cout << "\033[1A\n\033[13A";
 
   if (0)
   {
@@ -1475,11 +1488,11 @@ void cdbg::on_timer_tick ()
     chck_s ();
     cout << "tfreq" << " " << temperature.frequency;
     chck_s ();
-    cout << "tempt" << " " << temp_t;
+    cout << "tempt" << " " << bulwers.flueamplitude;
     chck_s ();
-    cout << "flutm" << " " << flu_timer;
+    cout << "flutm" << " " << bulwers.fluetimer;
     chck_s ();
-    cout << "gtflu" << " " << get_flu;
+    cout << "gtflu" << " " << bulwers.flue;
     chck_s ();
     cout << "timev" << " " << (unsigned short)times.value << " h";
     chck_s ();

@@ -38,11 +38,8 @@ using namespace std;
 
 unsigned short  battery_state;
 unsigned short  mod_bat_plug;
-unsigned int    temp_t;
-unsigned int    flu_timer;
 unsigned int    prev_bat_plug;
 bool            once_plugged;
-bool            get_flu;
 bool            cdebug;
 int             core_step;
 percental       cpu;
@@ -234,85 +231,47 @@ void bul::update()
 
 void bul::flue_check()
 {
-    //--flue
-
-    if (temperature.value >= 56 && temperature.value < 58)
+    if (!flue && core_step > 2*temperature.buff_size)
     {
-        hot = 1;
-        if (temp_t < 30)
-            temp_t = 30;
-        if (temp_t > 60)
-            get_flu = true;
+        if ((double)temperature.value < fluelowval)
+            fluelowval=temperature.value;
+        if ((double)temperature.value > fluehighval)
+            fluehighval = temperature.value;
+        fluehighval-=(fluehighval-(double)temperature.stable)/(double)flueimpact;
+        fluelowval+=((double)temperature.stable-fluelowval)/(double)flueimpact;
+        if (fluehighval - fluelowval > (double)flueamplitude)
+            flue = true;
     }
-    if (temperature.value >= 58 && temperature.value < 60)
-    {
-        hot = 2;
-        if (temp_t < 60)
-            temp_t = 60;
-        if (temp_t > 80)
-            get_flu = true;
-    }
-    if (temperature.value >= 60 && temperature.value < 62)
-    {
-        hot = 3;
-        if (temp_t < 80)
-            temp_t = 80;
-        if (temp_t > 120)
-            get_flu = true;
-    }
-    if (temperature.value >= 62 && temperature.value < 64)
-    {
-        hot = 4;
-        if (temp_t < 120)
-            temp_t = 120;
-    }
-    if (temperature.value >= 64)
-    {
-        hot = 5;
-        if (temp_t < 180)
-            temp_t = 180;
-    }
-
     else
     {
-        if (hot > 0)
-            hot--;
-    }
-
-    if (temp_t > 0)
-        temp_t--;
-
-    if (get_flu)
-    {
-
-        if (flu_timer > 0)
-            flu_timer--;
-
-        if (flu_timer <= 240)
-        {
-            hot = 1;
-            shy = 1;
-            tired = 1;
-            if (value < 8)
-                value = 8;
-        }
-        if (flu_timer <= 120)
-        {
-            hot = 2;
-            shy = 2;
-            tired = 2;
-            if (value < 8)
-                value = 8;
-        }
-        if (flu_timer == 0)
+        if (fluetimer > 3*fluestepdelay)
         {
             hot = 3;
             shy = 3;
-            tired = 3;
-            if (value < 10)
-                value = 10;
-            energy.value++;
+            energy.value+=6;
+            if (value < 12)
+                value = 12;
         }
+        else if (fluetimer > 2*fluestepdelay)
+        {
+            hot = 2;
+            shy = 2;
+            fluetimer++;
+            energy.value+=2;
+            if (value < 8)
+                value = 8;
+        }
+        else if (fluetimer > fluestepdelay)
+        {
+            hot = 1;
+            shy = 1;
+            fluetimer++;
+            energy.value++;
+            if (value < 6)
+                value = 6;
+        }
+        else
+            fluetimer++;
     }
 }
 
@@ -425,7 +384,7 @@ void bul::critical_services()
     wkup_active = 0;
     if (get_time ().day != 7)
     {
-        if (times.value < timelow_1 || times.value > timehigh_1 || energy.value > energy.start + energy.wide - 5)
+        if (times.value < timelow_1 || times.value > timehigh_1 || energy.value > energy.start + energy.wide - 5 || fluetimer > fluestepdelay)
         {
             wkup_active = 1;
             tired = 1;
@@ -439,7 +398,7 @@ void bul::critical_services()
                     outline = 1;
             }
         }
-        if (times.value < timelow_2 || times.value > timehigh_2 || energy.value > energy.start + energy.wide - 3)
+        if (times.value < timelow_2 || times.value > timehigh_2 || energy.value > energy.start + energy.wide - 3 || fluetimer > 2*fluestepdelay)
         {
             wkup_active = 1;
             tired = 2;
@@ -452,7 +411,7 @@ void bul::critical_services()
                     outline = 2;
             }
         }
-        if (times.value < timelow_3 || times.value > timehigh_3 || energy.value > energy.start + energy.wide - 1 )
+        if (times.value < timelow_3 || times.value > timehigh_3 || energy.value > energy.start + energy.wide - 1 || fluetimer > 3*fluestepdelay )
         {
             wkup_active = 1;
             tired = 3;
@@ -473,7 +432,7 @@ void bul::critical_services()
     }
     else
     {
-        if (times.value < timelow_1w || times.value > timehigh_1w ||  energy.value > energy.start + energy.wide - 5*3600)
+        if (times.value < timelow_1w || times.value > timehigh_1w ||  energy.value > energy.start + energy.wide - 5*3600 || fluetimer > fluestepdelay)
         {
             wkup_active = 1;
             tired = 1;
@@ -486,7 +445,7 @@ void bul::critical_services()
                     outline = 1;
             }
         }
-        if (times.value < timelow_2w || times.value > timehigh_2w ||  energy.value > energy.start + energy.wide - 4*3600)
+        if (times.value < timelow_2w || times.value > timehigh_2w ||  energy.value > energy.start + energy.wide - 4*3600 || fluetimer > 2*fluestepdelay)
         {
             wkup_active = 1;
             tired = 2;
@@ -499,7 +458,7 @@ void bul::critical_services()
                     outline = 2;
             }
         }
-        if (times.value < timelow_3w || times.value > timehigh_3w ||  energy.value > energy.start + energy.wide - 3*3600 )
+        if (times.value < timelow_3w || times.value > timehigh_3w ||  energy.value > energy.start + energy.wide - 3*3600 || fluetimer > 3*fluestepdelay)
         {
             wkup_active = 1;
             tired = 3;
@@ -645,6 +604,11 @@ bulwers.wake_up                     = false;
 bulwers.no_update                   = false;
 bulwers.wkup_active                 = 0    ;
 bulwers.wkup_reason                 = 0    ;
+bulwers.current_wkup_delay          = bulwers.wake_up_delay;
+bulwers.flue                        = false;
+bulwers.fluetimer                   = 0    ;
+bulwers.fluehighval                 = temperature.stable;
+bulwers.fluelowval                  = temperature.stable;
 
 }
 
@@ -1340,6 +1304,9 @@ void Core::load_config ()
     bulwers.fship_at_calm   = cfg->lookupValue ("core.bulwers.friendship_autocalm_del", 3600        );
     bulwers.friendship      = cfg->lookupValue ("core.bulwers.friendship",              0           );
     bulwers.calm_perc       = cfg->lookupValue ("core.bulwers.fship_calm_percentage",   1           );
+    bulwers.flueamplitude   = cfg->lookupValue ("core.bulwers.flueamplitude",           20          );
+    bulwers.flueimpact      = cfg->lookupValue ("core.bulwers.flueimpact",              100         );
+    bulwers.fluestepdelay   = cfg->lookupValue ("core.bulwers.fluestepdelay",           300         );
     bulwers.nrg_boost       = cfg->lookupValue ("core.bulwers.energyboost",             20          );
     bulwers.nrg_std         = cfg->lookupValue ("core.bulwers.energystd",               16          );
     bulwers.nrg_low         = cfg->lookupValue ("core.bulwers.energylow",               10          );
@@ -1358,7 +1325,6 @@ void Core::load_config ()
     bulwers.wkup_time       = cfg->lookupValue ("core.bulwers.wkup_time",               7           );
     bulwers.wkup_timew      = cfg->lookupValue ("core.bulwers.wkup_time_weekend",       10          );
     bulwers.wake_up_delay   = cfg->lookupValue ("core.bulwers.wkup_delay",              120         );
-    bulwers.current_wkup_delay = bulwers.wake_up_delay;
 
     //basic_sector
 
