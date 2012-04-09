@@ -109,6 +109,8 @@ public:
 class bul
 {
 public:
+    char                        wkup_reason,
+                                wkup_active;
     bool                        wake_up,
                                 no_update;
     int                         total_mod,

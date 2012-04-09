@@ -48,22 +48,22 @@ This is concept debug layout:
 
 
 #######################################################################################################################
-# step:____   special:__    basic         mods       mouse debug | EQzone: _______ (__)              |
-# ---------------------------------------------------------------| final value: ___%                 |
-# cpu:  | mem:  | temp: | battery:   | cpu:  load: | X:___ Y:___ | [x10%]                            |
-#       |       |       | ]]]]]]>><< |             |    <===>    | 10 |[]                            |
-# p1 b1 | m1 b1 | t1 b1 |------------| mem:  load: |-------------| 9  |[] []                         |
-# p2 b2 | m2 b2 | t2 b2 | time:__    |             | friendship: | 8  |[] [] []                      |
-# p3 b3 | m3 b3 | t3 b3 | ========== | temp: val:  | ______ <___ | 7  |[] [] [] []                   |
-# p4 b4 | m4 b4 | t4 b4 |------------|             |-------------| 6  |[] [] [] [] []                |
-# p5 b5 | m5 b5 | t5 b5 | energy:__  | batt: perc: | delay:      | 5  |[] [] [] [] [] []             |
-# p6 b6 | m6 b6 | t6 b6 | ========== |             | ___________ | 4  |[] [] [] [] [] [] []          |
-# p7 b7 | m7 b7 | t7 b7 |------------| time: val:  | result:     | 3  |[] [] [] [] [] [] [] []       |
-# p8 b8 | m8 b8 | t8 b8 | RISE||CALM |             | ____[Mpx/s] | 2  |[] [] [] [] [] [] [] [] []    |
-# p9 b9 | m9 b9 | t9 b9 | __________ | enrg: val:  |-------------| 1  |[] [] [] [] [] [] [] [] [] [] |
-# p0 b0 | m0 b0 | t0 b0 | __________ |             | mouse.mod:  | 0  |[] [] [] [] [] [] [] [] [] [] |
-#       |       |       | next_wall: | plug: val:  | ____        |    +----------------------------- |
-# ===== | ===== | ===== | __________ |             | buffers:___ |     01 __ __ __ __ __ __ __ __ __ |
+# step:____   special:__    basic         mods       mouse debug | EQzone: _______ (__)              | wake up |
+# ---------------------------------------------------------------| final value: ___%                 |---------|
+# cpu:  | mem:  | temp: | battery:   | cpu:  load: | X:___ Y:___ | [x10%]                            | remain: |
+#       |       |       | ]]]]]]>><< |             |    <===>    | 10 |[]                            | _______ |
+# p1 b1 | m1 b1 | t1 b1 |------------| mem:  load: |-------------| 9  |[] []                         | active: |
+# p2 b2 | m2 b2 | t2 b2 | time:__    |             | friendship: | 8  |[] [] []                      | _______ |
+# p3 b3 | m3 b3 | t3 b3 | ========== | temp: val:  | ______ <___ | 7  |[] [] [] []                   | reason: |
+# p4 b4 | m4 b4 | t4 b4 |------------|             |-------------| 6  |[] [] [] [] []                | _______ |
+# p5 b5 | m5 b5 | t5 b5 | energy:__  | batt: perc: | delay:      | 5  |[] [] [] [] [] []             |---------|
+# p6 b6 | m6 b6 | t6 b6 | ========== |             | ___________ | 4  |[] [] [] [] [] [] []          |         |
+# p7 b7 | m7 b7 | t7 b7 |------------| time: val:  | result:     | 3  |[] [] [] [] [] [] [] []       |         |
+# p8 b8 | m8 b8 | t8 b8 | RISE||CALM |             | ____[Mpx/s] | 2  |[] [] [] [] [] [] [] [] []    |         |
+# p9 b9 | m9 b9 | t9 b9 | __________ | enrg: val:  |-------------| 1  |[] [] [] [] [] [] [] [] [] [] |         |
+# p0 b0 | m0 b0 | t0 b0 | __________ |             | mouse.mod:  | 0  |[] [] [] [] [] [] [] [] [] [] |         |
+#       |       |       | next_wall: | plug: val:  | ____        |    +----------------------------- |         |
+# ===== | ===== | ===== | __________ |             | buffers:___ |     01 __ __ __ __ __ __ __ __ __ |         |
 
 
 And for everyone there are terminal instructions for that:
@@ -227,9 +227,10 @@ cdbg::cdbg ( Core * c ) :
     max_EQ = battery.EQsize;
 
   cout << "\033[40m\033[37m\n";
-  for ( int i = max_s+6 ; i>1 ; --i ) cout << '\n';
-  for ( int i=max_s+7 ; i>1 ; --i )   cout << "\033[1A";
+  for ( int i = max_s+4 ; i>1 ; --i ) cout << '\n';
+  for ( int i=max_s+5 ; i>1 ; --i )   cout << "\033[1A";
   for ( int i=64 ; i>0 ; --i )        cout << '-';
+  sleep(2);
   cout << "\033[40D\033[3B";
   for ( int i=13 ; i>1 ; --i )        cout << '-';
   cout << "\033[13D\033[3B";
@@ -251,39 +252,49 @@ cdbg::cdbg ( Core * c ) :
   cout << "\033[8C";
   for (int i = max_s+4; i>0; i--)    cout << "\033[1B\033[1D|";
   for (int i = max_s+4; i>0; i--)    cout << "\033[1A";
-  cout << "\033[12C\033[1B";
-  for (int i = max_s+4; i>0; i--)    cout << "|\033[1B\033[1D";
+  cout << "\033[13C";
+  for (int i = max_s+4; i>0; i--)    cout << "\033[1B\033[1D|";
   for (int i = max_s+4; i>0; i--)    cout << "\033[1A";
   cout << "\033[14C";
-  for (int i = max_s+4; i>0; i--)    cout << "|\033[1B\033[1D";
-  for (int i = max_s+6; i>0; i--)    cout << "\033[1A";
+  for (int i = max_s+4; i>0; i--)    cout << "\033[1B\033[1D|";
+  for (int i = max_s+5; i>0; i--)    cout << "\033[1A";
   cout << "\033[14C";
-  for (int i = max_s+6; i>0; i--)    cout << "|\033[1B\033[1D";
-  for (int i = max_s+6; i>0; i--)    cout << "\033[1A";
+  cout << "\033[1D|";
+  for (int i = max_s+5; i>0; i--)    cout << "\033[1B\033[1D|";
+  for (int i = max_s+5; i>0; i--)    cout << "\033[1A";
   cout << "\n\033[1A";
-  for (int i = max_s+6; i>0; i--)
+  for (int i = max_s+5; i>0; i--)
   {
       cout << "\033[71C";
       for (int i = max_EQ; i>=0; i--)     cout << "   ";
       cout << "|\n";
   }
-  for (int i = max_s+3; i>0; i--)    cout << "\033[1A";
+  cout << "\033[71C";
+  for (int i = max_EQ; i>=0; i--)     cout << "   ";
+  cout << "|";
+  for (int i = max_s+2; i>0; i--)    cout << "\033[1A";
   for (int i = 11; i>0; i--)         cout << "\033[69C|\n";
   cout << "\033[69C|";
   for (int i = max_EQ; i>=0; i--)     cout << "---";
   cout << "\n\033[1A\033[69C+";
   for (int i = 11+3; i>0; i--)    cout << "\033[1A";
+  cout << "\n\033[" << 75+max_EQ*3 << "C---------\n\033[2A";
+  cout << "\n\033[1A\033[" << 84+max_EQ*3 << "C";
+  for (int i = max_s+5; i>0; i--)    cout << "|\033[1B\033[1D";
+  cout << "|\033[1D";
+  for (int i = max_s+5; i>0; i--)    cout << "\033[1A";
 
   cout << "\n\033[1A step:        special:\033[2B\033[21D"
           "cpu:\033[4Cmem:\033[4Ctemp:\033[3Cbattery:"
           "\033[8D\033[3Btime:\033[5D\033[3Benergy:\033[7D"
           "\033[6Bnext_wall:\n\033[15A\033[22C      basic     "
           "   mods       mouse debug \033[1C EQzone:         "
-          "(  )\n\033[65C final value:    %\n\033[65C [x10%]\n"
+          "(  )\033[" << max_EQ*3 - 11 << "C wake up \n\033[65C"
+          " final value:    %\n\033[65C [x10%]\033[" << max_EQ*3 + 4 << "Creason:\n"
           "\033[65C 10 \n"
-          "\033[65C  9 \n"
+          "\033[65C  9 \033[" << max_EQ*3 + 7 << "Cactive:\n"
           "\033[65C  8 \n"
-          "\033[65C  7 \n"
+          "\033[65C  7 \033[" << max_EQ*3 + 7 << "Cremain:\n"
           "\033[65C  6 \n"
           "\033[65C  5 \n"
           "\033[65C  4 \n"
@@ -1272,7 +1283,9 @@ void cdbg::on_timer_tick ()
   {
       cout << "memory " << "\033[2C\033[1;30m";
       spacefill(20 - (core_step%40), 2);
-      cout << "\n\033[79C\033[33m" << memory.calculate() << "\n\n\033[70C";
+      cout << "\n\033[79C\033[33m";
+      spacefill (memory.calculate(), 2);
+      cout << "\n\n\033[70C";
       for (int i = 10; i>=0; i--)
       {
           for (int j = 0; j<=memory.EQsize;j++)
@@ -1309,7 +1322,9 @@ void cdbg::on_timer_tick ()
   {
       cout << "thermal" << "\033[2C\033[1;30m";
       spacefill(30 - (core_step%40), 2);
-      cout << "\n\033[79C\033[33m" << temperature.calculate() << "\n\n\033[70C";
+      cout << "\n\033[79C\033[33m";
+      spacefill(temperature.calculate(), 2);
+      cout << "\n\n\033[70C";
       for (int i = 10; i>=0; i--)
       {
           for (int j = 0; j<=temperature.EQsize;j++)
@@ -1346,7 +1361,9 @@ void cdbg::on_timer_tick ()
   {
       cout << "battery" << "\033[2C\033[1;30m";
       spacefill(40 - (core_step%40), 2);
-      cout << "\n\033[79C\033[33m" << battery.calculate() << "\n\n\033[70C";
+      cout << "\n\033[79C\033[33m";
+      spacefill(battery.calculate(), 2);
+      cout << "\n\n\033[70C";
       for (int i = 10; i>=0; i--)
       {
           for (int j = 0; j<=battery.EQsize;j++)
@@ -1379,7 +1396,26 @@ void cdbg::on_timer_tick ()
           spacefill((100/battery.EQsize)*i, 3);
       }
   }
-      cout << "\n\033[14A";
+      cout << "\033[1A\n\033[13A";
+      cout << "\n\033[" << max_EQ*3 + 76 << "C";
+      if (bulwers.wkup_reason == 0)
+          cout << " ---- ";
+      else if (bulwers.wkup_reason == 1)
+          cout << " time ";
+      else if (bulwers.wkup_reason == 2)
+          cout << "motion";
+      cout << "\n\n\033[" << max_EQ*3 + 76 << "C";
+      if (bulwers.wkup_reason == 0)
+          cout << " ---- ";
+      else if (bulwers.wkup_active == 1)
+          cout << " time ";
+      else if (bulwers.wkup_active == 2)
+          cout << "wakeup";
+      else if (bulwers.wkup_active == 3)
+          cout << " both ";
+      cout << "\n\n\033[" << max_EQ*3 + 76 << "C";
+      spacefill (bulwers.current_wkup_delay, 7);
+      cout << "\n\033[6A";
 
   if (0)
   {

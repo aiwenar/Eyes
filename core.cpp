@@ -112,6 +112,7 @@ void bul::wake_up_chk()
         {
             energy.start = nrg_std*3600;
             wake_up = true;
+            wkup_reason = 1;
         }
         else
             energy.start = nrg_low*3600;
@@ -122,6 +123,7 @@ void bul::wake_up_chk()
         {
             energy.start = nrg_boost*3600;
             wake_up = true;
+            wkup_reason = 1;
         }
         else if (times.value >= wkup_time)
             energy.start = nrg_std*3600;
@@ -420,11 +422,12 @@ void bul::critical_services()
 
 
     //TODO 01: It must works on cfg values, not static.
-
+    wkup_active = 0;
     if (get_time ().day != 7)
     {
-        if (times.value < timehigh_1 || times.value > timehigh_1 || energy.value > energy.start + energy.wide - 5)
+        if (times.value < timelow_1 || times.value > timehigh_1 || energy.value > energy.start + energy.wide - 5)
         {
+            wkup_active = 1;
             tired = 1;
 
             if (outline <= 7)
@@ -438,6 +441,7 @@ void bul::critical_services()
         }
         if (times.value < timelow_2 || times.value > timehigh_2 || energy.value > energy.start + energy.wide - 3)
         {
+            wkup_active = 1;
             tired = 2;
             if (outline <= 8)
                 outline = 1;
@@ -450,6 +454,7 @@ void bul::critical_services()
         }
         if (times.value < timelow_3 || times.value > timehigh_3 || energy.value > energy.start + energy.wide - 1 )
         {
+            wkup_active = 1;
             tired = 3;
             if (outline <= 9)
                 outline = 1;
@@ -470,6 +475,7 @@ void bul::critical_services()
     {
         if (times.value < timelow_1w || times.value > timehigh_1w ||  energy.value > energy.start + energy.wide - 5*3600)
         {
+            wkup_active = 1;
             tired = 1;
             if (outline <= 7)
                 outline = 1;
@@ -482,6 +488,7 @@ void bul::critical_services()
         }
         if (times.value < timelow_2w || times.value > timehigh_2w ||  energy.value > energy.start + energy.wide - 4*3600)
         {
+            wkup_active = 1;
             tired = 2;
             if (outline <= 8)
                 outline = 2;
@@ -494,6 +501,7 @@ void bul::critical_services()
         }
         if (times.value < timelow_3w || times.value > timehigh_3w ||  energy.value > energy.start + energy.wide - 3*3600 )
         {
+            wkup_active = 1;
             tired = 3;
             if (outline <= 9)
                 outline = 1;
@@ -519,16 +527,28 @@ void bul::critical_services()
         {
             outline = 3;
             tired = 3;
+            if (wkup_active == 1)
+                wkup_active = 3;
+            else
+                wkup_active = 2;
         }
         else if (100*current_wkup_delay/wake_up_delay > 30 && outline < 2)
         {
             outline = 2;
             tired = 2;
+            if (wkup_active == 1)
+                wkup_active = 3;
+            else
+                wkup_active = 2;
         }
         else if (outline < 1)
         {
             outline = 1;
             tired = 1;
+            if (wkup_active == 1)
+                wkup_active = 3;
+            else
+                wkup_active = 2;
         }
     }
     if (battery_state == 0)
@@ -623,6 +643,8 @@ mod_bat_plug                        = 0    ;
 bulwers.step                        = 0    ;
 bulwers.wake_up                     = false;
 bulwers.no_update                   = false;
+bulwers.wkup_active                 = 0    ;
+bulwers.wkup_reason                 = 0    ;
 
 }
 
@@ -1153,7 +1175,7 @@ void Core::bulwers_update ()
     cpu.mod = cpu.convert(cpu.calculate());
     memory.mod = memory.convert(memory.calculate());
     battery.mod = battery.convert(battery.calculate());
-    temperature.mod = temperature.convert(temperature.calculate());
+    temperature.mod = temperature.convert(HRDWR.temperatura());
     times.mod = times.calculate();
     energy.mod = energy.calculate();
     mousea.mod = mousea.impact*mousea.convert()/100;
@@ -1415,7 +1437,11 @@ void Core::on_timer_tick ()
 
 void Core::handle_mouse ( int x, int y )
 {
-    bulwers.wake_up = true;
+    if (!bulwers.wake_up)
+    {
+        bulwers.wake_up = true;
+        bulwers.wkup_reason = 2;
+    }
 
     if (mousea.cur > mousea.buff_size)
     {
