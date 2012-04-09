@@ -143,7 +143,7 @@ signals:
 public slots:
     void                mousePressEvent     ( QMouseEvent * ev );
     void                mouseMoveEvent      ( QMouseEvent * ev );
-    void                enterEvent          ( QEvent * );
+    void                enterEvent          ( QMouseEvent * );
 private:
     struct _layer
     {
@@ -261,6 +261,7 @@ class Core : public QObject
     Q_OBJECT
 public:
                     Core            ( eyes_view * );
+                    Core            ();
     void            bulwers_update  (),
                     bulwers_init    (),
                     load_config     (),
