@@ -129,6 +129,7 @@ int main ( int argc, char ** argv )
       {
         info << "(main) starting eyes::core only mode.";
         Core * core = new Core ();
+        core->core_only_mode = true;
         core->load_config ();
         core->run ();
         return app.exec ();

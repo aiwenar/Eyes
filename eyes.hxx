@@ -270,6 +270,8 @@ public:
                     autocalc_reload ( Configuration * set ),
                     autocalc_init   ();
 
+    bool            core_only_mode;
+
     QString face_prev;
 
     friend class cdbg;
