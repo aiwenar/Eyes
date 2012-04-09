@@ -1164,6 +1164,13 @@ Core::Core ( eyes_view * neyes )
     eyes = neyes;
 }
 
+Core::Core ()
+{
+  timer = new QTimer ( this );
+  connect ( timer, SIGNAL ( timeout () ), this, SLOT ( on_timer_tick () ) );
+  eyes = 0;
+}
+
 void Core::autocalc_init ()
 {
     autocalc.c_cpu = cpu.stable;

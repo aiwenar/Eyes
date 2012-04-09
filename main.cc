@@ -31,13 +31,14 @@ using namespace std;
 using namespace libconfig;
 
 static const char help [] = {
-    "usage: eyes [ARGUMENT [OPTION]]\n\n"
-    "Arguments:\n"
-    "\t--help -h\t\tPrint this text and exit.\n"
-    "\t--version -v\t\tPrint version and exit.\n"
-    "\t--color=COLOR -c COLOR\tSet eyes color to COLOR.\n"
-    "\t--config\t\tOpen configuration, then quit.\n"
-    "\nSee --help colors for colors.\n"
+  "usage: eyes [ARGUMENT [OPTION]]\n\n"
+  "Arguments:\n"
+  "\t--help\t\t-h\t\tPrint this text and exit.\n"
+  "\t--version\t-v\t\tPrint version and exit.\n"
+  "\t--color=COLOR\t-c COLOR\tSet eyes color to COLOR.\n"
+  "\t--config\t\t\tOpen configuration, then quit.\n"
+  "\t\t\t\-C\t\tCore only mode.\n"
+  "\nSee --help colors for colors.\n"
 };
 
 static const char version [] = {
@@ -68,7 +69,7 @@ int main ( int argc, char ** argv )
   Config set;
   /*try
   {*/
-    set.readFile ( "./config.cfg" );
+  //  set.readFile ( "./config.cfg" );
   /*}
   catch ( libconfig parse exception )
   {
@@ -123,6 +124,14 @@ int main ( int argc, char ** argv )
       {
           i++;
           color = arg.at ( i );
+      }
+      else if ( arg.at ( i ) == "-C" )
+      {
+        info << "(main) starting eyes::core only mode.";
+        Core * core = new Core ();
+        core->load_config ();
+        core->run ();
+        return app.exec ();
       }
       else if ( arg.at ( i ) == "--config" )
       {
