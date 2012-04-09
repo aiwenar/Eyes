@@ -293,13 +293,15 @@ void eyes_view::mouseMoveEvent ( QMouseEvent * ev )
     {
       win->move ( ev->globalX (), ev->globalY () );
       repaint ();
+      return;
     }
     emit mousemoved ( ev->x (), ev->y () );
 }
 
-void eyes_view::enterEvent ( QEvent * )
+void eyes_view::enterEvent ( QMouseEvent * ev )
 {
-    emit mouseentered ();
+  if ( ev->buttons () & Qt::LeftButton ) return;
+  emit mouseentered ();
 }
 
 void eyes_view::closeEvent ( QCloseEvent * ev )
