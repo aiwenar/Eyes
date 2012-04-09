@@ -33,7 +33,14 @@ Configuration * Configuration::getInstance ()
 
 Configuration::Configuration ()
 {
-  cfg.readFile ( "config.cfg" );
+  try
+  {
+    cfg.readFile ( "config.cfg" );
+  }
+  catch ( ... )
+  {
+    warning << "(Configuration) configuration read failure, falling back to emergency values.\n";
+  }
 }
 
 bool Configuration::lookupValue ( const char * path, bool def )
