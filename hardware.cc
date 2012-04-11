@@ -556,15 +556,18 @@ void hardware::system_check()
                         info << "searching for custom battery path - success\n";
                 }
         }
-        final_path_state = final_path_full;
-        string input = "";
-        input = get_file (&final_path_full[0]);
-        if (input == "")
-                warning << "battery capacity searching - failed\n";
-        else
+        if (final_now_solution == 1)
         {
-                final_full_solution = 1;
-                info << "battery capacity searching - success\n";
+            final_path_state = final_path_full;
+            string input = "";
+            input = get_file (&final_path_full[0]);
+            if (input == "")
+                    warning << "battery capacity searching - failed\n";
+            else
+            {
+                    final_full_solution = 1;
+                    info << "battery capacity searching - success\n";
+            }
         }
 
         /*
@@ -622,23 +625,26 @@ void hardware::system_check()
                         info << "searching for custom battery path - success\n";
                 }
         }
-        input = "";
-        input = get_file (&final_path_full[0]);
-        if (input == "")
-                warning << "battery capacity searching - failed\n";
-        else
+        if (final_now_solution == 2)
         {
-                final_full_solution = 2;
-                info << "battery capacity searching - success\n";
-        }
-        input = "";
-        input = get_file (&final_path_state[0]);
-        if (input == "");
-                //info << "battery status searching - failed\n";
-        else
-        {
-                final_state_solution = 2;
-                info << "battery status searching - success\n";
+            string input = "";
+            input = get_file (&final_path_full[0]);
+            if (input == "")
+                    warning << "battery capacity searching - failed\n";
+            else
+            {
+                    final_full_solution = 2;
+                    info << "battery capacity searching - success\n";
+            }
+            input = "";
+            input = get_file (&final_path_state[0]);
+            if (input == "");
+                    //info << "battery status searching - failed\n";
+            else
+            {
+                    final_state_solution = 2;
+                    info << "battery status searching - success\n";
+            }
         }
 
         /*
