@@ -61,86 +61,75 @@ void on_destroy ();
 
 int main ( int argc, char ** argv )
 {
+  for ( int i=1 ; i<argc ; ++i )
+  {
+    QString arg ( argv[i] );
+    if ( arg == "-C" )
+    {
+      QCoreApplication app ( argc, argv );
+      info << "(main) starting eyes::core only mode.";
+      Core * core = new Core ();
+      core->core_only_mode = true;
+      core->load_config ();
+      core->run ();
+      return app.exec ();
+    }
+  }
+
   QApplication app ( argc, argv );
 
   QStringList arg = app.arguments ();
   QString color = "";
 
-  Config set;
-  /*try
-  {*/
-  //  set.readFile ( "./config.cfg" );
-  /*}
-  catch ( libconfig parse exception )
-  {
-    print that is error in config
-    set config to default
-    contiune
-  }*/
-
   for ( int i = 0 ; i < arg.size () ; i++ )
   {
-      if ( arg.at ( i ) == "-h" or arg.at ( i ) == "--help" )
+    if ( arg.at ( i ) == "-h" or arg.at ( i ) == "--help" )
       {
-          if ( arg.size () > 2 )
+        if ( arg.size () > 2 )
+        {
+          if ( arg.at ( i+1 ) == "colors" )
           {
-            if ( arg.at ( i+1 ) == "colors" )
+            cout << help_colors;
+            Config cfg;
+            try
             {
-              cout << help_colors;
-              Config cfg;
-              try
-              {
-                cfg.readFile ( "colors.cfg" );
-              }
-              catch ( libconfig::ParseException e )
-              {
-                cout << e.what () << '\n' << e.getError () << '\n';
-              }
-              std::string color;
-              int count;
-              cfg.lookupValue ( "colors.count", count );
-              cout << count << '\n';
-              for ( int j=0 ; j<count ; j++ )
-              {
-                  cfg.lookupValue ( ( QString ( "colors.list[" ) + j + "]" ).toStdString (), color );
-                  cout << "\t" << color << "\n";
-              }
-              exit ( 0 );
+              cfg.readFile ( "colors.cfg" );
             }
+            catch ( libconfig::ParseException e )
+            {
+              cout << e.what () << '\n' << e.getError () << '\n';
+            }
+            std::string color;
+            int count;
+            cfg.lookupValue ( "colors.count", count );
+            cout << count << '\n';
+            for ( int j=0 ; j<count ; j++ )
+            {
+              cfg.lookupValue ( ( QString ( "colors.list." ) + j ).toStdString (), color );
+              cout << "\t" << color << "\n";
+            }
+            exit ( 0 );
           }
-          cout << help;
-          exit ( 0 );
+        }
+        cout << help;
+        exit ( 0 );
       }
-      else if ( arg.at ( i ) == "-v" or arg.at ( i ) == "--version" )
-      {
-          cout << version;
-          exit ( 0 );
-      }
-      else if ( arg.at ( i ).split ( "=" )[0] == "--color" )
-      {
-          color = arg.at ( i ).split ( "=" )[1];
-      }
-      else if ( arg.at ( i ) == "-c" )
-      {
-          i++;
-          color = arg.at ( i );
-      }
-      else if ( arg.at ( i ) == "-C" )
-      {
-        info << "(main) starting eyes::core only mode.";
-        Core * core = new Core ();
-        core->core_only_mode = true;
-        core->load_config ();
-        core->run ();
-        return app.exec ();
-      }
-      else if ( arg.at ( i ) == "--config" )
-      {
-          info << "(main) starting eyes::configmode...\n";
-          Configurator * conf = new Configurator ();
-          conf->show ();
-          return app.exec ();
-      }
+    else if ( arg.at ( i ) == "-v" or arg.at ( i ) == "--version" )
+    {
+      cout << version;
+      exit ( 0 );
+    }
+    else if ( arg.at ( i ).split ( "=" )[0] == "--color" )
+      color = arg.at ( i ).split ( "=" )[1];
+    else if ( arg.at ( i ) == "-c" )
+      color = arg.at ( ++i );
+    else if ( arg.at ( i ) == "--config" )
+    {
+      info << "(main) starting eyes::configmode...\n";
+      Configurator * conf = new Configurator ();
+      conf->show ();
+      return app.exec ();
+    }
   }
 
   info << "(main) starting eyes...\n";
