@@ -761,7 +761,7 @@ void hardware::system_check()
                         break;
                 }
         }
-        if (special_batname)
+        if (special_thername)
         {
                 string input = "";
                 string path = "/sys/class/thermal/";
