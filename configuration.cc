@@ -17,7 +17,8 @@
 
 #include "configuration.hxx"
 #include <debug.hxx>
-
+#include <QStringList>
+#include <QString>
 #include <iostream>
 
 using namespace std;
@@ -41,6 +42,7 @@ Configuration::Configuration ()
   {
     warning << "(Configuration) configuration read failure, falling back to emergency values.\n";
   }
+  needsave = false;
 }
 
 bool Configuration::lookupValue ( const char * path, bool def )
@@ -53,6 +55,7 @@ bool Configuration::lookupValue ( const char * path, bool def )
               << " that isn't any in configuration file. Using default value ("
               << ( def ? "true" : "false" )
               << ")\n";
+        setValue ( path, def );
         return def;
     }
     return tmp;
@@ -68,6 +71,7 @@ char * Configuration::lookupValue ( const char * path, char * def )
               << " that isn't any in configuration file. Using default value ("
               << def
               << ")\n";
+        setValue ( path, def );
         return def;
     }
     return const_cast<char*>(tmp.c_str ());
@@ -83,6 +87,7 @@ char Configuration::lookupValue ( const char * path, char def )
               << " that isn't any in configuration file. Using default value ("
               << def
               << ")\n";
+        setValue ( path, def );
         return def;
     }
     return tmp[0];
@@ -98,6 +103,7 @@ int Configuration::lookupValue ( const char * path, int def )
               << " that isn't any in configuration file. Using default value ("
               << def
               << ")\n";
+        setValue ( path, def );
         return def;
     }
     return tmp;
@@ -105,29 +111,57 @@ int Configuration::lookupValue ( const char * path, int def )
 
 bool Configuration::setValue (const char *path, bool value)
 {
-    cfg.lookup ( path ) = value;
+    lookup ( path, libconfig::Setting::TypeBoolean ) = value;
+    needsave = true;
     return true;
 }
 
 bool Configuration::setValue ( const char *path, char value )
 {
-    cfg.lookup ( path ) = value;
+    lookup ( path, libconfig::Setting::TypeString ) = value;
+    needsave = true;
     return true;
 }
 
 bool Configuration::setValue ( const char *path, const char *value )
 {
-    cfg.lookup ( path ) = value;
+    lookup ( path, libconfig::Setting::TypeString ) = value;
+    needsave = true;
     return false;
 }
 
 bool Configuration::setValue ( const char *path, int value )
 {
-    cfg.lookup ( path ) = value;
+    lookup ( path, libconfig::Setting::TypeInt64 ) = value;
+    needsave = true;
     return false;
 }
 
 void Configuration::save ()
 {
+  if ( needsave )
+  {
+    info << "(Configuration) configuration changed, saving.\n";
     cfg.writeFile ( "config.cfg" );
+    needsave = false;
+  }
+  else
+    info << "(Configuration) configuration not changed, skipping save.\n";
+}
+
+libconfig::Setting& Configuration::lookup ( const char * path, libconfig::Setting::Type type )
+{
+  if ( not cfg.exists ( path ) )
+  {
+    libconfig::Setting * set = &cfg.getRoot ();
+    QStringList paths = QString ( path ).split ( "." );
+    for ( int i=0 ; i<paths.size () ; ++i )
+    {
+      if ( not set->exists ( paths[i].toStdString () ) )
+        set->add ( paths[i].toStdString (), i+1 == paths.size() ? type : libconfig::Setting::TypeGroup );
+      set = &((*set)[paths[i].toStdString ()]);
+    }
+    return *set;
+  }
+  return cfg.lookup ( path );
 }

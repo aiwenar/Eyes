@@ -27,8 +27,9 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
 {
     info << "(window) preparing...\n";
     Configuration * cfg = Configuration::getInstance ();
-    eyes_w = cfg->lookupValue ( "ui.window.size.width", 320 );
-    eyes_h = cfg->lookupValue ( "ui.window.size.height", 80 );
+    float size_multipler = cfg->lookupValue ( "ui.window.height", 80 )/80.0;
+    eyes_w = 320*size_multipler;
+    eyes_h = 80*size_multipler;
     isicon = cfg->lookupValue ( "ui.window.tray_icon", true );
     resize ( eyes_w, eyes_h );
     setWindowTitle ( "!eyesy!" );
@@ -57,7 +58,7 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
         setA = new QAction ( tr ( "&Settings" ), this );
         connect ( setA, SIGNAL ( triggered () ), config, SLOT ( show () ) );
         quitA = new QAction ( tr ( "&Quit" ), this );
-        connect ( quitA, SIGNAL ( triggered () ), qApp, SLOT ( quit () ) );
+        connect ( quitA, SIGNAL ( triggered () ), this, SLOT ( onQuit () ) );
         //menu
         timenu = new QMenu ( this );
         timenu->addAction ( setA );
@@ -71,4 +72,10 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     info << "(eyes_widnow) ready!\n";
     eyes->show ();
     eyes->update ();
+}
+
+void eyes_window::onQuit ()
+{
+  Configuration::getInstance ()->save ();
+  qApp->quit ();
 }

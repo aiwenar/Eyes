@@ -91,10 +91,14 @@ public:
     bool        setValue            ( const char * path, const char * value );
     /** Save changes in configuration */
     void        save                ();
+
 private:
+    libconfig::Setting& lookup ( const char * path, libconfig::Setting::Type );
+
     Configuration ();
     static Configuration * _cfg;
     Config  cfg;
+    bool    needsave;
 };
 
 #endif //eyes_econfig_hxx
