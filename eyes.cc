@@ -312,6 +312,7 @@ void eyes_view::closeEvent ( QCloseEvent * ev )
     ev->accept ();
     is_finished = true;
     c_main.waitForFinished ();
+    Configuration::getInstance ()->save ();
     cout << "\033[0m";
 }
 
