@@ -160,7 +160,6 @@ private:
     QPixmap               * area;
     QString                 eye,
                             face,
-                            theme,
                             face_next,
                             face_queue,
                             spec,

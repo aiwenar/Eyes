@@ -44,6 +44,7 @@ public:
     QIcon             * tico;
 signals:
 public slots:
+    void  onQuit  ();
 private:
     bool                isicon;
     eyes_view         * eyes;
