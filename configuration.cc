@@ -118,9 +118,10 @@ bool Configuration::setValue (const char *path, bool value)
 
 bool Configuration::setValue ( const char *path, char value )
 {
-    lookup ( path, libconfig::Setting::TypeString ) = value;
-    needsave = true;
-    return true;
+  char val[2] = {value,'\0'};
+  lookup ( path, libconfig::Setting::TypeString ) = val;
+  needsave = true;
+  return true;
 }
 
 bool Configuration::setValue ( const char *path, const char *value )

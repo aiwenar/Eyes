@@ -27,7 +27,6 @@
 using namespace std;
 
 #define MM_NO_MOTION 10000
-#define DEF_THEME "draw"
 
 static const char * files[]     = {
     "bul_01_a", "bul_01_m", "bul_01_o", "bul_01_s",                 //4
@@ -151,7 +150,6 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     eye_m = cfg->lookupValue ( "ui.eye.mirror", 9 );
     if ( ( color = get_face_suffix ( ncolor ) ) == "NIL" )
         color = get_face_suffix ( QString ( scolor.c_str () ) );
-    theme = cfg->lookupValue ( "ui.theme", DEF_THEME );
     is_finished = false;
     images_ready = false;
     // initializing submodules

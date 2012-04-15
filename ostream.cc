@@ -6,7 +6,7 @@
 OStream::OStream ( const char * path )
 {
   enabled = true;
-  enabled = Configuration::getInstance ()->lookupValue ( (QString("debug.")+path).toStdString().c_str(), false );
+  enabled = Configuration::getInstance ()->lookupValue ( (QString("debug.")+path).toStdString().c_str(), true );
 }
 
 OStream& OStream::operator << ( const char * s )
