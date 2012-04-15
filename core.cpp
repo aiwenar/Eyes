@@ -1152,8 +1152,8 @@ void Core::bulwers_update ()
     }
     bulwers.no_update = false;
 
-//if (autocalc.enabled)
-//    autocalc_reload ( &cfg );
+    if (autocalc.enabled)
+        autocalc_reload ( Configuration::getInstance () );
 }
 
 Core::Core ( eyes_view * neyes )
@@ -1173,23 +1173,721 @@ Core::Core ()
 
 void Core::autocalc_init ()
 {
-    autocalc.c_cpu = cpu.stable;
-    autocalc.c_mem = memory.stable;
-    autocalc.c_temp = temperature.stable;
+    autocalc.cpu_simple = false;
+    autocalc.mem_simple = false;
+    autocalc.bat_simple = false;
+    autocalc.temp_simple = false;
     autocalc.save_next = autocalc.save_interval;
+
+    if (autocalc.cpu_enabled)
+    {
+        autocalc.c_cpu = cpu.stable;
+        if (cpu.EQsize > 2)
+            for (int i = 0; i<=cpu.EQsize; i++)
+            {
+                autocalc.cpu_freq.push_back(0);
+                autocalc.cpu_curve.push_back(0);
+                autocalc.cpu_virtualEQ.push_back((double)cpu.EQ[i]);
+            }
+        else
+        {
+            autocalc.cpu_enabled = false;
+            warning << "cpu EQ smaller than 3 brands - disabling cpu autocalc";
+        }
+    }
+    if (autocalc.memory_enabled)
+    {
+        autocalc.c_mem = memory.stable;
+        if (memory.EQsize > 2)
+            for (int i = 0; i<=memory.EQsize; i++)
+            {
+                autocalc.memory_freq.push_back(0);
+                autocalc.memory_curve.push_back(0);
+                autocalc.memory_virtualEQ.push_back((double)memory.EQ[i]);
+            }
+        else
+        {
+            autocalc.memory_enabled = false;
+            warning << "memory EQ smaller than 3 brands - disabling memory autocalc";
+        }
+    }
+    if (autocalc.battery_enabled)
+    {
+        autocalc.c_battery = battery.stable;
+        if (battery.EQsize > 2)
+            for (int i = 0; i<=battery.EQsize; i++)
+            {
+                autocalc.battery_freq.push_back(0);
+                autocalc.battery_curve.push_back(0);
+                autocalc.battery_virtualEQ.push_back((double)battery.EQ[i]);
+            }
+        else
+        {
+            autocalc.battery_enabled = false;
+            warning << "battery EQ smaller than 3 brands - disabling battery autocalc";
+        }
+    }
+    if (autocalc.temperature_enabled)
+    {
+        autocalc.c_temp = temperature.stable;
+        if (temperature.EQsize > 2)
+            for (int i = 0; i<=temperature.EQsize; i++)
+            {
+                autocalc.temperature_freq.push_back(0);
+                autocalc.temperature_curve.push_back(0);
+                autocalc.temperature_virtualEQ.push_back((double)temperature.EQ[i]);
+            }
+        else
+        {
+            autocalc.temperature_enabled = false;
+            warning << "temperature EQ smaller than 3 brands - disabling temperature autocalc";
+        }
+    }
 }
 
 void Core::autocalc_reload ( Configuration * cfg )
 {
-    autocalc.c_cpu = (((100/autocalc.impact)-1)*cpu.stable + cpu.load)/(100/autocalc.impact);
-    autocalc.c_mem = (((100/autocalc.impact)-1)*memory.stable + memory.load)/(100/autocalc.impact);
-    autocalc.c_temp = (((100/autocalc.impact)-1)*temperature.stable + temperature.value)/(100/autocalc.impact);
-
-    if (autocalc.save_next == 0)
+    if (autocalc.start_delay > 0)
     {
-        //zrzut wartości
-        cpu.stable = cfg->lookupValue ( "core.cpu.stable", 0);
+        autocalc.start_delay--;
+        return;
+    }
+    autocalc.save_next--;
+
+    //frequency tracking
+
+    if (autocalc.cpu_enabled)
+    {
+        autocalc.cpu_curstep = 0;
+        autocalc.cpu_perc = 0;
+        autocalc.cpu_common = 0.0;
+        autocalc.cpu_exoticlow = 100.0;
+        autocalc.cpu_exotichigh = 100.0;
+        autocalc.cpu_curmid = 0;
+        autocalc.cpu_stablepointlow = 0;
+        autocalc.cpu_stablepointhigh = 0;
+
+        for (int i = 0; i<=cpu.EQsize; i++)
+        {
+            if (cpu.load >= (100/cpu.EQsize)*i)
+                autocalc.cpu_curstep = i;
+            else
+                break;
+        }
+        if (autocalc.cpu_curstep == cpu.EQsize)
+            autocalc.cpu_freq[cpu.EQsize]++;
+        else
+        {
+            autocalc.cpu_perc = 100*(cpu.load-(100/cpu.EQsize)*autocalc.cpu_curstep)/(100/cpu.EQsize);
+            autocalc.cpu_freq[autocalc.cpu_curstep]+=((double)autocalc.cpu_perc)/100.0;
+            autocalc.cpu_freq[autocalc.cpu_curstep]+=(double)(100-autocalc.cpu_perc)/100.0;
+        }
+        for (int i = 0; i<=cpu.EQsize; i++)
+        {
+            if (autocalc.cpu_freq[i] > autocalc.cpu_common)
+            {
+                autocalc.cpu_common =autocalc.cpu_freq[i];
+                autocalc.cpu_curmid = i;
+            }
+        }
+        if (autocalc.cpu_curmid == 0)
+            autocalc.cpu_curmid = 1;
+        else if (autocalc.cpu_curmid == cpu.EQsize)
+            autocalc.cpu_curmid = cpu.EQsize-1;
+
+        for (int i = 0; i<autocalc.cpu_curmid; i++)
+        {
+            if (autocalc.cpu_freq[i] < autocalc.cpu_exoticlow )
+                autocalc.cpu_exoticlow = autocalc.cpu_freq[i];
+        }
+        for (int i = autocalc.cpu_curmid+1; i<=cpu.EQsize; i++)
+        {
+            if (autocalc.cpu_freq[i] < autocalc.cpu_exotichigh )
+                autocalc.cpu_exotichigh = autocalc.cpu_freq[i];
+        }
+        bool correct = false;
+        while(!correct)
+        {
+            correct = true;
+            for (int i = 0; i<autocalc.cpu_curmid; i++)
+            {
+                if (autocalc.cpu_freq[i] > autocalc.cpu_freq[i+1])
+                {
+                    swap(autocalc.cpu_freq[i], autocalc.cpu_freq[i+1]);
+                    correct = false;
+                }
+            }
+        }
+        correct = false;
+        while(!correct)
+        {
+            correct = true;
+            for (int i = autocalc.cpu_curmid; i<cpu.EQsize; i++)
+            {
+                if (autocalc.cpu_freq[i] < autocalc.cpu_freq[i+1])
+                {
+                    swap(autocalc.cpu_freq[i], autocalc.cpu_freq[i+1]);
+                    correct = false;
+                }
+            }
+        }
+        for (int i = 0; i<autocalc.cpu_curmid; i++)
+        {
+            if (autocalc.cpu_freq[i] < autocalc.cpu_exoticlow+(double)(autocalc.cpu_swalll*(autocalc.cpu_common-autocalc.cpu_exoticlow))/100 )
+                autocalc.cpu_stablepointlow = i;
+        }
+        for (int i = autocalc.cpu_curmid+1; i<=cpu.EQsize; i++)
+        {
+            if (autocalc.cpu_freq[i] > autocalc.cpu_exotichigh+(double)(autocalc.cpu_swallh*(autocalc.cpu_common-autocalc.cpu_exotichigh))/100 )
+                autocalc.cpu_stablepointhigh = i;
+        }
+        if (autocalc.cpu_stablepointhigh == 0)
+            autocalc.cpu_stablepointhigh = autocalc.cpu_curmid+1;
+        if (autocalc.auto_cpu)
+        {
+            autocalc.cpu_freq_angle_low = 1;
+            autocalc.cpu_freq_angle_high = 1;
+            for (int i = 0; i<autocalc.cpu_curmid; i++)
+            {
+                if (autocalc.cpu_freq[i+1]-autocalc.cpu_freq[i] > autocalc.cpu_freq_angle_low)
+                    autocalc.cpu_freq_angle_low = autocalc.cpu_freq[i+1]-autocalc.cpu_freq[i];
+            }
+            autocalc.cpu_freq_angle_low*=(100.0/(autocalc.cpu_common));
+            autocalc.cpu_mult_low = autocalc.cpu_mult_low_converter/autocalc.cpu_freq_angle_low;
+            for (int i = autocalc.cpu_curmid; i<cpu.EQsize; i++)
+            {
+                if (autocalc.cpu_freq[i]-autocalc.cpu_freq[i+1] > autocalc.cpu_freq_angle_high)
+                    autocalc.cpu_freq_angle_high = autocalc.cpu_freq[i]-autocalc.cpu_freq[i+1];
+            }
+            autocalc.cpu_freq_angle_high*=(100.0/(autocalc.cpu_common));
+            autocalc.cpu_mult_high = autocalc.cpu_mult_high_converter/autocalc.cpu_freq_angle_high;
+        }
+
+        for (int i = autocalc.cpu_stablepointlow; i >= 0 ; i--)
+        {
+            autocalc.cpu_curve[i] = pow((double)(autocalc.cpu_stablepointlow-i), autocalc.cpu_mult_low);
+        }
+        autocalc.cpu_curve_correct = (double)cpu.stable/autocalc.cpu_curve[0];
+        for (int i = 0; i <= autocalc.cpu_stablepointlow ; i++)
+        {
+            autocalc.cpu_curve[i] *= autocalc.cpu_curve_correct;
+            if (autocalc.cpu_curve[i] > (double)cpu.stable)
+                autocalc.cpu_curve[i] = (double)cpu.stable;
+            autocalc.cpu_curve[i] = (double)cpu.stable - autocalc.cpu_curve[i];
+        }
+        for (int i = autocalc.cpu_stablepointlow; i <= autocalc.cpu_stablepointhigh ; i++)
+        {
+            autocalc.cpu_curve[i] = (double)cpu.stable;
+        }
+        for (int i = 0; i <= cpu.EQsize-autocalc.cpu_stablepointhigh; i++)
+        {
+            autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] = pow((double)i, autocalc.cpu_mult_high);
+        }
+        autocalc.cpu_curve_correct = (double)(100.0-cpu.stable)/autocalc.cpu_curve[cpu.EQsize];
+        for (int i = 0; i <= cpu.EQsize-autocalc.cpu_stablepointhigh; i++)
+        {
+            autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] *= autocalc.cpu_curve_correct;
+            if (autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] > 100.0-(double)cpu.stable)
+                autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] = 100.0-(double)cpu.stable;
+            autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] += (double)cpu.stable;
+        }
+        for (int i = 0; i <= cpu.EQsize; i++)
+        {
+            autocalc.cpu_virtualEQ[i] = (autocalc.cpu_virtualEQ[i]*(100.0-autocalc.impact)+autocalc.cpu_curve[i]*autocalc.impact)/100.0;
+        }
+
+    }
+
+    if (autocalc.memory_enabled)
+    {
+        autocalc.memory_curstep = 0;
+        autocalc.memory_perc = 0;
+        autocalc.memory_common = 0.0;
+        autocalc.memory_exoticlow = 100.0;
+        autocalc.memory_exotichigh = 100.0;
+        autocalc.memory_curmid = 0;
+        autocalc.memory_stablepointlow = 0;
+        autocalc.memory_stablepointhigh = 0;
+
+        for (int i = 0; i<=memory.EQsize; i++)
+        {
+            if (memory.load >= (100/memory.EQsize)*i)
+                autocalc.memory_curstep = i;
+            else
+                break;
+        }
+        if (autocalc.memory_curstep == memory.EQsize)
+            autocalc.memory_freq[memory.EQsize]++;
+        else
+        {
+            autocalc.memory_perc = 100*(memory.load-(100/memory.EQsize)*autocalc.memory_curstep)/(100/memory.EQsize);
+            autocalc.memory_freq[autocalc.memory_curstep]+=((double)autocalc.memory_perc)/100.0;
+            autocalc.memory_freq[autocalc.memory_curstep]+=(double)(100-autocalc.memory_perc)/100.0;
+        }
+        for (int i = 0; i<=memory.EQsize; i++)
+        {
+            if (autocalc.memory_freq[i] > autocalc.memory_common)
+            {
+                autocalc.memory_common =autocalc.memory_freq[i];
+                autocalc.memory_curmid = i;
+            }
+        }
+        if (autocalc.memory_curmid == 0)
+            autocalc.memory_curmid = 1;
+        else if (autocalc.memory_curmid == memory.EQsize)
+            autocalc.memory_curmid = memory.EQsize-1;
+
+        for (int i = 0; i<autocalc.memory_curmid; i++)
+        {
+            if (autocalc.memory_freq[i] < autocalc.memory_exoticlow )
+                autocalc.memory_exoticlow = autocalc.memory_freq[i];
+        }
+        for (int i = autocalc.memory_curmid+1; i<=memory.EQsize; i++)
+        {
+            if (autocalc.memory_freq[i] < autocalc.memory_exotichigh )
+                autocalc.memory_exotichigh = autocalc.memory_freq[i];
+        }
+        bool correct = false;
+        while(!correct)
+        {
+            correct = true;
+            for (int i = 0; i<autocalc.memory_curmid; i++)
+            {
+                if (autocalc.memory_freq[i] > autocalc.memory_freq[i+1])
+                {
+                    swap(autocalc.memory_freq[i], autocalc.memory_freq[i+1]);
+                    correct = false;
+                }
+            }
+        }
+        correct = false;
+        while(!correct)
+        {
+            correct = true;
+            for (int i = autocalc.memory_curmid; i<memory.EQsize; i++)
+            {
+                if (autocalc.memory_freq[i] < autocalc.memory_freq[i+1])
+                {
+                    swap(autocalc.memory_freq[i], autocalc.memory_freq[i+1]);
+                    correct = false;
+                }
+            }
+        }
+        for (int i = 0; i<autocalc.memory_curmid; i++)
+        {
+            if (autocalc.memory_freq[i] < autocalc.memory_exoticlow+(double)(autocalc.memory_swalll*(autocalc.memory_common-autocalc.memory_exoticlow))/100 )
+                autocalc.memory_stablepointlow = i;
+        }
+        for (int i = autocalc.memory_curmid+1; i<=memory.EQsize; i++)
+        {
+            if (autocalc.memory_freq[i] > autocalc.memory_exotichigh+(double)(autocalc.memory_swallh*(autocalc.memory_common-autocalc.memory_exotichigh))/100 )
+                autocalc.memory_stablepointhigh = i;
+        }
+        if (autocalc.memory_stablepointhigh == 0)
+            autocalc.memory_stablepointhigh = autocalc.memory_curmid+1;
+        if (autocalc.auto_memory)
+        {
+            autocalc.memory_freq_angle_low = 1;
+            autocalc.memory_freq_angle_high = 1;
+            for (int i = 0; i<autocalc.memory_curmid; i++)
+            {
+                if (autocalc.memory_freq[i+1]-autocalc.memory_freq[i] > autocalc.memory_freq_angle_low)
+                    autocalc.memory_freq_angle_low = autocalc.memory_freq[i+1]-autocalc.memory_freq[i];
+            }
+            autocalc.memory_freq_angle_low*=(100.0/(autocalc.memory_common));
+            autocalc.memory_mult_low = autocalc.memory_mult_low_converter/autocalc.memory_freq_angle_low;
+            for (int i = autocalc.memory_curmid; i<memory.EQsize; i++)
+            {
+                if (autocalc.memory_freq[i]-autocalc.memory_freq[i+1] > autocalc.memory_freq_angle_high)
+                    autocalc.memory_freq_angle_high = autocalc.memory_freq[i]-autocalc.memory_freq[i+1];
+            }
+            autocalc.memory_freq_angle_high*=(100.0/(autocalc.memory_common));
+            autocalc.memory_mult_high = autocalc.memory_mult_high_converter/autocalc.memory_freq_angle_high;
+        }
+
+        for (int i = autocalc.memory_stablepointlow; i >= 0 ; i--)
+        {
+            autocalc.memory_curve[i] = pow((double)(autocalc.memory_stablepointlow-i), autocalc.memory_mult_low);
+        }
+        autocalc.memory_curve_correct = (double)memory.stable/autocalc.memory_curve[0];
+        for (int i = 0; i <= autocalc.memory_stablepointlow ; i++)
+        {
+            autocalc.memory_curve[i] *= autocalc.memory_curve_correct;
+            if (autocalc.memory_curve[i] > (double)memory.stable)
+                autocalc.memory_curve[i] = (double)memory.stable;
+            autocalc.memory_curve[i] = (double)memory.stable - autocalc.memory_curve[i];
+        }
+        for (int i = autocalc.memory_stablepointlow; i <= autocalc.memory_stablepointhigh ; i++)
+        {
+            autocalc.memory_curve[i] = (double)memory.stable;
+        }
+        for (int i = 0; i <= memory.EQsize-autocalc.memory_stablepointhigh; i++)
+        {
+            autocalc.memory_curve[i+autocalc.memory_stablepointhigh] = pow((double)i, autocalc.memory_mult_high);
+        }
+        autocalc.memory_curve_correct = (double)(100.0-memory.stable)/autocalc.memory_curve[memory.EQsize];
+        for (int i = 0; i <= memory.EQsize-autocalc.memory_stablepointhigh; i++)
+        {
+            autocalc.memory_curve[i+autocalc.memory_stablepointhigh] *= autocalc.memory_curve_correct;
+            if (autocalc.memory_curve[i+autocalc.memory_stablepointhigh] > 100.0-(double)memory.stable)
+                autocalc.memory_curve[i+autocalc.memory_stablepointhigh] = 100.0-(double)memory.stable;
+            autocalc.memory_curve[i+autocalc.memory_stablepointhigh] += (double)memory.stable;
+        }
+        for (int i = 0; i <= memory.EQsize; i++)
+        {
+            autocalc.memory_virtualEQ[i] = (autocalc.memory_virtualEQ[i]*(100.0-autocalc.impact)+autocalc.memory_curve[i]*autocalc.impact)/100.0;
+        }
+
+    }
+
+    if (autocalc.battery_enabled)
+    {
+        autocalc.battery_curstep = 0;
+        autocalc.battery_perc = 0;
+        autocalc.battery_common = 0.0;
+        autocalc.battery_exoticlow = 100.0;
+        autocalc.battery_exotichigh = 100.0;
+        autocalc.battery_curmid = 0;
+        autocalc.battery_stablepointlow = 0;
+        autocalc.battery_stablepointhigh = 0;
+
+        for (int i = 0; i<=battery.EQsize; i++)
+        {
+            if (battery.load >= (100/battery.EQsize)*i)
+                autocalc.battery_curstep = i;
+            else
+                break;
+        }
+        if (autocalc.battery_curstep == battery.EQsize)
+            autocalc.battery_freq[battery.EQsize]++;
+        else
+        {
+            autocalc.battery_perc = 100*(battery.load-(100/battery.EQsize)*autocalc.battery_curstep)/(100/battery.EQsize);
+            autocalc.battery_freq[autocalc.battery_curstep]+=((double)autocalc.battery_perc)/100.0;
+            autocalc.battery_freq[autocalc.battery_curstep]+=(double)(100-autocalc.battery_perc)/100.0;
+        }
+        for (int i = 0; i<=battery.EQsize; i++)
+        {
+            if (autocalc.battery_freq[i] > autocalc.battery_common)
+            {
+                autocalc.battery_common =autocalc.battery_freq[i];
+                autocalc.battery_curmid = i;
+            }
+        }
+        if (autocalc.battery_curmid == 0)
+            autocalc.battery_curmid = 1;
+        else if (autocalc.battery_curmid == battery.EQsize)
+            autocalc.battery_curmid = battery.EQsize-1;
+
+        for (int i = 0; i<autocalc.battery_curmid; i++)
+        {
+            if (autocalc.battery_freq[i] < autocalc.battery_exoticlow )
+                autocalc.battery_exoticlow = autocalc.battery_freq[i];
+        }
+        for (int i = autocalc.battery_curmid+1; i<=battery.EQsize; i++)
+        {
+            if (autocalc.battery_freq[i] < autocalc.battery_exotichigh )
+                autocalc.battery_exotichigh = autocalc.battery_freq[i];
+        }
+        bool correct = false;
+        while(!correct)
+        {
+            correct = true;
+            for (int i = 0; i<autocalc.battery_curmid; i++)
+            {
+                if (autocalc.battery_freq[i] > autocalc.battery_freq[i+1])
+                {
+                    swap(autocalc.battery_freq[i], autocalc.battery_freq[i+1]);
+                    correct = false;
+                }
+            }
+        }
+        correct = false;
+        while(!correct)
+        {
+            correct = true;
+            for (int i = autocalc.battery_curmid; i<battery.EQsize; i++)
+            {
+                if (autocalc.battery_freq[i] < autocalc.battery_freq[i+1])
+                {
+                    swap(autocalc.battery_freq[i], autocalc.battery_freq[i+1]);
+                    correct = false;
+                }
+            }
+        }
+        for (int i = 0; i<autocalc.battery_curmid; i++)
+        {
+            if (autocalc.battery_freq[i] < autocalc.battery_exoticlow+(double)(autocalc.battery_swalll*(autocalc.battery_common-autocalc.battery_exoticlow))/100 )
+                autocalc.battery_stablepointlow = i;
+        }
+        for (int i = autocalc.battery_curmid+1; i<=battery.EQsize; i++)
+        {
+            if (autocalc.battery_freq[i] > autocalc.battery_exotichigh+(double)(autocalc.battery_swallh*(autocalc.battery_common-autocalc.battery_exotichigh))/100 )
+                autocalc.battery_stablepointhigh = i;
+        }
+        if (autocalc.battery_stablepointhigh == 0)
+            autocalc.battery_stablepointhigh = autocalc.battery_curmid+1;
+        if (autocalc.auto_battery)
+        {
+            autocalc.battery_freq_angle_low = 1;
+            autocalc.battery_freq_angle_high = 1;
+            for (int i = 0; i<autocalc.battery_curmid; i++)
+            {
+                if (autocalc.battery_freq[i+1]-autocalc.battery_freq[i] > autocalc.battery_freq_angle_low)
+                    autocalc.battery_freq_angle_low = autocalc.battery_freq[i+1]-autocalc.battery_freq[i];
+            }
+            autocalc.battery_freq_angle_low*=(100.0/(autocalc.battery_common));
+            autocalc.battery_mult_low = autocalc.battery_mult_low_converter/autocalc.battery_freq_angle_low;
+            for (int i = autocalc.battery_curmid; i<battery.EQsize; i++)
+            {
+                if (autocalc.battery_freq[i]-autocalc.battery_freq[i+1] > autocalc.battery_freq_angle_high)
+                    autocalc.battery_freq_angle_high = autocalc.battery_freq[i]-autocalc.battery_freq[i+1];
+            }
+            autocalc.battery_freq_angle_high*=(100.0/(autocalc.battery_common));
+            autocalc.battery_mult_high = autocalc.battery_mult_high_converter/autocalc.battery_freq_angle_high;
+        }
+
+        for (int i = autocalc.battery_stablepointlow; i >= 0 ; i--)
+        {
+            autocalc.battery_curve[i] = pow((double)(autocalc.battery_stablepointlow-i), autocalc.battery_mult_low);
+        }
+        autocalc.battery_curve_correct = (double)battery.stable/autocalc.battery_curve[0];
+        for (int i = 0; i <= autocalc.battery_stablepointlow ; i++)
+        {
+            autocalc.battery_curve[i] *= autocalc.battery_curve_correct;
+            if (autocalc.battery_curve[i] > (double)battery.stable)
+                autocalc.battery_curve[i] = (double)battery.stable;
+            autocalc.battery_curve[i] = (double)battery.stable - autocalc.battery_curve[i];
+        }
+        for (int i = autocalc.battery_stablepointlow; i <= autocalc.battery_stablepointhigh ; i++)
+        {
+            autocalc.battery_curve[i] = (double)battery.stable;
+        }
+        for (int i = 0; i <= battery.EQsize-autocalc.battery_stablepointhigh; i++)
+        {
+            autocalc.battery_curve[i+autocalc.battery_stablepointhigh] = pow((double)i, autocalc.battery_mult_high);
+        }
+        autocalc.battery_curve_correct = (double)(100.0-battery.stable)/autocalc.battery_curve[battery.EQsize];
+        for (int i = 0; i <= battery.EQsize-autocalc.battery_stablepointhigh; i++)
+        {
+            autocalc.battery_curve[i+autocalc.battery_stablepointhigh] *= autocalc.battery_curve_correct;
+            if (autocalc.battery_curve[i+autocalc.battery_stablepointhigh] > 100.0-(double)battery.stable)
+                autocalc.battery_curve[i+autocalc.battery_stablepointhigh] = 100.0-(double)battery.stable;
+            autocalc.battery_curve[i+autocalc.battery_stablepointhigh] += (double)battery.stable;
+        }
+        for (int i = 0; i <= battery.EQsize; i++)
+        {
+            autocalc.battery_virtualEQ[i] = (autocalc.battery_virtualEQ[i]*(100.0-autocalc.impact)+autocalc.battery_curve[i]*autocalc.impact)/100.0;
+        }
+
+    }
+
+    if (autocalc.temperature_enabled)
+    {
+        autocalc.temperature_curstep = 0;
+        autocalc.temperature_perc = 0;
+        autocalc.temperature_common = 0.0;
+        autocalc.temperature_exoticlow = 100.0;
+        autocalc.temperature_exotichigh = 100.0;
+        autocalc.temperature_curmid = 0;
+        autocalc.temperature_stablepointlow = 0;
+        autocalc.temperature_stablepointhigh = 0;
+
+        if (temperature.value < temperature.EQbegin)
+        {
+            autocalc.temperature_freq[0]++;
+            cfg->setValue("core.temperature.EQbegin", (int)temperature.value);
+            autocalc.forcesave = true;
+            info << "autocalc caught new temperature: " << temperature.value << " EQbegin switched to new value";
+            warning << "it's recomended to restart Eyes as quick as it's possible!";
+        }
+        for (int i = 0; i<=temperature.EQsize; i++)
+        {
+            if (temperature.value >= temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*i)
+                autocalc.temperature_curstep = i;
+            else
+                break;
+        }
+        if (autocalc.temperature_curstep == temperature.EQsize)
+        {
+            autocalc.temperature_freq[temperature.EQsize]++;
+            cfg->setValue("core.temperature.EQend", (int)temperature.value);
+            autocalc.forcesave = true;
+            info << "autocalc caught new temperature: " << temperature.value << " EQend switched to new value";
+            warning << "it's recomended to restart Eyes as quick as it's possible!";
+        }
+        else
+        {
+            autocalc.temperature_perc = 100*(temperature.value-(temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*autocalc.temperature_curstep))/((temperature.EQend-temperature.EQbegin)/temperature.EQsize);
+            autocalc.temperature_freq[autocalc.temperature_curstep]+=((double)autocalc.temperature_perc)/100.0;
+            autocalc.temperature_freq[autocalc.temperature_curstep]+=(double)(100-autocalc.temperature_perc)/100.0;
+        }
+        for (int i = 0; i<=temperature.EQsize; i++)
+        {
+            if (autocalc.temperature_freq[i] > autocalc.temperature_common)
+            {
+                autocalc.temperature_common =autocalc.temperature_freq[i];
+                autocalc.temperature_curmid = i;
+            }
+        }
+        if (autocalc.temperature_curmid == 0)
+            autocalc.temperature_curmid = 1;
+        else if (autocalc.temperature_curmid == temperature.EQsize)
+            autocalc.temperature_curmid = temperature.EQsize-1;
+
+        for (int i = 0; i<autocalc.temperature_curmid; i++)
+        {
+            if (autocalc.temperature_freq[i] < autocalc.temperature_exoticlow )
+                autocalc.temperature_exoticlow = autocalc.temperature_freq[i];
+        }
+        for (int i = autocalc.temperature_curmid+1; i<=temperature.EQsize; i++)
+        {
+            if (autocalc.temperature_freq[i] < autocalc.temperature_exotichigh )
+                autocalc.temperature_exotichigh = autocalc.temperature_freq[i];
+        }
+        bool correct = false;
+        while(!correct)
+        {
+            correct = true;
+            for (int i = 0; i<autocalc.temperature_curmid; i++)
+            {
+                if (autocalc.temperature_freq[i] > autocalc.temperature_freq[i+1])
+                {
+                    swap(autocalc.temperature_freq[i], autocalc.temperature_freq[i+1]);
+                    correct = false;
+                }
+            }
+        }
+        correct = false;
+        while(!correct)
+        {
+            correct = true;
+            for (int i = autocalc.temperature_curmid; i<temperature.EQsize; i++)
+            {
+                if (autocalc.temperature_freq[i] < autocalc.temperature_freq[i+1])
+                {
+                    swap(autocalc.temperature_freq[i], autocalc.temperature_freq[i+1]);
+                    correct = false;
+                }
+            }
+        }
+        for (int i = 0; i<autocalc.temperature_curmid; i++)
+        {
+            if (autocalc.temperature_freq[i] < autocalc.temperature_exoticlow+(double)(autocalc.temperature_swalll*(autocalc.temperature_common-autocalc.temperature_exoticlow))/100 )
+                autocalc.temperature_stablepointlow = i;
+        }
+        for (int i = autocalc.temperature_curmid+1; i<=temperature.EQsize; i++)
+        {
+            if (autocalc.temperature_freq[i] > autocalc.temperature_exotichigh+(double)(autocalc.temperature_swallh*(autocalc.temperature_common-autocalc.temperature_exotichigh))/100 )
+                autocalc.temperature_stablepointhigh = i;
+        }
+        if (autocalc.temperature_stablepointhigh == 0)
+            autocalc.temperature_stablepointhigh = autocalc.temperature_curmid+1;
+        if (autocalc.auto_temperature)
+        {
+            autocalc.temperature_freq_angle_low = 1;
+            autocalc.temperature_freq_angle_high = 1;
+            for (int i = 0; i<autocalc.temperature_curmid; i++)
+            {
+                if (autocalc.temperature_freq[i+1]-autocalc.temperature_freq[i] > autocalc.temperature_freq_angle_low)
+                    autocalc.temperature_freq_angle_low = autocalc.temperature_freq[i+1]-autocalc.temperature_freq[i];
+            }
+            autocalc.temperature_freq_angle_low*=(100.0/(autocalc.temperature_common));
+            autocalc.temperature_mult_low = autocalc.temperature_mult_low_converter/autocalc.temperature_freq_angle_low;
+            for (int i = autocalc.temperature_curmid; i<temperature.EQsize; i++)
+            {
+                if (autocalc.temperature_freq[i]-autocalc.temperature_freq[i+1] > autocalc.temperature_freq_angle_high)
+                    autocalc.temperature_freq_angle_high = autocalc.temperature_freq[i]-autocalc.temperature_freq[i+1];
+            }
+            autocalc.temperature_freq_angle_high*=(100.0/(autocalc.temperature_common));
+            autocalc.temperature_mult_high = autocalc.temperature_mult_high_converter/autocalc.temperature_freq_angle_high;
+        }
+
+        for (int i = autocalc.temperature_stablepointlow; i >= 0 ; i--)
+        {
+            autocalc.temperature_curve[i] = pow((double)(autocalc.temperature_stablepointlow-i), autocalc.temperature_mult_low);
+        }
+        autocalc.temperature_curve_correct = (double)temperature.stable/autocalc.temperature_curve[0];
+        for (int i = 0; i <= autocalc.temperature_stablepointlow ; i++)
+        {
+            autocalc.temperature_curve[i] *= autocalc.temperature_curve_correct;
+            if (autocalc.temperature_curve[i] > (double)temperature.stable)
+                autocalc.temperature_curve[i] = (double)temperature.stable;
+            autocalc.temperature_curve[i] = (double)temperature.stable - autocalc.temperature_curve[i];
+        }
+        for (int i = autocalc.temperature_stablepointlow; i <= autocalc.temperature_stablepointhigh ; i++)
+        {
+            autocalc.temperature_curve[i] = (double)temperature.stable;
+        }
+        for (int i = 0; i <= temperature.EQsize-autocalc.temperature_stablepointhigh; i++)
+        {
+            autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] = pow((double)i, autocalc.temperature_mult_high);
+        }
+        autocalc.temperature_curve_correct = (double)(100.0-temperature.stable)/autocalc.temperature_curve[temperature.EQsize];
+        for (int i = 0; i <= temperature.EQsize-autocalc.temperature_stablepointhigh; i++)
+        {
+            autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] *= autocalc.temperature_curve_correct;
+            if (autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] > 100.0-(double)temperature.stable)
+                autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] = 100.0-(double)temperature.stable;
+            autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] += (double)temperature.stable;
+        }
+        for (int i = 0; i <= temperature.EQsize; i++)
+        {
+            autocalc.temperature_virtualEQ[i] = (autocalc.temperature_virtualEQ[i]*(100.0-autocalc.impact)+autocalc.temperature_curve[i]*autocalc.impact)/100.0;
+        }
+
+    }
+
+    if (autocalc.save_next == 0 || autocalc.forcesave)
+    {
         info << "Dropping stable values\n";
+        if (autocalc.cpu_enabled && !autocalc.cpu_simple)
+        {
+            for (unsigned short i = 0; i<=cpu.EQsize; i++)
+            {
+                stringstream ss;
+                ss << i;
+                cfg->setValue ( &("core.cpu.EQ"+ss.str())[0], (int)autocalc.cpu_virtualEQ[i] );
+                cpu.EQ[i] = (int)autocalc.cpu_virtualEQ[i];
+                autocalc.cpu_freq[i]/=2.0;
+            }
+        }
+        if (autocalc.memory_enabled && !autocalc.mem_simple)
+        {
+            for (unsigned short i = 0; i<=memory.EQsize; i++)
+            {
+                stringstream ss;
+                ss << i;
+                cfg->setValue ( &("core.memory.EQ"+ss.str())[0], (int)autocalc.memory_virtualEQ[i] );
+                memory.EQ[i] = (int)autocalc.memory_virtualEQ[i];
+                autocalc.memory_freq[i]/=2.0;
+            }
+        }
+        if (autocalc.battery_enabled && !autocalc.bat_simple)
+        {
+            for (unsigned short i = 0; i<=battery.EQsize; i++)
+            {
+                stringstream ss;
+                ss << i;
+                cfg->setValue ( &("core.battery.EQ"+ss.str())[0], (int)autocalc.battery_virtualEQ[i] );
+                battery.EQ[i] = (int)autocalc.battery_virtualEQ[i];
+                autocalc.battery_freq[i]/=2.0;
+            }
+        }
+        if (autocalc.temperature_enabled && !autocalc.temp_simple)
+        {
+            for (unsigned short i = 0; i<=temperature.EQsize; i++)
+            {
+                stringstream ss;
+                ss << i;
+                cfg->setValue ( &("core.temperature.EQ"+ss.str())[0], (int)autocalc.temperature_virtualEQ[i] );
+                temperature.EQ[i] = (int)autocalc.temperature_virtualEQ[i];
+                autocalc.temperature_freq[i]/=2.0;
+            }
+        }
+        cfg->save();
+        autocalc.save_next = autocalc.save_interval;
+        autocalc.forcesave = false;
     }
 }
 
@@ -1204,7 +1902,7 @@ void Core::load_config ()
     cpu.loseless            = cfg->lookupValue ( "core.cpu.adaptation",                 10          );
     cpu.buffered            = cfg->lookupValue ( "core.cpu.buffered",                   true        );
     cpu.buff_size           = cfg->lookupValue ( "core.cpu.buffer_size",                10          );
-    cpu.EQsize              = cfg->lookupValue ( "core.cpu.EQsize",                     1           );
+    cpu.EQsize              = cfg->lookupValue ( "core.cpu.EQsize",                     2           );
     for (unsigned short i = 0; i<=cpu.EQsize; i++)
     {
         stringstream ss;
@@ -1221,7 +1919,7 @@ void Core::load_config ()
     memory.loseless         = cfg->lookupValue ( "core.memory.adaptation",              10          );
     memory.buffered         = cfg->lookupValue ( "core.memory.buffered",                true        );
     memory.buff_size        = cfg->lookupValue ( "core.memory.buffer_size",             10          );
-    memory.EQsize           = cfg->lookupValue ( "core.memory.EQsize",                  1           );
+    memory.EQsize           = cfg->lookupValue ( "core.memory.EQsize",                  2           );
     for (unsigned short i = 0; i<=memory.EQsize; i++)
     {
         stringstream ss;
@@ -1241,7 +1939,7 @@ void Core::load_config ()
     temperature.unit        = cfg->lookupValue ( "core.temperature.unit",               1           );
     temperature.EQbegin     = cfg->lookupValue ( "core.temperature.EQbegin",            30          );
     temperature.EQend       = cfg->lookupValue ( "core.temperature.EQend",              70          );
-    temperature.EQsize      = cfg->lookupValue ( "core.temperature.EQsize",             1           );
+    temperature.EQsize      = cfg->lookupValue ( "core.temperature.EQsize",             2           );
     for (unsigned short i = 0; i<=temperature.EQsize; i++)
     {
         stringstream ss;
@@ -1258,7 +1956,7 @@ void Core::load_config ()
     battery.loseless        = cfg->lookupValue ( "core.battery.adaptation",             10          );
     battery.buffered        = cfg->lookupValue ( "core.battery.buffered",               false       );
     battery.buff_size       = cfg->lookupValue ( "core.battery.buffer_size",            10          );
-    battery.EQsize          = cfg->lookupValue ( "core.battery.EQsize",                 1           );
+    battery.EQsize          = cfg->lookupValue ( "core.battery.EQsize",                 2           );
     for (unsigned short i = 0; i<=battery.EQsize; i++)
     {
         stringstream ss;
@@ -1333,9 +2031,42 @@ void Core::load_config ()
 
     //autocalc_sector
 
-    autocalc.enabled        = cfg->lookupValue("core.autocalc.enabled",                 true        );
-    autocalc.save_interval  = cfg->lookupValue("core.autocalc.interval",                300         );
-    autocalc.impact         = cfg->lookupValue("core.autocalc.impact",                  20          );
+    autocalc.enabled                            = cfg->lookupValue("core.autocalc.enabled",                         true        );
+    autocalc.save_interval                      = cfg->lookupValue("core.autocalc.interval",                        300         );
+    autocalc.start_delay                        = cfg->lookupValue("core.autocalc.delay",                           120         );
+    autocalc.impact                             = cfg->lookupValue("core.autocalc.impact",                          2           );
+    autocalc.cpu_enabled                        = cfg->lookupValue("core.autocalc.cpu.enabled",                     true        );
+    autocalc.auto_cpu                           = cfg->lookupValue("core.autocalc.cpu.auto_angle",                  false       );
+    autocalc.cpu_swalll                         = cfg->lookupValue("core.autocalc.cpu.stable_wall_low",             50          );
+    autocalc.cpu_swallh                         = cfg->lookupValue("core.autocalc.cpu.stable_wall_high",            50          );
+    autocalc.cpu_mult_low                       = cfg->lookupValue("core.autocalc.cpu.multiple_low",                2           );
+    autocalc.cpu_mult_low_converter             = cfg->lookupValue("core.autocalc.cpu.low_converter",               1           );
+    autocalc.cpu_mult_high                      = cfg->lookupValue("core.autocalc.cpu.multiple_high",               2           );
+    autocalc.cpu_mult_high_converter            = cfg->lookupValue("core.autocalc.cpu.high_converter",              1           );
+    autocalc.memory_enabled                     = cfg->lookupValue("core.autocalc.memory.enabled",                  true        );
+    autocalc.auto_memory                        = cfg->lookupValue("core.autocalc.memory.auto_angle",               false       );
+    autocalc.memory_swalll                      = cfg->lookupValue("core.autocalc.memory.stable_wall_low",          50          );
+    autocalc.memory_swallh                      = cfg->lookupValue("core.autocalc.memory.stable_wall_high",         50          );
+    autocalc.memory_mult_low                    = cfg->lookupValue("core.autocalc.memory.multiple_low",             2           );
+    autocalc.memory_mult_low_converter          = cfg->lookupValue("core.autocalc.memory.low_converter",            1           );
+    autocalc.memory_mult_high                   = cfg->lookupValue("core.autocalc.memory.multiple_high",            2           );
+    autocalc.memory_mult_high_converter         = cfg->lookupValue("core.autocalc.memory.high_converter",           1           );
+    autocalc.battery_enabled                    = cfg->lookupValue("core.autocalc.battery.enabled",                 true        );
+    autocalc.auto_battery                       = cfg->lookupValue("core.autocalc.battery.auto_angle",              false       );
+    autocalc.battery_swalll                     = cfg->lookupValue("core.autocalc.battery.stable_wall_low",         50          );
+    autocalc.battery_swallh                     = cfg->lookupValue("core.autocalc.battery.stable_wall_high",        50          );
+    autocalc.battery_mult_low                   = cfg->lookupValue("core.autocalc.battery.multiple_low",            2           );
+    autocalc.battery_mult_low_converter         = cfg->lookupValue("core.autocalc.battery.low_converter",           1           );
+    autocalc.battery_mult_high                  = cfg->lookupValue("core.autocalc.battery.multiple_high",           2           );
+    autocalc.battery_mult_high_converter        = cfg->lookupValue("core.autocalc.battery.high_converter",          1           );
+    autocalc.temperature_enabled                = cfg->lookupValue("core.autocalc.temperature.enabled",             true        );
+    autocalc.auto_temperature                   = cfg->lookupValue("core.autocalc.temperature.auto_angle",          false       );
+    autocalc.temperature_swalll                 = cfg->lookupValue("core.autocalc.temperature.stable_wall_low",     50          );
+    autocalc.temperature_swallh                 = cfg->lookupValue("core.autocalc.temperature.stable_wall_high",    50          );
+    autocalc.temperature_mult_low               = cfg->lookupValue("core.autocalc.temperature.multiple_low",        2           );
+    autocalc.temperature_mult_low_converter     = cfg->lookupValue("core.autocalc.temperature.low_converter",       1           );
+    autocalc.temperature_mult_high              = cfg->lookupValue("core.autocalc.temperature.multiple_high",       2           );
+    autocalc.temperature_mult_high_converter    = cfg->lookupValue("core.autocalc.temperature.high_converter",      1           );
 
     //eMu_sector
 
