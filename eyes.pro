@@ -18,7 +18,8 @@ SOURCES += \
   configuration.cc \
     memory.cc \
     hardware.cc \
-    cdbg.cc
+    cdbg.cc \
+    ostream.cc
 
 HEADERS += \ 
   defines.hxx\
@@ -31,13 +32,15 @@ HEADERS += \
   configuration.hxx \
     memory.hxx \
     cdbg.hxx \
-    hardware.hxx
+    hardware.hxx \
+    ostream.hh
 
 OTHER_FILES += \ 
   README.markdown\
   config.cfg\
   color.cfg\
-  configure
+  configure \
+  .gitignore
 
 system(./scripts/checklibs)
 
