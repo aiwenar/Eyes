@@ -200,7 +200,7 @@ void eyes_view::open_images ( QString color )
 {
     QPixmap * file;
     QString theme = "./themes/";
-    theme += Configuration::getInstance ()->lookupValue ( "eyes.theme", "default" );
+    theme += Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
     theme += '/';
     _s = "(eyes) loading images...  ";
     bool no_file ( false );
@@ -222,7 +222,6 @@ void eyes_view::open_images ( QString color )
         }
         delete file;
     }
-    _som ( 217, 216 );
     if ( no_file )
     {
         c_main.cancel ();
@@ -245,7 +244,6 @@ void eyes_view::open_images ( QString color )
         }
         delete file;
     }
-    _som ( 11, 10 );
     if ( no_file )
     {
         c_main.cancel ();
