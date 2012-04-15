@@ -31,6 +31,7 @@ extern unital     temperature;
 extern timal      times;
 extern timal      energy;
 extern bul        bulwers;
+extern auto_calc  autocalc;
 extern QTime      mousetime;
 extern mouse_actions  mousea;
 extern unsigned short battery_state;
@@ -45,23 +46,23 @@ extern int            core_step;
 This is concept debug layout:
 
 
-#######################################################################################################################
-# step:____   special:__    basic         mods       mouse debug | EQzone: _______ (__)              | wake up |
-# ---------------------------------------------------------------| final value: ___%                 |---------|
-# cpu:  | mem:  | temp: | battery:   | cpu:  load: | X:___ Y:___ | [x10%]                            | remain: |
-#       |       |       | ]]]]]]>><< |             |    <===>    | 10 |[]                            | _______ |
-# p1 b1 | m1 b1 | t1 b1 |------------| mem:  load: |-------------| 9  |[] []                         | active: |
-# p2 b2 | m2 b2 | t2 b2 | time:__    |             | friendship: | 8  |[] [] []                      | _______ |
-# p3 b3 | m3 b3 | t3 b3 | ========== | temp: val:  | ______ <___ | 7  |[] [] [] []                   | reason: |
-# p4 b4 | m4 b4 | t4 b4 |------------|             |-------------| 6  |[] [] [] [] []                | _______ |
-# p5 b5 | m5 b5 | t5 b5 | energy:__  | batt: perc: | delay:      | 5  |[] [] [] [] [] []             |---------|
-# p6 b6 | m6 b6 | t6 b6 | ========== |             | ___________ | 4  |[] [] [] [] [] [] []          | flue: _ |
-# p7 b7 | m7 b7 | t7 b7 |------------| time: val:  | result:     | 3  |[] [] [] [] [] [] [] []       |---------|
-# p8 b8 | m8 b8 | t8 b8 | RISE||CALM |             | ____[Mpx/s] | 2  |[] [] [] [] [] [] [] [] []    | buffer: |
-# p9 b9 | m9 b9 | t9 b9 | __________ | enrg: val:  |-------------| 1  |[] [] [] [] [] [] [] [] [] [] | _______ |
-# p0 b0 | m0 b0 | t0 b0 | __________ |             | mouse.mod:  | 0  |[] [] [] [] [] [] [] [] [] [] | amplit. |
-#       |       |       | next_wall: | plug: val:  | ____        |    +----------------------------- | __º __º |
-# ===== | ===== | ===== | __________ |             | buffers:___ |     01 __ __ __ __ __ __ __ __ __ |  <__º>  |
+############################################################################################################################
+# step:____   special:__    basic         mods       mouse debug | EQzone: _______ (__)              | wake up | autocalc  |
+# ---------------------------------------------------------------| final value: ___%                 |---------|-----------|
+# cpu:  | mem:  | temp: | battery:   | cpu:  load: | X:___ Y:___ | [x10%]                            | remain: | rem. ____ |
+#       |       |       | ]]]]]]>><< |             |    <===>    | 10 |[]                            | _______ | common    |
+# p1 b1 | m1 b1 | t1 b1 |------------| mem:  load: |-------------| 9  |[] []                         | active: | ___       |
+# p2 b2 | m2 b2 | t2 b2 | time:__    |             | friendship: | 8  |[] [] []                      | _______ |   rare:   |
+# p3 b3 | m3 b3 | t3 b3 | ========== | temp: val:  | ______ <___ | 7  |[] [] [] []                   | reason: | low  high |
+# p4 b4 | m4 b4 | t4 b4 |------------|             |-------------| 6  |[] [] [] [] []                | _______ | ___   ___ |
+# p5 b5 | m5 b5 | t5 b5 | energy:__  | batt: perc: | delay:      | 5  |[] [] [] [] [] []             |---------| anglelow  |
+# p6 b6 | m6 b6 | t6 b6 | ========== |             | ___________ | 4  |[] [] [] [] [] [] []          | flue: _ |  _______  |
+# p7 b7 | m7 b7 | t7 b7 |------------| time: val:  | result:     | 3  |[] [] [] [] [] [] [] []       |---------| anglehigh |
+# p8 b8 | m8 b8 | t8 b8 | RISE||CALM |             | ____[Mpx/s] | 2  |[] [] [] [] [] [] [] [] []    | buffer: |  _______  |
+# p9 b9 | m9 b9 | t9 b9 | __________ | enrg: val:  |-------------| 1  |[] [] [] [] [] [] [] [] [] [] | _______ | multlow   |
+# p0 b0 | m0 b0 | t0 b0 | __________ |             | mouse.mod:  | 0  |[] [] [] [] [] [] [] [] [] [] | amplit. | (A)  ____ |
+#       |       |       | next_wall: | plug: val:  | ____        |    +----------------------------- | __º __º | multhigh  |
+# ===== | ===== | ===== | __________ |             | buffers:___ |     01 __ __ __ __ __ __ __ __ __ |  <__º>  | (A)  ____ |
 
 
 And for everyone there are terminal instructions for that:
@@ -303,6 +304,24 @@ cdbg::cdbg ( Core * c ) :
           "\033[65C  2 \033[" << max_EQ*3 + 7 << "Cbuffer:\n"
           "\033[65C  1 \n"
           "\033[65C  0 \033[" << max_EQ*3 + 7 << "Camplit.\n\033[14A";
+  if (autocalc.enabled)
+  {
+      cout << "\033[" << max_EQ*3 + 85 << "C autocalc  |";
+      for (int i = max_s+5; i>0; i--)    cout << "\033[1B\033[1D|";
+      for (int i = max_s+5; i>0; i--)    cout << "\033[1A";
+      cout << "\n\033";
+      cout << "\033[" << max_EQ*3 + 85 << "C-----------\n"
+              "\033[" << max_EQ*3 + 85 << "C rem.      \n"
+              "\033[" << max_EQ*3 + 85 << "C common    \n\n"
+              "\033[" << max_EQ*3 + 85 << "C   rare:   \n"
+              "\033[" << max_EQ*3 + 85 << "C low  high \n\n"
+              "\033[" << max_EQ*3 + 85 << "C anglelow  \n\n"
+              "\033[" << max_EQ*3 + 85 << "C anglehigh \n\n"
+              "\033[" << max_EQ*3 + 85 << "C multlow   \n"
+              "\033[" << max_EQ*3 + 85 << "C ( )       \n"
+              "\033[" << max_EQ*3 + 85 << "C multhigh  \n"
+              "\033[" << max_EQ*3 + 85 << "C ( )       \n\033[16A\n\033[1A";
+  }
   if (core->hdbg_enabled)
       cout << "\033[" << max_EQ*3 + 85 << "C HARDLY DEBUG MODE:";
   cout << "\n\n\033[38Ccpu:\n\033[1A\033[44Cload:\n"
@@ -1245,10 +1264,16 @@ void cdbg::on_timer_tick ()
   spacefill(mousea.tr, 3);
 
   cout << "\033[15A\n\033[1A\033[74C";
-  if (core_step % 40 < 10)
+
+
+
+
+
+
+  if (core_step % 60 < 15)
   {
       cout << "cpu    " << "\033[2C\033[1;30m";
-      spacefill(10 - (core_step%40), 2);
+      spacefill(15 - (core_step%60), 2);
       cout << "\n\033[79C\033[33m" << cpu.calculate() << "\n\n\033[70C";
       for (int i = 10; i>=0; i--)
       {
@@ -1259,21 +1284,93 @@ void cdbg::on_timer_tick ()
           cout << "\n\033[70C";
       }
       cout << "\n\033[12A\033[70C";
-      for (int i = 10; i>=0; i--)
+      if (!autocalc.cpu_enabled)
       {
-          for (int j = 0; j<=cpu.EQsize;j++)
+          for (int i = 10; i>=0; i--)
           {
-              if (cpu.EQ[j] >= i*10)
+              for (int j = 0; j<=cpu.EQsize;j++)
               {
-                  if (cpu.load >= (100/cpu.EQsize)*j && cpu.load < (100/cpu.EQsize)*(j+1))
-                      cout << "\033[1;34m[] ";
+                  if (cpu.EQ[j] >= i*10)
+                  {
+                      if (cpu.load >= (100/cpu.EQsize)*j && cpu.load < (100/cpu.EQsize)*(j+1))
+                          cout << "\033[1;34m[] ";
+                      else
+                          cout << "\033[1;36m[] ";
+                  }
                   else
-                      cout << "\033[1;36m[] ";
+                      cout << "   ";
               }
-              else
-                  cout << "   ";
+              cout << "\033[1;33m\n\033[70C";
           }
-          cout << "\033[1;33m\n\033[70C";
+      }
+      else
+      {
+          if (core_step % 15 < 5 || autocalc.start_delay != 0)
+          {
+              for (int i = 10; i>=0; i--)
+              {
+                  for (int j = 0; j<=cpu.EQsize;j++)
+                  {
+                      if (autocalc.cpu_virtualEQ[j] >= i*10)
+                      {
+                          if (cpu.load >= (100/cpu.EQsize)*j && cpu.load < (100/cpu.EQsize)*(j+1))
+                              cout << "\033[1;34m[] ";
+                          else
+                              cout << "\033[1;36m[] ";
+                      }
+                      else
+                          cout << "   ";
+                  }
+                  cout << "\033[1;33m\n\033[70C";
+              }
+          }
+          else if (core_step % 15 < 10)
+          {
+              double correction = 100.0/autocalc.cpu_common;
+              for (int i = 10; i>=0; i--)
+              {
+                  for (int j = 0; j<=cpu.EQsize;j++)
+                  {
+                      if (autocalc.cpu_freq[j]*correction >= i*10)
+                      {
+                          if (j == autocalc.cpu_curmid)
+                              cout << "\033[36m[] ";
+                          else if (j == autocalc.cpu_stablepointlow)
+                              cout << "\033[1;31m[] ";
+                          else if ( j == autocalc.cpu_stablepointhigh)
+                              cout << "\033[1;32m[] ";
+                          else
+                              cout << "\033[35m[] ";
+                      }
+                      else
+                          cout << "   ";
+                  }
+                  cout << "\033[1;33m\n\033[70C";
+              }
+          }
+          else
+          {
+              for (int i = 10; i>=0; i--)
+              {
+                  for (int j = 0; j<=cpu.EQsize;j++)
+                  {
+                      if (autocalc.cpu_curve[j] >= i*10)
+                      {
+                          if (j == autocalc.cpu_curmid)
+                              cout << "\033[36m[] ";
+                          else if (j == autocalc.cpu_stablepointlow)
+                              cout << "\033[1;31m[] ";
+                          else if ( j == autocalc.cpu_stablepointhigh)
+                              cout << "\033[1;32m[] ";
+                          else
+                              cout << "\033[35m[] ";
+                      }
+                      else
+                          cout << "   ";
+                  }
+                  cout << "\033[1;33m\n\033[70C";
+              }
+          }
       }
 
       cout << "\n\033[70C";
@@ -1281,11 +1378,59 @@ void cdbg::on_timer_tick ()
       {
           spacefill((100/cpu.EQsize)*i, 3);
       }
+      if (autocalc.cpu_enabled)
+      {
+          cout << "\033[1A\n\033[13A";
+          cout << "\033[" << max_EQ*3 + 90 << "C";
+          spacefill (autocalc.start_delay, 4);
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.cpu_common, 3);
+          cout << "\n\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.cpu_exoticlow, 3);
+          cout << "\033[2C";
+          spacefill (autocalc.cpu_exotichigh, 3);
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.cpu_freq_angle_low, 3);
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.cpu_freq_angle_high, 3);
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          if (autocalc.auto_cpu)
+          {
+              cout <<  "\033[37m";
+          }
+          else
+              cout << "\033[1;30m";
+          cout << "A\033[2C\033[33m";
+          spacefill (10*autocalc.cpu_mult_low, 4);
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          if (autocalc.auto_cpu)
+          {
+              cout <<  "\033[37m";
+          }
+          else
+              cout << "\033[1;30m";
+          cout << "A\033[2C\033[33m";
+          spacefill (10*autocalc.cpu_mult_high, 4);
+      }
+      else if (autocalc.enabled)
+      {
+          cout << "\033[1A\n\033[13A";
+          cout << "\033[" << max_EQ*3 + 90 << "C    ";
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\n\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\033[2C   ";
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          cout << " \033[2C    ";
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          cout << " \033[2C    ";
+      }
   }
-  else if (core_step % 40 >= 10 && core_step % 40 < 20)
+  else if (core_step % 60 >= 15 && core_step % 60 < 30)
   {
       cout << "memory " << "\033[2C\033[1;30m";
-      spacefill(20 - (core_step%40), 2);
+      spacefill(30 - (core_step%60), 2);
       cout << "\n\033[79C\033[33m";
       spacefill (memory.calculate(), 2);
       cout << "\n\n\033[70C";
@@ -1298,21 +1443,94 @@ void cdbg::on_timer_tick ()
           cout << "\n\033[70C";
       }
       cout << "\n\033[12A\033[70C";
-      for (int i = 10; i>=0; i--)
+      if (!autocalc.memory_enabled)
       {
-          for (int j = 0; j<=memory.EQsize;j++)
+          for (int i = 10; i>=0; i--)
           {
-              if (memory.EQ[j] >= i*10)
+              for (int j = 0; j<=memory.EQsize;j++)
               {
-                  if (memory.load >= (100/memory.EQsize)*j && memory.load < (100/memory.EQsize)*(j+1))
-                      cout << "\033[1;34m[] ";
+                  if (memory.EQ[j] >= i*10)
+                  {
+                      if (memory.load >= (100/memory.EQsize)*j && memory.load < (100/memory.EQsize)*(j+1))
+                          cout << "\033[1;34m[] ";
+                      else
+                          cout << "\033[1;36m[] ";
+                  }
                   else
-                      cout << "\033[1;36m[] ";
+                      cout << "   ";
               }
-              else
-                  cout << "   ";
+              cout << "\033[1;33m\n\033[70C";
           }
-          cout << "\033[1;33m\n\033[70C";
+      }
+      else
+      {
+          if (core_step % 15 < 5 || autocalc.start_delay != 0)
+          {
+              for (int i = 10; i>=0; i--)
+              {
+                  for (int j = 0; j<=memory.EQsize;j++)
+                  {
+                      if (autocalc.memory_virtualEQ[j] >= i*10)
+                      {
+                          if (memory.load >= (100/memory.EQsize)*j && memory.load < (100/memory.EQsize)*(j+1))
+                              cout << "\033[1;34m[] ";
+                          else
+                              cout << "\033[1;36m[] ";
+                      }
+                      else
+                          cout << "   ";
+                  }
+                  cout << "\033[1;33m\n\033[70C";
+              }
+          }
+          else if (core_step % 15 < 10)
+          {
+              double correction = 100.0/autocalc.memory_common;
+              for (int i = 10; i>=0; i--)
+              {
+                  for (int j = 0; j<=memory.EQsize;j++)
+                  {
+                      if (autocalc.memory_freq[j]*correction >= i*10)
+                      {
+                          if (j == autocalc.memory_curmid)
+                              cout << "\033[36m[] ";
+                          else if (j == autocalc.memory_stablepointlow)
+                              cout << "\033[1;31m[] ";
+                          else if ( j == autocalc.memory_stablepointhigh)
+                              cout << "\033[1;32m[] ";
+                          else
+                              cout << "\033[35m[] ";
+                      }
+                      else
+                          cout << "   ";
+                  }
+                  cout << "\033[1;33m\n\033[70C";
+              }
+          }
+          else
+          {
+              double correction = 100.0/autocalc.memory_common;
+              for (int i = 10; i>=0; i--)
+              {
+                  for (int j = 0; j<=memory.EQsize;j++)
+                  {
+                      if (autocalc.memory_curve[j] >= i*10)
+                      {
+                          if (j == autocalc.memory_curmid)
+                              cout << "\033[36m[] ";
+                          else if (j == autocalc.memory_stablepointlow)
+                              cout << "\033[1;31m[] ";
+                          else if ( j == autocalc.memory_stablepointhigh)
+                              cout << "\033[1;32m[] ";
+                          else
+                              cout << "\033[35m[] ";
+                      }
+                      else
+                          cout << "   ";
+                  }
+                  cout << "\033[1;33m\n\033[70C";
+              }
+          }
       }
 
       cout << "\n\033[70C";
@@ -1320,11 +1538,59 @@ void cdbg::on_timer_tick ()
       {
           spacefill((100/memory.EQsize)*i, 3);
       }
+      if (autocalc.memory_enabled)
+      {
+          cout << "\033[1A\n\033[13A";
+          cout << "\033[" << max_EQ*3 + 90 << "C";
+          spacefill (autocalc.start_delay, 4);
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.memory_common, 3);
+          cout << "\n\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.memory_exoticlow, 3);
+          cout << "\033[2C";
+          spacefill (autocalc.memory_exotichigh, 3);
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.memory_freq_angle_low, 3);
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.memory_freq_angle_high, 3);
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          if (autocalc.auto_memory)
+          {
+              cout <<  "\033[37m";
+          }
+          else
+              cout << "\033[1;30m";
+          cout << "A\033[2C\033[33m";
+          spacefill (10*autocalc.memory_mult_low, 4);
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          if (autocalc.auto_memory)
+          {
+              cout <<  "\033[37m";
+          }
+          else
+              cout << "\033[1;30m";
+          cout << "A\033[2C\033[33m";
+          spacefill (10*autocalc.memory_mult_high, 4);
+      }
+      else if (autocalc.enabled)
+      {
+          cout << "\033[1A\n\033[13A";
+          cout << "\033[" << max_EQ*3 + 90 << "C    ";
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\n\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\033[2C   ";
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          cout << " \033[2C    ";
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          cout << " \033[2C    ";
+      }
   }
-  else if (core_step % 40 >= 20 && core_step % 40 < 30)
+  else if (core_step % 60 >= 30 && core_step % 60 < 45)
   {
       cout << "thermal" << "\033[2C\033[1;30m";
-      spacefill(30 - (core_step%40), 2);
+      spacefill(45 - (core_step%60), 2);
       cout << "\n\033[79C\033[33m";
       spacefill(temperature.calculate(), 2);
       cout << "\n\n\033[70C";
@@ -1337,33 +1603,154 @@ void cdbg::on_timer_tick ()
           cout << "\n\033[70C";
       }
       cout << "\n\033[12A\033[70C";
-      for (int i = 10; i>=0; i--)
+      if (!autocalc.temperature_enabled)
       {
-          for (int j = 0; j<=temperature.EQsize;j++)
+          for (int i = 10; i>=0; i--)
           {
-              if (temperature.EQ[j] >= i*10)
+              for (int j = 0; j<=temperature.EQsize;j++)
               {
-                  if (temperature.value >= temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*j && temperature.value < temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*(j+1))
-                      cout << "\033[1;34m[] ";
+                  if (temperature.EQ[j] >= i*10)
+                  {
+                      if (temperature.value >= temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*j && temperature.value < temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*(j+1))
+                          cout << "\033[1;34m[] ";
+                      else
+                          cout << "\033[1;36m[] ";
+                  }
                   else
-                      cout << "\033[1;36m[] ";
+                      cout << "   ";
               }
-              else
-                  cout << "   ";
+              cout << "\033[1;33m\n\033[70C";
           }
-          cout << "\033[1;33m\n\033[70C";
       }
+      else
+      {
+          if (core_step % 15 < 5 || autocalc.start_delay != 0)
+          {
+              for (int i = 10; i>=0; i--)
+              {
+                  for (int j = 0; j<=temperature.EQsize;j++)
+                  {
+                      if (autocalc.temperature_virtualEQ[j] >= i*10)
+                      {
+                          if (temperature.value >= temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*j && temperature.value < temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*(j+1))
+                              cout << "\033[1;34m[] ";
+                          else
+                              cout << "\033[1;36m[] ";
+                      }
+                      else
+                          cout << "   ";
+                  }
+                  cout << "\033[1;33m\n\033[70C";
+              }
+          }
+          else if (core_step % 15 < 10)
+          {
+              double correction = 100.0/autocalc.temperature_common;
+              for (int i = 10; i>=0; i--)
+              {
+                  for (int j = 0; j<=temperature.EQsize;j++)
+                  {
+                      if (autocalc.temperature_freq[j]*correction >= i*10)
+                      {
+                          if (j == autocalc.temperature_curmid)
+                              cout << "\033[36m[] ";
+                          else if (j == autocalc.temperature_stablepointlow)
+                              cout << "\033[1;31m[] ";
+                          else if ( j == autocalc.temperature_stablepointhigh)
+                              cout << "\033[1;32m[] ";
+                          else
+                              cout << "\033[35m[] ";
+                      }
+                      else
+                          cout << "   ";
+                  }
+                  cout << "\033[1;33m\n\033[70C";
+              }
+          }
+          else
+          {
+              for (int i = 10; i>=0; i--)
+              {
+                  for (int j = 0; j<=temperature.EQsize;j++)
+                  {
+                      if (autocalc.temperature_curve[j] >= i*10)
+                      {
+                          if (j == autocalc.temperature_curmid)
+                              cout << "\033[36m[] ";
+                          else if (j == autocalc.temperature_stablepointlow)
+                              cout << "\033[1;31m[] ";
+                          else if ( j == autocalc.temperature_stablepointhigh)
+                              cout << "\033[1;32m[] ";
+                          else
+                              cout << "\033[35m[] ";
+                      }
+                      else
+                          cout << "   ";
+                  }
+                  cout << "\033[1;33m\n\033[70C";
+              }
+          }
+      }
+
 
       cout << "\n\033[70C";
       for (int i = 0; i<=temperature.EQsize; i++)
       {
           spacefill(temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*i, 3);
       }
+      if (autocalc.temperature_enabled)
+      {
+          cout << "\033[1A\n\033[13A";
+          cout << "\033[" << max_EQ*3 + 90 << "C";
+          spacefill (autocalc.start_delay, 4);
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.temperature_common, 3);
+          cout << "\n\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.temperature_exoticlow, 3);
+          cout << "\033[2C";
+          spacefill (autocalc.temperature_exotichigh, 3);
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.temperature_freq_angle_low, 3);
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.temperature_freq_angle_high, 3);
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          if (autocalc.auto_temperature)
+          {
+              cout <<  "\033[37m";
+          }
+          else
+              cout << "\033[1;30m";
+          cout << "A\033[2C\033[33m";
+          spacefill (10*autocalc.temperature_mult_low, 4);
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          if (autocalc.auto_temperature)
+          {
+              cout <<  "\033[37m";
+          }
+          else
+              cout << "\033[1;30m";
+          cout << "A\033[2C\033[33m";
+          spacefill (10*autocalc.temperature_mult_high, 4);
+      }
+      else if (autocalc.enabled)
+      {
+          cout << "\033[1A\n\033[13A";
+          cout << "\033[" << max_EQ*3 + 90 << "C    ";
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\n\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\033[2C   ";
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          cout << " \033[2C    ";
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          cout << " \033[2C    ";
+      }
   }
   else
   {
       cout << "battery" << "\033[2C\033[1;30m";
-      spacefill(40 - (core_step%40), 2);
+      spacefill(60 - (core_step%60), 2);
       cout << "\n\033[79C\033[33m";
       spacefill(battery.calculate(), 2);
       cout << "\n\n\033[70C";
@@ -1376,27 +1763,148 @@ void cdbg::on_timer_tick ()
           cout << "\n\033[70C";
       }
       cout << "\n\033[12A\033[70C";
-      for (int i = 10; i>=0; i--)
+      if (!autocalc.battery_enabled)
       {
-          for (int j = 0; j<=battery.EQsize;j++)
+          for (int i = 10; i>=0; i--)
           {
-              if (battery.EQ[j] >= i*10)
+              for (int j = 0; j<=battery.EQsize;j++)
               {
-                  if (battery.load >= (100/battery.EQsize)*j && battery.load < (100/battery.EQsize)*(j+1))
-                      cout << "\033[1;34m[] ";
+                  if (battery.EQ[j] >= i*10)
+                  {
+                      if (battery.load >= (100/battery.EQsize)*j && battery.load < (100/battery.EQsize)*(j+1))
+                          cout << "\033[1;34m[] ";
+                      else
+                          cout << "\033[1;36m[] ";
+                  }
                   else
-                      cout << "\033[1;36m[] ";
+                      cout << "   ";
               }
-              else
-                  cout << "   ";
+              cout << "\033[1;33m\n\033[70C";
           }
-          cout << "\033[1;33m\n\033[70C";
+      }
+      else
+      {
+          if (core_step % 15 < 5 || autocalc.start_delay != 0)
+          {
+              for (int i = 10; i>=0; i--)
+              {
+                  for (int j = 0; j<=battery.EQsize;j++)
+                  {
+                      if (autocalc.battery_virtualEQ[j] >= i*10)
+                      {
+                          if (battery.load >= (100/battery.EQsize)*j && battery.load < (100/battery.EQsize)*(j+1))
+                              cout << "\033[1;34m[] ";
+                          else
+                              cout << "\033[1;36m[] ";
+                      }
+                      else
+                          cout << "   ";
+                  }
+                  cout << "\033[1;33m\n\033[70C";
+              }
+          }
+          else if (core_step % 15 < 10)
+          {
+              double correction = 100.0/autocalc.battery_common;
+              for (int i = 10; i>=0; i--)
+              {
+                  for (int j = 0; j<=battery.EQsize;j++)
+                  {
+                      if (autocalc.battery_freq[j]*correction >= i*10)
+                      {
+                          if (j == autocalc.battery_curmid)
+                              cout << "\033[36m[] ";
+                          else if (j == autocalc.battery_stablepointlow)
+                              cout << "\033[1;31m[] ";
+                          else if ( j == autocalc.battery_stablepointhigh)
+                              cout << "\033[1;32m[] ";
+                          else
+                              cout << "\033[35m[] ";
+                      }
+                      else
+                          cout << "   ";
+                  }
+                  cout << "\033[1;33m\n\033[70C";
+              }
+          }
+          else
+          {
+              double correction = 100.0/autocalc.battery_common;
+              for (int i = 10; i>=0; i--)
+              {
+                  for (int j = 0; j<=battery.EQsize;j++)
+                  {
+                      if (autocalc.battery_curve[j] >= i*10)
+                      {
+                          if (j == autocalc.battery_curmid)
+                              cout << "\033[36m[] ";
+                          else if (j == autocalc.battery_stablepointlow)
+                              cout << "\033[1;31m[] ";
+                          else if ( j == autocalc.battery_stablepointhigh)
+                              cout << "\033[1;32m[] ";
+                          else
+                              cout << "\033[35m[] ";
+                      }
+                      else
+                          cout << "   ";
+                  }
+                  cout << "\033[1;33m\n\033[70C";
+              }
+          }
       }
 
       cout << "\n\033[70C";
       for (int i = 0; i<=battery.EQsize; i++)
       {
           spacefill((100/battery.EQsize)*i, 3);
+      }
+      if (autocalc.battery_enabled)
+      {
+          cout << "\033[1A\n\033[13A";
+          cout << "\033[" << max_EQ*3 + 90 << "C";
+          spacefill (autocalc.start_delay, 4);
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.battery_common, 3);
+          cout << "\n\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.battery_exoticlow, 3);
+          cout << "\033[2C";
+          spacefill (autocalc.battery_exotichigh, 3);
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.battery_freq_angle_low, 3);
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C";
+          spacefill (autocalc.battery_freq_angle_high, 3);
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          if (autocalc.auto_battery)
+          {
+              cout <<  "\033[37m";
+          }
+          else
+              cout << "\033[1;30m";
+          cout << "A\033[2C\033[33m";
+          spacefill (10*autocalc.battery_mult_low, 4);
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          if (autocalc.auto_battery)
+          {
+              cout <<  "\033[37m";
+          }
+          else
+              cout << "\033[1;30m";
+          cout << "A\033[2C\033[33m";
+          spacefill (10*autocalc.battery_mult_high, 4);
+      }
+      else if (autocalc.enabled)
+      {
+          cout << "\033[1A\n\033[13A";
+          cout << "\033[" << max_EQ*3 + 90 << "C    ";
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\n\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\033[2C   ";
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\n\n\033[" << max_EQ*3 + 86 << "C   ";
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          cout << " \033[2C    ";
+          cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
+          cout << " \033[2C    ";
       }
   }
       cout << "\033[1A\n\033[13A";
