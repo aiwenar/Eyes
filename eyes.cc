@@ -29,7 +29,6 @@ using namespace std;
 #define MM_NO_MOTION 10000
 #define DEF_THEME "draw"
 
-static char   folder[]    = "./pics/";
 static const char * files[]     = {
     "bul_01_a", "bul_01_m", "bul_01_o", "bul_01_s",                 //4
     "bul_02_a", "bul_02_m", "bul_02_o", "bul_02_s",                 //8
@@ -200,17 +199,20 @@ void _som ( int i, int max )
 void eyes_view::open_images ( QString color )
 {
     QPixmap * file;
+    QString theme = "./themes/";
+    theme += Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
+    theme += '/';
     _s = "(eyes) loading images...  ";
     bool no_file ( false );
     for ( int i=0 ; i<216 ; i++ )
     {
         _som ( i, 216 );
         file = new QPixmap ();
-        file->load ( QString ( folder ) + files[i] + ".png" );
+        file->load ( theme + files[i] + ".png" );
         if ( file->isNull () )
         {
             cerr << '\n';
-            error << "(eyes) file " << ( QString ( folder ) + files[i] + ".png" ).toStdString () << " is nil.\n";
+            error << "(eyes) file " << ( theme + files[i] + ".png" ).toStdString () << " is nil.\n";
             no_file = true;
             break;
         }
@@ -220,7 +222,6 @@ void eyes_view::open_images ( QString color )
         }
         delete file;
     }
-    _som ( 217, 216 );
     if ( no_file )
     {
         c_main.cancel ();
@@ -230,13 +231,12 @@ void eyes_view::open_images ( QString color )
     {
         _som ( i, 10 );
         file = new QPixmap ();
-        file->load ( QString ( folder ) + eyefiles[i] + color + ".png" );
+        file->load ( theme + eyefiles[i] + color + ".png" );
         if ( file->isNull () )
         {
             cerr << '\n';
-            error << "(eyes) file " << ( QString ( folder ) + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";
             no_file = true;
-            break;
+            error << "(eyes) file " << ( theme + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";;
         }
         else
         {
@@ -244,7 +244,6 @@ void eyes_view::open_images ( QString color )
         }
         delete file;
     }
-    _som ( 11, 10 );
     if ( no_file )
     {
         c_main.cancel ();
