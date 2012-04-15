@@ -30,16 +30,14 @@ HEADERS += \
   core.hxx\
   configurator.hxx \
   configuration.hxx \
-    memory.hxx \
-    cdbg.hxx \
-    hardware.hxx \
-    ostream.hh
+  memory.hxx \
+  cdbg.hxx \
+  hardware.hxx \
+  ostream.hh
 
 OTHER_FILES += \ 
   README.markdown\
-  config.cfg\
   color.cfg\
-  configure \
   .gitignore
 
 system(./scripts/checklibs)
