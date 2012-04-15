@@ -1182,7 +1182,7 @@ void Core::autocalc_init ()
     if (autocalc.cpu_enabled)
     {
         autocalc.c_cpu = cpu.stable;
-        if (cpu.EQsize > 2)
+        if (cpu.EQsize > 1)
             for (int i = 0; i<=cpu.EQsize; i++)
             {
                 autocalc.cpu_freq.push_back(0);
@@ -1192,13 +1192,13 @@ void Core::autocalc_init ()
         else
         {
             autocalc.cpu_enabled = false;
-            warning << "cpu EQ smaller than 3 brands - disabling cpu autocalc";
+            warning << "cpu EQ smaller than 3 brands - disabling cpu autocalc\n";
         }
     }
     if (autocalc.memory_enabled)
     {
         autocalc.c_mem = memory.stable;
-        if (memory.EQsize > 2)
+        if (memory.EQsize > 1)
             for (int i = 0; i<=memory.EQsize; i++)
             {
                 autocalc.memory_freq.push_back(0);
@@ -1208,13 +1208,13 @@ void Core::autocalc_init ()
         else
         {
             autocalc.memory_enabled = false;
-            warning << "memory EQ smaller than 3 brands - disabling memory autocalc";
+            warning << "memory EQ smaller than 3 brands - disabling memory autocalc\n";
         }
     }
     if (autocalc.battery_enabled)
     {
         autocalc.c_battery = battery.stable;
-        if (battery.EQsize > 2)
+        if (battery.EQsize > 1)
             for (int i = 0; i<=battery.EQsize; i++)
             {
                 autocalc.battery_freq.push_back(0);
@@ -1224,13 +1224,13 @@ void Core::autocalc_init ()
         else
         {
             autocalc.battery_enabled = false;
-            warning << "battery EQ smaller than 3 brands - disabling battery autocalc";
+            warning << "battery EQ smaller than 3 brands - disabling battery autocalc\n";
         }
     }
     if (autocalc.temperature_enabled)
     {
         autocalc.c_temp = temperature.stable;
-        if (temperature.EQsize > 2)
+        if (temperature.EQsize > 1)
             for (int i = 0; i<=temperature.EQsize; i++)
             {
                 autocalc.temperature_freq.push_back(0);
@@ -1240,7 +1240,7 @@ void Core::autocalc_init ()
         else
         {
             autocalc.temperature_enabled = false;
-            warning << "temperature EQ smaller than 3 brands - disabling temperature autocalc";
+            warning << "temperature EQ smaller than 3 brands - disabling temperature autocalc\n";
         }
     }
 }
@@ -1902,12 +1902,12 @@ void Core::load_config ()
     cpu.loseless            = cfg->lookupValue ( "core.cpu.adaptation",                 10          );
     cpu.buffered            = cfg->lookupValue ( "core.cpu.buffered",                   true        );
     cpu.buff_size           = cfg->lookupValue ( "core.cpu.buffer_size",                10          );
-    cpu.EQsize              = cfg->lookupValue ( "core.cpu.EQsize",                     2           );
+    cpu.EQsize              = cfg->lookupValue ( "core.cpu.EQsize",                     30          );
     for (unsigned short i = 0; i<=cpu.EQsize; i++)
     {
         stringstream ss;
         ss << i;
-        cpu.EQ.push_back (cfg->lookupValue ( &("core.cpu.EQ"+ss.str())[0], 20 ));
+        cpu.EQ.push_back (cfg->lookupValue ( &("core.cpu.EQ"+ss.str())[0], (int)cpu.stable ));
     }
 
     //mem_section
@@ -1919,12 +1919,12 @@ void Core::load_config ()
     memory.loseless         = cfg->lookupValue ( "core.memory.adaptation",              10          );
     memory.buffered         = cfg->lookupValue ( "core.memory.buffered",                true        );
     memory.buff_size        = cfg->lookupValue ( "core.memory.buffer_size",             10          );
-    memory.EQsize           = cfg->lookupValue ( "core.memory.EQsize",                  2           );
+    memory.EQsize           = cfg->lookupValue ( "core.memory.EQsize",                  30          );
     for (unsigned short i = 0; i<=memory.EQsize; i++)
     {
         stringstream ss;
         ss << i;
-        memory.EQ.push_back (cfg->lookupValue ( &("core.memory.EQ"+ss.str())[0], 20 ));
+        memory.EQ.push_back (cfg->lookupValue ( &("core.memory.EQ"+ss.str())[0], (int)memory.stable ));
     }
 
     //temperature_section
@@ -1939,12 +1939,12 @@ void Core::load_config ()
     temperature.unit        = cfg->lookupValue ( "core.temperature.unit",               1           );
     temperature.EQbegin     = cfg->lookupValue ( "core.temperature.EQbegin",            30          );
     temperature.EQend       = cfg->lookupValue ( "core.temperature.EQend",              70          );
-    temperature.EQsize      = cfg->lookupValue ( "core.temperature.EQsize",             2           );
+    temperature.EQsize      = cfg->lookupValue ( "core.temperature.EQsize",             30          );
     for (unsigned short i = 0; i<=temperature.EQsize; i++)
     {
         stringstream ss;
         ss << i;
-        temperature.EQ.push_back (cfg->lookupValue ( &("core.temperature.EQ"+ss.str())[0], 20 ));
+        temperature.EQ.push_back (cfg->lookupValue ( &("core.temperature.EQ"+ss.str())[0], (int)temperature.stable ));
     }
 
     //battery_section
@@ -1956,12 +1956,12 @@ void Core::load_config ()
     battery.loseless        = cfg->lookupValue ( "core.battery.adaptation",             10          );
     battery.buffered        = cfg->lookupValue ( "core.battery.buffered",               false       );
     battery.buff_size       = cfg->lookupValue ( "core.battery.buffer_size",            10          );
-    battery.EQsize          = cfg->lookupValue ( "core.battery.EQsize",                 2           );
+    battery.EQsize          = cfg->lookupValue ( "core.battery.EQsize",                 30          );
     for (unsigned short i = 0; i<=battery.EQsize; i++)
     {
         stringstream ss;
         ss << i;
-        battery.EQ.push_back (cfg->lookupValue ( &("core.battery.EQ"+ss.str())[0], 20 ));
+        battery.EQ.push_back (cfg->lookupValue ( &("core.battery.EQ"+ss.str())[0], (int)battery.stable ));
     }
 
     //times_sector
@@ -2034,7 +2034,7 @@ void Core::load_config ()
     autocalc.enabled                            = cfg->lookupValue("core.autocalc.enabled",                         true        );
     autocalc.save_interval                      = cfg->lookupValue("core.autocalc.interval",                        300         );
     autocalc.start_delay                        = cfg->lookupValue("core.autocalc.delay",                           120         );
-    autocalc.impact                             = cfg->lookupValue("core.autocalc.impact",                          2           );
+    autocalc.impact                             = cfg->lookupValue("core.autocalc.impact",                          1           );
     autocalc.cpu_enabled                        = cfg->lookupValue("core.autocalc.cpu.enabled",                     true        );
     autocalc.auto_cpu                           = cfg->lookupValue("core.autocalc.cpu.auto_angle",                  false       );
     autocalc.cpu_swalll                         = cfg->lookupValue("core.autocalc.cpu.stable_wall_low",             50          );
