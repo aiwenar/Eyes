@@ -1,21 +1,42 @@
 #include "ostream.hh"
 #include "configuration.hxx"
 
-OStream::OStream ( const char * path, const char * prefix ) :
-  prefix ( prefix )
+#include <iostream>
+
+OStream::OStream ( const char * path )
 {
-  Configuration * cfg = Configuration::getInstance ();
-  enabled = cfg->lookupValue ( (QString("debug.")+path+".use").toStdString().c_str(), false );
-  char * fp = cfg->lookupValue ( (QString("debug.")+path+".out").toStdString().c_str(), "/dev/null" );
-  stream.open ( fp, std::fstream::out );
+  enabled = true;
+  enabled = Configuration::getInstance ()->lookupValue ( (QString("debug.")+path).toStdString().c_str(), false );
 }
 
-void OStream::pstr ( const char * s )
+OStream& OStream::operator << ( const char * s )
 {
-  if ( not onmsg )
-  {
-    stream << prefix;
-    onmsg = true;
-  }
-  stream << s;
+  if ( not enabled ) return *this;
+  std::clog << s;
+  return *this;
 }
+
+OStream& OStream::operator << ( const int i )
+{
+  if ( not enabled ) return *this;
+  std::clog << i;
+  return *this;
+}
+
+OStream& OStream::operator << ( const std::string &s )
+{
+  if ( not enabled ) return *this;
+  std::clog << s;
+  return *this;
+}
+
+OStream& OStream::operator << ( const QString& s )
+{
+  if ( not enabled ) return *this;
+  std::clog << s.toStdString ();
+  return *this;
+}
+
+OStream oinfo    ( "info" );
+OStream oerror   ( "error" );
+OStream owarning ( "warning" );

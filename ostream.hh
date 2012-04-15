@@ -1,28 +1,26 @@
 #ifndef OSTREAM_HH
 #define OSTREAM_HH
 
-#include <fstream>
+#include <QString>
+#include <string>
 
-struct msg { typedef enum { end } type; };
+struct msg { enum { end } type; };
 
-//const msg end = { msg::end };
+const msg mend = { msg::end };
 
 class OStream
 {
 public:
-  OStream ( const char * path, const char * prefix );
+  OStream ( const char * path );
 
-  OStream&  operator<<  ( const char * s )  { pstr ( s ); return *this; }
-  OStream&  operator<<  ( const int i )     { pint ( i ); return *this; }
+  OStream&  operator<<  ( const char * s );
+  OStream&  operator<<  ( const int i );
+  OStream&  operator<<  ( const msg m );
+  OStream&  operator<<  ( const std::string& s );
+  OStream&  operator<<  ( const QString& s );
 
 private:
-  void pstr ( const char * );
-  void pint ( const int );
-
-  std::fstream stream;
   bool         enabled;
-  bool         onmsg;
-  const char * prefix;
 };
 
 #endif // OSTREAM_HH
