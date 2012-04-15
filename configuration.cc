@@ -132,7 +132,7 @@ bool Configuration::setValue ( const char *path, const char *value )
 
 bool Configuration::setValue ( const char *path, int value )
 {
-    lookup ( path, libconfig::Setting::TypeInt64 ) = value;
+    lookup ( path, libconfig::Setting::TypeInt ) = value;
     needsave = true;
     return false;
 }
