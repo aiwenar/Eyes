@@ -92,19 +92,25 @@ static const char * eyefiles[]  = {
     "blank"    // 10
 };
 
-const double versiond = 0.080001;
-const char *verstr = "0.8 alpha";
+const double versiond = 0.090100;
+const char *verstr = "0.9.1 alpha";
 
-void core_main ();
 bool is_finished;
 bool images_ready;
 
 QString get_face_suffix ( QString face )
 {
     Config cfg;
+    std::string ret;
     try
     {
         cfg.readFile ( "colors.cfg" );
+        if ( not cfg.lookupValue ( ( QString ( "colors." ) + face + ".suffix" ).toStdString (), ret ) )
+        {
+            cfg.lookupValue ( "colors.default", ret );
+            if ( not cfg.lookupValue ( ( QString ( "colors." ) + ret.c_str () + ".suffix" ).toStdString (), ret ) )
+                return QString ( "_g" );
+        }
     }
     catch ( libconfig::ParseException e )
     {
@@ -114,13 +120,6 @@ QString get_face_suffix ( QString face )
               << e.getLine () << '\n'
               << e.getError () << '\n';
         return QString ( "_g" );
-    }
-    std::string ret;
-    if ( not cfg.lookupValue ( ( QString ( "colors." ) + face + ".suffix" ).toStdString (), ret ) )
-    {
-        cfg.lookupValue ( "colors.default", ret );
-        if ( not cfg.lookupValue ( ( QString ( "colors." ) + ret.c_str () + ".suffix" ).toStdString (), ret ) )
-            return QString ( "_g" );
     }
     return QString ( ret.c_str () );
 }
