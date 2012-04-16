@@ -41,8 +41,8 @@ static const char help [] = {
   "\nSee --help colors for colors.\n"
 };
 
-static const char version [] = {
-  "eyes Copyright (C) 2011  Krzysztof Mędrzycki, Damian Chiliński\n"
+static const char about [] = {
+  "eyes Copyright (C) 2011, 2012  Krzysztof Mędrzycki, Damian Chiliński\n"
   "This program comes with ABSOLUTELY NO WARRANTY.\n"
   "This is free software, and you are welcome to redistribute it\n"
   "under certain conditions.\n"
@@ -116,7 +116,12 @@ int main ( int argc, char ** argv )
       }
     else if ( arg.at ( i ) == "-v" or arg.at ( i ) == "--version" )
     {
-      cout << version;
+      cout << "eyes " << verstr << '\n';
+      exit ( 0 );
+    }
+    else if ( arg.at ( i ) == "--about" )
+    {
+      cout << about;
       exit ( 0 );
     }
     else if ( arg.at ( i ).split ( "=" )[0] == "--color" )
