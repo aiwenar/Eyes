@@ -23,6 +23,7 @@
 #include <iostream>
 #include <string>
 #include <sstream>
+#include <unistd.h>
 
 using namespace std;
 
@@ -198,9 +199,15 @@ void eyes_view::open_images ( QString color )
 {
     QPixmap * file;
     QString theme = "./themes/";
-    theme += Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
+    const char * ctheme = Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
+    theme += ctheme;
     theme += '/';
     _s = "(eyes) loading images...  ";
+    if ( access ( theme.toStdString().c_str(), R_OK | X_OK ) == -1 )
+    {
+      error << "(eyes) theme `" << ctheme << "` does not exists. Trying default one...\n";
+      theme = "./themes/default/";
+    }
     bool no_file ( false );
     for ( int i=0 ; i<216 ; i++ )
     {
