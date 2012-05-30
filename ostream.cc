@@ -16,6 +16,13 @@ OStream& OStream::operator << ( const char * s )
   return *this;
 }
 
+OStream& OStream::operator << ( const char c )
+{
+  if ( not enabled ) return *this;
+  std::clog << c;
+  return *this;
+}
+
 OStream& OStream::operator << ( const int i )
 {
   if ( not enabled ) return *this;

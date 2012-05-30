@@ -14,6 +14,7 @@ public:
   OStream ( const char * path );
 
   OStream&  operator<<  ( const char * s );
+  OStream&  operator<<  ( const char c );
   OStream&  operator<<  ( const int i );
   OStream&  operator<<  ( const msg m );
   OStream&  operator<<  ( const std::string& s );
