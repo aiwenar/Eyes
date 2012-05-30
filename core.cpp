@@ -33,6 +33,7 @@
 #include "debug.hxx"
 #include "cdbg.hxx"
 #include "hardware.hxx"
+#include "defines.hxx"
 
 using namespace std;
 
@@ -1183,7 +1184,7 @@ void Core::autocalc_init ()
     {
         autocalc.c_cpu = cpu.stable;
         if (cpu.EQsize > 1)
-            for (int i = 0; i<=cpu.EQsize; i++)
+            for (uint i = 0; i<=cpu.EQsize; i++)
             {
                 autocalc.cpu_freq.push_back(0);
                 autocalc.cpu_curve.push_back(0);
@@ -1199,7 +1200,7 @@ void Core::autocalc_init ()
     {
         autocalc.c_mem = memory.stable;
         if (memory.EQsize > 1)
-            for (int i = 0; i<=memory.EQsize; i++)
+            for (uint i = 0; i<=memory.EQsize; i++)
             {
                 autocalc.memory_freq.push_back(0);
                 autocalc.memory_curve.push_back(0);
@@ -1698,7 +1699,7 @@ void Core::autocalc_reload ( Configuration * cfg )
             autocalc.temperature_freq[0]++;
             cfg->setValue("core.temperature.EQbegin", (int)temperature.value);
             autocalc.forcesave = true;
-            info << "autocalc caught new temperature: " << temperature.value << " EQbegin switched to new value";
+            info << "autocalc caught new temperature: " << (int)temperature.value << " EQbegin switched to new value";
             warning << "it's recomended to restart Eyes as quick as it's possible!";
         }
         for (int i = 0; i<=temperature.EQsize; i++)
@@ -1713,7 +1714,7 @@ void Core::autocalc_reload ( Configuration * cfg )
             autocalc.temperature_freq[temperature.EQsize]++;
             cfg->setValue("core.temperature.EQend", (int)temperature.value);
             autocalc.forcesave = true;
-            info << "autocalc caught new temperature: " << temperature.value << " EQend switched to new value";
+            info << "autocalc caught new temperature: " << (int)temperature.value << " EQend switched to new value";
             warning << "it's recomended to restart Eyes as quick as it's possible!";
         }
         else
