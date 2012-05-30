@@ -21,6 +21,7 @@
 typedef unsigned int uint32;
 typedef unsigned short uint16;
 typedef unsigned char uint8;
+typedef uint32 uint;
 
 typedef signed int sint32;
 typedef signed short sing16;
