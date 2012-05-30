@@ -24,6 +24,7 @@
 #include <string>
 #include <sstream>
 #include <unistd.h>
+#include <iostream>
 
 using namespace std;
 
@@ -267,17 +268,17 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_s"] );
     parea.drawPixmap ( int(mpx1), int(mpy), eye_m, eye_m, pics[spec] );
     parea.drawPixmap ( int(mpx2), int(mpy), eye_m, eye_m, pics[spec] );
-//    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_m"] );
-//    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_o"] );
-    for ( int i=0 ; i<NUM_LAYERS ; i++ )
-    {
-        if ( layers[i].drawable )
-            parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[layers[i].face] );
-    }
-    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_m"] ); // for test
-    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_o"] ); // for test
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_m"] );
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_o"] );
     parea.end ();
     area->setMask ( pics[face+"_a"].mask () );
+    for ( int i=0 ; i<NUM_LAYERS ; i++ )
+    {
+      if ( layers[i].drawable )
+      {
+        paint.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[layers[i].face] );
+      }
+    }
     paint.drawPixmap ( 0, 0, eyes_w, eyes_h, *area );
 }
 
@@ -359,9 +360,9 @@ void eyes_view::interrupt ()// QString start, QString end, int from, int to )
   clapper->interrupt ();// start, end, from ,to );
 }
 
-void eyes_view::set_layer ( Layers layer, QString face )
+void eyes_view::set_layer ( Layers layer, const char * face )
 {
-    layers[layer].face = face;
+  layers[layer].face = face;
 }
 
 void eyes_view::toggle_layer ( Layers layer, bool onoff )

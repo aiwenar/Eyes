@@ -113,7 +113,7 @@ public:
     void                send_eyes           ( QString neyes );
     void                hpp_evoke           ();
     void                toggle_layer        ( Layers layer, bool onoff );
-    void                set_layer           ( Layers layer, QString face );
+    void                set_layer           ( Layers layer, const char * face );
     void                reload_eyes         ();
     void                graphics_prepare    ();
     void                anims_reload        ();
