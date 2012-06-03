@@ -24,7 +24,8 @@
 #include <QMenu>
 #include <libconfig.h++>
 #include "eyes.hxx"
-#include <configurator.hxx>
+#include "configurator.hxx"
+#include "eyes_menu.hh"
 
 using namespace libconfig;
 
@@ -54,6 +55,7 @@ private:
     QAction           * quitA,
                       * setA;
     Configurator      * config;
+    eyes_menu         * menu;
 };
 
 #endif // EYES_WINDOW_HXX

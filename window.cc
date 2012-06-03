@@ -34,6 +34,7 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     resize ( eyes_w, eyes_h );
     setWindowTitle ( "!eyesy!" );
     setAttribute ( Qt::WA_TranslucentBackground, true );
+    setAttribute ( Qt::WA_MouseTracking, true );
     //setWindowFlags ( Qt::SplashScreen );
     eyes = new eyes_view ( this, color );
     config = new Configurator ( (QWidget*)nil );
@@ -69,6 +70,9 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
         trayico->show ();
         info << "(window) tray icon ready!\n";
     }
+    info << "(eyes_window) menu setup.\n";
+    menu = new eyes_menu ( this );
+    connect ( menu, SIGNAL ( quitting () ), this, SLOT ( onQuit () ) );
     info << "(eyes_widnow) ready!\n";
     eyes->show ();
     eyes->update ();
@@ -78,8 +82,9 @@ void eyes_window::mousePressEvent ( QMouseEvent * ev )
 {
   if ( ev->button () & Qt::RightButton )
   {
-    timenu->show ();
-    timenu->move ( x () - timenu->width () + width (), y () );
+    menu->show ();
+    //timenu->show ();
+    //timenu->move ( x () - timenu->width () + width (), y () );
   }
 }
 
