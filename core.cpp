@@ -924,8 +924,24 @@ void eyes_view::graphics_prepare()
             if (tmp == 1)
                 face_send = "bul_16";
         }
+    }
 
-
+    if (bulwers.tired == 0)
+        toggle_layer(SLEEPY, false);
+    else if (bulwers.tired == 1)
+    {
+        toggle_layer(SLEEPY, true);
+        set_layer(SLEEPY, "tired_01");
+    }
+    else if (bulwers.tired == 2)
+    {
+        toggle_layer(SLEEPY, true);
+        set_layer(SLEEPY, "tired_02");
+    }
+    else if (bulwers.tired == 3)
+    {
+        toggle_layer(SLEEPY, true);
+        set_layer(SLEEPY, "tired_03");
     }
 
 

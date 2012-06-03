@@ -1918,6 +1918,8 @@ void cdbg::on_timer_tick ()
       cout << "\n\n\033[" << max_EQ*3 + 76 << "C";
       if (bulwers.wkup_reason == 0)
           cout << " ---- ";
+      else if (bulwers.wkup_active == 0)
+          cout << " none ";
       else if (bulwers.wkup_active == 1)
           cout << " time ";
       else if (bulwers.wkup_active == 2)
