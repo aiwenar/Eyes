@@ -74,6 +74,15 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     eyes->update ();
 }
 
+void eyes_window::mousePressEvent ( QMouseEvent * ev )
+{
+  if ( ev->button () & Qt::RightButton )
+  {
+    timenu->show ();
+    timenu->move ( x () - timenu->width () + width (), y () );
+  }
+}
+
 void eyes_window::onQuit ()
 {
   Configuration::getInstance ()->save ();

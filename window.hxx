@@ -44,7 +44,8 @@ public:
     QIcon             * tico;
 signals:
 public slots:
-    void  onQuit  ();
+    void  onQuit          ();
+    void  mousePressEvent ( QMouseEvent * );
 private:
     bool                isicon;
     eyes_view         * eyes;
