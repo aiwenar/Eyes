@@ -1204,7 +1204,7 @@ void Core::autocalc_init ()
             {
                 autocalc.cpu_freq.push_back(0);
                 autocalc.cpu_curve.push_back(0);
-                autocalc.cpu_virtualEQ.push_back((double)cpu.EQ[i]);
+                autocalc.cpu_virtualEQ.push_back((long double)cpu.EQ[i]);
             }
         else
         {
@@ -1220,7 +1220,7 @@ void Core::autocalc_init ()
             {
                 autocalc.memory_freq.push_back(0);
                 autocalc.memory_curve.push_back(0);
-                autocalc.memory_virtualEQ.push_back((double)memory.EQ[i]);
+                autocalc.memory_virtualEQ.push_back((long double)memory.EQ[i]);
             }
         else
         {
@@ -1236,7 +1236,7 @@ void Core::autocalc_init ()
             {
                 autocalc.battery_freq.push_back(0);
                 autocalc.battery_curve.push_back(0);
-                autocalc.battery_virtualEQ.push_back((double)battery.EQ[i]);
+                autocalc.battery_virtualEQ.push_back((long double)battery.EQ[i]);
             }
         else
         {
@@ -1252,7 +1252,7 @@ void Core::autocalc_init ()
             {
                 autocalc.temperature_freq.push_back(0);
                 autocalc.temperature_curve.push_back(0);
-                autocalc.temperature_virtualEQ.push_back((double)temperature.EQ[i]);
+                autocalc.temperature_virtualEQ.push_back((long double)temperature.EQ[i]);
             }
         else
         {
@@ -1296,8 +1296,8 @@ void Core::autocalc_reload ( Configuration * cfg )
         else
         {
             autocalc.cpu_perc = 100*(cpu.load-(100/cpu.EQsize)*autocalc.cpu_curstep)/(100/cpu.EQsize);
-            autocalc.cpu_freq[autocalc.cpu_curstep]+=((double)autocalc.cpu_perc)/100.0;
-            autocalc.cpu_freq[autocalc.cpu_curstep]+=(double)(100-autocalc.cpu_perc)/100.0;
+            autocalc.cpu_freq[autocalc.cpu_curstep]+=((long double)autocalc.cpu_perc)/100.0;
+            autocalc.cpu_freq[autocalc.cpu_curstep]+=(long double)(100-autocalc.cpu_perc)/100.0;
         }
         for (int i = 0; i<=cpu.EQsize; i++)
         {
@@ -1350,12 +1350,12 @@ void Core::autocalc_reload ( Configuration * cfg )
         }
         for (int i = 0; i<autocalc.cpu_curmid; i++)
         {
-            if (autocalc.cpu_freq[i] < autocalc.cpu_exoticlow+(double)(autocalc.cpu_swalll*(autocalc.cpu_common-autocalc.cpu_exoticlow))/100 )
+            if (autocalc.cpu_freq[i] < autocalc.cpu_exoticlow+(long double)(autocalc.cpu_swalll*(autocalc.cpu_common-autocalc.cpu_exoticlow))/100 )
                 autocalc.cpu_stablepointlow = i;
         }
         for (int i = autocalc.cpu_curmid+1; i<=cpu.EQsize; i++)
         {
-            if (autocalc.cpu_freq[i] > autocalc.cpu_exotichigh+(double)(autocalc.cpu_swallh*(autocalc.cpu_common-autocalc.cpu_exotichigh))/100 )
+            if (autocalc.cpu_freq[i] > autocalc.cpu_exotichigh+(long double)(autocalc.cpu_swallh*(autocalc.cpu_common-autocalc.cpu_exotichigh))/100 )
                 autocalc.cpu_stablepointhigh = i;
         }
         if (autocalc.cpu_stablepointhigh == 0)
@@ -1370,43 +1370,43 @@ void Core::autocalc_reload ( Configuration * cfg )
                     autocalc.cpu_freq_angle_low = autocalc.cpu_freq[i+1]-autocalc.cpu_freq[i];
             }
             autocalc.cpu_freq_angle_low*=(100.0/(autocalc.cpu_common));
-            autocalc.cpu_mult_low = autocalc.cpu_mult_low_converter/autocalc.cpu_freq_angle_low;
+            autocalc.cpu_mult_low = (autocalc.cpu_mult_low_converter/autocalc.cpu_freq_angle_low)*100;
             for (int i = autocalc.cpu_curmid; i<cpu.EQsize; i++)
             {
                 if (autocalc.cpu_freq[i]-autocalc.cpu_freq[i+1] > autocalc.cpu_freq_angle_high)
                     autocalc.cpu_freq_angle_high = autocalc.cpu_freq[i]-autocalc.cpu_freq[i+1];
             }
             autocalc.cpu_freq_angle_high*=(100.0/(autocalc.cpu_common));
-            autocalc.cpu_mult_high = autocalc.cpu_mult_high_converter/autocalc.cpu_freq_angle_high;
+            autocalc.cpu_mult_high = (autocalc.cpu_mult_high_converter/autocalc.cpu_freq_angle_high)*100;
         }
 
         for (int i = autocalc.cpu_stablepointlow; i >= 0 ; i--)
         {
-            autocalc.cpu_curve[i] = pow((double)(autocalc.cpu_stablepointlow-i), autocalc.cpu_mult_low);
+            autocalc.cpu_curve[i] = pow((long double)(autocalc.cpu_stablepointlow-i), autocalc.cpu_mult_low);
         }
-        autocalc.cpu_curve_correct = (double)cpu.stable/autocalc.cpu_curve[0];
+        autocalc.cpu_curve_correct = (long double)cpu.stable/autocalc.cpu_curve[0];
         for (int i = 0; i <= autocalc.cpu_stablepointlow ; i++)
         {
             autocalc.cpu_curve[i] *= autocalc.cpu_curve_correct;
-            if (autocalc.cpu_curve[i] > (double)cpu.stable)
-                autocalc.cpu_curve[i] = (double)cpu.stable;
-            autocalc.cpu_curve[i] = (double)cpu.stable - autocalc.cpu_curve[i];
+            if (autocalc.cpu_curve[i] > (long double)cpu.stable)
+                autocalc.cpu_curve[i] = (long double)cpu.stable;
+            autocalc.cpu_curve[i] = (long double)cpu.stable - autocalc.cpu_curve[i];
         }
         for (int i = autocalc.cpu_stablepointlow; i <= autocalc.cpu_stablepointhigh ; i++)
         {
-            autocalc.cpu_curve[i] = (double)cpu.stable;
+            autocalc.cpu_curve[i] = (long double)cpu.stable;
         }
         for (int i = 0; i <= cpu.EQsize-autocalc.cpu_stablepointhigh; i++)
         {
-            autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] = pow((double)i, autocalc.cpu_mult_high);
+            autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] = pow((long double)i, autocalc.cpu_mult_high);
         }
-        autocalc.cpu_curve_correct = (double)(100.0-cpu.stable)/autocalc.cpu_curve[cpu.EQsize];
+        autocalc.cpu_curve_correct = (long double)(100.0-cpu.stable)/autocalc.cpu_curve[cpu.EQsize];
         for (int i = 0; i <= cpu.EQsize-autocalc.cpu_stablepointhigh; i++)
         {
             autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] *= autocalc.cpu_curve_correct;
-            if (autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] > 100.0-(double)cpu.stable)
-                autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] = 100.0-(double)cpu.stable;
-            autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] += (double)cpu.stable;
+            if (autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] > 100.0-(long double)cpu.stable)
+                autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] = 100.0-(long double)cpu.stable;
+            autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] += (long double)cpu.stable;
         }
         for (int i = 0; i <= cpu.EQsize; i++)
         {
@@ -1438,8 +1438,8 @@ void Core::autocalc_reload ( Configuration * cfg )
         else
         {
             autocalc.memory_perc = 100*(memory.load-(100/memory.EQsize)*autocalc.memory_curstep)/(100/memory.EQsize);
-            autocalc.memory_freq[autocalc.memory_curstep]+=((double)autocalc.memory_perc)/100.0;
-            autocalc.memory_freq[autocalc.memory_curstep]+=(double)(100-autocalc.memory_perc)/100.0;
+            autocalc.memory_freq[autocalc.memory_curstep]+=((long double)autocalc.memory_perc)/100.0;
+            autocalc.memory_freq[autocalc.memory_curstep]+=(long double)(100-autocalc.memory_perc)/100.0;
         }
         for (int i = 0; i<=memory.EQsize; i++)
         {
@@ -1492,12 +1492,12 @@ void Core::autocalc_reload ( Configuration * cfg )
         }
         for (int i = 0; i<autocalc.memory_curmid; i++)
         {
-            if (autocalc.memory_freq[i] < autocalc.memory_exoticlow+(double)(autocalc.memory_swalll*(autocalc.memory_common-autocalc.memory_exoticlow))/100 )
+            if (autocalc.memory_freq[i] < autocalc.memory_exoticlow+(long double)(autocalc.memory_swalll*(autocalc.memory_common-autocalc.memory_exoticlow))/100 )
                 autocalc.memory_stablepointlow = i;
         }
         for (int i = autocalc.memory_curmid+1; i<=memory.EQsize; i++)
         {
-            if (autocalc.memory_freq[i] > autocalc.memory_exotichigh+(double)(autocalc.memory_swallh*(autocalc.memory_common-autocalc.memory_exotichigh))/100 )
+            if (autocalc.memory_freq[i] > autocalc.memory_exotichigh+(long double)(autocalc.memory_swallh*(autocalc.memory_common-autocalc.memory_exotichigh))/100 )
                 autocalc.memory_stablepointhigh = i;
         }
         if (autocalc.memory_stablepointhigh == 0)
@@ -1512,43 +1512,43 @@ void Core::autocalc_reload ( Configuration * cfg )
                     autocalc.memory_freq_angle_low = autocalc.memory_freq[i+1]-autocalc.memory_freq[i];
             }
             autocalc.memory_freq_angle_low*=(100.0/(autocalc.memory_common));
-            autocalc.memory_mult_low = autocalc.memory_mult_low_converter/autocalc.memory_freq_angle_low;
+            autocalc.memory_mult_low = (autocalc.memory_mult_low_converter/autocalc.memory_freq_angle_low)*100;
             for (int i = autocalc.memory_curmid; i<memory.EQsize; i++)
             {
                 if (autocalc.memory_freq[i]-autocalc.memory_freq[i+1] > autocalc.memory_freq_angle_high)
                     autocalc.memory_freq_angle_high = autocalc.memory_freq[i]-autocalc.memory_freq[i+1];
             }
             autocalc.memory_freq_angle_high*=(100.0/(autocalc.memory_common));
-            autocalc.memory_mult_high = autocalc.memory_mult_high_converter/autocalc.memory_freq_angle_high;
+            autocalc.memory_mult_high = (autocalc.memory_mult_high_converter/autocalc.memory_freq_angle_high)*100;
         }
 
         for (int i = autocalc.memory_stablepointlow; i >= 0 ; i--)
         {
-            autocalc.memory_curve[i] = pow((double)(autocalc.memory_stablepointlow-i), autocalc.memory_mult_low);
+            autocalc.memory_curve[i] = pow((long double)(autocalc.memory_stablepointlow-i), autocalc.memory_mult_low);
         }
-        autocalc.memory_curve_correct = (double)memory.stable/autocalc.memory_curve[0];
+        autocalc.memory_curve_correct = (long double)memory.stable/autocalc.memory_curve[0];
         for (int i = 0; i <= autocalc.memory_stablepointlow ; i++)
         {
             autocalc.memory_curve[i] *= autocalc.memory_curve_correct;
-            if (autocalc.memory_curve[i] > (double)memory.stable)
-                autocalc.memory_curve[i] = (double)memory.stable;
-            autocalc.memory_curve[i] = (double)memory.stable - autocalc.memory_curve[i];
+            if (autocalc.memory_curve[i] > (long double)memory.stable)
+                autocalc.memory_curve[i] = (long double)memory.stable;
+            autocalc.memory_curve[i] = (long double)memory.stable - autocalc.memory_curve[i];
         }
         for (int i = autocalc.memory_stablepointlow; i <= autocalc.memory_stablepointhigh ; i++)
         {
-            autocalc.memory_curve[i] = (double)memory.stable;
+            autocalc.memory_curve[i] = (long double)memory.stable;
         }
         for (int i = 0; i <= memory.EQsize-autocalc.memory_stablepointhigh; i++)
         {
-            autocalc.memory_curve[i+autocalc.memory_stablepointhigh] = pow((double)i, autocalc.memory_mult_high);
+            autocalc.memory_curve[i+autocalc.memory_stablepointhigh] = pow((long double)i, autocalc.memory_mult_high);
         }
-        autocalc.memory_curve_correct = (double)(100.0-memory.stable)/autocalc.memory_curve[memory.EQsize];
+        autocalc.memory_curve_correct = (long double)(100.0-memory.stable)/autocalc.memory_curve[memory.EQsize];
         for (int i = 0; i <= memory.EQsize-autocalc.memory_stablepointhigh; i++)
         {
             autocalc.memory_curve[i+autocalc.memory_stablepointhigh] *= autocalc.memory_curve_correct;
-            if (autocalc.memory_curve[i+autocalc.memory_stablepointhigh] > 100.0-(double)memory.stable)
-                autocalc.memory_curve[i+autocalc.memory_stablepointhigh] = 100.0-(double)memory.stable;
-            autocalc.memory_curve[i+autocalc.memory_stablepointhigh] += (double)memory.stable;
+            if (autocalc.memory_curve[i+autocalc.memory_stablepointhigh] > 100.0-(long double)memory.stable)
+                autocalc.memory_curve[i+autocalc.memory_stablepointhigh] = 100.0-(long double)memory.stable;
+            autocalc.memory_curve[i+autocalc.memory_stablepointhigh] += (long double)memory.stable;
         }
         for (int i = 0; i <= memory.EQsize; i++)
         {
@@ -1580,8 +1580,8 @@ void Core::autocalc_reload ( Configuration * cfg )
         else
         {
             autocalc.battery_perc = 100*(battery.load-(100/battery.EQsize)*autocalc.battery_curstep)/(100/battery.EQsize);
-            autocalc.battery_freq[autocalc.battery_curstep]+=((double)autocalc.battery_perc)/100.0;
-            autocalc.battery_freq[autocalc.battery_curstep]+=(double)(100-autocalc.battery_perc)/100.0;
+            autocalc.battery_freq[autocalc.battery_curstep]+=((long double)autocalc.battery_perc)/100.0;
+            autocalc.battery_freq[autocalc.battery_curstep]+=(long double)(100-autocalc.battery_perc)/100.0;
         }
         for (int i = 0; i<=battery.EQsize; i++)
         {
@@ -1634,12 +1634,12 @@ void Core::autocalc_reload ( Configuration * cfg )
         }
         for (int i = 0; i<autocalc.battery_curmid; i++)
         {
-            if (autocalc.battery_freq[i] < autocalc.battery_exoticlow+(double)(autocalc.battery_swalll*(autocalc.battery_common-autocalc.battery_exoticlow))/100 )
+            if (autocalc.battery_freq[i] < autocalc.battery_exoticlow+(long double)(autocalc.battery_swalll*(autocalc.battery_common-autocalc.battery_exoticlow))/100 )
                 autocalc.battery_stablepointlow = i;
         }
         for (int i = autocalc.battery_curmid+1; i<=battery.EQsize; i++)
         {
-            if (autocalc.battery_freq[i] > autocalc.battery_exotichigh+(double)(autocalc.battery_swallh*(autocalc.battery_common-autocalc.battery_exotichigh))/100 )
+            if (autocalc.battery_freq[i] > autocalc.battery_exotichigh+(long double)(autocalc.battery_swallh*(autocalc.battery_common-autocalc.battery_exotichigh))/100 )
                 autocalc.battery_stablepointhigh = i;
         }
         if (autocalc.battery_stablepointhigh == 0)
@@ -1654,43 +1654,43 @@ void Core::autocalc_reload ( Configuration * cfg )
                     autocalc.battery_freq_angle_low = autocalc.battery_freq[i+1]-autocalc.battery_freq[i];
             }
             autocalc.battery_freq_angle_low*=(100.0/(autocalc.battery_common));
-            autocalc.battery_mult_low = autocalc.battery_mult_low_converter/autocalc.battery_freq_angle_low;
+            autocalc.battery_mult_low = (autocalc.battery_mult_low_converter/autocalc.battery_freq_angle_low)*100;
             for (int i = autocalc.battery_curmid; i<battery.EQsize; i++)
             {
                 if (autocalc.battery_freq[i]-autocalc.battery_freq[i+1] > autocalc.battery_freq_angle_high)
                     autocalc.battery_freq_angle_high = autocalc.battery_freq[i]-autocalc.battery_freq[i+1];
             }
             autocalc.battery_freq_angle_high*=(100.0/(autocalc.battery_common));
-            autocalc.battery_mult_high = autocalc.battery_mult_high_converter/autocalc.battery_freq_angle_high;
+            autocalc.battery_mult_high = (autocalc.battery_mult_high_converter/autocalc.battery_freq_angle_high)*100;
         }
 
         for (int i = autocalc.battery_stablepointlow; i >= 0 ; i--)
         {
-            autocalc.battery_curve[i] = pow((double)(autocalc.battery_stablepointlow-i), autocalc.battery_mult_low);
+            autocalc.battery_curve[i] = pow((long double)(autocalc.battery_stablepointlow-i), autocalc.battery_mult_low);
         }
-        autocalc.battery_curve_correct = (double)battery.stable/autocalc.battery_curve[0];
+        autocalc.battery_curve_correct = (long double)battery.stable/autocalc.battery_curve[0];
         for (int i = 0; i <= autocalc.battery_stablepointlow ; i++)
         {
             autocalc.battery_curve[i] *= autocalc.battery_curve_correct;
-            if (autocalc.battery_curve[i] > (double)battery.stable)
-                autocalc.battery_curve[i] = (double)battery.stable;
-            autocalc.battery_curve[i] = (double)battery.stable - autocalc.battery_curve[i];
+            if (autocalc.battery_curve[i] > (long double)battery.stable)
+                autocalc.battery_curve[i] = (long double)battery.stable;
+            autocalc.battery_curve[i] = (long double)battery.stable - autocalc.battery_curve[i];
         }
         for (int i = autocalc.battery_stablepointlow; i <= autocalc.battery_stablepointhigh ; i++)
         {
-            autocalc.battery_curve[i] = (double)battery.stable;
+            autocalc.battery_curve[i] = (long double)battery.stable;
         }
         for (int i = 0; i <= battery.EQsize-autocalc.battery_stablepointhigh; i++)
         {
-            autocalc.battery_curve[i+autocalc.battery_stablepointhigh] = pow((double)i, autocalc.battery_mult_high);
+            autocalc.battery_curve[i+autocalc.battery_stablepointhigh] = pow((long double)i, autocalc.battery_mult_high);
         }
-        autocalc.battery_curve_correct = (double)(100.0-battery.stable)/autocalc.battery_curve[battery.EQsize];
+        autocalc.battery_curve_correct = (long double)(100.0-battery.stable)/autocalc.battery_curve[battery.EQsize];
         for (int i = 0; i <= battery.EQsize-autocalc.battery_stablepointhigh; i++)
         {
             autocalc.battery_curve[i+autocalc.battery_stablepointhigh] *= autocalc.battery_curve_correct;
-            if (autocalc.battery_curve[i+autocalc.battery_stablepointhigh] > 100.0-(double)battery.stable)
-                autocalc.battery_curve[i+autocalc.battery_stablepointhigh] = 100.0-(double)battery.stable;
-            autocalc.battery_curve[i+autocalc.battery_stablepointhigh] += (double)battery.stable;
+            if (autocalc.battery_curve[i+autocalc.battery_stablepointhigh] > 100.0-(long double)battery.stable)
+                autocalc.battery_curve[i+autocalc.battery_stablepointhigh] = 100.0-(long double)battery.stable;
+            autocalc.battery_curve[i+autocalc.battery_stablepointhigh] += (long double)battery.stable;
         }
         for (int i = 0; i <= battery.EQsize; i++)
         {
@@ -1736,8 +1736,8 @@ void Core::autocalc_reload ( Configuration * cfg )
         else
         {
             autocalc.temperature_perc = 100*(temperature.value-(temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*autocalc.temperature_curstep))/((temperature.EQend-temperature.EQbegin)/temperature.EQsize);
-            autocalc.temperature_freq[autocalc.temperature_curstep]+=((double)autocalc.temperature_perc)/100.0;
-            autocalc.temperature_freq[autocalc.temperature_curstep]+=(double)(100-autocalc.temperature_perc)/100.0;
+            autocalc.temperature_freq[autocalc.temperature_curstep]+=((long double)autocalc.temperature_perc)/100.0;
+            autocalc.temperature_freq[autocalc.temperature_curstep]+=(long double)(100-autocalc.temperature_perc)/100.0;
         }
         for (int i = 0; i<=temperature.EQsize; i++)
         {
@@ -1790,12 +1790,12 @@ void Core::autocalc_reload ( Configuration * cfg )
         }
         for (int i = 0; i<autocalc.temperature_curmid; i++)
         {
-            if (autocalc.temperature_freq[i] < autocalc.temperature_exoticlow+(double)(autocalc.temperature_swalll*(autocalc.temperature_common-autocalc.temperature_exoticlow))/100 )
+            if (autocalc.temperature_freq[i] < autocalc.temperature_exoticlow+(long double)(autocalc.temperature_swalll*(autocalc.temperature_common-autocalc.temperature_exoticlow))/100 )
                 autocalc.temperature_stablepointlow = i;
         }
         for (int i = autocalc.temperature_curmid+1; i<=temperature.EQsize; i++)
         {
-            if (autocalc.temperature_freq[i] > autocalc.temperature_exotichigh+(double)(autocalc.temperature_swallh*(autocalc.temperature_common-autocalc.temperature_exotichigh))/100 )
+            if (autocalc.temperature_freq[i] > autocalc.temperature_exotichigh+(long double)(autocalc.temperature_swallh*(autocalc.temperature_common-autocalc.temperature_exotichigh))/100 )
                 autocalc.temperature_stablepointhigh = i;
         }
         if (autocalc.temperature_stablepointhigh == 0)
@@ -1810,43 +1810,43 @@ void Core::autocalc_reload ( Configuration * cfg )
                     autocalc.temperature_freq_angle_low = autocalc.temperature_freq[i+1]-autocalc.temperature_freq[i];
             }
             autocalc.temperature_freq_angle_low*=(100.0/(autocalc.temperature_common));
-            autocalc.temperature_mult_low = autocalc.temperature_mult_low_converter/autocalc.temperature_freq_angle_low;
+            autocalc.temperature_mult_low = (autocalc.temperature_mult_low_converter/autocalc.temperature_freq_angle_low)*100;
             for (int i = autocalc.temperature_curmid; i<temperature.EQsize; i++)
             {
                 if (autocalc.temperature_freq[i]-autocalc.temperature_freq[i+1] > autocalc.temperature_freq_angle_high)
                     autocalc.temperature_freq_angle_high = autocalc.temperature_freq[i]-autocalc.temperature_freq[i+1];
             }
             autocalc.temperature_freq_angle_high*=(100.0/(autocalc.temperature_common));
-            autocalc.temperature_mult_high = autocalc.temperature_mult_high_converter/autocalc.temperature_freq_angle_high;
+            autocalc.temperature_mult_high = (autocalc.temperature_mult_high_converter/autocalc.temperature_freq_angle_high)*100;
         }
 
         for (int i = autocalc.temperature_stablepointlow; i >= 0 ; i--)
         {
-            autocalc.temperature_curve[i] = pow((double)(autocalc.temperature_stablepointlow-i), autocalc.temperature_mult_low);
+            autocalc.temperature_curve[i] = pow((long double)(autocalc.temperature_stablepointlow-i), autocalc.temperature_mult_low);
         }
-        autocalc.temperature_curve_correct = (double)temperature.stable/autocalc.temperature_curve[0];
+        autocalc.temperature_curve_correct = (long double)temperature.stable/autocalc.temperature_curve[0];
         for (int i = 0; i <= autocalc.temperature_stablepointlow ; i++)
         {
             autocalc.temperature_curve[i] *= autocalc.temperature_curve_correct;
-            if (autocalc.temperature_curve[i] > (double)temperature.stable)
-                autocalc.temperature_curve[i] = (double)temperature.stable;
-            autocalc.temperature_curve[i] = (double)temperature.stable - autocalc.temperature_curve[i];
+            if (autocalc.temperature_curve[i] > (long double)temperature.stable)
+                autocalc.temperature_curve[i] = (long double)temperature.stable;
+            autocalc.temperature_curve[i] = (long double)temperature.stable - autocalc.temperature_curve[i];
         }
         for (int i = autocalc.temperature_stablepointlow; i <= autocalc.temperature_stablepointhigh ; i++)
         {
-            autocalc.temperature_curve[i] = (double)temperature.stable;
+            autocalc.temperature_curve[i] = (long double)temperature.stable;
         }
         for (int i = 0; i <= temperature.EQsize-autocalc.temperature_stablepointhigh; i++)
         {
-            autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] = pow((double)i, autocalc.temperature_mult_high);
+            autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] = pow((long double)i, autocalc.temperature_mult_high);
         }
-        autocalc.temperature_curve_correct = (double)(100.0-temperature.stable)/autocalc.temperature_curve[temperature.EQsize];
+        autocalc.temperature_curve_correct = (long double)(100.0-temperature.stable)/autocalc.temperature_curve[temperature.EQsize];
         for (int i = 0; i <= temperature.EQsize-autocalc.temperature_stablepointhigh; i++)
         {
             autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] *= autocalc.temperature_curve_correct;
-            if (autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] > 100.0-(double)temperature.stable)
-                autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] = 100.0-(double)temperature.stable;
-            autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] += (double)temperature.stable;
+            if (autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] > 100.0-(long double)temperature.stable)
+                autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] = 100.0-(long double)temperature.stable;
+            autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] += (long double)temperature.stable;
         }
         for (int i = 0; i <= temperature.EQsize; i++)
         {

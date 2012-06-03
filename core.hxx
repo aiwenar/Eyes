@@ -178,7 +178,7 @@ public:
 class auto_calc
 {
 public:
-    vector<double>              cpu_freq,
+    vector<long double>         cpu_freq,
                                 cpu_virtualEQ,
                                 cpu_curve,
                                 memory_freq,
@@ -191,7 +191,7 @@ public:
                                 temperature_virtualEQ,
                                 temperature_curve,
                                 time_freq;
-    double                      c_cpu,
+    long double                 c_cpu,
                                 c_mem,
                                 c_battery,
                                 c_temp,
