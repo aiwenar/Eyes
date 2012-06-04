@@ -45,6 +45,22 @@ Configuration::Configuration ()
   needsave = false;
 }
 
+double Configuration::lookupValue ( const char * path, const double def )
+{
+  float tmp;
+  if ( not cfg.lookupValue ( path, tmp ) )
+  {
+    error << "lookup for: "
+          << path
+          << " that isn't in configuration file. Using default value("
+          << def
+          << ")\n";
+    setValue ( path, def );
+    return def;
+  }
+  return tmp;
+}
+
 bool Configuration::lookupValue ( const char * path, bool def )
 {
     bool tmp;
@@ -61,7 +77,7 @@ bool Configuration::lookupValue ( const char * path, bool def )
     return tmp;
 }
 
-char * Configuration::lookupValue ( const char * path, char * def )
+char * Configuration::lookupValue ( const char * path, const char * def )
 {
     std::string tmp;
     if ( not cfg.lookupValue ( &(*path), tmp ) )
@@ -72,7 +88,7 @@ char * Configuration::lookupValue ( const char * path, char * def )
               << def
               << ")\n";
         setValue ( path, def );
-        return def;
+        return const_cast<char*>(def);
     }
     return const_cast<char*>(tmp.c_str ());
 }
@@ -107,6 +123,13 @@ int Configuration::lookupValue ( const char * path, int def )
         return def;
     }
     return tmp;
+}
+
+bool Configuration::setValue ( const char * path, double value )
+{
+  lookup ( path, libconfig::Setting::TypeFloat ) = value;
+  needsave = true;
+  return true;
 }
 
 bool Configuration::setValue (const char *path, bool value)

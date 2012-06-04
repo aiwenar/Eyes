@@ -9,6 +9,13 @@ OStream::OStream ( const char * path )
   enabled = Configuration::getInstance ()->lookupValue ( (QString("debug.")+path).toStdString().c_str(), true );
 }
 
+OStream& OStream::operator << ( const double d )
+{
+  if ( not enabled ) return *this;
+  std::clog << d;
+  return *this;
+}
+
 OStream& OStream::operator << ( const char * s )
 {
   if ( not enabled ) return *this;
