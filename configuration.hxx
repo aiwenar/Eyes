@@ -60,7 +60,20 @@ public:
      * @param path path to configuration item.
      * @param def default value, returned if path doesn't exist.
      */
-    char      * lookupValue         ( const char * path, char * def="" );
+    char      * lookupValue         ( const char * path, const char * def="" );
+    /**
+     * @return value from \p path if exists, otherwise \p def
+     * @param path path to configuration item.
+     * @param def defaut value, returned if path doesn't exisrs.
+     */
+    double      lookupValue         ( const char * path, const double def=0 );
+    /**
+     * Sets value from \p path to \p value.
+     * @return true, if set succes, else false.
+     * @param path path to value.
+     * @param value value to set.
+     */
+    bool        setValue            ( const char * path, double value );
     /**
      * Sets value from \p path to \p value.
      * @return true, if set succes, else false.

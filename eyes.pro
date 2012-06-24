@@ -19,7 +19,8 @@ SOURCES += \
     memory.cc \
     hardware.cc \
     cdbg.cc \
-    ostream.cc
+    ostream.cc \
+    eyes_menu.cc
 
 HEADERS += \ 
   defines.hxx\
@@ -33,7 +34,8 @@ HEADERS += \
   memory.hxx \
   cdbg.hxx \
   hardware.hxx \
-  ostream.hh
+  ostream.hh \
+    eyes_menu.hh
 
 OTHER_FILES += \ 
   README.markdown\
