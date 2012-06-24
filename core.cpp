@@ -2053,7 +2053,7 @@ void Core::load_config ()
     autocalc.start_delay                        = cfg->lookupValue("core.autocalc.delay",                           120         );
     autocalc.impact                             = cfg->lookupValue("core.autocalc.impact",                          1           );
     autocalc.cpu_enabled                        = cfg->lookupValue("core.autocalc.cpu.enabled",                     true        );
-    autocalc.auto_cpu                           = cfg->lookupValue("core.autocalc.cpu.auto_angle",                  false       );
+    autocalc.auto_cpu                           = cfg->lookupValue("core.autocalc.cpu.auto_angle",                  true        );
     autocalc.cpu_swalll                         = cfg->lookupValue("core.autocalc.cpu.stable_wall_low",             50          );
     autocalc.cpu_swallh                         = cfg->lookupValue("core.autocalc.cpu.stable_wall_high",            50          );
     autocalc.cpu_mult_low                       = cfg->lookupValue("core.autocalc.cpu.multiple_low",                2           );
@@ -2061,7 +2061,7 @@ void Core::load_config ()
     autocalc.cpu_mult_high                      = cfg->lookupValue("core.autocalc.cpu.multiple_high",               2           );
     autocalc.cpu_mult_high_converter            = cfg->lookupValue("core.autocalc.cpu.high_converter",              1           );
     autocalc.memory_enabled                     = cfg->lookupValue("core.autocalc.memory.enabled",                  true        );
-    autocalc.auto_memory                        = cfg->lookupValue("core.autocalc.memory.auto_angle",               false       );
+    autocalc.auto_memory                        = cfg->lookupValue("core.autocalc.memory.auto_angle",               true        );
     autocalc.memory_swalll                      = cfg->lookupValue("core.autocalc.memory.stable_wall_low",          50          );
     autocalc.memory_swallh                      = cfg->lookupValue("core.autocalc.memory.stable_wall_high",         50          );
     autocalc.memory_mult_low                    = cfg->lookupValue("core.autocalc.memory.multiple_low",             2           );
@@ -2069,7 +2069,7 @@ void Core::load_config ()
     autocalc.memory_mult_high                   = cfg->lookupValue("core.autocalc.memory.multiple_high",            2           );
     autocalc.memory_mult_high_converter         = cfg->lookupValue("core.autocalc.memory.high_converter",           1           );
     autocalc.battery_enabled                    = cfg->lookupValue("core.autocalc.battery.enabled",                 true        );
-    autocalc.auto_battery                       = cfg->lookupValue("core.autocalc.battery.auto_angle",              false       );
+    autocalc.auto_battery                       = cfg->lookupValue("core.autocalc.battery.auto_angle",              true        );
     autocalc.battery_swalll                     = cfg->lookupValue("core.autocalc.battery.stable_wall_low",         50          );
     autocalc.battery_swallh                     = cfg->lookupValue("core.autocalc.battery.stable_wall_high",        50          );
     autocalc.battery_mult_low                   = cfg->lookupValue("core.autocalc.battery.multiple_low",            2           );
@@ -2077,13 +2077,20 @@ void Core::load_config ()
     autocalc.battery_mult_high                  = cfg->lookupValue("core.autocalc.battery.multiple_high",           2           );
     autocalc.battery_mult_high_converter        = cfg->lookupValue("core.autocalc.battery.high_converter",          1           );
     autocalc.temperature_enabled                = cfg->lookupValue("core.autocalc.temperature.enabled",             true        );
-    autocalc.auto_temperature                   = cfg->lookupValue("core.autocalc.temperature.auto_angle",          false       );
+    autocalc.auto_temperature                   = cfg->lookupValue("core.autocalc.temperature.auto_angle",          true        );
     autocalc.temperature_swalll                 = cfg->lookupValue("core.autocalc.temperature.stable_wall_low",     50          );
     autocalc.temperature_swallh                 = cfg->lookupValue("core.autocalc.temperature.stable_wall_high",    50          );
     autocalc.temperature_mult_low               = cfg->lookupValue("core.autocalc.temperature.multiple_low",        2           );
     autocalc.temperature_mult_low_converter     = cfg->lookupValue("core.autocalc.temperature.low_converter",       1           );
     autocalc.temperature_mult_high              = cfg->lookupValue("core.autocalc.temperature.multiple_high",       2           );
     autocalc.temperature_mult_high_converter    = cfg->lookupValue("core.autocalc.temperature.high_converter",      1           );
+    if (!autocalc.enabled)
+    {
+        autocalc.cpu_enabled = false;
+        autocalc.memory_enabled = false;
+        autocalc.battery_enabled = false;
+        autocalc.temperature_enabled = false;
+    }
 
     //eMu_sector
 

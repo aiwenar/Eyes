@@ -169,6 +169,7 @@ MsSQL
 void spacefill (int input, int lenght)
 {
     unsigned int pivot = 1;
+    unsigned int max_timer = 1000;
     string sign = "";
     if (input < 0)
     {
@@ -176,17 +177,18 @@ void spacefill (int input, int lenght)
         input=-input;
         sign = "-";
     }
-    for (int i = 0; i < lenght; i++)
+    for (int i = 0; (i < lenght && max_timer > 1); i++, max_timer--)
     {
         pivot*=10;
     }
     if (input >= pivot)
     {
         unsigned int deleted = 0;
-        while (input >= pivot/100)
+        while (input >= pivot/100 && max_timer > 1)
         {
             input/=10;
             deleted++;
+            max_timer--;
         }
         cout << sign << input << "^" << deleted;
     }
@@ -194,12 +196,13 @@ void spacefill (int input, int lenght)
     {
         cout << sign << input;
         int inleng = 0;
-        while (input >= 10)
+        while (input >= 10 && max_timer > 1)
         {
             input/=10;
             inleng++;
+            max_timer--;
         }
-        for (int i = 1; i < lenght-inleng; i++)
+        for (int i = 1; (i < lenght-inleng && max_timer > 1); i++, max_timer--)
         {
             cout << " ";
         }
