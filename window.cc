@@ -38,9 +38,9 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     //setWindowFlags ( Qt::SplashScreen );
     eyes = new eyes_view ( this, color );
     config = new Configurator ( (QWidget*)nil );
-    info << "(window) loading icon " << ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
+    info << "(window) loading icon " << (eyes->theme + QString ("icon") + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
     QPixmap tmp;
-    tmp.load ( QString ( "./pics/icon" ) + eyes->get_color_suffix () + ".png" );
+    tmp.load ( eyes->theme + QString ("icon") + eyes->get_color_suffix () + ".png" );
     tico = new QIcon ( tmp );
     setWindowIcon ( *tico );
     if ( tmp.isNull () )

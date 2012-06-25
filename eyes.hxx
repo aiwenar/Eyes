@@ -88,6 +88,7 @@ public:
         SHY     = 1,
         SLEEPY  = 2
     };
+    QString             theme;
 
     /**
      * Construct eyes_view with color \p color.

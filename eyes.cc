@@ -198,7 +198,7 @@ void _som ( int i, int max )
 void eyes_view::open_images ( QString color )
 {
     QPixmap * file;
-    QString theme = "./themes/";
+    theme = "./themes/";
     const char * ctheme = Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
     theme += ctheme;
     theme += '/';

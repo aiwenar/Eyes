@@ -146,7 +146,7 @@ void bul::update()
             friendship/100  -
             mousea.mod      ;
 
-    total_mod = 0;
+    //total_mod = 0;
     if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
         step += total_mod;
     else
