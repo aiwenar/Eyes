@@ -23,6 +23,8 @@
 #include <vector>
 #include <QTimer>
 #include <libconfig.h++>
+#include <QProcess>
+#include <fstream>
 
 #include "eyes.hxx"
 
@@ -114,8 +116,7 @@ public:
     bool                        wake_up,
                                 flue,
                                 no_update;
-    int                         total_mod,
-                                friendship;
+    int                         total_mod;
     unsigned int                step,
                                 wall_01,
                                 wall_02,
@@ -132,7 +133,12 @@ public:
                                 wall_13,
                                 wall_14,
                                 wall_15,
-                                fluetimer;
+                                fluetimer,
+                                remembered_time,
+                                remembered_nrg,
+                                max_mem_lag,
+                                rest_time_std,
+                                rest_time_wkend;
     unsigned short              outline,
                                 prev_outline,
                                 eye,
@@ -143,8 +149,6 @@ public:
                                 layer3,
                                 layer4,
                                 value,
-                                fship_at_calm,
-                                calm_perc,
                                 wake_up_delay,
                                 current_wkup_delay,
                                 nrg_low,
@@ -171,8 +175,33 @@ public:
                                 fluehighval;
     void                        update(),
                                 flue_check(),
-                                critical_services(),
+                                critical_services( Configuration * cfg ),
                                 wake_up_chk();
+};
+
+class friendship
+{
+public:
+    void                        timeimpact(unsigned int delay),
+                                mouseimpact(unsigned int impact),
+                                save( Configuration * cfg );
+    unsigned int                calm_timer,
+                                calm_perc_low,
+                                calm_perc_high,
+                                max_below,
+                                max_over;
+    double                      func_calm_low,
+                                func_calm_high,
+                                func_mouse_low,
+                                func_mouse_high,
+                                func_mouse_hit,
+                                stable,
+                                func_scale,
+                                mouse_good,
+                                mouse_bad,
+                                funccalc(double angle, unsigned int current);
+    long double                 value;
+    bool                        to_save;
 };
 
 class auto_calc
@@ -317,10 +346,7 @@ public:
     unsigned int                wall,
                                 force_wall,
                                 scale,
-                                goodstep,
-                                badstep,
                                 hit_time,
-                                hit_time_multi,
                                 max_delay,
                                 opt_speed,
                                 max_hpp_bul;
@@ -356,6 +382,23 @@ struct data_source
                                 batt_pow_max,
                                 batt_stat,
                                 temp;
+};
+
+class rootcontrol
+{
+public:
+    void                        action (string command);
+    unsigned short              batt_min_backl,
+                                batt_start_perc,
+                                batt_suspend_perc,
+                                temp_halt_start;
+    string                      backlight_path;
+    bool                        roottype,
+                                temp_halt_enabled,
+                                suspendtohdd;
+private:
+    void                        execute(bool roottype, QString command, QStringList arguments),
+                                execute(bool roottype, QString command);
 };
 
 extern eyes_view     * eyes;

@@ -24,22 +24,23 @@
 
 using namespace std;
 
-extern percental  cpu;
-extern percental  memory;
-extern percental  battery;
-extern unital     temperature;
-extern timal      times;
-extern timal      energy;
-extern bul        bulwers;
-extern auto_calc  autocalc;
-extern QTime      mousetime;
-extern mouse_actions  mousea;
-extern unsigned short battery_state;
-extern unsigned short mod_bat_plug;
-extern bool           once_plugged;
-extern hardware       HRDWR;
-extern unsigned int   prev_bat_plug;
-extern int            core_step;
+extern percental        cpu;
+extern percental        memory;
+extern percental        battery;
+extern unital           temperature;
+extern timal            times;
+extern timal            energy;
+extern bul              bulwers;
+extern auto_calc        autocalc;
+extern QTime            mousetime;
+extern mouse_actions    mousea;
+extern hardware         HRDWR;
+extern friendship       fship;
+extern unsigned short   battery_state;
+extern unsigned short   mod_bat_plug;
+extern bool             once_plugged;
+extern unsigned int     prev_bat_plug;
+extern int              core_step;
 
 /*
 
@@ -1214,25 +1215,25 @@ void cdbg::on_timer_tick ()
   else
       cout << "\033[1;30m<===>";;
   cout << " \033[33m\n\n\n\033[52C";
-  if (bulwers.friendship < 0)
+  if (fship.value < 0)
       cout << "\033[31m";
   else
       cout << "\033[32m";
-  spacefill(bulwers.friendship, 6);
+  spacefill(fship.value, 6);
 
   cout << "\033[33m\n\033[1A\033[60C";
   if (mousea.mod > 0)
   {
       cout << "\033[32m<";
-      spacefill(mousea.goodstep, 3);
+      spacefill(fship.mouse_good, 3);
   }
   else if (mousea.mod < 0)
   {
       cout << "\033[31m>";
-      if (bulwers.friendship < -mousea.heavycalm)
-          spacefill(bulwers.friendship/mousea.heavycalm, 3);
+      if (fship.value < -mousea.heavycalm)
+          spacefill(fship.value/mousea.heavycalm, 3);
       else
-          spacefill(mousea.badstep, 3);
+          spacefill(fship.mouse_bad, 3);
   }
   else
       cout << " --";

@@ -57,6 +57,8 @@ QString         face_send;
 QTime           mousetime;
 eMu_zone        eMu;
 data_source     d_src;
+friendship      fship;
+rootcontrol     rtctrl;
 
 void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto )
 {
@@ -143,7 +145,7 @@ void bul::update()
             temperature.mod -
             battery.mod     -
             mod_bat_plug    -
-            friendship/100  -
+            fship.value/100  -
             mousea.mod      ;
 
     //total_mod = 0;
@@ -276,15 +278,16 @@ void bul::flue_check()
     }
 }
 
-void bul::critical_services()
+void bul::critical_services( Configuration * cfg )
 {
     mousea.multiplier = 1;//= (double)value/10.0;
     if (mousea.hit_time > 2 && core_step%10 == 0)
         mousea.hit_time--;
 
-    if (core_step%fship_at_calm == 0)
+    if (core_step%fship.calm_timer == 0)
     {
-        friendship-=calm_perc*friendship/100;
+        fship.timeimpact(1);
+        fship.to_save = 1;
     }
 
     if (get_time ().month == 12 || get_time ().month == 1 )
@@ -518,98 +521,150 @@ void bul::critical_services()
     }
     else if (outline == 20)
         outline = 0;
+
+    unsigned int atime = get_time().day_num*24*60 + get_time().hour/60;
+    unsigned int dtime = 0;
+    bool recover = false;
+    if (remembered_time > atime)
+    {
+        dtime = (24*60 - (remembered_time - (remembered_time%(24*60)))) + atime;
+        recover = true;
+    }
+    if (remembered_time < atime-max_mem_lag)
+    {
+        dtime = atime - remembered_time;
+        recover = true;
+    }
+    if (recover)
+    {
+        if (get_time().day != 7)
+        {
+            unsigned int dtperc = 100*dtime/(rest_time_std*60);
+            if (dtperc > 100)
+                dtperc = 100;
+            if (energy.start > dtperc*nrg_std*3600/100 + remembered_nrg)
+                energy.start = dtperc*nrg_std*3600/100 + remembered_nrg;
+        }
+        else
+        {
+            unsigned int dtperc = 100*dtime/(rest_time_wkend*60);
+            if (dtperc > 100)
+                dtperc = 100;
+            if (dtperc < 100)
+            {
+                if (energy.start >= nrg_std*3600 + remembered_nrg)
+                    energy.start = nrg_std*3600 + remembered_nrg;
+                else if (energy.start > dtperc*(nrg_std)*3600/100 + remembered_nrg)
+                    energy.start = dtperc*(nrg_std)*3600/100 + remembered_nrg;
+            }
+        }
+    }
+    remembered_time = atime;
+    remembered_nrg = energy.start - energy.value;
+
+    //saving
+
+    cfg->setValue("core.bulwers.remembered_time", (int)remembered_time);
+    cfg->setValue("core.bulwers.remembered_energy", (int)remembered_nrg);
+    if (fship.to_save)
+        cfg->setValue("core.friendship.value", (int)fship.value);
+
+    rtctrl.action("battery");
+    rtctrl.action("temperature");
 }
 
 void Core::bulwers_init ()
 {
 
-if (cpu.buffered)
-{
-    cpu.current_probe        = 0  ;
-    cpu.current_probe_small  = 0  ;
-
-    for (unsigned short i = 0; i<=cpu.buff_size; i++)
+    if (cpu.buffered)
     {
-        cpu.probes.push_back (cpu.stable);
+        cpu.current_probe        = 0  ;
+        cpu.current_probe_small  = 0  ;
+
+        for (unsigned short i = 0; i<=cpu.buff_size; i++)
+        {
+            cpu.probes.push_back (cpu.stable);
+        }
+        for (unsigned short i = 0; i<=cpu.buff_size; i++)
+        {
+            cpu.sector_small.push_back (cpu.stable);
+        }
     }
-    for (unsigned short i = 0; i<=cpu.buff_size; i++)
+
+    if (memory.buffered)
     {
-        cpu.sector_small.push_back (cpu.stable);
+        memory.current_probe        = 0  ;
+        memory.current_probe_small  = 0  ;
+
+        for (unsigned short i = 0; i<=memory.buff_size; i++)
+        {
+            memory.probes.push_back (memory.stable);
+        }
+        for (unsigned short i = 0; i<=memory.buff_size; i++)
+        {
+            memory.sector_small.push_back (memory.stable);
+        }
     }
-}
 
-if (memory.buffered)
-{
-    memory.current_probe        = 0  ;
-    memory.current_probe_small  = 0  ;
-
-    for (unsigned short i = 0; i<=memory.buff_size; i++)
+    if (battery.buffered)
     {
-        memory.probes.push_back (memory.stable);
+        battery.current_probe       = 0  ;
+        battery.current_probe_small = 0  ;
+
+        for (unsigned short i = 0; i<=battery.buff_size; i++)
+        {
+            battery.probes.push_back (battery.stable);
+        }
+        for (unsigned short i = 0; i<=battery.buff_size; i++)
+        {
+            battery.sector_small.push_back (battery.stable);
+        }
     }
-    for (unsigned short i = 0; i<=memory.buff_size; i++)
+
+    if (temperature.buffered)
     {
-        memory.sector_small.push_back (memory.stable);
+        temperature.current_probe       = 0  ;
+        temperature.current_probe_small = 0  ;
+
+        for (unsigned short i = 0; i<=temperature.buff_size; i++)
+        {
+            temperature.probes.push_back (temperature.stable);
+        }
+        for (unsigned short i = 0; i<=temperature.buff_size; i++)
+        {
+            temperature.sector_small.push_back (temperature.stable);
+        }
     }
-}
 
-if (battery.buffered)
-{
-    battery.current_probe       = 0  ;
-    battery.current_probe_small = 0  ;
+    mousea.cur                          = 0    ;
+    mousea.result                       = 0    ;
+    mousea.prev_x                       = 0    ;
+    mousea.prev_y                       = 0    ;
+    mousea.hit_time                     = 1    ;
+    mousea.hpp_active                   = false;
 
-    for (unsigned short i = 0; i<=battery.buff_size; i++)
+    for (unsigned int i = 0; i<=mousea.buff_size; i++)
     {
-        battery.probes.push_back (battery.stable);
+        mousea.buffer.push_back (0);
     }
-    for (unsigned short i = 0; i<=battery.buff_size; i++)
-    {
-        battery.sector_small.push_back (battery.stable);
-    }
-}
 
-if (temperature.buffered)
-{
-    temperature.current_probe       = 0  ;
-    temperature.current_probe_small = 0  ;
-
-    for (unsigned short i = 0; i<=temperature.buff_size; i++)
-    {
-        temperature.probes.push_back (temperature.stable);
-    }
-    for (unsigned short i = 0; i<=temperature.buff_size; i++)
-    {
-        temperature.sector_small.push_back (temperature.stable);
-    }
-}
-
-mousea.cur                          = 0    ;
-mousea.result                       = 0    ;
-mousea.prev_x                       = 0    ;
-mousea.prev_y                       = 0    ;
-mousea.hit_time                     = 1    ;
-mousea.hpp_active                   = false;
-
-for (unsigned int i = 0; i<=mousea.buff_size; i++)
-{
-    mousea.buffer.push_back (0);
-}
-
-energy.value                        = 0    ;
-energy.start                       *= 3600 ;
-energy.wide                        *= 3600 ;
-once_plugged                        = false;
-mod_bat_plug                        = 0    ;
-bulwers.step                        = 0    ;
-bulwers.wake_up                     = false;
-bulwers.no_update                   = false;
-bulwers.wkup_active                 = 0    ;
-bulwers.wkup_reason                 = 0    ;
-bulwers.current_wkup_delay          = bulwers.wake_up_delay;
-bulwers.flue                        = false;
-bulwers.fluetimer                   = 0    ;
-bulwers.fluehighval                 = temperature.stable;
-bulwers.fluelowval                  = temperature.stable;
+    energy.value                        = 0    ;
+    energy.start                       *= 3600 ;
+    energy.wide                        *= 3600 ;
+    once_plugged                        = false;
+    mod_bat_plug                        = 0    ;
+    bulwers.step                        = 0    ;
+    bulwers.wake_up                     = false;
+    bulwers.no_update                   = false;
+    bulwers.wkup_active                 = 0    ;
+    bulwers.wkup_reason                 = 0    ;
+    bulwers.current_wkup_delay          = bulwers.wake_up_delay;
+    bulwers.flue                        = false;
+    bulwers.fluetimer                   = 0    ;
+    bulwers.fluehighval                 = temperature.stable;
+    bulwers.fluelowval                  = temperature.stable;
+    if (bulwers.remembered_time == 0)
+        bulwers.remembered_time         = get_time().day_num*60*24 + get_time().hour/60;
 
 }
 
@@ -1024,6 +1079,7 @@ void eyes_view::graphics_prepare()
            {
                face_send = "sh_01";
                anims_send (face_send, s_anim.face_prev + "_close", "sh_02_open", anim_num_1, 7);
+               interrupt();
            }
 
            if (bulwers.outline != 20 && bulwers.prev_outline == 20)
@@ -1086,6 +1142,54 @@ void eyes_view::graphics_prepare()
                interrupt();
            }
        }
+}
+
+void friendship::save(Configuration *cfg)
+{
+    if (to_save)
+        cfg->setValue("core.friendship.value", (int)value);
+}
+
+double friendship::funccalc(double angle, unsigned int current)
+{
+    return pow(current, angle)*func_scale/pow(100, angle);
+}
+
+void friendship::timeimpact(unsigned int delay)
+{
+    long double absval = max_below + value;
+    if (value < stable)
+    {
+        for (int i = 0; i<delay; i++)
+        {
+            value+=calm_perc_low*(funccalc(func_calm_low, (100*absval)/(max_below+stable)))/100.0;
+        }
+    }
+    else if (value > stable)
+    {
+        for (int i = 0; i<delay; i++)
+        {
+            value-=calm_perc_high*(funccalc(func_calm_high, 100*(value-stable)/(max_over-stable)))/100.0;
+        }
+    }
+    cerr << value << "\n";
+}
+void friendship::mouseimpact(unsigned int impact)
+{
+    long double absval = max_below + value;
+    if (impact == 0)
+    {
+        if (value < stable)
+        {
+            value+=mouse_good*funccalc(func_mouse_low, (100*absval)/(max_below+stable));
+        }
+        else if (value > stable)
+        {
+            value+=mouse_good*func_scale-funccalc(func_mouse_low, 100*(value-stable)/(max_over-stable));
+        }
+        else
+            value+=mouse_good;
+    }
 }
 
 void Core::bulwers_update ()
@@ -1165,7 +1269,7 @@ void Core::bulwers_update ()
     {
         bulwers.update();
         bulwers.flue_check();
-        bulwers.critical_services();
+        bulwers.critical_services( Configuration::getInstance () );
     }
     bulwers.no_update = false;
 
@@ -2016,12 +2120,14 @@ void Core::load_config ()
     bulwers.wall_13         = cfg->lookupValue ("core.bulwers.wall_13",                 98700       );
     bulwers.wall_14         = cfg->lookupValue ("core.bulwers.wall_14",                 159700      );
     bulwers.wall_15         = cfg->lookupValue ("core.bulwers.wall_15",                 258400      );
-    bulwers.fship_at_calm   = cfg->lookupValue ("core.bulwers.friendship_autocalm_del", 3600        );
-    bulwers.friendship      = cfg->lookupValue ("core.bulwers.friendship",              0           );
-    bulwers.calm_perc       = cfg->lookupValue ("core.bulwers.fship_calm_percentage",   1           );
     bulwers.flueamplitude   = cfg->lookupValue ("core.bulwers.flueamplitude",           20          );
     bulwers.flueimpact      = cfg->lookupValue ("core.bulwers.flueimpact",              100         );
     bulwers.fluestepdelay   = cfg->lookupValue ("core.bulwers.fluestepdelay",           300         );
+    bulwers.remembered_nrg  = cfg->lookupValue ("core.bulwers.remembered_energy",       0           );
+    bulwers.remembered_time = cfg->lookupValue ("core.bulwers.remembered_time",         0           );
+    bulwers.max_mem_lag     = cfg->lookupValue ("core.bulwers.max_memory_lag",          10          );
+    bulwers.rest_time_std   = cfg->lookupValue ("core.bulwers.rest_time_standard",      9           );
+    bulwers.rest_time_wkend = cfg->lookupValue ("core.bulwers.rest_time_weekend",       12          );
     bulwers.nrg_boost       = cfg->lookupValue ("core.bulwers.energyboost",             20          );
     bulwers.nrg_std         = cfg->lookupValue ("core.bulwers.energystd",               16          );
     bulwers.nrg_low         = cfg->lookupValue ("core.bulwers.energylow",               10          );
@@ -2040,6 +2146,24 @@ void Core::load_config ()
     bulwers.wkup_time       = cfg->lookupValue ("core.bulwers.wkup_time",               7           );
     bulwers.wkup_timew      = cfg->lookupValue ("core.bulwers.wkup_time_weekend",       10          );
     bulwers.wake_up_delay   = cfg->lookupValue ("core.bulwers.wkup_delay",              120         );
+
+    //friendship_sector
+
+    fship.calm_perc_high    = cfg->lookupValue ("core.friendship.calm_percentage_high", 5           );
+    fship.calm_perc_low     = cfg->lookupValue ("core.friendship.calm_percentage_low",  10          );
+    fship.calm_timer        = cfg->lookupValue ("core.friendship.calm_timer",           60          );
+    fship.func_calm_high    = cfg->lookupValue ("core.friendship.func_calm_high",       1.8         );
+    fship.func_calm_low     = cfg->lookupValue ("core.friendship.func_calm_low",        1.8         );
+    fship.func_mouse_high   = cfg->lookupValue ("core.friendship.func_mouse_high",      1.8         );
+    fship.func_mouse_low    = cfg->lookupValue ("core.friendship.func_mouse_low",       1.8         );
+    fship.func_mouse_hit    = cfg->lookupValue ("core.friendship.func_mouse_hit",       1.8         );
+    fship.func_scale        = cfg->lookupValue ("core.friendship.func_scale",           20          );
+    fship.max_below         = cfg->lookupValue ("core.friendship.max_below_0",          5000        );
+    fship.max_over          = cfg->lookupValue ("core.friendship.max_over_0",           5000        );
+    fship.mouse_bad         = cfg->lookupValue ("core.friendship.mouse_bad",            20          );
+    fship.mouse_good        = cfg->lookupValue ("core.friendship.mouse_good",           1           );
+    fship.stable            = cfg->lookupValue ("core.friendship.stable",               200         );
+    fship.value             = cfg->lookupValue ("core.friendship.value",                0           );
 
     //basic_sector
 
@@ -2114,14 +2238,11 @@ void Core::load_config ()
     //mousea_actions_sector
 
     mousea.buff_size        = cfg->lookupValue ("core.mouse_actions.buff_size",         120         );
-    mousea.goodstep         = cfg->lookupValue ("core.mouse_actions.goodstep",          1           );
-    mousea.badstep          = cfg->lookupValue ("core.mouse_actions.badstep",           10          );
     mousea.scale            = cfg->lookupValue ("core.mouse_actions.scale",             8000        );
     mousea.wall             = cfg->lookupValue ("core.mouse_actions.wall",              500         );
     mousea.force_wall       = cfg->lookupValue ("core.mouse_actions.force_wall",        3000        );
     mousea.opt_speed        = cfg->lookupValue ("core.mouse_actions.opt_speed",         250         );
     mousea.impact           = cfg->lookupValue ("core.mouse_actions.impact",            10          );
-    mousea.hit_time_multi   = cfg->lookupValue ("core.mouse_actions.hit_multi",         2           );
     mousea.heavycalm        = cfg->lookupValue ("core.mouse_actions.heavycalm",         100         );
     mousea.max_delay        = cfg->lookupValue ("core.mouse_actions.max_delay",         400         );
     mousea.max_hpp_bul      = cfg->lookupValue ("core.mouse_actions.max_hpp_bul",       5           );
@@ -2133,6 +2254,17 @@ void Core::load_config ()
     HRDWR.special_thername  = cfg->lookupValue ( "core.hardware.use_thername",          false       );
     HRDWR.cfg_battname      = cfg->lookupValue ( "core.hardware.battname",              "BAT0"      );
     HRDWR.cfg_thername      = cfg->lookupValue ( "core.hardware.thername",              "thermal_zone0"        );
+
+    //rootcontrol
+
+    rtctrl.backlight_path   = cfg->lookupValue ( "core.rootcontrol.backlight_path",     "/sys/class/backlight/intel_backlight"        );
+    rtctrl.batt_min_backl   = cfg->lookupValue ( "core.rootcontrol.batt_min_backl",     20          );
+    rtctrl.batt_start_perc  = cfg->lookupValue ( "core.rootcontrol.batt_start_perc",    25          );
+    rtctrl.batt_suspend_perc= cfg->lookupValue ( "core.rootcontrol.batt_suspend_perc",  5           );
+    rtctrl.roottype         = cfg->lookupValue ( "core.rootcontrol.roottype",           false       );
+    rtctrl.suspendtohdd     = cfg->lookupValue ( "core.rootcontrol.suspendtohdd",       false       );
+    rtctrl.temp_halt_enabled= cfg->lookupValue ( "core.rootcontrol.temp_halt_enabled",  true        );
+    rtctrl.temp_halt_start  = cfg->lookupValue ( "core.rootcontrol.temp_halt_start",    85          );
 
 }
 
@@ -2234,21 +2366,17 @@ int mouse_actions::convert()
         result = sum/tr;
         if (result > 0 )
         {
+            fship.to_save = 1;
             if (result >= wall*multiplier)
             {
-                bulwers.friendship-=(badstep*hit_time);
-                hit_time*=hit_time_multi;
+                fship.mouseimpact(hit_time);
+                hit_time++;
                 return -(100*result/scale);
             }
             else
             {
                 hpp_active = true;
-                if (bulwers.friendship > -(int)heavycalm*(int)goodstep)
-                {
-                    bulwers.friendship+=goodstep;
-                }
-                else
-                    bulwers.friendship-=bulwers.friendship/heavycalm;
+                fship.mouseimpact(0);
 
                 if( hit_time != 1 )
                     hit_time--;
@@ -2290,4 +2418,89 @@ void eyes_view::hpp_evoke()
 void Core::handle_enter ()
 {
     info << "(core) mouse entered\n";
+}
+
+void rootcontrol::execute(bool roottype, QString command, QStringList arguments)
+{
+    if (roottype)
+    {
+        QProcess::startDetached (command, arguments);
+    }
+    else
+    {
+        QStringList extendedarg;
+        extendedarg << command << arguments;
+        QProcess::startDetached ("kdesu", extendedarg);
+    }
+}
+
+void rootcontrol::execute(bool roottype, QString command)
+{
+    QStringList empty;
+    if (roottype)
+    {
+        QProcess::startDetached (command);
+    }
+    else
+    {
+        QStringList extendedarg;
+        extendedarg << command;
+        QProcess::startDetached ("kdesu", extendedarg);
+    }
+}
+
+void rootcontrol::action(string command)
+{
+    if (command == "halt")
+        execute(0, QString ( "halt" ));
+
+    if (command == "suspend")
+        execute(roottype, QString ( "halt" ));
+
+    if (command == "battery")
+    {
+        if (battery.load < batt_start_perc)
+        {
+            if (battery.load < batt_suspend_perc)
+                execute(roottype, "suspend");
+            else
+            {
+                QString bpathA = QString ( &backlight_path[0] );
+                bpathA += "/max_brightness";
+                fstream file (&bpathA.toStdString()[0], fstream::in);
+                string out;
+                while (file.good())
+                        out+=file.get();
+                string input = out;
+                string temp = "";
+                for (int i = 0; i<input.size()-2; i++)
+                        temp+=input[i];
+                int max_back = atoi (&temp[0]);
+                int percentage = 100*(battery.load-batt_suspend_perc)/(batt_start_perc-batt_suspend_perc);
+                if (percentage < batt_min_backl)
+                    percentage = batt_min_backl;
+                QString bpathB = QString ( &backlight_path[0] );
+                bpathB += "/brightness";
+                ofstream output;
+                output.open(&bpathB.toStdString()[0], ofstream::trunc);
+                if (output.good())
+                {
+                    output << percentage*max_back/100;
+                    output.close();
+                }
+                else
+                    cerr << "backlight changing - permission denied";
+            }
+        }
+    }
+
+    if (command == "temperature" && temp_halt_enabled)
+    {
+        QStringList args;
+        if (temperature.value > temp_halt_start)
+        {
+            args << "-h" << "now";
+            execute(1, "/sbin/shutdown", args);
+        }
+    }
 }
