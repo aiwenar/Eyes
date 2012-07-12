@@ -23,13 +23,19 @@ class hardware
 {
 public:
     bool                    special_batname,
-                            special_thername;
+                            special_thername,
+                            screen_support,
+                            set_file(string path, string value),
+                            set_file(string path, long double value),
+                            set_backlight (unsigned short percentage);
     double                  C_LOAD              (),
                             M_LOAD              ();
     int                     U_TIME              (),
                             bateria             (),
                             bat_plugged         ();
-    unsigned int            battery_capacity;
+    unsigned int            battery_capacity,
+                            sys_backlight_now   (string path),
+                            sys_backlight_full  (string path);
     unsigned short          P_LIST              (),
                             temperatura         (),
                             emubat              (string path),
@@ -56,6 +62,9 @@ public:
                             final_path_state,
                             cfg_battname,
                             cfg_thername,
+                            backlight_path,
+                            backlight_fpath,
+                            backlight_npath,
                             get_file            (char* path);
 };
 

@@ -30,141 +30,178 @@ sdate           get_time    ();
 
 string hardware::get_file (char* path)
 {
-        fstream file (path, fstream::in);
-                string out;
-                while (file.good())
-                        out+=file.get();
-        return out;
+    fstream file (path, fstream::in);
+        string out;
+        while (file.good())
+            out+=file.get();
+    return out;
+}
+
+bool hardware::set_file(string path, string value)
+{
+    ofstream output;
+    output.open(path, ofstream::trunc);
+    if (output.good())
+    {
+        output << value;
+        output.close();
+        return true;
+    }
+    else
+        return false;
+}
+
+bool hardware::set_file(string path, long double value)
+{
+    ofstream output;
+    output.open(path, ofstream::trunc);
+    if (output.good())
+    {
+        output << value;
+        output.close();
+        return true;
+    }
+    else
+        return false;
 }
 
 unsigned short hardware::proc_temp (string path)
 {
     string input = get_file(&path[0]);
-        string temp = "";
-        int x = input.find ("temperature:");
-        x+=9;
-        while (input[x] == ' ')
-                x++;
-        for (int i = 0; i<2; i++)
-        {
-                if (input[x+i] == ' ')
-                        break;
-                temp += input[x+i];
-        }
-        return atoi (&temp[0]);
+    string temp = "";
+    int x = input.find ("temperature:");
+    x+=9;
+    while (input[x] == ' ')
+            x++;
+    for (int i = 0; i<2; i++)
+    {
+            if (input[x+i] == ' ')
+                    break;
+            temp += input[x+i];
+    }
+    return atoi (&temp[0]);
 }
 
 unsigned short hardware::proc_bat_now (string path)
 {
     string input = get_file(&path[0]);
-        string bat = "";
-        int x = input.find ("capacity:");
-        x+=9;
-        while (input[x] == ' ')
-                x++;
-        for (int i = 0; i<10; i++)
-        {
-                if (input[x+i] == ' ')
-                        break;
-                bat += input[x+i];
-        }
-        return atoi (&bat[0]);
+    string bat = "";
+    int x = input.find ("capacity:");
+    x+=9;
+    while (input[x] == ' ')
+            x++;
+    for (int i = 0; i<10; i++)
+    {
+            if (input[x+i] == ' ')
+                    break;
+            bat += input[x+i];
+    }
+    return atoi (&bat[0]);
 }
 
 unsigned short hardware::proc_bat_full (string path)
 {
     string input = get_file(&path[0]);
-        string bat = "";
-        int x = input.find ("last full capacity:");
-        x+=19;
-        while (input[x] == ' ')
-                x++;
-        for (int i = 0; i<10; i++)
-        {
-                if (input[x+i] == ' ')
-                        break;
-                bat += input[x+i];
-        }
-        return atoi (&bat[0]);
+    string bat = "";
+    int x = input.find ("last full capacity:");
+    x+=19;
+    while (input[x] == ' ')
+            x++;
+    for (int i = 0; i<10; i++)
+    {
+            if (input[x+i] == ' ')
+                    break;
+            bat += input[x+i];
+    }
+    return atoi (&bat[0]);
 }
 
 unsigned short hardware::proc_bat_state (string path)
 {
     string input = get_file(&path[0]);
-        int x = input.find ("present:");
-        x+=8;
-        while (input[x] == ' ')
-                x++;
-        if (input[x] == 'n')
-                return 0;
+    int x = input.find ("present:");
+    x+=8;
+    while (input[x] == ' ')
+            x++;
+    if (input[x] == 'n')
+            return 0;
 
-        x = input.find ("charging state:");
-        x+=15;
-        while (input[x] == ' ')
-                x++;
+    x = input.find ("charging state:");
+    x+=15;
+    while (input[x] == ' ')
+            x++;
 
-        static char pluged = 0;
+    static char pluged = 0;
 
-        if (input[x] == 'c' && pluged !=1) //battery has been just pluged
-        {
-                pluged = 1;
-                return 1;
-        }
-        if (input[x] != 'c' && pluged !=0) //battery has been just unpluged
-        {
-                pluged = 0;
-                return 2;
-        }
-        if (input[x] == 'c' && pluged == 1) //battery is still pluged
-                return 3;
-        if (input[x] != 'c' && pluged == 0) //battery is still unpluged
-                return 4;
+    if (input[x] == 'c' && pluged !=1) //battery has been just pluged
+    {
+            pluged = 1;
+            return 1;
+    }
+    if (input[x] != 'c' && pluged !=0) //battery has been just unpluged
+    {
+            pluged = 0;
+            return 2;
+    }
+    if (input[x] == 'c' && pluged == 1) //battery is still pluged
+            return 3;
+    if (input[x] != 'c' && pluged == 0) //battery is still unpluged
+            return 4;
 
-        return 5;
+    return 5;
 }
 
 unsigned short hardware::sys_temp (string path)
 {
     string input = get_file(&path[0]);
-        string temp = "";
-        for (int i = 0; i<input.size()-2; i++)
-                temp+=input[i];
-        return atoi (&temp[0])/1000;
+    string temp = "";
+    for (int i = 0; i<input.size()-2; i++)
+            temp+=input[i];
+    return atoi (&temp[0])/1000;
 }
 
 unsigned short hardware::sys_bat_uni (string path)
 {
     string input = get_file(&path[0]);
-        string bat = "";
-        for (int i = 0; i<input.size()-2; i++)
-                bat+=input[i];
-        return atoi (&bat[0])/1000;
+    string bat = "";
+    for (int i = 0; i<input.size()-2; i++)
+            bat+=input[i];
+    return atoi (&bat[0])/1000;
 }
 
 unsigned short hardware::sys_bat_state (string path)
 {
     string input = get_file(&path[0]);
-        if (input == "")
-            return 0;
+    if (input == "")
+        return 0;
 
-        static char pluged = 0;
+    static char pluged = 0;
 
-        if (input[0] == 'C' && pluged !=1) //battery has been just pluged
-        {
-            pluged = 1;
-            return 1;
-        }
-        if (input[0] != 'C' && pluged !=0) //battery has been just unpluged
-        {
-            pluged = 0;
-            return 2;
-        }
-        if (input[0] == 'C' && pluged == 1) //battery is still pluged
-            return 3;
-        if (input[0] != 'C' && pluged == 0) //battery is still unpluged
-            return 4;
+    if (input[0] == 'C' && pluged !=1) //battery has been just pluged
+    {
+        pluged = 1;
+        return 1;
+    }
+    if (input[0] != 'C' && pluged !=0) //battery has been just unpluged
+    {
+        pluged = 0;
+        return 2;
+    }
+    if (input[0] == 'C' && pluged == 1) //battery is still pluged
+        return 3;
+    if (input[0] != 'C' && pluged == 0) //battery is still unpluged
+        return 4;
 
-        return 5;
+    return 5;
+}
+
+unsigned int hardware::sys_backlight_full (string path)
+{
+    string input = get_file(&path[0]);
+    string back = "";
+    for (int i = 0; i<input.size()-2; i++)
+        back+=input[i];
+    return atoi (&back[0]);
 }
 
 double hardware::C_LOAD ()
@@ -507,6 +544,15 @@ unsigned int timal::calculate()
     return mod;
 }
 
+bool hardware::set_backlight (unsigned short percentage)
+{
+    unsigned int full = sys_backlight_full(backlight_fpath);
+    if (set_file(backlight_npath, (int) full*percentage/100))
+        return 1;
+    else
+        return 0;
+}
+
 void hardware::system_check()
 {
     info << "System checking...\n";
@@ -514,6 +560,7 @@ void hardware::system_check()
         final_full_solution = 0;
         final_state_solution = 0;
         final_temp_solution = 0;
+        screen_support = 0;
 
         for (int i = 0; i < 10; i++)
         {
@@ -800,5 +847,32 @@ void hardware::system_check()
             info << "thermal sensor: sys\n";
             break;
         }
+
+            string input = "";
+            string path = "/sys/class/backlight/";
+            path += backlight_path;
+            path += "/brightness";
+            input = get_file (&path[0]);
+            if (input == "");
+                    //info << "searching for backlight path - failed\n";
+            else
+            {
+                backlight_npath = path;
+                if (!set_file(path, input))
+                    info << "backlight changing - permission denied\n";
+                input = "";
+                path = "/sys/class/backlight/";
+                path += backlight_path;
+                path += "/max_brightness";
+                input = get_file (&path[0]);
+                if (input == "")
+                    info << "max backlight value reading - failed\n";
+                else
+                {
+                    screen_support = 1;
+                    backlight_fpath = path;
+                    info << "backlight support possible:\n+ full: " << backlight_fpath << "\n+ now: " << backlight_npath << "\n";
+                }
+            }
 
 }

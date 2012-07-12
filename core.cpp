@@ -145,7 +145,7 @@ void bul::update()
             temperature.mod -
             battery.mod     -
             mod_bat_plug    -
-            fship.value/100  -
+            fship.value/100 -
             mousea.mod      ;
 
     //total_mod = 0;
@@ -1172,7 +1172,7 @@ void friendship::timeimpact(unsigned int delay)
             value-=calm_perc_high*(funccalc(func_calm_high, 100*(value-stable)/(max_over-stable)))/100.0;
         }
     }
-    cerr << value << "\n";
+    //cerr << value << "\n";
 }
 void friendship::mouseimpact(unsigned int impact)
 {
@@ -1189,6 +1189,15 @@ void friendship::mouseimpact(unsigned int impact)
         }
         else
             value+=mouse_good;
+    }
+    else
+    {
+        for (int i = 0; i < impact; i++)
+        {
+            value-=pow((double)mouse_bad, func_mouse_hit);
+            if (value < -(int)max_below)
+                value = -(int)max_below;
+        }
     }
 }
 
@@ -1475,6 +1484,8 @@ void Core::autocalc_reload ( Configuration * cfg )
             }
             autocalc.cpu_freq_angle_low*=(100.0/(autocalc.cpu_common));
             autocalc.cpu_mult_low = (autocalc.cpu_mult_low_converter/autocalc.cpu_freq_angle_low)*100;
+            if (autocalc.cpu_mult_low > 6)
+                autocalc.cpu_mult_low = 6;
             for (int i = autocalc.cpu_curmid; i<cpu.EQsize; i++)
             {
                 if (autocalc.cpu_freq[i]-autocalc.cpu_freq[i+1] > autocalc.cpu_freq_angle_high)
@@ -1482,13 +1493,18 @@ void Core::autocalc_reload ( Configuration * cfg )
             }
             autocalc.cpu_freq_angle_high*=(100.0/(autocalc.cpu_common));
             autocalc.cpu_mult_high = (autocalc.cpu_mult_high_converter/autocalc.cpu_freq_angle_high)*100;
+            if (autocalc.cpu_mult_high > 6)
+                autocalc.cpu_mult_high = 6;
         }
 
         for (int i = autocalc.cpu_stablepointlow; i >= 0 ; i--)
         {
             autocalc.cpu_curve[i] = pow((long double)(autocalc.cpu_stablepointlow-i), autocalc.cpu_mult_low);
         }
-        autocalc.cpu_curve_correct = (long double)cpu.stable/autocalc.cpu_curve[0];
+        if (autocalc.cpu_curve[0] != 0)
+            autocalc.cpu_curve_correct = (long double)cpu.stable/autocalc.cpu_curve[0];
+        else
+            autocalc.cpu_curve_correct = 1;
         for (int i = 0; i <= autocalc.cpu_stablepointlow ; i++)
         {
             autocalc.cpu_curve[i] *= autocalc.cpu_curve_correct;
@@ -1504,7 +1520,10 @@ void Core::autocalc_reload ( Configuration * cfg )
         {
             autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] = pow((long double)i, autocalc.cpu_mult_high);
         }
-        autocalc.cpu_curve_correct = (long double)(100.0-cpu.stable)/autocalc.cpu_curve[cpu.EQsize];
+        if (autocalc.cpu_curve[cpu.EQsize] != 0)
+            autocalc.cpu_curve_correct = (long double)(100.0-cpu.stable)/autocalc.cpu_curve[cpu.EQsize];
+        else
+            autocalc.battery_curve_correct = 1;
         for (int i = 0; i <= cpu.EQsize-autocalc.cpu_stablepointhigh; i++)
         {
             autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] *= autocalc.cpu_curve_correct;
@@ -1617,6 +1636,8 @@ void Core::autocalc_reload ( Configuration * cfg )
             }
             autocalc.memory_freq_angle_low*=(100.0/(autocalc.memory_common));
             autocalc.memory_mult_low = (autocalc.memory_mult_low_converter/autocalc.memory_freq_angle_low)*100;
+            if (autocalc.memory_mult_low > 6)
+                autocalc.memory_mult_low = 6;
             for (int i = autocalc.memory_curmid; i<memory.EQsize; i++)
             {
                 if (autocalc.memory_freq[i]-autocalc.memory_freq[i+1] > autocalc.memory_freq_angle_high)
@@ -1624,13 +1645,18 @@ void Core::autocalc_reload ( Configuration * cfg )
             }
             autocalc.memory_freq_angle_high*=(100.0/(autocalc.memory_common));
             autocalc.memory_mult_high = (autocalc.memory_mult_high_converter/autocalc.memory_freq_angle_high)*100;
+            if (autocalc.memory_mult_high > 6)
+                autocalc.memory_mult_high = 6;
         }
 
         for (int i = autocalc.memory_stablepointlow; i >= 0 ; i--)
         {
             autocalc.memory_curve[i] = pow((long double)(autocalc.memory_stablepointlow-i), autocalc.memory_mult_low);
         }
-        autocalc.memory_curve_correct = (long double)memory.stable/autocalc.memory_curve[0];
+        if (autocalc.memory_curve[0] != 0)
+            autocalc.memory_curve_correct = (long double)memory.stable/autocalc.memory_curve[0];
+        else
+            autocalc.memory_curve_correct = 1;
         for (int i = 0; i <= autocalc.memory_stablepointlow ; i++)
         {
             autocalc.memory_curve[i] *= autocalc.memory_curve_correct;
@@ -1646,7 +1672,10 @@ void Core::autocalc_reload ( Configuration * cfg )
         {
             autocalc.memory_curve[i+autocalc.memory_stablepointhigh] = pow((long double)i, autocalc.memory_mult_high);
         }
-        autocalc.memory_curve_correct = (long double)(100.0-memory.stable)/autocalc.memory_curve[memory.EQsize];
+        if (autocalc.memory_curve[memory.EQsize] != 0)
+            autocalc.memory_curve_correct = (long double)(100.0-memory.stable)/autocalc.memory_curve[memory.EQsize];
+        else
+            autocalc.memory_curve_correct = 1;
         for (int i = 0; i <= memory.EQsize-autocalc.memory_stablepointhigh; i++)
         {
             autocalc.memory_curve[i+autocalc.memory_stablepointhigh] *= autocalc.memory_curve_correct;
@@ -1759,6 +1788,8 @@ void Core::autocalc_reload ( Configuration * cfg )
             }
             autocalc.battery_freq_angle_low*=(100.0/(autocalc.battery_common));
             autocalc.battery_mult_low = (autocalc.battery_mult_low_converter/autocalc.battery_freq_angle_low)*100;
+            if (autocalc.battery_mult_low > 6)
+                autocalc.battery_mult_low = 6;
             for (int i = autocalc.battery_curmid; i<battery.EQsize; i++)
             {
                 if (autocalc.battery_freq[i]-autocalc.battery_freq[i+1] > autocalc.battery_freq_angle_high)
@@ -1766,13 +1797,18 @@ void Core::autocalc_reload ( Configuration * cfg )
             }
             autocalc.battery_freq_angle_high*=(100.0/(autocalc.battery_common));
             autocalc.battery_mult_high = (autocalc.battery_mult_high_converter/autocalc.battery_freq_angle_high)*100;
+            if (autocalc.battery_mult_high > 6)
+                autocalc.battery_mult_high = 6;
         }
 
         for (int i = autocalc.battery_stablepointlow; i >= 0 ; i--)
         {
             autocalc.battery_curve[i] = pow((long double)(autocalc.battery_stablepointlow-i), autocalc.battery_mult_low);
         }
-        autocalc.battery_curve_correct = (long double)battery.stable/autocalc.battery_curve[0];
+        if (autocalc.battery_curve[0] != 0)
+            autocalc.battery_curve_correct = (long double)battery.stable/autocalc.battery_curve[0];
+        else
+            autocalc.battery_curve_correct = 1;
         for (int i = 0; i <= autocalc.battery_stablepointlow ; i++)
         {
             autocalc.battery_curve[i] *= autocalc.battery_curve_correct;
@@ -1788,7 +1824,10 @@ void Core::autocalc_reload ( Configuration * cfg )
         {
             autocalc.battery_curve[i+autocalc.battery_stablepointhigh] = pow((long double)i, autocalc.battery_mult_high);
         }
-        autocalc.battery_curve_correct = (long double)(100.0-battery.stable)/autocalc.battery_curve[battery.EQsize];
+        if (autocalc.battery_curve[battery.EQsize] != 0)
+            autocalc.battery_curve_correct = (long double)(100.0-battery.stable)/autocalc.battery_curve[battery.EQsize];
+        else
+            autocalc.battery_curve_correct = 1;
         for (int i = 0; i <= battery.EQsize-autocalc.battery_stablepointhigh; i++)
         {
             autocalc.battery_curve[i+autocalc.battery_stablepointhigh] *= autocalc.battery_curve_correct;
@@ -1915,6 +1954,8 @@ void Core::autocalc_reload ( Configuration * cfg )
             }
             autocalc.temperature_freq_angle_low*=(100.0/(autocalc.temperature_common));
             autocalc.temperature_mult_low = (autocalc.temperature_mult_low_converter/autocalc.temperature_freq_angle_low)*100;
+            if (autocalc.temperature_mult_low > 6)
+                autocalc.temperature_mult_low = 6;
             for (int i = autocalc.temperature_curmid; i<temperature.EQsize; i++)
             {
                 if (autocalc.temperature_freq[i]-autocalc.temperature_freq[i+1] > autocalc.temperature_freq_angle_high)
@@ -1922,13 +1963,18 @@ void Core::autocalc_reload ( Configuration * cfg )
             }
             autocalc.temperature_freq_angle_high*=(100.0/(autocalc.temperature_common));
             autocalc.temperature_mult_high = (autocalc.temperature_mult_high_converter/autocalc.temperature_freq_angle_high)*100;
+            if (autocalc.temperature_mult_high > 6)
+                autocalc.temperature_mult_high = 6;
         }
 
         for (int i = autocalc.temperature_stablepointlow; i >= 0 ; i--)
         {
             autocalc.temperature_curve[i] = pow((long double)(autocalc.temperature_stablepointlow-i), autocalc.temperature_mult_low);
         }
-        autocalc.temperature_curve_correct = (long double)temperature.stable/autocalc.temperature_curve[0];
+        if (autocalc.temperature_curve[0] != 0)
+            autocalc.temperature_curve_correct = (long double)temperature.stable/autocalc.temperature_curve[0];
+        else
+            autocalc.temperature_curve_correct = 1;
         for (int i = 0; i <= autocalc.temperature_stablepointlow ; i++)
         {
             autocalc.temperature_curve[i] *= autocalc.temperature_curve_correct;
@@ -1944,7 +1990,10 @@ void Core::autocalc_reload ( Configuration * cfg )
         {
             autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] = pow((long double)i, autocalc.temperature_mult_high);
         }
-        autocalc.temperature_curve_correct = (long double)(100.0-temperature.stable)/autocalc.temperature_curve[temperature.EQsize];
+        if (autocalc.temperature_curve[temperature.EQsize] != 0)
+            autocalc.temperature_curve_correct = (long double)(100.0-temperature.stable)/autocalc.temperature_curve[temperature.EQsize];
+        else
+            autocalc.temperature_curve_correct = 1;
         for (int i = 0; i <= temperature.EQsize-autocalc.temperature_stablepointhigh; i++)
         {
             autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] *= autocalc.temperature_curve_correct;
@@ -2254,10 +2303,11 @@ void Core::load_config ()
     HRDWR.special_thername  = cfg->lookupValue ( "core.hardware.use_thername",          false       );
     HRDWR.cfg_battname      = cfg->lookupValue ( "core.hardware.battname",              "BAT0"      );
     HRDWR.cfg_thername      = cfg->lookupValue ( "core.hardware.thername",              "thermal_zone0"        );
+    HRDWR.backlight_path    = cfg->lookupValue ( "core.rootcontrol.backlight_device",   "intel_backlight"      );
 
     //rootcontrol
 
-    rtctrl.backlight_path   = cfg->lookupValue ( "core.rootcontrol.backlight_path",     "/sys/class/backlight/intel_backlight"        );
+    rtctrl.screenctrl       = cfg->lookupValue ( "core.rootcontrol.screen_management",  true        );
     rtctrl.batt_min_backl   = cfg->lookupValue ( "core.rootcontrol.batt_min_backl",     20          );
     rtctrl.batt_start_perc  = cfg->lookupValue ( "core.rootcontrol.batt_start_perc",    25          );
     rtctrl.batt_suspend_perc= cfg->lookupValue ( "core.rootcontrol.batt_suspend_perc",  5           );
@@ -2459,37 +2509,15 @@ void rootcontrol::action(string command)
 
     if (command == "battery")
     {
-        if (battery.load < batt_start_perc)
+        if (battery.load < batt_start_perc && screenctrl)
         {
             if (battery.load < batt_suspend_perc)
                 execute(roottype, "suspend");
-            else
+            else if (HRDWR.screen_support)
             {
-                QString bpathA = QString ( &backlight_path[0] );
-                bpathA += "/max_brightness";
-                fstream file (&bpathA.toStdString()[0], fstream::in);
-                string out;
-                while (file.good())
-                        out+=file.get();
-                string input = out;
-                string temp = "";
-                for (int i = 0; i<input.size()-2; i++)
-                        temp+=input[i];
-                int max_back = atoi (&temp[0]);
                 int percentage = 100*(battery.load-batt_suspend_perc)/(batt_start_perc-batt_suspend_perc);
-                if (percentage < batt_min_backl)
-                    percentage = batt_min_backl;
-                QString bpathB = QString ( &backlight_path[0] );
-                bpathB += "/brightness";
-                ofstream output;
-                output.open(&bpathB.toStdString()[0], ofstream::trunc);
-                if (output.good())
-                {
-                    output << percentage*max_back/100;
-                    output.close();
-                }
-                else
-                    cerr << "backlight changing - permission denied";
+                percentage = batt_min_backl + (percentage*(100-batt_min_backl)/100);
+                HRDWR.set_backlight(percentage);
             }
         }
     }

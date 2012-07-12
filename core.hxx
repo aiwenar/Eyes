@@ -392,10 +392,10 @@ public:
                                 batt_start_perc,
                                 batt_suspend_perc,
                                 temp_halt_start;
-    string                      backlight_path;
     bool                        roottype,
                                 temp_halt_enabled,
-                                suspendtohdd;
+                                suspendtohdd,
+                                screenctrl;
 private:
     void                        execute(bool roottype, QString command, QStringList arguments),
                                 execute(bool roottype, QString command);
