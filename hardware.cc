@@ -20,7 +20,11 @@
 #include <glibtop/cpu.h>
 #include <glibtop/mem.h>
 #include <glibtop/proclist.h>
+#include <glibtop/proctime.h>
+#include <glibtop/procmem.h>
 #include <glibtop/uptime.h>
+#include <unistd.h>
+#include <sys/types.h>
 #include "core.hxx"
 #include "hardware.hxx"
 #include "debug.hxx"
@@ -208,23 +212,38 @@ double hardware::C_LOAD ()
 {
   glibtop_init();
   glibtop_cpu gcpu;
+  glibtop_proc_time proctime;
   glibtop_get_cpu (&gcpu);
+  glibtop_get_proc_time(&proctime,pid);
 
   static double cpu_load = 0;
   static unsigned long p_idle = 0;
   static unsigned long p_total = 0;
+  static unsigned long p_pidu = 0;
+  static unsigned long p_pids = 0;
   static unsigned long a_idle = 0;
   static unsigned long a_total = 0;
+  static unsigned long a_pidu = 0;
+  static unsigned long a_pids = 0;
   static unsigned long d_total = 0;
   static unsigned long d_idle = 0;
+  static unsigned long d_pidu = 0;
+  static unsigned long d_pids = 0;
   a_idle = gcpu.idle;
   a_total = gcpu.total;
+  a_pidu = proctime.utime;
+  a_pids = proctime.stime;
 
   d_total = a_total - p_total;
   d_idle = a_idle - p_idle;
+  d_pidu = a_pidu - p_pidu;
+  d_pids = a_pids - p_pids;
   cpu_load = (100*(d_total - d_idle)) / d_total;
+  owncpu = (100* (d_pidu + d_pids)) / d_total;
   p_idle = a_idle;
   p_total = a_total;
+  p_pidu = a_pidu;
+  p_pids = a_pids;
 
   return cpu_load;
 }

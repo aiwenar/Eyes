@@ -29,10 +29,12 @@ public:
                             set_file(string path, long double value),
                             set_backlight (unsigned short percentage);
     double                  C_LOAD              (),
-                            M_LOAD              ();
+                            M_LOAD              (),
+                            owncpu;
     int                     U_TIME              (),
                             bateria             (),
-                            bat_plugged         ();
+                            bat_plugged         (),
+                            pid;
     unsigned int            battery_capacity,
                             sys_backlight_now   (string path),
                             sys_backlight_full  (string path);
