@@ -119,6 +119,7 @@ public:
     void                graphics_prepare    ();
     void                anims_reload        ();
     void                setFlag             ( eyes_flag flag, bool value );
+    void                look_at             ( int px, int py );
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
     /// @return position x of left eye.
@@ -235,11 +236,14 @@ public:
      * @param neyes pointer to \p eyes_view to controll.
      */
             eyes_looker ( eyes_view * eyes );
-    void    run ();
+    void    run       ();
+    void    interrupt ( int x, int y );
 public slots:
     /// Called on timer tick, ...?.
     void    look ();
 private:
+    void  look_at ( int dx, int dy );
+
     eyes_view * eyes;
     QTimer    * timer;
     int         min_dx,

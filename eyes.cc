@@ -370,6 +370,14 @@ void eyes_view::toggle_layer ( Layers layer, bool onoff )
     layers[layer].drawable = onoff;
 }
 
+void eyes_view::look_at ( int px, int py )
+{
+  int x, y;
+  // twój kod tu
+  // pos(); - pozycja okna
+  looker->interrupt ( x, y );
+}
+
 int eyes_view::heightForWidth ( int w ) const
 {
     return ( eyes_h );

@@ -52,28 +52,38 @@ void eyes_looker::run ()
 
 void eyes_looker::look ()
 {
-    static int dx;
-    static int dy;
-    static int px1;
-    static int px2;
-    static int py;
-    static double mpx1;
-    static double mpx2;
-    static double mpy;
-    px1 = eyes->get_eyes_x1 ();
-    px2 = eyes->get_eyes_x2 ();
-    py = eyes->get_eyes_y ();
-    mpx1 = eyes->get_mirror_x1 ();
-    mpx2 = eyes->get_mirror_x2 ();
-    mpy = eyes->get_mirror_y ();
-    dx = ( (qrand()%100+1) > 50 ? -1 : 1 )*(qrand() % max_dx + min_dx);
-    dy = ( (qrand()%100+1) > 50 ? -1 : 1 )*(qrand() % max_dy + min_dy);
-    if ( px1+dx < bmin_x or px1+dx > bmax_x )
-        dx = 0;
-    if ( py+dy < bmin_y or py+dy > bmax_y )
-        dy = 0;
-    eyes->set_eyes_position ( px1+dx, px2+dx, py+dy );
-    eyes->set_mirror_position ( mpx1+(dx!=0?(double(dx)/3):0), mpx2+(dx!=0?(double(dx)/3):0), mpy+(dy!=0?(double(dy)/3):0) );
-    timer->setInterval ( ( qrand() % max_dl + min_dl ) * 200 );
-    eyes->repaint ();
+  int dx = ( (qrand()%100+1) > 50 ? -1 : 1 )*(qrand() % max_dx + min_dx);
+  int dy = ( (qrand()%100+1) > 50 ? -1 : 1 )*(qrand() % max_dy + min_dy);
+  look_at ( dx, dy );
+  timer->setInterval ( ( qrand() % max_dl + min_dl ) * 200 );
+  eyes->repaint ();
+}
+
+void eyes_looker::interrupt ( int x, int y )
+{
+  look_at ( eyes->get_eyes_x1 ()-x, eyes->get_eyes_y ()-y );
+  timer->setInterval ( 2000 );
+  eyes->repaint ();
+}
+
+void eyes_looker::look_at ( int dx, int dy )
+{
+  static int px1;
+  static int px2;
+  static int py;
+  static double mpx1;
+  static double mpx2;
+  static double mpy;
+  px1 = eyes->get_eyes_x1 ();
+  px2 = eyes->get_eyes_x2 ();
+  py = eyes->get_eyes_y ();
+  mpx1 = eyes->get_mirror_x1 ();
+  mpx2 = eyes->get_mirror_x2 ();
+  mpy = eyes->get_mirror_y ();
+  if ( px1+dx < bmin_x or px1+dx > bmax_x )
+      dx = 0;
+  if ( py+dy < bmin_y or py+dy > bmax_y )
+      dy = 0;
+  eyes->set_eyes_position ( px1+dx, px2+dx, py+dy );
+  eyes->set_mirror_position ( mpx1+(dx!=0?(double(dx)/3):0), mpx2+(dx!=0?(double(dx)/3):0), mpy+(dy!=0?(double(dy)/3):0) );
 }
