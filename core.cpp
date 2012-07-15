@@ -2563,7 +2563,7 @@ void camthread::start()
         //ccap.splash_detect(ccap.img2bool(ccap.get_motionpics(0.2, ccap.get_image())), ccap.min_splash_size);
 
       usleep(50000);
-      cvShowImage(window, ccap.dst);
+      //cvShowImage(window, ccap.dst);
       cvShowImage("DISP2", ccap.resized);
 
     //cvDestroyAllWindows();
