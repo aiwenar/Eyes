@@ -29,11 +29,11 @@
 #include <cmath>
 #include "core.hxx"
 #include "eyes.hxx"
+#include "camera.hxx"
 #include "debug.hxx"
 #include "cdbg.hxx"
 #include "hardware.hxx"
 #include "defines.hxx"
-#include "camera.hxx"
 
 using namespace std;
 
