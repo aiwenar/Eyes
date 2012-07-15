@@ -47,6 +47,7 @@ extern const char *verstr;
 #include "defines.hxx"
 #include "animation.hxx"
 #include "configuration.hxx"
+#include "camera.hxx"
 
 #define EYE_S       60
 #define EYE_M       9
@@ -67,6 +68,7 @@ using namespace std;
 class eyes_clapper;
 class eyes_looker;
 class Core;
+class camthread;
 
 QString get_face_suffix ( QString face );
 
@@ -182,6 +184,7 @@ private:
     eyes_looker           * looker;
     Configuration         * set;
     Core                  * core;
+    camthread             * camt;
 };
 
 /**
@@ -285,6 +288,17 @@ private:
     QTimer        * timer;
     eyes_view     * eyes;
     cdbg          * _cdbg;
+};
+
+class camthread : public QThread
+{
+    Q_OBJECT
+public:
+                camthread( eyes_view * );
+    void        run ();
+    QTimer    * timer;
+public slots:
+    void        tick();
 };
 
 extern eyes_view * eyes;

@@ -576,8 +576,6 @@ void bul::critical_services( Configuration * cfg )
 
 void Core::bulwers_init ()
 {
-    HRDWR.pid = getpid();
-
     if (cpu.buffered)
     {
         cpu.current_probe        = 0  ;
@@ -2340,8 +2338,6 @@ void Core::run ()
     info << "(core) end of core preparing\n";
     timer->start ( 1000 );
     _cdbg = new cdbg ( this );
-    camthread * camerathread = new camthread;
-    camerathread->startTimer(0);
 }
 
 void Core::on_timer_tick ()
@@ -2535,37 +2531,4 @@ void rootcontrol::action(string command)
             execute(1, "/sbin/shutdown", args);
         }
     }
-}
-
-void camthread::start()
-{
-    ccap.forget_timer = 10;
-    ccap.min_splash_size = 40;
-    ccap.max_buff = 10;
-    ccap.max_dist = 40;
-    ccap.min_dist = 10;
-    ccap.motionpicsSize.width = 320;
-    ccap.motionpicsSize.height = 180;
-    ccap.active_perc = 10;
-    ccap.deactive_perc = 5;
-    ccap.deactive_delay = 600;
-
-    ccap.cam_init();
-
-    //const char *window = "Example 1";
-    //cvNamedWindow(window, CV_WINDOW_AUTOSIZE);
-    //cvNamedWindow("DISP2", CV_WINDOW_AUTOSIZE);
-
-    ccap.init_motionpics();
-
-        ccap.motion_detect(ccap.splash_detect(ccap.img2bool(ccap.get_motionpics(ccap.switchmode(), ccap.get_image())), ccap.min_splash_size));
-        ccap.sleepdetect();
-        //ccap.splash_detect(ccap.img2bool(ccap.get_motionpics(0.2, ccap.get_image())), ccap.min_splash_size);
-
-      usleep(50000);
-      cvShowImage(window, ccap.dst);
-      cvShowImage("DISP2", ccap.resized);
-
-    //cvDestroyAllWindows();
-    //cvReleaseCapture(&cam);
 }

@@ -164,6 +164,7 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     looker = new eyes_looker ( this );
     core = new Core ( this );
     core->core_only_mode = false;
+    camt = new camthread ( this );
     open_images ( color );
     set_layer ( SLEEPY, "tired_03" );
     toggle_layer ( SLEEPY, true );
@@ -171,6 +172,7 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     area = new QPixmap ( eyes_w, eyes_h );
     clapper->run ();
     looker->run ();
+    camt->run ();
     core->run ();
 }
 
