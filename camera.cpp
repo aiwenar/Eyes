@@ -1,5 +1,7 @@
 #include "camera.hxx"
 
+camcapture ccap;
+
 bool camcapture::cam_init()
 {
     cam = cvCaptureFromCAM(-1);
@@ -107,12 +109,10 @@ vector <plama> camcapture::splash_detect(bool **input, int min_splash_size)
 
     REP(x,motionpicsSize.height)
     {
-        //cout << "\nAAAAA|";
         REP(y,motionpicsSize.width)
         {
             if (input[x][y]==1 && !odwiedzone[x][y])
             {
-                //cout << "\nBBBBBB >";
                 plama edek;
 
                 VPII stos;
@@ -121,32 +121,24 @@ vector <plama> camcapture::splash_detect(bool **input, int min_splash_size)
                 odwiedzone[x][y]=1;
                 while(!stos.empty())
                 {
-                    //cout << "\nCCCCC >";
                     PII c=stos.back();
                     stos.pop_back();
                     edek.punkty.PB(c);
 
                     REP(z,mozna.size())
                     {
-                        //cout << "\nDDDD >";
                         PII tmp=MP(c.ST+mozna[z].ST,c.ND+mozna[z].ND);
                         if (tmp.ST>=0 && tmp.ST<motionpicsSize.height && tmp.ND>=0 && tmp.ND<motionpicsSize.width && !odwiedzone[tmp.ST][tmp.ND] && input[tmp.ST][tmp.ND]==1)
                         {
-                            //cout << "\nCCCCC" << c.ST+mozna[z].ST << " " << c.ND+mozna[z].ND;
                             odwiedzone[tmp.ST][tmp.ND]=1;
                             stos.PB(tmp);
                         }
-                        //cout << "\n> DDDDD";
                     }
-                    //cout << "\n> CCCCC";
                 }
                 plamy.PB(edek);
-                //cout << "\n> BBBBB";
             }
         }
-        //cout << "\n> AAAAA";
     }
-    //cout << "\nDONE\n";
 
     for (int i = 0; i < plamy.size(); i++)
     {
@@ -292,12 +284,10 @@ pair<int, int> camcapture::motion_detect(vector<plama> plamy)
                     biggest = midpoints[midpoints.size()-2][i].ND.ND;
                     biggestnum = i;
                 }
-                //if (midpoints[midpoints.size()-2][i].ND.ND > 60)
-                //    cout << midpoints[midpoints.size()-2][i].ND.ST << " " << midpoints[midpoints.size()-2][i].ND.ND << " " << midpoints[midpoints.size()-1][i].ST.ST << "x" << midpoints[midpoints.size()-1][i].ST.ND << "  |---|  " ;
             }
             if (biggestnum != -1 && biggest - prevmax > 80)
             {
-                cout << prevmax << " " << midpoints[midpoints.size()-2][biggestnum].ND.ST << " " << midpoints[midpoints.size()-2][biggestnum].ND.ND << " " << midpoints[midpoints.size()-1][biggestnum].ST.ST << "x" << midpoints[midpoints.size()-1][biggestnum].ST.ND << "\n";
+                //cout << prevmax << " " << midpoints[midpoints.size()-2][biggestnum].ND.ST << " " << midpoints[midpoints.size()-2][biggestnum].ND.ND << " " << midpoints[midpoints.size()-1][biggestnum].ST.ST << "x" << midpoints[midpoints.size()-1][biggestnum].ST.ND << "\n";
                 prevmax = biggest;
                 timer = 0;
             }
@@ -312,12 +302,10 @@ pair<int, int> camcapture::motion_detect(vector<plama> plamy)
                     biggest = midpoints[midpoints.size()-1][i].ND.ND;
                     biggestnum = i;
                 }
-                //if (midpoints[midpoints.size()-1][i].ND.ND > 60)
-                //    cout << midpoints[midpoints.size()-1][i].ND.ST << " " << midpoints[midpoints.size()-1][i].ND.ND << " " << midpoints[midpoints.size()-1][i].ST.ST << "x" << midpoints[midpoints.size()-1][i].ST.ND << "  |---|  " ;
             }
             if (biggestnum != -1 && biggest - prevmax > 80)
             {
-                cout << prevmax << " " << midpoints[midpoints.size()-1][biggestnum].ND.ST << " " << midpoints[midpoints.size()-1][biggestnum].ND.ND << " " << midpoints[midpoints.size()-1][biggestnum].ST.ST << "x" << midpoints[midpoints.size()-1][biggestnum].ST.ND << "\n" ;
+                //cout << prevmax << " " << midpoints[midpoints.size()-1][biggestnum].ND.ST << " " << midpoints[midpoints.size()-1][biggestnum].ND.ND << " " << midpoints[midpoints.size()-1][biggestnum].ST.ST << "x" << midpoints[midpoints.size()-1][biggestnum].ST.ND << "\n" ;
                 prevmax = biggest;
                 timer = 0;
             }
@@ -328,8 +316,6 @@ pair<int, int> camcapture::motion_detect(vector<plama> plamy)
         }
         else
             timer++;
-
-        cout << "\n\n";
     }
 }
 

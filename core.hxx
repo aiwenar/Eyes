@@ -404,7 +404,7 @@ private:
 class camthread : public QThread
 {
 public:
-    void    run ();
+    void    start ();
 };
 
 extern eyes_view     * eyes;

@@ -69,6 +69,4 @@ public:
 
 };
 
-camcapture ccap;
-
 #endif // CAMERA_HXX

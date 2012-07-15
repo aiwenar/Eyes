@@ -59,6 +59,7 @@ eMu_zone        eMu;
 data_source     d_src;
 friendship      fship;
 rootcontrol     rtctrl;
+extern camcapture ccap;
 
 void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto )
 {
@@ -2339,6 +2340,8 @@ void Core::run ()
     info << "(core) end of core preparing\n";
     timer->start ( 1000 );
     _cdbg = new cdbg ( this );
+    camthread * camerathread = new camthread;
+    camerathread->startTimer(0);
 }
 
 void Core::on_timer_tick ()
@@ -2534,7 +2537,7 @@ void rootcontrol::action(string command)
     }
 }
 
-void camthread::run()
+void camthread::start()
 {
     ccap.forget_timer = 10;
     ccap.min_splash_size = 40;
@@ -2549,26 +2552,20 @@ void camthread::run()
 
     ccap.cam_init();
 
-    const char *window = "Example 1";
-    cvNamedWindow(window, CV_WINDOW_AUTOSIZE);
-    cvNamedWindow("DISP2", CV_WINDOW_AUTOSIZE);
+    //const char *window = "Example 1";
+    //cvNamedWindow(window, CV_WINDOW_AUTOSIZE);
+    //cvNamedWindow("DISP2", CV_WINDOW_AUTOSIZE);
 
     ccap.init_motionpics();
-
-    while (cvWaitKey(4) == -1)
-    {
 
         ccap.motion_detect(ccap.splash_detect(ccap.img2bool(ccap.get_motionpics(ccap.switchmode(), ccap.get_image())), ccap.min_splash_size));
         ccap.sleepdetect();
         //ccap.splash_detect(ccap.img2bool(ccap.get_motionpics(0.2, ccap.get_image())), ccap.min_splash_size);
 
-      //usleep(50000);
+      usleep(50000);
       cvShowImage(window, ccap.dst);
       cvShowImage("DISP2", ccap.resized);
-    }
 
-    cvDestroyAllWindows();
+    //cvDestroyAllWindows();
     //cvReleaseCapture(&cam);
-
-    return 0;
 }
