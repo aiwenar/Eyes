@@ -1,14 +1,13 @@
 #ifndef CAMERA_HXX
 #define CAMERA_HXX
 
-#endif // CAMERA_HXX
+#ifdef _eyes_debug_hxx
+#error debug.hxx must be included AFTER any opencv headers!
+#endif
 
 // OpenCV includes.
-#include "cv.h"
-#include "highgui.h"
-#pragma comment(lib,"cv.lib")
-#pragma comment(lib,"cxcore.lib")
-#pragma comment(lib,"highgui.lib")
+#include <opencv2/opencv.hpp>
+//#include "highgui.h"
 
 using namespace std;
 
@@ -70,4 +69,6 @@ public:
 
 };
 
-    camcapture ccap;
+camcapture ccap;
+
+#endif // CAMERA_HXX
