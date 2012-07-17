@@ -20,6 +20,7 @@
 #include <sstream>
 #include <time.h>
 #include <vector>
+#include <signal.h>
 #include <qstring.h>
 #include <qvector.h>
 #include <qregexp.h>
@@ -2318,6 +2319,35 @@ void Core::load_config ()
 
 }
 
+void handler (int signal)
+{
+    info << "signal " << signal << " caught.\n";
+    if (signal == 2 || signal == 15 || signal == 3)
+    {
+        info << "(eyes) close event recived, exiting...\n";
+        Configuration::getInstance ()->save ();
+        if (ccap.cam != NULL)
+            cvReleaseCapture(&ccap.cam);
+        cout << "\033[0m";
+        exit(1);
+    }
+    else if (signal == 6)
+    {
+        cerr << "(eyes) crash!\n";
+        if (ccap.cam != NULL)
+        {
+            info << "Releasing camera...\n";
+            cvReleaseCapture(&ccap.cam);
+        }
+    }
+    else
+    {
+        cerr << "unsupported signal caught! Emergrncy saving...\n";
+        Configuration::getInstance ()->save ();
+    }
+    return ;
+}
+
 void Core::run ()
 {
     info << "(core) starting core.\n";
@@ -2338,6 +2368,15 @@ void Core::run ()
     info << "(core) end of core preparing\n";
     timer->start ( 1000 );
     _cdbg = new cdbg ( this );
+
+    struct sigaction sa;
+    sa.sa_handler = handler;
+    sigfillset(&(sa.sa_mask));
+    sa.sa_flags = 0;
+    sigaction(SIGINT, &sa, 0);
+    sigaction(SIGTERM, &sa, 0);
+    sigaction(SIGQUIT, &sa, 0);
+    sigaction(SIGABRT, &sa, 0);
 }
 
 void Core::on_timer_tick ()
