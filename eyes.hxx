@@ -94,12 +94,13 @@ public:
         SLEEPY  = 2
     };
     QString             theme;
+    double              size_multiplier;
 
     /**
      * Construct eyes_view with color \p color.
      * @param color Color of the eyes.
      */
-    explicit            eyes_view           ( QWidget * parent, QString color );
+    explicit            eyes_view           ( QWidget * parent, QString color, double size_m );
     /// Destruct eyes_view.
                         ~eyes_view          ();
     /// Called when window need to be redrawed. Redraw eyes.

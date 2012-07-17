@@ -413,7 +413,7 @@ double camcapture::averagecalc(double ifps)
     if (tmp > 0)
         return tmp;
     else
-        return 0.01;
+        return 0.001;
 }
 
 bool camcapture::main()

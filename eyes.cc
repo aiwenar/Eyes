@@ -125,30 +125,31 @@ QString get_face_suffix ( QString face )
     return QString ( ret.c_str () );
 }
 
-eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
+eyes_view::eyes_view ( QWidget * parent, QString ncolor, double size_m ) : QWidget ( parent )
 {
     info << "(eyes) preparing...\n";
     layers = new _layer[NUM_LAYERS];
     px = MM_NO_MOTION;
     px = MM_NO_MOTION;
-    epx1 = eyes_w * .14375; //46;
-    epx2 = eyes_w * .665625; //213;
-    mpx1 = eyes_w * .259375;
-    mpx2 = eyes_w * .7875; //252;
-    epy = eyes_h * .125; //10;
-    mpy = eyes_h * .3; //24;
     win = parent;
     spec = "spec";
     eye = "blank";
     face = "slp_10";
     face_next = "slp_10";
+    size_multiplier = size_m;
     // loading configuration
     info << "(eyes) loading config...\n";
     Configuration * cfg = Configuration::getInstance ();
     string scolor;
-    scolor = cfg->lookupValue ( "ui.color", "green" );
-    eye_s = cfg->lookupValue ( "ui.eye.size", 60 );
-    eye_m = cfg->lookupValue ( "ui.eye.mirror", 9 );
+    scolor  = cfg->lookupValue ( "ui.color",                "green" );
+    eye_s   = cfg->lookupValue ( "ui.eye.size",                 60  )*size_multiplier;
+    eye_m   = cfg->lookupValue ( "ui.eye.mirror",               9   )*size_multiplier;
+    epx1    = cfg->lookupValue ( "ui.window.eye.posX_L",        46  )*size_multiplier; //.14375; //46;
+    epx2    = cfg->lookupValue ( "ui.window.eye.posX_R",        213 )*size_multiplier; //.665625; //213;
+    mpx1    = cfg->lookupValue ( "ui.window.mirror.posX_L",     83  )*size_multiplier;//.259375;
+    mpx2    = cfg->lookupValue ( "ui.window.mirror.posX_R",     252 )*size_multiplier;//.7875; //252;
+    epy     = cfg->lookupValue ( "ui.window.eye.posY",          10  )*size_multiplier;//.125; //10;
+    mpy     = cfg->lookupValue ( "ui.window.mirror.posY",       24  )*size_multiplier;//.3; //24;
     if ( ( color = get_face_suffix ( ncolor ) ) == "NIL" )
         color = get_face_suffix ( QString ( scolor.c_str () ) );
     is_finished = false;

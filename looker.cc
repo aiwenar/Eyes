@@ -31,16 +31,16 @@ eyes_looker::eyes_looker ( eyes_view * neyes )
     timer->setInterval ( ( qrand () % 30 + 1 )*200 );
     info << "(looker) loading config...\n";
     Configuration * cfg = Configuration::getInstance ();
-    min_dx = cfg->lookupValue ( "ui.looker.delta_x.min", 0 );
-    max_dx = cfg->lookupValue ( "ui.looker.delta_x.max", 14 );
-    min_dy = cfg->lookupValue ( "ui.looker.delta_y.min", 0 );
-    max_dy = cfg->lookupValue ( "ui.looker.delta_y.max", 10 );
-    bmin_x = cfg->lookupValue ( "ui.looker.bounds_x.min", 40 );
-    bmax_x = cfg->lookupValue ( "ui.looker.bounds_x.max", 54 );
-    bmin_y = cfg->lookupValue ( "ui.looker.bounds_y.min", 4 );
-    bmax_y = cfg->lookupValue ( "ui.looker.bounds_y.max", 14 );
-    min_dl = cfg->lookupValue ( "ui.looker.delay.min", 1 );
-    max_dl = cfg->lookupValue ( "ui.looker.delay.max", 30 );
+    min_dx = cfg->lookupValue ( "ui.looker.delta_x.min",    0   )*eyes->size_multiplier;
+    max_dx = cfg->lookupValue ( "ui.looker.delta_x.max",    14  )*eyes->size_multiplier;
+    min_dy = cfg->lookupValue ( "ui.looker.delta_y.min",    0   )*eyes->size_multiplier;
+    max_dy = cfg->lookupValue ( "ui.looker.delta_y.max",    10  )*eyes->size_multiplier;
+    bmin_x = cfg->lookupValue ( "ui.looker.bounds_x.min",   40  )*eyes->size_multiplier;
+    bmax_x = cfg->lookupValue ( "ui.looker.bounds_x.max",   54  )*eyes->size_multiplier;
+    bmin_y = cfg->lookupValue ( "ui.looker.bounds_y.min",   4   )*eyes->size_multiplier;
+    bmax_y = cfg->lookupValue ( "ui.looker.bounds_y.max",   14  )*eyes->size_multiplier;
+    min_dl = cfg->lookupValue ( "ui.looker.delay.min",      1   )*eyes->size_multiplier;
+    max_dl = cfg->lookupValue ( "ui.looker.delay.max",      30  )*eyes->size_multiplier;
     info << "(looker) ready!\n";
 }
 

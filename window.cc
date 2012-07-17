@@ -27,16 +27,16 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
 {
     info << "(window) preparing...\n";
     Configuration * cfg = Configuration::getInstance ();
-    float size_multipler = cfg->lookupValue ( "ui.window.height", 80 )/80.0;
-    eyes_w = 320*size_multipler;
-    eyes_h = 80*size_multipler;
+    double size_multiplier = cfg->lookupValue ( "ui.window.size_percentage", 100 )/100.0;
+    eyes_w = cfg->lookupValue ( "ui.window.reference_width", 320 ) * size_multiplier;
+    eyes_h = cfg->lookupValue ( "ui.window.reference_height", 80 ) * size_multiplier;
     isicon = cfg->lookupValue ( "ui.window.tray_icon", true );
     resize ( eyes_w, eyes_h );
     setWindowTitle ( "!eyesy!" );
     setAttribute ( Qt::WA_TranslucentBackground, true );
     setAttribute ( Qt::WA_MouseTracking, true );
     //setWindowFlags ( Qt::SplashScreen );
-    eyes = new eyes_view ( this, color );
+    eyes = new eyes_view ( this, color, size_multiplier );
     config = new Configurator ( (QWidget*)nil );
     info << "(window) loading icon " << (eyes->theme + QString ("icon") + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
     QPixmap tmp;
