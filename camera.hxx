@@ -7,7 +7,7 @@
 
 // OpenCV includes.
 #include <opencv2/opencv.hpp>
-//#include "highgui.h"
+#include "eyes.hxx"
 
 using namespace std;
 
@@ -29,14 +29,17 @@ struct plama
 class camcapture
 {
 public:
-    bool            cam_init();
+    bool            cam_init(),
+                    motion_detect(vector <plama> plamy),
+                    main();
     void            init_motionpics(),
-                    sleepdetect();
+                    init_debug(),
+                    sleepdetect(),
+                    optimize(int last_delay);
     IplImage*       get_image();
     IplImage*       get_motionpics(double tolerance, IplImage *src);
     bool**          img2bool(IplImage *input);
     vector <plama>  splash_detect(bool **input, int min_splash_size);
-    pair<int, int>  motion_detect(vector <plama> plamy);
 
     CvSize          motionpicsSize;
     CvCapture       *cam;
@@ -47,7 +50,11 @@ public:
                     *dst,
                     *temp;
     bool            first,
-                    sleep;
+                    sleep,
+                    debug,
+                    deactiveworking,
+                    tmp_halted,
+                    halted;
     bool**          boolimage;
     vector <vector <pair<PII, PII> > >  midpoints;
     vector<int>     bucket,
@@ -64,9 +71,31 @@ public:
                     active_perc,
                     motioncounter,
                     deactive_delay,
-                    deactive_timer;
-    double          switchmode();
-
+                    deactive_timer,
+                    delay,
+                    sleepdelay,
+                    delayunit,
+                    max_cpu_usage,
+                    sleep_cpu_usage,
+                    deactive_global_cpu_load,
+                    deactive_global_retry_timer,
+                    active_retry_times,
+                    fps_adaptation_time,
+                    mindelay,
+                    minsleepdelay,
+                    catch_speed;
+    double          reference_sleep_average,
+                    reference_active_average,
+                    reference_fps,
+                    reference_sleepfps,
+                    min_active_fps,
+                    min_sleep_fps,
+                    fps,
+                    averagecalc(double ifps);
+    pair<int, int>  motionpos,
+                    operationsarea;
+    QElapsedTimer   fps_adaptation_timer,
+                    deactivetimer;
 };
 
 #endif // CAMERA_HXX

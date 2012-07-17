@@ -401,12 +401,6 @@ private:
                                 execute(bool roottype, QString command);
 };
 
-class camthread : public QThread
-{
-public:
-    void    start ();
-};
-
 extern eyes_view     * eyes;
 
 #endif //gbssl_core_new_hxx

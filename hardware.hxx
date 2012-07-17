@@ -18,6 +18,7 @@
 #ifndef HARDWARE_HXX
 #define HARDWARE_HXX
 
+#include "core.hxx"
 
 class hardware
 {

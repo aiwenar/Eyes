@@ -170,9 +170,12 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor ) : QWidget ( parent )
     toggle_layer ( SLEEPY, true );
     core->load_config ();
     area = new QPixmap ( eyes_w, eyes_h );
+    QApplication a();
+    screensize.first = QApplication::desktop()->width();
+    screensize.second = QApplication::desktop()->height();
     clapper->run ();
     looker->run ();
-    camt->run ();
+    camt->start(QThread::IdlePriority);
     core->run ();
 }
 
@@ -370,6 +373,27 @@ void eyes_view::set_layer ( Layers layer, const char * face )
 void eyes_view::toggle_layer ( Layers layer, bool onoff )
 {
     layers[layer].drawable = onoff;
+}
+
+void eyes_view::look_at ( int px, int py, pair<int, int> operationsarea )
+{
+  int winx, winy, percL, percR, percU, percD, totX, totY;
+  winx = mapToGlobal(pos()).x() + frameGeometry().width()/2;
+  winy = mapToGlobal(pos()).y() + frameGeometry().height()/2;
+
+  winx = 100*(winx - screensize.first/2)/(screensize.first/2);
+  winy = 100*(screensize.second/2 - winy)/(screensize.second/2);
+
+  percL = 100 - (100 - operationsarea.first)/2 + winx*((100 - operationsarea.first)/2)/100;
+  percR = 100 - (100 - operationsarea.first)/2 - winx*((100 - operationsarea.first)/2)/100;
+  percD = 100 - (100 - operationsarea.second)/2 + winy*((100 - operationsarea.second)/2)/100;
+  percU = 100 - (100 - operationsarea.second)/2 - winy*((100 - operationsarea.second)/2)/100;
+  //cerr << percL << " " << percR << " " << percU << " " << percD << "\n";
+
+  totX = 100-percL + px*(operationsarea.first)/100;
+  totY = 100-percU + py*(operationsarea.second)/100;
+
+  looker->interrupt ( totX, totY );
 }
 
 int eyes_view::heightForWidth ( int w ) const

@@ -1,11 +1,22 @@
 #include "camera.hxx"
+#include "hardware.hxx"
+#include "core.hxx"
 
 camcapture ccap;
+extern hardware HRDWR;
+extern percental cpu;
 
 bool camcapture::cam_init()
 {
+    cam = NULL;
     cam = cvCaptureFromCAM(-1);
+    if (cam == NULL)
+    {
+        cerr << "Could not initialize camera\n";
+        return 0;
+    }
     src = cvQueryFrame(cam);
+    return 1;
 }
 
 IplImage* camcapture::get_image()
@@ -25,24 +36,18 @@ void camcapture::init_motionpics()
         boolimage[i] = new bool[src->width];
     }
 
+    HRDWR.pid = getpid();
     first = true;
     sleep = false;
+    halted = false;
+    tmp_halted = false;
+    deactiveworking = false;
     timer = 0;
     prevmax = 0;
     deactive_timer = 0;
-}
-
-double camcapture::switchmode()
-{
-    if (!sleep)
-    {
-        return 0.020;
-    }
-    else
-    {
-        usleep (250000);
-        return 0.2;
-    }
+    delay = 100;
+    sleepdelay = 500;
+    fps = 25;
 }
 
 IplImage* camcapture::get_motionpics(double tolerance, IplImage *input)
@@ -151,8 +156,9 @@ vector <plama> camcapture::splash_detect(bool **input, int min_splash_size)
     return plamy;
 }
 
-pair<int, int> camcapture::motion_detect(vector<plama> plamy)
+bool camcapture::motion_detect(vector<plama> plamy)
 {
+    bool catched = false;
     vector < pair <PII, PII> > cmidpoints;
 
     for (int i = 0; i<plamy.size();i++)
@@ -275,6 +281,7 @@ pair<int, int> camcapture::motion_detect(vector<plama> plamy)
         }
         int biggest = 0;
         int biggestnum = -1;
+
         if (midpoints[midpoints.size()-2].size() > midpoints[midpoints.size()-1].size())
         {
             for (int i = 0; i < midpoints[midpoints.size()-1].size(); i++)
@@ -285,11 +292,12 @@ pair<int, int> camcapture::motion_detect(vector<plama> plamy)
                     biggestnum = i;
                 }
             }
-            if (biggestnum != -1 && biggest - prevmax > 80)
+            if (biggestnum != -1 && biggest - prevmax > catch_speed)
             {
                 //cout << prevmax << " " << midpoints[midpoints.size()-2][biggestnum].ND.ST << " " << midpoints[midpoints.size()-2][biggestnum].ND.ND << " " << midpoints[midpoints.size()-1][biggestnum].ST.ST << "x" << midpoints[midpoints.size()-1][biggestnum].ST.ND << "\n";
                 prevmax = biggest;
                 timer = 0;
+                catched = true;
             }
         }
 
@@ -303,13 +311,20 @@ pair<int, int> camcapture::motion_detect(vector<plama> plamy)
                     biggestnum = i;
                 }
             }
-            if (biggestnum != -1 && biggest - prevmax > 80)
+            if (biggestnum != -1 && biggest - prevmax > catch_speed)
             {
                 //cout << prevmax << " " << midpoints[midpoints.size()-1][biggestnum].ND.ST << " " << midpoints[midpoints.size()-1][biggestnum].ND.ND << " " << midpoints[midpoints.size()-1][biggestnum].ST.ST << "x" << midpoints[midpoints.size()-1][biggestnum].ST.ND << "\n" ;
                 prevmax = biggest;
                 timer = 0;
+                catched = true;
             }
         }
+        if (biggestnum != -1)
+        {
+            motionpos.ND = midpoints[midpoints.size()-1][biggestnum].ST.ST;
+            motionpos.ST = midpoints[midpoints.size()-1][biggestnum].ST.ND;
+        }
+
         if (timer == forget_timer)
         {
             prevmax = 0;
@@ -317,58 +332,207 @@ pair<int, int> camcapture::motion_detect(vector<plama> plamy)
         else
             timer++;
     }
+    if (catched)
+        return 1;
+    else
+        return 0;
 }
 
 void camcapture::sleepdetect()
 {
-    if (1000*motioncounter / (motionpicsSize.height*motionpicsSize.width) < deactive_perc && deactive_timer < deactive_delay)
-        deactive_timer++;
+    if (1000*motioncounter / (motionpicsSize.height*motionpicsSize.width) < deactive_perc && deactive_timer < deactive_delay && !deactiveworking)
+    {
+        deactivetimer.start();
+        deactiveworking = true;
+    }
     if (1000*motioncounter / (motionpicsSize.height*motionpicsSize.width) > active_perc)
     {
         sleep = false;
-        deactive_timer = 0;
+        deactiveworking = false;
     }
-    if (deactive_timer == deactive_delay)
+    if (deactivetimer.elapsed() > 1000*deactive_delay && deactiveworking)
         sleep = true;
 }
 
-/*
-int mane()
+void camcapture::optimize(int last_delay)
 {
-  ccap.forget_timer = 10;
-  ccap.min_splash_size = 40;
-  ccap.max_buff = 10;
-  ccap.max_dist = 40;
-  ccap.min_dist = 10;
-  ccap.motionpicsSize.width = 320;
-  ccap.motionpicsSize.height = 180;
-  ccap.active_perc = 10;
-  ccap.deactive_perc = 5;
-  ccap.deactive_delay = 600;
+    fps = 1000.0/(double)last_delay;
+    if (!sleep)
+    {
+        if (HRDWR.owncpu < ccap.max_cpu_usage)
+        {
+            if (ccap.delay - ccap.delayunit > ccap.mindelay)
+                ccap.delay-=ccap.delayunit;
+        }
+        else
+            ccap.delay+=ccap.delayunit;
+        if (fps < ccap.min_active_fps && ccap.active_retry_times > 0)
+        {
+            if (fps_adaptation_timer.elapsed() == 0)
+                fps_adaptation_timer.start();
+            else if (fps_adaptation_timer.elapsed() > fps_adaptation_time)
+            {
+                ccap.active_retry_times--;
+                tmp_halted = true;
+            }
+        }
+        if (cpu.load > ccap.deactive_global_cpu_load)
+        {
+            tmp_halted = true;
+        }
+    }
+    else
+    {
+        if (HRDWR.owncpu < ccap.sleep_cpu_usage)
+        {
+            if (ccap.sleepdelay - ccap.delayunit > ccap.minsleepdelay)
+                ccap.sleepdelay-=ccap.delayunit;
+        }
+        else
+        {
+            ccap.delay+=ccap.delayunit;
+        }
+        if (fps < ccap.min_sleep_fps)
+            halted = true;
+        if (cpu.load > ccap.deactive_global_cpu_load)
+        {
+            tmp_halted = true;
+        }
+    }
 
-  ccap.cam_init();
-
-  const char *window = "Example 1";
-  cvNamedWindow(window, CV_WINDOW_AUTOSIZE);
-  cvNamedWindow("DISP2", CV_WINDOW_AUTOSIZE);
-
-  ccap.init_motionpics();
-
-  while (cvWaitKey(4) == -1)
-  {
-
-      ccap.motion_detect(ccap.splash_detect(ccap.img2bool(ccap.get_motionpics(ccap.switchmode(), ccap.get_image())), ccap.min_splash_size));
-      ccap.sleepdetect();
-      //ccap.splash_detect(ccap.img2bool(ccap.get_motionpics(0.2, ccap.get_image())), ccap.min_splash_size);
-
-    //usleep(50000);
-    cvShowImage(window, ccap.dst);
-    cvShowImage("DISP2", ccap.resized);
-  }
-
-  cvDestroyAllWindows();
-  //cvReleaseCapture(&cam);
-
-  return 0;
 }
-*/
+
+double camcapture::averagecalc(double ifps)
+{
+    double tmp = (reference_sleep_average - reference_active_average)/(double)(reference_fps - reference_sleepfps);
+    if (!sleep)
+        tmp = (reference_active_average + (tmp*(double)(reference_fps-fps)));
+    else
+        tmp = (reference_sleep_average - (tmp*(double)(fps - reference_sleep_average)));
+    if (tmp > 0)
+        return tmp;
+    else
+        return 0.01;
+}
+
+bool camcapture::main()
+{
+
+    bool retstat = false;
+    if (ccap.motion_detect(ccap.splash_detect(ccap.img2bool(ccap.get_motionpics(ccap.averagecalc(fps), ccap.get_image())), ccap.min_splash_size)))
+        retstat = true;
+    ccap.sleepdetect();
+
+    if (ccap.debug)
+    {
+        cvShowImage("DISBA", ccap.dst);
+        cvShowImage("DISPB", ccap.resized);
+    }
+
+    return retstat;
+    //cvDestroyAllWindows();
+    //cvReleaseCapture(&cam);*/
+}
+
+void camcapture::init_debug()
+{
+    cvNamedWindow("DISPA", CV_WINDOW_AUTOSIZE);
+    cvNamedWindow("DISPB", CV_WINDOW_AUTOSIZE);
+}
+
+camthread::camthread( eyes_view * neyes )
+{
+    timer = new QTimer ( this );
+    timer->setInterval ( 100 );
+    Configuration * cfg = Configuration::getInstance ();
+    eyes = neyes;
+
+    ccap.forget_timer               = cfg->lookupValue ( "cam.system.forget_timer",                    10 );
+    ccap.min_splash_size            = cfg->lookupValue ( "cam.system.min_splash_size",                 40 );
+    ccap.max_buff                   = cfg->lookupValue ( "cam.system.max_buff",                        10 );
+    ccap.max_dist                   = cfg->lookupValue ( "cam.system.max_dist",                        40 );
+    ccap.min_dist                   = cfg->lookupValue ( "cam.system.min_dist",                        10 );
+    ccap.catch_speed                = cfg->lookupValue ( "cam.system.catch_speed",                     50 );
+    ccap.motionpicsSize.width       = cfg->lookupValue ( "cam.system.width",                          320 );
+    ccap.motionpicsSize.height      = cfg->lookupValue ( "cam.system.height",                         180 );
+    ccap.active_perc                = cfg->lookupValue ( "cam.user.activate_motion_percentage",        10 );
+    ccap.deactive_perc              = cfg->lookupValue ( "cam.user.deactive_motion_percentage",         5 );
+    ccap.deactive_delay             = cfg->lookupValue ( "cam.user.deactive_delay",                    10 );
+    ccap.delayunit                  = cfg->lookupValue ( "cam.system.framerate_delay_unit",             5 );
+    ccap.max_cpu_usage              = cfg->lookupValue ( "cam.user.max_cpu_usage",                     15 );
+    ccap.sleep_cpu_usage            = cfg->lookupValue ( "cam.user.sleep_cpu_usage",                    2 );
+    ccap.reference_fps              = cfg->lookupValue ( "cam.system.reference_framerate",             15 );
+    ccap.reference_sleepfps         = cfg->lookupValue ( "cam.system.reference_sleep_fps",            0.5 );
+    ccap.reference_active_average   = cfg->lookupValue ( "cam.system.active_average",               0.020 );
+    ccap.reference_sleep_average    = cfg->lookupValue ( "cam.system.deactive_average",               0.2 );
+    ccap.min_active_fps             = cfg->lookupValue ( "cam.user.min_active_fps_delay",               1 );
+    ccap.min_sleep_fps              = cfg->lookupValue ( "cam.user.min_sleep_fps",                    0.5 );
+    ccap.fps_adaptation_time        = cfg->lookupValue ( "cam.system.fps_adaptation_time",          10000 );
+    ccap.active_retry_times         = cfg->lookupValue ( "cam.system.temphalt_retry_times",             8 );
+    ccap.deactive_global_cpu_load   = cfg->lookupValue ( "cam.system.cpu_halt_load",                   80 );
+    ccap.deactive_global_retry_timer= cfg->lookupValue ( "cam.system.cpu_halt_retry_timer",         30000 );
+    ccap.mindelay                   = cfg->lookupValue ( "cam.system.min_fps_delay",                   50 );
+    ccap.minsleepdelay              = cfg->lookupValue ( "cam.system.min_sleepfps_delay",             150 );
+    ccap.operationsarea.ST          = cfg->lookupValue ( "cam.user.view_area_percentage_X",            80 );
+    ccap.operationsarea.ND          = cfg->lookupValue ( "cam.user.view_area_percentage_Y",            60 );
+    ccap.debug                      = cfg->lookupValue ( "cam.system.showdebug",                    false );
+    enabled                         = cfg->lookupValue ( "cam.enabled",                              true );
+
+    if (enabled)
+    {
+        if (ccap.cam_init())
+        {
+            ccap.init_motionpics();
+            if (ccap.debug)
+                ccap.init_debug();
+        }
+        else
+            enabled = false;
+    }
+}
+
+void camthread::run()
+{
+    if (enabled)
+    {
+        connect ( timer, SIGNAL ( timeout() ), this, SLOT ( tick() ) );
+        cerr << "Capture thread started.\n";
+        timer->start();
+        speedmeter.start();
+        ccap.fps_adaptation_timer.start();
+    }
+}
+
+void camthread::tick()
+{
+    if (!ccap.halted)
+    {
+        if(ccap.main())
+        {
+
+            ccap.motionpos.ST = 100-(100* ccap.motionpos.ST)/(ccap.motionpicsSize.width);
+            ccap.motionpos.ND = (100* ccap.motionpos.ND)/(ccap.motionpicsSize.height);
+            eyes->look_at(ccap.motionpos.ST, ccap.motionpos.ND, ccap.operationsarea);
+        }
+        ccap.optimize(speedmeter.elapsed());
+        if (!ccap.sleep)
+            timer->setInterval ( ccap.delay );
+        else
+        {
+            timer->setInterval ( ccap.sleepdelay );
+        }
+    }
+    if (ccap.tmp_halted)
+    {
+        ccap.tmp_halted = false;
+        timer->setInterval ( ccap.deactive_global_retry_timer );
+        cerr << "camera capture temponary halted because of big system cpu load\nCapture restart in: " << ccap.deactive_global_retry_timer << " miliseconds...\n";
+        ccap.fps_adaptation_timer.start();
+    }
+    if (ccap.halted)
+    {
+        timer->setInterval ( 10000 );
+        cerr << "System is too slow for caption with specified maximum cpu loads - capture deactivated permanently";
+    }
+    speedmeter.start();
+}

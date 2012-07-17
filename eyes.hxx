@@ -41,6 +41,9 @@ extern const char *verstr;
 #include <QTimer>
 #include <QThread>
 #include <QTime>
+#include <QElapsedTimer>
+#include <QApplication>
+#include <QDesktopWidget>
 #include <libconfig.h++>
 #include <ostream>
 
@@ -121,6 +124,7 @@ public:
     void                graphics_prepare    ();
     void                anims_reload        ();
     void                setFlag             ( eyes_flag flag, bool value );
+    void                look_at             ( int px, int py, pair<int, int> operationsarea );
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
     /// @return position x of left eye.
@@ -185,6 +189,7 @@ private:
     Configuration         * set;
     Core                  * core;
     camthread             * camt;
+    pair<int, int>          screensize;
 };
 
 /**
@@ -238,11 +243,14 @@ public:
      * @param neyes pointer to \p eyes_view to controll.
      */
             eyes_looker ( eyes_view * eyes );
-    void    run ();
+    void    run       ();
+    void    interrupt ( int x, int y );
 public slots:
     /// Called on timer tick, ...?.
     void    look ();
 private:
+    void  look_at ( int dx, int dy );
+
     eyes_view * eyes;
     QTimer    * timer;
     int         min_dx,
@@ -294,9 +302,12 @@ class camthread : public QThread
 {
     Q_OBJECT
 public:
-                camthread( eyes_view * );
-    void        run ();
-    QTimer    * timer;
+                      camthread( eyes_view * );
+    void              run ();
+    QTimer          * timer;
+    QElapsedTimer     speedmeter;
+    eyes_view       * eyes;
+    bool              enabled;
 public slots:
     void        tick();
 };
