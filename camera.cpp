@@ -1,6 +1,7 @@
 #include "camera.hxx"
 #include "hardware.hxx"
 #include "core.hxx"
+#include <unistd.h>
 
 camcapture ccap;
 extern hardware HRDWR;
@@ -460,7 +461,7 @@ camthread::camthread( eyes_view * neyes )
     ccap.deactive_delay             = cfg->lookupValue ( "cam.user.deactive_delay",                    10 );
     ccap.delayunit                  = cfg->lookupValue ( "cam.system.framerate_delay_unit",             5 );
     ccap.max_cpu_usage              = cfg->lookupValue ( "cam.user.max_cpu_usage",                     15 );
-    ccap.sleep_cpu_usage            = cfg->lookupValue ( "cam.user.sleep_cpu_usage",                    2 );
+    ccap.sleep_cpu_usage            = cfg->lookupValue ( "cam.user.sleep_cpu_usage",                    5 );
     ccap.reference_fps              = cfg->lookupValue ( "cam.system.reference_framerate",             15 );
     ccap.reference_sleepfps         = cfg->lookupValue ( "cam.system.reference_sleep_fps",            0.5 );
     ccap.reference_active_average   = cfg->lookupValue ( "cam.system.active_average",               0.020 );
