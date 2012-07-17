@@ -89,8 +89,12 @@ static const char * files[]     = {
 };
 static const char * eyefiles[]  = {
     "eye_01", "eye_02", "eye_03", "eye_04", "eye_05",   // 5
-    "eye_06", "eye_07", "eye_08", "eye_09", "eye_10",
-    "blank"    // 10
+    "eye_06", "eye_07", "eye_08", "eye_09", "eye_10",   //10
+    "eye_01_L", "eye_02_L", "eye_03_L", "eye_04_L", "eye_05_L",   // 15
+    "eye_06_L", "eye_07_L", "eye_08_L", "eye_09_L", "eye_10_L",   // 20
+    "eye_01_R", "eye_02_R", "eye_03_R", "eye_04_R", "eye_05_R",   // 25
+    "eye_06_R", "eye_07_R", "eye_08_R", "eye_09_R", "eye_10_R",   // 30
+    "blank"    // 31
 };
 
 const double versiond = 0.090100;
@@ -238,16 +242,25 @@ void eyes_view::open_images ( QString color )
         c_main.cancel ();
         exit ( 2 );
     }
-    for ( int i=0 ; i<10 ; i++ )
+    dual_eyes = false;
+    for ( int i=0 ; i<30 ; i++ )
     {
-        _som ( i, 10 );
+        _som ( i, 30 );
         file = new QPixmap ();
         file->load ( theme + eyefiles[i] + color + ".png" );
         if ( file->isNull () )
         {
-            cerr << '\n';
-            no_file = true;
-            error << "(eyes) file " << ( theme + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";;
+            if (i < 10 && !dual_eyes)
+            {
+                dual_eyes = true;
+                info << "single eyes images searching failed - switching to dual mode\n";
+            }
+            else if (i > 9 && dual_eyes)
+            {
+                cerr << '\n';
+                no_file = true;
+                error << "(eyes) file " << ( theme + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";;
+            }
         }
         else
         {
@@ -269,8 +282,16 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     QPainter parea ( area );
     area->fill ( QColor ( 0, 0, 0 ) );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_a"] );
-    parea.drawPixmap ( epx1, epy, eye_s, eye_s, eyes[eye] );
-    parea.drawPixmap ( epx2, epy, eye_s, eye_s, eyes[eye] );
+    if (!dual_eyes)
+    {
+        parea.drawPixmap ( epx1, epy, eye_s, eye_s, eyes[eye] );
+        parea.drawPixmap ( epx2, epy, eye_s, eye_s, eyes[eye] );
+    }
+    else
+    {
+        parea.drawPixmap ( epx1, epy, eye_s, eye_s, eyes[eye + "_L"] );
+        parea.drawPixmap ( epx2, epy, eye_s, eye_s, eyes[eye + "_R"] );
+    }
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_s"] );
     parea.drawPixmap ( int(mpx1), int(mpy), eye_m, eye_m, pics[spec] );
     parea.drawPixmap ( int(mpx2), int(mpy), eye_m, eye_m, pics[spec] );

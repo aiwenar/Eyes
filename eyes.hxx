@@ -183,7 +183,8 @@ private:
     double                   mpx1,
                             mpx2,
                             mpy;
-    bool                    clapper_f;
+    bool                    clapper_f,
+                            dual_eyes;
     void                  * locker;
     eyes_clapper          * clapper;
     eyes_looker           * looker;
