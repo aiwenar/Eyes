@@ -94,7 +94,7 @@ static const char * eyefiles[]  = {
 };
 
 const double versiond = 0.090100;
-const char *verstr = "0.9.1 alpha";
+const char *verstr = "0.9.1½ alpha";
 
 bool is_finished;
 bool images_ready;
