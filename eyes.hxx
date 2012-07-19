@@ -52,18 +52,20 @@ extern const char *verstr;
 #include "configuration.hxx"
 #include "camera.hxx"
 
-#define EYE_S       60
-#define EYE_M       9
+\
 #define NUM_LAYERS  3
 
-extern int  eye_s,
-            eye_m,
+extern int  eye_swL,
+            eye_shL,
+            eye_swR,
+            eye_shR,
+            eye_mwL,
+            eye_mhL,
+            eye_mwR,
+            eye_mhR,
             eyes_w,
             eyes_h;
 extern bool images_ready;
-
-#define EYES_W  320
-#define EYES_H  80
 
 using namespace libconfig;
 using namespace std;
@@ -112,8 +114,8 @@ public:
      */
     void                set_face            ( QString nface );
     void                set_eyes            ( QString neyes );
-    void                set_eyes_position   ( int nx1, int nx2, int ny );
-    void                set_mirror_position ( double nx1, double nx2, double ny );
+    void                set_eyes_position   ( int nx1, int nx2, int ny1, int ny2 );
+    void                set_mirror_position ( double nx1, double nx2, double ny1, double ny2 );
     void                set_animation       ( QString start, QString end, int from, int to );
     void                interrupt           ();// QString nstart, QString nend, int nfrom, int nto );
     void                anims_send          ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto );
@@ -133,13 +135,15 @@ public:
     /// @return position x of right eye.
     inline int          get_eyes_x2         () { return epx2; }
     /// @return position y of eyes.
-    inline int          get_eyes_y          () { return epy; }
+    inline int          get_eyes_y1         () { return epy1; }
+    inline int          get_eyes_y2         () { return epy2; }
     /// @return position x of left mirror.
     inline double       get_mirror_x1       () { return mpx1; }
     /// @return position x of right mirror.
     inline double       get_mirror_x2       () { return mpx2; }
     /// @return position y of mirrors.
-    inline double       get_mirror_y        () { return mpy; }
+    inline double       get_mirror_y1       () { return mpy1; }
+    inline double       get_mirror_y2       () { return mpy2; }
     QVariant            inputMethodQuery    ( Qt::InputMethodQuery query )          const;
     QSize               sizeHint            ()                                      const;
     QString             get_face            ();
@@ -179,10 +183,12 @@ private:
                             py,
                             epx1,
                             epx2,
-                            epy;
-    double                   mpx1,
+                            epy1,
+                            epy2;
+    double                  mpx1,
                             mpx2,
-                            mpy;
+                            mpy1,
+                            mpy2;
     bool                    clapper_f,
                             dual_eyes;
     void                  * locker;

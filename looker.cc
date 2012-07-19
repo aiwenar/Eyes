@@ -63,7 +63,7 @@ void eyes_looker::interrupt ( int x, int y )
 {
   x = bmin_x + x*(bmax_x-bmin_x)/100;
   y = bmin_y + y*(bmax_y-bmin_y)/100;
-  look_at ( x-eyes->get_eyes_x1 (), y-eyes->get_eyes_y () );
+  look_at ( x-eyes->get_eyes_x1 (), y-eyes->get_eyes_y1 () );
   timer->setInterval ( 2000 );
   eyes->repaint ();
 }
@@ -72,20 +72,24 @@ void eyes_looker::look_at ( int dx, int dy )
 {
   static int px1;
   static int px2;
-  static int py;
+  static int py1;
+  static int py2;
   static double mpx1;
   static double mpx2;
-  static double mpy;
+  static double mpy1;
+  static double mpy2;
   px1 = eyes->get_eyes_x1 ();
   px2 = eyes->get_eyes_x2 ();
-  py = eyes->get_eyes_y ();
+  py1 = eyes->get_eyes_y1 ();
+  py2 = eyes->get_eyes_y2 ();
   mpx1 = eyes->get_mirror_x1 ();
   mpx2 = eyes->get_mirror_x2 ();
-  mpy = eyes->get_mirror_y ();
+  mpy1 = eyes->get_mirror_y1 ();
+  mpy2 = eyes->get_mirror_y2 ();
   if ( px1+dx < bmin_x or px1+dx > bmax_x )
       dx = 0;
-  if ( py+dy < bmin_y or py+dy > bmax_y )
+  if ( py1+dy < bmin_y or py1+dy > bmax_y )
       dy = 0;
-  eyes->set_eyes_position ( px1+dx, px2+dx, py+dy );
-  eyes->set_mirror_position ( mpx1+(dx!=0?(double(dx)/3):0), mpx2+(dx!=0?(double(dx)/3):0), mpy+(dy!=0?(double(dy)/3):0) );
+  eyes->set_eyes_position ( px1+dx, px2+dx, py1+dy, py2+dy );
+  eyes->set_mirror_position ( mpx1+(dx!=0?(double(dx)/3):0), mpx2+(dx!=0?(double(dx)/3):0), mpy1+(dy!=0?(double(dy)/3):0), mpy2+(dy!=0?(double(dy)/3):0) );
 }

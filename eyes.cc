@@ -145,15 +145,23 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor, double size_m ) : QWidg
     info << "(eyes) loading config...\n";
     Configuration * cfg = Configuration::getInstance ();
     string scolor;
-    scolor  = cfg->lookupValue ( "ui.color",                "green" );
-    eye_s   = cfg->lookupValue ( "ui.eye.size",                 60  )*size_multiplier;
-    eye_m   = cfg->lookupValue ( "ui.eye.mirror",               9   )*size_multiplier;
-    epx1    = cfg->lookupValue ( "ui.window.eye.posX_L",        46  )*size_multiplier; //.14375; //46;
-    epx2    = cfg->lookupValue ( "ui.window.eye.posX_R",        213 )*size_multiplier; //.665625; //213;
-    mpx1    = cfg->lookupValue ( "ui.window.mirror.posX_L",     83  )*size_multiplier;//.259375;
-    mpx2    = cfg->lookupValue ( "ui.window.mirror.posX_R",     252 )*size_multiplier;//.7875; //252;
-    epy     = cfg->lookupValue ( "ui.window.eye.posY",          10  )*size_multiplier;//.125; //10;
-    mpy     = cfg->lookupValue ( "ui.window.mirror.posY",       24  )*size_multiplier;//.3; //24;
+    scolor  = cfg->lookupValue ( "ui.color",                    "green"         );
+    eye_swL = cfg->lookupValue ( "ui.eyeL.size_X",              60              )*size_multiplier;
+    eye_shL = cfg->lookupValue ( "ui.eyeL.size_Y",              eye_swL         )*size_multiplier;
+    eye_mwL = cfg->lookupValue ( "ui.eyeL.mirror_size_X",       9               )*size_multiplier;
+    eye_mhL = cfg->lookupValue ( "ui.eyeL.mirror_size_Y",       eye_mwL         )*size_multiplier;
+    eye_swR = cfg->lookupValue ( "ui.eyeR.size_X",              eye_swL         )*size_multiplier;
+    eye_shR = cfg->lookupValue ( "ui.eyeR.size_Y",              eye_shL         )*size_multiplier;
+    eye_mwR = cfg->lookupValue ( "ui.eyeR.mirror_size_X",       eye_mwL         )*size_multiplier;
+    eye_mhR = cfg->lookupValue ( "ui.eyeR.mirror_size_Y",       eye_mhL         )*size_multiplier;
+    epx1    = cfg->lookupValue ( "ui.eyeL.posX",                46              )*size_multiplier; //.14375; //46;
+    epx2    = cfg->lookupValue ( "ui.eyeR.posX",                213             )*size_multiplier; //.665625; //213;
+    mpx1    = cfg->lookupValue ( "ui.eyeL.mirror_posX",         83              )*size_multiplier;//.259375;
+    mpx2    = cfg->lookupValue ( "ui.eyeR.mirror_posX",         (int)(mpx1+(epx2-epx1)) )*size_multiplier;//.7875; //252;
+    epy1    = cfg->lookupValue ( "ui.eyeL.posY",                10              )*size_multiplier;//.125; //10;
+    epy2    = cfg->lookupValue ( "ui.eyeR.posY",                epy1            )*size_multiplier;//.125; //10;
+    mpy1    = cfg->lookupValue ( "ui.eyeL.mirror_posY",         24              )*size_multiplier;//.3; //24;
+    mpy2    = cfg->lookupValue ( "ui.eyeR.mirror_posY",         mpy1            )*size_multiplier;//.3; //24;
     if ( ( color = get_face_suffix ( ncolor ) ) == "NIL" )
         color = get_face_suffix ( QString ( scolor.c_str () ) );
     is_finished = false;
@@ -284,17 +292,17 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_a"] );
     if (!dual_eyes)
     {
-        parea.drawPixmap ( epx1, epy, eye_s, eye_s, eyes[eye] );
-        parea.drawPixmap ( epx2, epy, eye_s, eye_s, eyes[eye] );
+        parea.drawPixmap ( epx1, epy1, eye_swL, eye_shL, eyes[eye] );
+        parea.drawPixmap ( epx2, epy2, eye_swR, eye_shR, eyes[eye] );
     }
     else
     {
-        parea.drawPixmap ( epx1, epy, eye_s, eye_s, eyes[eye + "_L"] );
-        parea.drawPixmap ( epx2, epy, eye_s, eye_s, eyes[eye + "_R"] );
+        parea.drawPixmap ( epx1, epy1, eye_swL, eye_shL, eyes[eye + "_L"] );
+        parea.drawPixmap ( epx2, epy2, eye_swR, eye_shR, eyes[eye + "_R"] );
     }
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_s"] );
-    parea.drawPixmap ( int(mpx1), int(mpy), eye_m, eye_m, pics[spec] );
-    parea.drawPixmap ( int(mpx2), int(mpy), eye_m, eye_m, pics[spec] );
+    parea.drawPixmap ( int(mpx1), int(mpy1), eye_mwL, eye_mhL, pics[spec] );
+    parea.drawPixmap ( int(mpx2), int(mpy2), eye_mwR, eye_mhR, pics[spec] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_m"] );
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_o"] );
     parea.end ();
@@ -363,18 +371,20 @@ void eyes_view::set_eyes ( QString neyes )
     eye = neyes;
 }
 
-void eyes_view::set_eyes_position ( int nx1, int nx2, int ny )
+void eyes_view::set_eyes_position ( int nx1, int nx2, int ny1, int ny2 )
 {
     epx1 = nx1;
     epx2 = nx2;
-    epy = ny;
+    epy1 = ny1;
+    epy2 = ny2;
 }
 
-void eyes_view::set_mirror_position ( double nx1, double nx2, double ny )
+void eyes_view::set_mirror_position ( double nx1, double nx2, double ny1, double ny2 )
 {
     mpx1 = nx1;
     mpx2 = nx2;
-    mpy = ny;
+    mpy1 = ny1;
+    mpy2 = ny2;
 }
 
 void eyes_view::set_animation ( QString start, QString end, int from, int to )

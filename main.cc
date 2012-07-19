@@ -52,8 +52,14 @@ static const char help_colors [] = {
     "Avalible colors are:\n"
 };
 
-int eye_s,
-    eye_m,
+int eye_swL,
+    eye_shL,
+    eye_swR,
+    eye_shR,
+    eye_mwL,
+    eye_mhL,
+    eye_mwR,
+    eye_mhR,
     eyes_w,
     eyes_h;
 
