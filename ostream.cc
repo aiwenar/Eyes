@@ -51,6 +51,11 @@ OStream& OStream::operator << ( const QString& s )
   return *this;
 }
 
+namespace eyes_dbg
+{
+
 OStream oinfo    ( "info" );
 OStream oerror   ( "error" );
 OStream owarning ( "warning" );
+
+}
