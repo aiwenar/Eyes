@@ -1,0 +1,80 @@
+ui : 
+{
+  window : 
+  {
+    size_percentage = 100;
+    reference_width = 320;
+    reference_height = 80;
+    tray_icon = true;
+    size : 
+    {
+      width = 320;
+      height = 80;
+    };
+  };
+  color = "green";
+  eyeL : 
+  {
+    size_X = 60;
+    size_Y = 60;
+    mirror_size_X = 9;
+    mirror_size_Y = 9;
+    posX = 46;
+    mirror_posX = 83;
+    posY = 10;
+    mirror_posY = 24;
+  };
+  eyeR : 
+  {
+    size_X = 60;
+    size_Y = 60;
+    mirror_size_X = 9;
+    mirror_size_Y = 9;
+    posX = 213;
+    mirror_posX = 250;
+    posY = 10;
+    mirror_posY = 24.0;
+  };
+  clapper : 
+  {
+    delay : 
+    {
+      min = 5;
+      max = 35;
+    };
+  };
+  looker : 
+  {
+    delta_x : 
+    {
+      min = 0;
+      max = 14;
+    };
+    delta_y : 
+    {
+      min = 0;
+      max = 10;
+    };
+    bounds_x : 
+    {
+      min = 40;
+      max = 54;
+    };
+    bounds_y : 
+    {
+      min = 4;
+      max = 14;
+    };
+    delay : 
+    {
+      min = 1;
+      max = 30;
+    };
+  };
+  theme = "default";
+  eye : 
+  {
+    size = 60;
+    mirror = 9;
+  };
+};

@@ -1,0 +1,80 @@
+ui : 
+{
+  window : 
+  {
+    size_percentage = 100;
+    reference_width = 320;
+    reference_height = 80;
+    tray_icon = true;
+    size : 
+    {
+      width = 320;
+      height = 80;
+    };
+  };
+  color = "crystal";
+  eyeL : 
+  {
+    size_X = 55;
+    size_Y = 55;
+    mirror_size_X = 55;
+    mirror_size_Y = 55;
+    posX = 55;
+    mirror_posX = 55;
+    posY = 13;
+    mirror_posY = 13;
+  };
+  eyeR : 
+  {
+    size_X = 55;
+    size_Y = 55;
+    mirror_size_X = 55;
+    mirror_size_Y = 55;
+    posX = 208;
+    mirror_posX = 208;
+    posY = 13;
+    mirror_posY = 13.0;
+  };
+  clapper : 
+  {
+    delay : 
+    {
+      min = 5;
+      max = 35;
+    };
+  };
+  looker : 
+  {
+    delta_x : 
+    {
+      min = 0;
+      max = 14;
+    };
+    delta_y : 
+    {
+      min = 0;
+      max = 10;
+    };
+    bounds_x : 
+    {
+      min = 50;
+      max = 60;
+    };
+    bounds_y : 
+    {
+      min = 7;
+      max = 17;
+    };
+    delay : 
+    {
+      min = 1;
+      max = 30;
+    };
+  };
+  theme = "comet";
+  eye : 
+  {
+    size = 60;
+    mirror = 9;
+  };
+};
