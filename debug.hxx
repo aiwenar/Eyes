@@ -18,14 +18,19 @@
 #ifndef _eyes_debug_hxx
 #define _eyes_debug_hxx
 
-#define info    oinfo<<"[info: ] "
-#define error   oerror<<"[\033[31merror\033[0m :] "
-#define warning owarning<<"[\033[33mwarning\033[0m :] "
+#define info    eyes_dbg::oinfo<<"[info: ] "
+#define error   eyes_dbg::oerror<<"[\033[31merror\033[0m :] "
+#define warning eyes_dbg::owarning<<"[\033[33mwarning\033[0m :] "
 
 #include "ostream.hh"
+
+namespace eyes_dbg
+{
 
 extern  OStream oinfo;
 extern  OStream owarning;
 extern  OStream oerror;
+
+}
 
 #endif //eyes_debug_hxx
