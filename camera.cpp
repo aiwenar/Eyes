@@ -413,7 +413,7 @@ double camcapture::averagecalc(double ifps)
     if (tmp > 0)
         return tmp;
     else
-        return 0.001;
+        return 0.01;
 }
 
 bool camcapture::main()
@@ -462,7 +462,7 @@ camthread::camthread( eyes_view * neyes )
     ccap.sleep_cpu_usage            = cfg->lookupValue ( "cam.user.sleep_cpu_usage",                    5 );
     ccap.reference_fps              = cfg->lookupValue ( "cam.system.reference_framerate",             15 );
     ccap.reference_sleepfps         = cfg->lookupValue ( "cam.system.reference_sleep_fps",            0.5 );
-    ccap.reference_active_average   = cfg->lookupValue ( "cam.system.active_average",               0.005 );
+    ccap.reference_active_average   = cfg->lookupValue ( "cam.system.active_average",                0.02 );
     ccap.reference_sleep_average    = cfg->lookupValue ( "cam.system.deactive_average",               0.2 );
     ccap.min_active_fps             = cfg->lookupValue ( "cam.user.min_active_fps_delay",               1 );
     ccap.min_sleep_fps              = cfg->lookupValue ( "cam.user.min_sleep_fps",                    0.5 );
@@ -530,7 +530,8 @@ void camthread::tick()
     }
     if (ccap.halted)
     {
-        timer->setInterval ( 10000 );
+        disconnect(this, 0, 0, 0);
+        cvReleaseCapture(&ccap.cam);
         cerr << "System is too slow for caption with specified maximum cpu loads - capture deactivated permanently";
     }
     speedmeter.start();

@@ -52,40 +52,54 @@ static const char * files[]     = {
     "clap_03_a", "clap_03_m", "clap_03_o", "clap_03_s",             //76
     "clap_04_a", "clap_04_m", "clap_04_o", "clap_04_s",             //80
     "clap_05_a", "clap_05_m", "clap_05_o", "clap_05_s",             //84
-    "cusual_01_a", "cusual_01_m", "cusual_01_o", "cusual_01_s",     //88
-    "sh_01_a", "sh_01_m", "sh_01_o", "sh_01_s",                     //92
-    "sh_02_a", "sh_02_m", "sh_02_o", "sh_02_s",                     //96
-    "slp_01_a", "slp_01_m", "slp_01_o", "slp_01_s",                 //100
-    "slp_02_a", "slp_02_m", "slp_02_o", "slp_02_s",                 //104
-    "slp_03_a", "slp_03_m", "slp_03_o", "slp_03_s",                 //108
-    "slp_04_a", "slp_04_m", "slp_04_o", "slp_04_s",                 //112
-    "slp_05_a", "slp_05_m", "slp_05_o", "slp_05_s",                 //116
-    "slp_06_a", "slp_06_m", "slp_06_o", "slp_06_s",                 //120
-    "slp_07_a", "slp_07_m", "slp_07_o", "slp_07_s",                 //124
-    "slp_08_a", "slp_08_m", "slp_08_o", "slp_08_s",                 //128
-    "slp_09_a", "slp_09_m", "slp_09_o", "slp_09_s",                 //132
-    "slp_10_a", "slp_10_m", "slp_10_o", "slp_10_s",                 //136
-    "hpp_01_a", "hpp_01_m", "hpp_01_o", "hpp_01_s",
-    "hpp_02_a", "hpp_02_m", "hpp_02_o", "hpp_02_s",
-    "hpp_03_a", "hpp_03_m", "hpp_03_o", "hpp_03_s",
-    "hpp_04_a", "hpp_04_m", "hpp_04_o", "hpp_04_s",
-    "hpp_05_a", "hpp_05_m", "hpp_05_o", "hpp_05_s",
-    "hpp_06_a", "hpp_06_m", "hpp_06_o", "hpp_06_s",
-    "hpp_07_a", "hpp_07_m", "hpp_07_o", "hpp_07_s",
-    "bclap_01_a", "bclap_01_m", "bclap_01_o", "bclap_01_s",
-    "bclap_02_a", "bclap_02_m", "bclap_02_o", "bclap_02_s",
-    "bclap_03_a", "bclap_03_m", "bclap_03_o", "bclap_03_s",
-    "bclap_04_a", "bclap_04_m", "bclap_04_o", "bclap_04_s",
-    "bclap_05_a", "bclap_05_m", "bclap_05_o", "bclap_05_s",
-    "bclap_06_a", "bclap_06_m", "bclap_06_o", "bclap_06_s",
-    "bhclap_01_a", "bhclap_01_m", "bhclap_01_o", "bhclap_01_s",
-    "bhclap_02_a", "bhclap_02_m", "bhclap_02_o", "bhclap_02_s",
-    "bhclap_03_a", "bhclap_03_m", "bhclap_03_o", "bhclap_03_s",
-    "bhclap_04_a", "bhclap_04_m", "bhclap_04_o", "bhclap_04_s",
-    "bhclap_05_a", "bhclap_05_m", "bhclap_05_o", "bhclap_05_s",
-    "bhclap_06_a", "bhclap_06_m", "bhclap_06_o", "bhclap_06_s",
-    "tired_01", "tired_02", "tired_03",                             //139
-    "spec"                                                          //140
+    "clap_06_a", "clap_06_m", "clap_06_o", "clap_06_s",             //88
+    "clap_07_a", "clap_07_m", "clap_07_o", "clap_07_s",             //92
+    "clap_08_a", "clap_08_m", "clap_08_o", "clap_08_s",             //96
+    "clap_09_a", "clap_09_m", "clap_09_o", "clap_09_s",             //100
+    "cusual_01_a", "cusual_01_m", "cusual_01_o", "cusual_01_s",     //104
+    "sh_01_a", "sh_01_m", "sh_01_o", "sh_01_s",                     //108
+    "sh_02_a", "sh_02_m", "sh_02_o", "sh_02_s",                     //112
+    "slp_01_a", "slp_01_m", "slp_01_o", "slp_01_s",                 //116
+    "slp_02_a", "slp_02_m", "slp_02_o", "slp_02_s",                 //120
+    "slp_03_a", "slp_03_m", "slp_03_o", "slp_03_s",                 //124
+    "slp_04_a", "slp_04_m", "slp_04_o", "slp_04_s",                 //128
+    "slp_05_a", "slp_05_m", "slp_05_o", "slp_05_s",                 //132
+    "slp_06_a", "slp_06_m", "slp_06_o", "slp_06_s",                 //136
+    "slp_07_a", "slp_07_m", "slp_07_o", "slp_07_s",                 //140
+    "slp_08_a", "slp_08_m", "slp_08_o", "slp_08_s",                 //144
+    "slp_09_a", "slp_09_m", "slp_09_o", "slp_09_s",                 //148
+    "slp_10_a", "slp_10_m", "slp_10_o", "slp_10_s",                 //152
+    "hpp_01_a", "hpp_01_m", "hpp_01_o", "hpp_01_s",                 //156
+    "hpp_02_a", "hpp_02_m", "hpp_02_o", "hpp_02_s",                 //160
+    "hpp_03_a", "hpp_03_m", "hpp_03_o", "hpp_03_s",                 //164
+    "hpp_04_a", "hpp_04_m", "hpp_04_o", "hpp_04_s",                 //168
+    "hpp_05_a", "hpp_05_m", "hpp_05_o", "hpp_05_s",                 //172
+    "hpp_06_a", "hpp_06_m", "hpp_06_o", "hpp_06_s",                 //176
+    "hpp_07_a", "hpp_07_m", "hpp_07_o", "hpp_07_s",                 //180
+    "bclap_01_a", "bclap_01_m", "bclap_01_o", "bclap_01_s",         //184
+    "bclap_02_a", "bclap_02_m", "bclap_02_o", "bclap_02_s",         //188
+    "bclap_03_a", "bclap_03_m", "bclap_03_o", "bclap_03_s",         //192
+    "bclap_04_a", "bclap_04_m", "bclap_04_o", "bclap_04_s",         //196
+    "bclap_05_a", "bclap_05_m", "bclap_05_o", "bclap_05_s",         //200
+    "bclap_06_a", "bclap_06_m", "bclap_06_o", "bclap_06_s",         //204
+    "bclap_07_a", "bclap_07_m", "bclap_07_o", "bclap_07_s",         //208
+    "bclap_08_a", "bclap_08_m", "bclap_08_o", "bclap_08_s",         //212
+    "bclap_09_a", "bclap_09_m", "bclap_09_o", "bclap_09_s",         //216
+    "bclap_10_a", "bclap_10_m", "bclap_10_o", "bclap_10_s",         //220
+    "bclap_11_a", "bclap_11_m", "bclap_11_o", "bclap_11_s",         //224
+    "bhclap_01_a", "bhclap_01_m", "bhclap_01_o", "bhclap_01_s",     //228
+    "bhclap_02_a", "bhclap_02_m", "bhclap_02_o", "bhclap_02_s",     //232
+    "bhclap_03_a", "bhclap_03_m", "bhclap_03_o", "bhclap_03_s",     //236
+    "bhclap_04_a", "bhclap_04_m", "bhclap_04_o", "bhclap_04_s",     //240
+    "bhclap_05_a", "bhclap_05_m", "bhclap_05_o", "bhclap_05_s",     //244
+    "bhclap_06_a", "bhclap_06_m", "bhclap_06_o", "bhclap_06_s",     //248
+    "bhclap_07_a", "bhclap_07_m", "bhclap_07_o", "bhclap_07_s",     //252
+    "bhclap_08_a", "bhclap_08_m", "bhclap_08_o", "bhclap_08_s",     //256
+    "bhclap_09_a", "bhclap_09_m", "bhclap_09_o", "bhclap_09_s",     //260
+    "bhclap_10_a", "bhclap_10_m", "bhclap_10_o", "bhclap_10_s",     //264
+    "bhclap_11_a", "bhclap_11_m", "bhclap_11_o", "bhclap_11_s",     //268
+    "tired_01", "tired_02", "tired_03",                             //272
+    "spec"
 };
 static const char * eyefiles[]  = {
     "eye_01", "eye_02", "eye_03", "eye_04", "eye_05",   // 5
@@ -227,12 +241,12 @@ void eyes_view::open_images ( QString color )
       theme = "./themes/default/";
     }
     bool no_file ( false );
-    for ( int i=0 ; i<216 ; i++ )
+    for ( int i=0 ; i<272 ; i++ )
     {
-        _som ( i, 216 );
+        _som ( i, 272 );
         file = new QPixmap ();
         file->load ( theme + files[i] + ".png" );
-        if ( file->isNull () )
+        if ( file->isNull () && i%4 == 0)
         {
             cerr << '\n';
             error << "(eyes) file " << ( theme + files[i] + ".png" ).toStdString () << " is nil.\n";
