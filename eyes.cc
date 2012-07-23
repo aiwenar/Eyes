@@ -24,7 +24,11 @@
 #include <string>
 #include <sstream>
 #include <unistd.h>
+#include <errno.h>
+#include <sys/stat.h>
+#include <string.h>
 #include <iostream>
+#include <sstream>
 
 using namespace std;
 
@@ -93,7 +97,7 @@ static const char * eyefiles[]  = {
     "blank"    // 10
 };
 
-const double versiond = 0.090100;
+const double versiond = 0.090105;
 const char *verstr = "0.9.1½ alpha";
 
 bool is_finished;
@@ -195,66 +199,79 @@ void _som ( int i, int max )
         cerr << "[ done ]\n";
 }
 
+void eyes_view::load ( QString folder, QString alt, QString suffix, const char ** files, int num )
+{
+  int rn;
+  QStringList qsl = alt.split ( '/' );
+  QString dir = "./";
+  for ( int i=0 ; i<qsl.size () and qsl.at ( i ) != "" ; ++i )
+  {
+    dir += '/';
+    dir += qsl.at ( i );
+    if ( -1 == mkdir ( dir.toStdString ().c_str (), S_IRUSR | S_IWUSR | S_IXUSR ) and errno != EEXIST  )
+    {
+      int errno_orig = errno;
+      error << "(eyes) imagetmp folder creation failed with errno: (" << errno_orig << ") " << strerror ( errno_orig ) << ".\n";
+      info << i << ' ' << dir << '\n';
+      exit ( 2 );
+    }
+  }
+  QPixmap * file;
+  int numrescaled = 0;
+  bool no_file = false;
+  for ( int i=0 ; i<num ; ++i )
+  {
+    _som ( i, num );
+    file = new QPixmap ();
+    int rescaled = access ( ( alt + files[i] + suffix + ".png" ).toStdString ().c_str (), F_OK | R_OK );
+    if ( rescaled == 0 )
+    {
+      file->load ( alt + files[i] + suffix + ".png" );
+      pics.insert ( files[i], *file );
+      delete file;
+    }
+    else
+    {
+      if ( -1 == access ( ( folder + files[i] + suffix + ".png" ).toStdString ().c_str (), F_OK | R_OK ) )
+      {
+        cerr << '\n';
+        error << "(eyes) file " << ( theme + files[i] + suffix + ".png" ).toStdString () << " missing.\n";
+        no_file = true;
+        break;
+      }
+      ++numrescaled;
+      file->load ( folder + files[i] + suffix + ".png" );
+      QPixmap filetmp = file->scaled ( eyes_w, eyes_h, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation );
+      delete file;
+      file = &filetmp;
+      pics.insert( files[i] + suffix, *file );
+      file->save ( alt + files[i] + suffix + ".png" );
+    }
+  }
+  if ( no_file )
+  {
+    c_main.cancel ();
+    exit ( 2 );
+  }
+  if ( numrescaled > 0 )
+    info << "rescaled and saved " << numrescaled << " images.\n";
+}
+
 void eyes_view::open_images ( QString color )
 {
-    QPixmap * file;
-    theme = "./themes/";
-    const char * ctheme = Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
-    theme += ctheme;
-    theme += '/';
-    _s = "(eyes) loading images...  ";
-    if ( access ( theme.toStdString().c_str(), R_OK | X_OK ) == -1 )
-    {
-      error << "(eyes) theme `" << ctheme << "` does not exists. Trying default one...\n";
-      theme = "./themes/default/";
-    }
-    bool no_file ( false );
-    for ( int i=0 ; i<216 ; i++ )
-    {
-        _som ( i, 216 );
-        file = new QPixmap ();
-        file->load ( theme + files[i] + ".png" );
-        if ( file->isNull () )
-        {
-            cerr << '\n';
-            error << "(eyes) file " << ( theme + files[i] + ".png" ).toStdString () << " is nil.\n";
-            no_file = true;
-            break;
-        }
-        else
-        {
-            pics.insert ( QString ( files[i] ), file->scaled ( eyes_w, eyes_h, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
-        }
-        delete file;
-    }
-    if ( no_file )
-    {
-        c_main.cancel ();
-        exit ( 2 );
-    }
-    for ( int i=0 ; i<10 ; i++ )
-    {
-        _som ( i, 10 );
-        file = new QPixmap ();
-        file->load ( theme + eyefiles[i] + color + ".png" );
-        if ( file->isNull () )
-        {
-            cerr << '\n';
-            no_file = true;
-            error << "(eyes) file " << ( theme + eyefiles[i] + color + ".png" ).toStdString () << " is nil.\n";;
-        }
-        else
-        {
-            eyes.insert ( QString ( eyefiles[i] ), file->copy () );
-        }
-        delete file;
-    }
-    if ( no_file )
-    {
-        c_main.cancel ();
-        exit ( 2 );
-    }
-    images_ready = true;
+  _s = "(eyes) loading images...  ";
+  const char * ctheme = Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
+  theme = "./themes/";
+  theme += ctheme;
+  theme += '/';
+  std::ostringstream oss;
+  oss << "./imagetmp/" << ctheme << '/' << eyes_w << 'x' << eyes_h << '/';
+  QString alt = oss.str ().c_str ();
+
+  load ( theme, alt, "", files, 216 );      // KEEP THESE INMBERS
+  load ( theme, alt, color, eyefiles, 10 ); //   == CORRECT ==
+
+  images_ready = true;
 }
 
 void eyes_view::paintEvent ( QPaintEvent * event )

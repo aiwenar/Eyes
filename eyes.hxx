@@ -152,7 +152,8 @@ private:
         bool    drawable;
     };
 
-    void                open_images         ( QString folder );
+    void  open_images ( QString color );
+    void  load        ( QString folder, QString alt, QString suffix, const char ** files, int num );
     _layer                * layers;
     QTimer                * timer;
     QTime                   time;
