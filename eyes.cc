@@ -294,12 +294,13 @@ void eyes_view::open_images ( QString color )
 {
   _s = "(eyes) loading images...  ";
   const char * ctheme = Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
-  theme = "./themes/";
-  theme += ctheme;
-  theme += '/';
-  std::ostringstream oss;
-  oss << "./imagetmp/" << ctheme << '/' << eyes_w << 'x' << eyes_h << '/';
-  QString alt = oss.str ().c_str ();
+  std::ostringstream oss1, oss2;
+  oss1 << "./themes/" << ctheme << '/';
+  theme = oss1.str ().c_str ();
+  // don't know why, ctheme is modified
+  ctheme = Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
+  oss2 << "./imagetmp/" << ctheme << '/' << eyes_w << 'x' << eyes_h << '/';
+  QString alt = oss2.str ().c_str ();
 
   load ( theme, alt, "", files, 272 );      // KEEP THESE INMBERS
   load ( theme, alt, color, eyefiles, 30 ); //   == CORRECT ==
