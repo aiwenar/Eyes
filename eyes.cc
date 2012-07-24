@@ -231,7 +231,7 @@ void _som ( int i, int max )
         cerr << "[ done ]\n";
 }
 
-void eyes_view::load ( QString folder, QString alt, QString suffix, const char ** files, int num )
+bool eyes_view::load ( QString folder, QString alt, QString suffix, const char ** files, int num )
 {
   int rn;
   QStringList qsl = alt.split ( '/' );
@@ -268,9 +268,10 @@ void eyes_view::load ( QString folder, QString alt, QString suffix, const char *
       if ( -1 == access ( ( folder + files[i] + suffix + ".png" ).toStdString ().c_str (), F_OK | R_OK ) )
       {
         cerr << '\n';
-        error << "(eyes) file " << ( theme + files[i] + suffix + ".png" ).toStdString () << " missing.\n";
+        info << "(eyes) file " << ( theme + files[i] + suffix + ".png" ).toStdString () << " missing.\n";
         no_file = true;
-        break;
+        //break;
+        continue;
       }
       ++numrescaled;
       file->load ( folder + files[i] + suffix + ".png" );
@@ -281,13 +282,17 @@ void eyes_view::load ( QString folder, QString alt, QString suffix, const char *
       file->save ( alt + files[i] + suffix + ".png" );
     }
   }
-  if ( no_file )
-  {
-    c_main.cancel ();
-    exit ( 2 );
-  }
+
   if ( numrescaled > 0 )
     info << "rescaled and saved " << numrescaled << " images.\n";
+  if ( no_file )
+  {
+    return 0;
+    //c_main.cancel ();
+    //exit ( 2 );
+  }
+  else
+      return 1;
 }
 
 void eyes_view::open_images ( QString color )
@@ -297,13 +302,24 @@ void eyes_view::open_images ( QString color )
   std::ostringstream oss1, oss2;
   oss1 << "./themes/" << ctheme << '/';
   theme = oss1.str ().c_str ();
+  if ( access ( theme.toStdString().c_str(), R_OK | X_OK ) == -1 )
+  {
+    error << "(eyes) theme `" << ctheme << "` does not exists. Trying default one...\n";
+    theme = "./themes/default/";
+    ctheme = "default";
+  }
   // don't know why, ctheme is modified
   ctheme = Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
   oss2 << "./imagetmp/" << ctheme << '/' << eyes_w << 'x' << eyes_h << '/';
   QString alt = oss2.str ().c_str ();
 
-  load ( theme, alt, "", files, 272 );      // KEEP THESE INMBERS
-  load ( theme, alt, color, eyefiles, 30 ); //   == CORRECT ==
+  load ( theme, alt, "", files, 272 );          // KEEP THESE INMBERS
+  if(!load ( theme, alt, color, eyefiles, 10 )) //   == CORRECT ==
+      dual_eyes = true;
+  else
+      dual_eyes = false;
+  load ( theme, alt, color, eyefiles, 30 );
+  cerr << dual_eyes << "\n\n\n";
 
   images_ready = true;
 }
@@ -316,13 +332,13 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_a"] );
     if (!dual_eyes)
     {
-        parea.drawPixmap ( epx1, epy1, eye_swL, eye_shL, eyes[eye] );
-        parea.drawPixmap ( epx2, epy2, eye_swR, eye_shR, eyes[eye] );
+        parea.drawPixmap ( epx1, epy1, eye_swL, eye_shL, pics[eye] );
+        parea.drawPixmap ( epx2, epy2, eye_swR, eye_shR, pics[eye] );
     }
     else
     {
-        parea.drawPixmap ( epx1, epy1, eye_swL, eye_shL, eyes[eye + "_L"] );
-        parea.drawPixmap ( epx2, epy2, eye_swR, eye_shR, eyes[eye + "_R"] );
+        parea.drawPixmap ( epx1, epy1, eye_swL, eye_shL, pics[eye + "_L"] );
+        parea.drawPixmap ( epx2, epy2, eye_swR, eye_shR, pics[eye + "_R"] );
     }
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, pics[face+"_s"] );
     parea.drawPixmap ( int(mpx1), int(mpy1), eye_mwL, eye_mhL, pics[spec] );
