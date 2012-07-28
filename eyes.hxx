@@ -316,7 +316,6 @@ public:
     QTimer          * timer;
     QElapsedTimer     speedmeter;
     eyes_view       * eyes;
-    bool              enabled;
 public slots:
     void        tick();
 };

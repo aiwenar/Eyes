@@ -22,7 +22,8 @@ bool camcapture::cam_init()
 
 IplImage* camcapture::get_image()
 {
-    return cvQueryFrame(cam);
+    cvResize(cvQueryFrame(cam), resized);
+    return resized;
 }
 
 void camcapture::init_motionpics()
@@ -32,10 +33,21 @@ void camcapture::init_motionpics()
     movingAverage = cvCreateImage( motionpicsSize, IPL_DEPTH_32F, src->nChannels);
     dst = cvCreateImage( motionpicsSize, IPL_DEPTH_8U, 1 );
     boolimage = new bool*[src->height];
+    env.envmap = new pixel*[src->height];
     for (int i = 0; i < src->height; i++)
     {
         boolimage[i] = new bool[src->width];
     }
+    for (int i = 0; i < src->height; i++)
+    {
+        env.envmap[i] = new pixel[src->width];
+    }
+    env.tabsize = motionpicsSize.width*motionpicsSize.height;
+    env.global_avg = 150;
+    env.checked = false;
+    fun.fun = 0.0;
+    fun.funcounter = 0;
+    fun.newfun = 0;
 
     HRDWR.pid = getpid();
     first = true;
@@ -53,21 +65,20 @@ void camcapture::init_motionpics()
 
 IplImage* camcapture::get_motionpics(double tolerance, IplImage *input)
 {
-    cvResize(input, resized);
     if (first)
     {
-        difference = cvCloneImage(resized);
-        temp = cvCloneImage(resized);
-        cvConvertScale(resized, movingAverage, 1.0, 0.0);
+        difference = cvCloneImage(input);
+        temp = cvCloneImage(input);
+        cvConvertScale(input, movingAverage, 1.0, 0.0);
         first = false;
     }
     else
     {
-        cvRunningAvg(resized, movingAverage, tolerance, NULL);
+        cvRunningAvg(input, movingAverage, tolerance, NULL);
     }
 
     cvConvertScale(movingAverage,temp, 1.0, 0.0);
-    cvAbsDiff(resized,temp,difference);
+    cvAbsDiff(input,temp,difference);
     cvCvtColor( difference, dst, CV_RGB2GRAY );
     cvThreshold(dst, dst, 70, 255, CV_THRESH_BINARY);
     return dst;
@@ -367,20 +378,31 @@ void camcapture::optimize(int last_delay)
         }
         else
             ccap.delay+=ccap.delayunit;
-        if (fps < ccap.min_active_fps && ccap.active_retry_times > 0)
-        {
-            if (fps_adaptation_timer.elapsed() == 0)
-                fps_adaptation_timer.start();
-            else if (fps_adaptation_timer.elapsed() > fps_adaptation_time)
-            {
-                ccap.active_retry_times--;
-                tmp_halted = true;
-            }
-        }
+
         if (cpu.load > ccap.deactive_global_cpu_load)
         {
             tmp_halted = true;
         }
+        else
+            tmp_halted = false;
+
+        if (fps < ccap.min_active_fps)
+        {
+            if (ccap.retry_times > 0)
+            {
+                if (!fps_adaptation_timer.isValid())
+                    fps_adaptation_timer.restart();
+                else if (fps_adaptation_timer.elapsed() > fps_adaptation_time)
+                {
+                    ccap.retry_times--;
+                    tmp_halted = true;
+                }
+            }
+            else
+                halted = true;
+        }
+        else
+            fps_adaptation_timer.restart();
     }
     else
     {
@@ -391,16 +413,32 @@ void camcapture::optimize(int last_delay)
         }
         else
         {
-            ccap.delay+=ccap.delayunit;
+            ccap.sleepdelay+=ccap.delayunit;
         }
-        if (fps < ccap.min_sleep_fps)
-            halted = true;
+
         if (cpu.load > ccap.deactive_global_cpu_load)
         {
             tmp_halted = true;
         }
-    }
+        else
+            tmp_halted = false;
 
+        if (fps < ccap.min_sleep_fps)
+        {
+            if (ccap.retry_times > 0)
+            {
+                if (!fps_adaptation_timer.isValid())
+                    fps_adaptation_timer.restart();
+                else if (fps_adaptation_timer.elapsed() > fps_adaptation_time)
+                {
+                    ccap.retry_times--;
+                    tmp_halted = true;
+                }
+            }
+            else
+                halted = true;
+        }
+    }
 }
 
 double camcapture::averagecalc(double ifps)
@@ -416,17 +454,244 @@ double camcapture::averagecalc(double ifps)
         return 0.01;
 }
 
+pixel** camcapture::img2env(IplImage *input)
+{
+    int step = input->widthStep;
+    uchar *data = ( uchar* )input->imageData;
+
+    //bool *output[motionpicsSize.height][motionpicsSize.width];
+
+    for( int i = 0; i < motionpicsSize.height; i++ )
+    {
+        for( int j = 0 ; j < motionpicsSize.width; j++ )
+        {
+            env.envmap[i][j].B = data[i*step + j*3 + 0];
+            env.envmap[i][j].G = data[i*step + j*3 + 1];
+            env.envmap[i][j].R = data[i*step + j*3 + 2];
+            //boolimage[i][j] = data[i*step + j];
+            //if (data[i*step + j] > 0)
+            //    motioncounter++;
+        }
+    }
+    return env.envmap;
+}
+
+void camcapture::envread(pixel **input)
+{
+    env.yellowcounter = 0;
+    env.redcounter = 0;
+    env.greencounter = 0;
+    env.bluecounter = 0;
+    env.pinkcounter = 0;
+    env.lightcounter = 0;
+    env.darkcounter = 0;
+    env.greencounter = 0;
+    double nextgavg = 0;
+    for( int i = 0; i < motionpicsSize.height; i++ )
+    {
+        for( int j = 0 ; j < motionpicsSize.width; j++ )
+        {
+            unsigned short avg = ((env.envmap[i][j].R*env.R_correct)/100 + (env.envmap[i][j].G*env.G_correct)/100 + (env.envmap[i][j].B*env.B_correct)/100)/3;
+            char sign = '-';
+            if (avg > 255-(env.min_tolerance + (1.0 - env.global_avg/255.0)*(double)(env.max_tolerance-env.min_tolerance)))
+                sign = '#';
+            else if (avg < env.min_tolerance + (env.global_avg/255.0)*(double)(env.max_tolerance-env.min_tolerance))
+                sign = ' ';
+            else
+            {
+                if ((env.envmap[i][j].R*env.R_correct)/100 > avg)
+                {
+                    if ((env.envmap[i][j].R*env.R_correct)/100 > (1.25*env.envmap[i][j].B*env.B_correct)/100) //pink or yellow
+                    {
+                        if ((env.envmap[i][j].R*env.R_correct)/100 > (1.5*env.envmap[i][j].G*env.G_correct)/100)
+                        {
+                            sign = 'R';
+                        }
+                        else
+                            sign = 'Y';
+                    }
+                    else if ((env.envmap[i][j].R*env.R_correct)/100 > (1.5*env.envmap[i][j].G*env.G_correct)/100)
+                    {
+                        if ((env.envmap[i][j].R*env.R_correct)/100 > (1.25*env.envmap[i][j].B*env.B_correct)/100)
+                        {
+                            sign = 'R';
+                        }
+                        else
+                            sign = 'P';
+                    }
+                }
+                if ((env.envmap[i][j].B*env.B_correct)/100 > avg) // pink or green
+                {
+                    if ((env.envmap[i][j].B*env.B_correct)/100 > (1.25*env.envmap[i][j].G*env.G_correct)/100)
+                    {
+                        if ((env.envmap[i][j].B*env.B_correct)/100 > (1.25*env.envmap[i][j].R*env.R_correct)/100)
+                        {
+                            sign = 'B';
+                        }
+                        else
+                            sign = 'P';
+                    }
+                    else if ((env.envmap[i][j].B*env.B_correct)/100 > (1.25*env.envmap[i][j].R*env.R_correct)/100)
+                    {
+                        if ((env.envmap[i][j].B*env.B_correct)/100 > (1.25*env.envmap[i][j].G*env.G_correct)/100)
+                        {
+                            sign = 'B';
+                        }
+                        else
+                            sign = 'G';
+                    }
+                }
+                if ((env.envmap[i][j].G*env.G_correct)/100 > avg)
+                {
+                    if ((env.envmap[i][j].G*env.G_correct)/100 > (1.2*env.envmap[i][j].R*env.R_correct)/100) // blue or yellow
+                    {
+                        if ((env.envmap[i][j].G*env.G_correct)/100 > (0.9*env.envmap[i][j].B*env.B_correct)/100)
+                            sign = 'G';
+                        else
+                            sign = 'B';
+                    }
+                    else if ((env.envmap[i][j].G*env.G_correct)/100 > (1.2*env.envmap[i][j].B*env.B_correct)/100)
+                    {
+                        if ((env.envmap[i][j].G*env.G_correct)/100 > (env.envmap[i][j].R*env.R_correct)/100)
+                            sign = 'G';
+                        else
+                            sign = 'Y';
+                    }
+                }
+            }
+            nextgavg+=avg;
+            if (sign == 'Y')
+                env.yellowcounter++;
+            if (sign == 'R')
+                env.redcounter++;
+            if (sign == 'G')
+                env.greencounter++;
+            if (sign == 'B')
+                env.bluecounter++;
+            if (sign == 'P')
+                env.pinkcounter++;
+            if (sign == '#')
+                env.lightcounter++;
+            if (sign == ' ')
+                env.darkcounter++;
+            if (sign == '-')
+                env.greencounter++;
+        }
+    }
+    env.Rperc = 100*env.redcounter/env.tabsize;
+    env.Yperc = 100*env.yellowcounter/env.tabsize;
+    env.Gperc = 100*env.greencounter/env.tabsize;
+    env.Bperc = 100*env.bluecounter/env.tabsize;
+    env.Pperc = 100*env.pinkcounter/env.tabsize;
+    env.Lperc = 100*env.lightcounter/env.tabsize;
+    env.Dperc = 100*env.darkcounter/env.tabsize;
+    env.Hperc = 100*env.greycounter/env.tabsize;
+    env.global_avg=nextgavg/env.tabsize;
+    env.colindex = 0;
+    double max = 0.0;
+    if (env.Rperc > max)
+    {
+        env.colindex = 1;
+        max = env.Rperc;
+    }
+    if (env.Yperc > max)
+    {
+        env.colindex = 2;
+        max = env.Yperc;
+    }
+    if (env.Gperc > max)
+    {
+        env.colindex = 3;
+        max = env.Gperc;
+    }
+    if (env.Bperc > max)
+    {
+        env.colindex = 4;
+        max = env.Bperc;
+    }
+    if (env.Pperc > max)
+    {
+        env.colindex = 5;
+        max = env.Pperc;
+    }
+    if (env.Lperc > max)
+    {
+        env.colindex = 6;
+        max = env.Lperc;
+    }
+    if (env.Dperc > max)
+    {
+        env.colindex = 7;
+        max = env.Dperc;
+    }
+    if (env.Hperc > max)
+    {
+        env.colindex = 8;
+        max = env.Hperc;
+    }
+    env.checked = true;
+}
+
+void camcapture::funcalc()
+{
+    bool newenv = 0;
+    if (!sleep)
+    {
+        if (!fun.funtimer.isValid())
+            fun.funtimer.restart();
+    }
+    else
+    {
+        if (fun.funtimer.isValid())
+        {
+            fun.funcounter+=fun.funtimer.elapsed();
+            fun.funtimer.invalidate();
+        }
+    }
+    if (fun.funchunktimer.elapsed()/1000 > fun.funchunk)
+    {
+        cerr << "CHUNK!\n";
+        cerr << sleep << " oldfuncounter: " << fun.funcounter << " ";
+        fun.funchunktimer.restart();
+        if (fun.funtimer.isValid())
+        {
+            fun.funcounter+=fun.funtimer.elapsed();
+            fun.funtimer.invalidate();
+        }
+        fun.newfun=(double)fun.funcounter/(double)fun.funchunk/1000;
+        if (fun.newfun > fun.minfun/100.0 || newenv)
+        {
+            fun.totforgettimer.restart();
+            fun.fun+=fun.newfun*((double)fun.funchunk/300.0);
+            cerr << "GOOD fun:" << fun.fun << " ";
+        }
+        else
+            fun.fun*=fun.forgetcalm/100.0;
+        if (fun.totforgettimer.elapsed()/1000 > fun.totforget)
+            fun.fun = 0.0;
+        cerr << "funcounter: " << fun.funcounter << " newfun: " << fun.newfun << "\n";
+        fun.funcounter = 0;
+    }
+}
+
 bool camcapture::main()
 {
 
     bool retstat = false;
-    if (ccap.motion_detect(ccap.splash_detect(ccap.img2bool(ccap.get_motionpics(ccap.averagecalc(fps), ccap.get_image())), ccap.min_splash_size)))
+    ccap.get_image();
+    if (ccap.env.timer.elapsed() > ccap.env.delay*1000)
+    {
+        ccap.envread(ccap.img2env(resized));
+        ccap.env.timer.restart();
+    }
+    if (ccap.motion_detect(ccap.splash_detect(ccap.img2bool(ccap.get_motionpics(ccap.averagecalc(fps), resized)), ccap.min_splash_size)))
         retstat = true;
     ccap.sleepdetect();
+    funcalc();
 
     if (ccap.debug)
     {
-        cvShowImage("DISBA", ccap.dst);
+        cvShowImage("DISPA", ccap.dst);
         cvShowImage("DISPB", ccap.resized);
     }
 
@@ -464,20 +729,30 @@ camthread::camthread( eyes_view * neyes )
     ccap.reference_sleepfps         = cfg->lookupValue ( "cam.system.reference_sleep_fps",            0.5 );
     ccap.reference_active_average   = cfg->lookupValue ( "cam.system.active_average",                0.02 );
     ccap.reference_sleep_average    = cfg->lookupValue ( "cam.system.deactive_average",               0.2 );
-    ccap.min_active_fps             = cfg->lookupValue ( "cam.user.min_active_fps_delay",               1 );
+    ccap.min_active_fps             = cfg->lookupValue ( "cam.user.min_active_fps",                     1 );
     ccap.min_sleep_fps              = cfg->lookupValue ( "cam.user.min_sleep_fps",                    0.5 );
     ccap.fps_adaptation_time        = cfg->lookupValue ( "cam.system.fps_adaptation_time",          10000 );
-    ccap.active_retry_times         = cfg->lookupValue ( "cam.system.temphalt_retry_times",             8 );
+    ccap.retry_times                = cfg->lookupValue ( "cam.system.temphalt_retry_times",             8 );
     ccap.deactive_global_cpu_load   = cfg->lookupValue ( "cam.system.cpu_halt_load",                   80 );
-    ccap.deactive_global_retry_timer= cfg->lookupValue ( "cam.system.cpu_halt_retry_timer",         30000 );
+    ccap.tmp_deactive_timer         = cfg->lookupValue ( "cam.system.cpu_halt_retry_timer",         30000 );
     ccap.mindelay                   = cfg->lookupValue ( "cam.system.min_fps_delay",                   50 );
     ccap.minsleepdelay              = cfg->lookupValue ( "cam.system.min_sleepfps_delay",             150 );
     ccap.operationsarea.ST          = cfg->lookupValue ( "cam.user.view_area_percentage_X",            80 );
     ccap.operationsarea.ND          = cfg->lookupValue ( "cam.user.view_area_percentage_Y",            60 );
     ccap.debug                      = cfg->lookupValue ( "cam.system.showdebug",                    false );
-    enabled                         = cfg->lookupValue ( "cam.enabled",                              true );
+    ccap.enabled                    = cfg->lookupValue ( "cam.ccap.enabled",                         true );
+    ccap.env.max_tolerance          = cfg->lookupValue ( "cam.system.env_max_tolerance",               30 );
+    ccap.env.min_tolerance          = cfg->lookupValue ( "cam.system.env_min_tolerance",                5 );
+    ccap.env.B_correct              = cfg->lookupValue ( "cam.system.env_B_correction",              90.0 );
+    ccap.env.G_correct              = cfg->lookupValue ( "cam.system.env_G_correction",             100.0 );
+    ccap.env.R_correct              = cfg->lookupValue ( "cam.system.env_R_correction",             100.0 );
+    ccap.env.delay                  = cfg->lookupValue ( "cam.system.env_reload_delay",                30 );
+    ccap.fun.forgetcalm             = cfg->lookupValue ( "cam.system.fun_calm_percentage",           50.0 );
+    ccap.fun.funchunk               = cfg->lookupValue ( "cam.system.fun_chunk_size",                  30 );
+    ccap.fun.totforget              = cfg->lookupValue ( "cam.system.fun_total_forget_time",          180 );
+    ccap.fun.minfun                 = cfg->lookupValue ( "cam.system.fun_minfun",                    20.0 );
 
-    if (enabled)
+    if (ccap.enabled)
     {
         if (ccap.cam_init())
         {
@@ -486,19 +761,23 @@ camthread::camthread( eyes_view * neyes )
                 ccap.init_debug();
         }
         else
-            enabled = false;
+            ccap.enabled = false;
     }
 }
 
 void camthread::run()
 {
-    if (enabled)
+    if (ccap.enabled)
     {
         connect ( timer, SIGNAL ( timeout() ), this, SLOT ( tick() ) );
         cerr << "Capture thread started.\n";
         timer->start();
         speedmeter.start();
         ccap.fps_adaptation_timer.start();
+        ccap.env.timer.start();
+        ccap.fun.funchunktimer.start();
+        ccap.fun.funtimer.start();
+        ccap.fun.totforgettimer.start();
     }
 }
 
@@ -523,16 +802,15 @@ void camthread::tick()
     }
     if (ccap.tmp_halted)
     {
-        ccap.tmp_halted = false;
-        timer->setInterval ( ccap.deactive_global_retry_timer );
-        cerr << "camera capture temponary halted because of big system cpu load\nCapture restart in: " << ccap.deactive_global_retry_timer << " miliseconds...\n";
-        ccap.fps_adaptation_timer.start();
+        timer->setInterval ( ccap.tmp_deactive_timer );
+        cerr << "camera capture temponary halted because of big system cpu load\nCapture restart in: " << ccap.tmp_deactive_timer << " miliseconds...\n";
+        ccap.fps_adaptation_timer.invalidate();
     }
     if (ccap.halted)
     {
-        disconnect(this, 0, 0, 0);
+        disconnect(timer, 0, 0, 0);
         cvReleaseCapture(&ccap.cam);
-        cerr << "System is too slow for caption with specified maximum cpu loads - capture deactivated permanently";
+        cerr << "System is too slow for caption with specified maximum cpu loads - capture deactivated permanently\n";
     }
     speedmeter.start();
 }

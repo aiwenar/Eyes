@@ -36,6 +36,7 @@ extern QTime            mousetime;
 extern mouse_actions    mousea;
 extern hardware         HRDWR;
 extern friendship       fship;
+extern camcapture       ccap;
 extern unsigned short   battery_state;
 extern unsigned short   mod_bat_plug;
 extern bool             once_plugged;
@@ -64,6 +65,13 @@ This is concept debug layout:
 # p0 b0 | m0 b0 | t0 b0 | __________ |             | mouse.mod:  | 0  |[] [] [] [] [] [] [] [] [] [] | amplit. | (A)  ____ |
 #       |       |       | next_wall: | plug: val:  | ____        |    +----------------------------- | __º __º | multhigh  |
 # ===== | ===== | ===== | __________ |             | buffers:___ |     01 __ __ __ __ __ __ __ __ __ |  <__º>  | (A)  ____ |
+# -------------------------------------------------------------------------------------------------------------------------|
+# nap:  __:__    cam: active → load :__%     rootpanel  |
+# ------------------------------------------------------|
+# from: __:__ | X:___ Y:___ | env col: __ | mode: full  |
+# to:   __:__ | __% (__/__) | bright: ___ | screen: off |
+# rest: __:__ | __fps (↑__) | trip/fun: X | maxtemp:__º |
+# saved:__:__ | delay: ____ | fun: __←___ | minbatt:__% |
 
 
 And for everyone there are terminal instructions for that:
@@ -126,7 +134,7 @@ MsSQL
 
  \033[1;42m set background color to light green
 
- \033[1;43m set background color to yellow
+ \033[1;43m set background color to light yellow
 
  \033[1;44m set background color to light blue
 
@@ -235,7 +243,6 @@ cdbg::cdbg ( Core * c ) :
   for ( int i = max_s+4 ; i>1 ; --i ) cout << '\n';
   for ( int i=max_s+5 ; i>1 ; --i )   cout << "\033[1A";
   for ( int i=64 ; i>0 ; --i )        cout << '-';
-  sleep(2);
   cout << "\033[40D\033[3B";
   for ( int i=13 ; i>1 ; --i )        cout << '-';
   cout << "\033[13D\033[3B";
@@ -288,7 +295,22 @@ cdbg::cdbg ( Core * c ) :
   cout << "\n\033[1A\033[" << 84+max_EQ*3 << "C";
   for (int i = max_s+5; i>0; i--)    cout << "|\033[1B\033[1D";
   cout << "|\033[1D";
-  for (int i = max_s+5; i>0; i--)    cout << "\033[1A";
+  cout << "\n ";
+  for (int i = 0; i < 83+max_EQ*3 ; i++)
+      cout << "-";
+  if (autocalc.enabled)
+      cout << "------------";
+  cout << "|\n\n\n";
+  cout << "\033[13C|";
+  for (int i = 3; i>0; i--)    cout << "\n\033[13C|";
+  cout << "\033[13C|";
+  for (int i = 3; i>0; i--)    cout << "\033[1A\033[1D|";
+  cout << "\033[13C|";
+  for (int i = 3; i>0; i--)    cout << "\033[1B\033[1D|";
+  cout << "\033[13C|";
+  for (int i = 5; i>0; i--)    cout << "\033[1A\033[1D|";
+  cout << "\n ------------------------------------------------------\n";
+  for (int i = max_s+9; i>0; i--)    cout << "\033[1A";
 
   cout << "\n\033[1A step:        special:\033[2B\033[21D"
           "cpu:\033[4Cmem:\033[4Ctemp:\033[3Cbattery:"
@@ -307,13 +329,19 @@ cdbg::cdbg ( Core * c ) :
           "\033[65C  3 \n"
           "\033[65C  2 \033[" << max_EQ*3 + 7 << "Cbuffer:\n"
           "\033[65C  1 \n"
-          "\033[65C  0 \033[" << max_EQ*3 + 7 << "Camplit.\n\033[14A";
+          "\033[65C  0 \033[" << max_EQ*3 + 7 << "Camplit.\n\n\n\n"
+          " nap:    :      cam:        → load :  %     rootpanel  \n\n"
+          " from:   :   \033[1C X:    Y:    \033[1C env col:    \033[1C mode:       \n"
+          " to:     :   \033[1C   % (  /  ) \033[1C bright:     \033[1C screen:     \n"
+          " rest:   :   \033[1C   fps (   ) \033[1C trip/fun:   \033[1C maxtemp:  º \n"
+          " saved:  :   \033[1C delay:      \033[1C fun:   ←    \033[1C minbatt:  % \033[1A\n"
+          "\033[22A";
   if (autocalc.enabled)
   {
       cout << "\033[" << max_EQ*3 + 85 << "C autocalc  |";
       for (int i = max_s+5; i>0; i--)    cout << "\033[1B\033[1D|";
       for (int i = max_s+5; i>0; i--)    cout << "\033[1A";
-      cout << "\n\033";
+      cout << "\n";
       cout << "\033[" << max_EQ*3 + 85 << "C-----------\n"
               "\033[" << max_EQ*3 + 85 << "C rem.      \n"
               "\033[" << max_EQ*3 + 85 << "C common    \n\n"
@@ -1201,7 +1229,7 @@ void cdbg::on_timer_tick ()
   }
 
   cout << "\033[15A" << "\n\n";
-  cout << "\033[52C\033[33m";
+  cout << "\033[52C\033[1;33m";
 
   cout << "\033[2C";
   spacefill(mousea.prev_x, 3);
@@ -1214,22 +1242,22 @@ void cdbg::on_timer_tick ()
       cout << "\033[37m<===>";
   else
       cout << "\033[1;30m<===>";;
-  cout << " \033[33m\n\n\n\033[52C";
+  cout << " \033[1;33m\n\n\n\033[52C";
   if (fship.value < 0)
-      cout << "\033[31m";
+      cout << "\033[1;31m";
   else
-      cout << "\033[32m";
+      cout << "\033[1;32m";
   spacefill(fship.value, 6);
 
-  cout << "\033[33m\n\033[1A\033[60C";
+  cout << "\033[1;33m\n\033[1A\033[60C";
   if (mousea.mod > 0)
   {
-      cout << "\033[32m<";
+      cout << "\033[1;32m<";
       spacefill(fship.mouse_good, 3);
   }
   else if (mousea.mod < 0)
   {
-      cout << "\033[31m>";
+      cout << "\033[1;31m>";
       if (fship.value < -mousea.heavycalm)
           spacefill(fship.value/mousea.heavycalm, 3);
       else
@@ -1238,33 +1266,33 @@ void cdbg::on_timer_tick ()
   else
       cout << " --";
 
-  cout << "\033[33m\n\n\n\033[52C";
+  cout << "\033[1;33m\n\n\n\033[52C";
   if (mousetime.elapsed() <= mousea.max_delay)
       spacefill(mousetime.elapsed(), 11);
   else
       cout << "\033[1;30m  ignored  ";
 
-  cout << "\033[33m\n\n\033[52C";
+  cout << "\033[1;33m\n\n\033[52C";
   if (100*mousea.result/mousea.wall >= 80)
-      cout << "\033[31m";
+      cout << "\033[1;31m";
   else if (100*mousea.result/mousea.wall <= 20)
-      cout << "\033[33m";
+      cout << "\033[1;33m";
   else
-      cout << "\033[32m";
+      cout << "\033[1;32m";
   spacefill(mousea.result, 4);
 
-  cout << "\033[33m\n\n\n\033[52C";
+  cout << "\033[1;33m\n\n\n\033[52C";
   if (mousea.mod < 0)
-      cout << "\033[31m";
+      cout << "\033[1;31m";
   else if (mousea.mod == 0)
-      cout << "\033[33m";
+      cout << "\033[1;33m";
   else
-      cout << "\033[32m";
+      cout << "\033[1;32m";
   spacefill(mousea.mod, 6);
   cout << " ";
   spacefill(mousea.hit_time, 4);
 
-  cout << "\033[33m\n\033[60C";
+  cout << "\033[1;33m\n\033[60C";
   spacefill(mousea.tr, 3);
 
   cout << "\033[15A\n\033[1A\033[74C";
@@ -1278,7 +1306,7 @@ void cdbg::on_timer_tick ()
   {
       cout << "cpu    " << "\033[2C\033[1;30m";
       spacefill(15 - (core_step%60), 2);
-      cout << "\n\033[79C\033[33m" << cpu.calculate() << "\n\n\033[70C";
+      cout << "\n\033[79C\033[1;33m" << cpu.calculate() << "\n\n\033[70C";
       for (int i = 10; i>=0; i--)
       {
           for (int j = 0; j<=cpu.EQsize;j++)
@@ -1404,7 +1432,7 @@ void cdbg::on_timer_tick ()
           }
           else
               cout << "\033[1;30m";
-          cout << "A\033[2C\033[33m";
+          cout << "A\033[2C\033[1;33m";
           spacefill (10*autocalc.cpu_mult_low, 4);
           cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
           if (autocalc.auto_cpu)
@@ -1413,7 +1441,7 @@ void cdbg::on_timer_tick ()
           }
           else
               cout << "\033[1;30m";
-          cout << "A\033[2C\033[33m";
+          cout << "A\033[2C\033[1;33m";
           spacefill (10*autocalc.cpu_mult_high, 4);
       }
       else if (autocalc.enabled)
@@ -1435,7 +1463,7 @@ void cdbg::on_timer_tick ()
   {
       cout << "memory " << "\033[2C\033[1;30m";
       spacefill(30 - (core_step%60), 2);
-      cout << "\n\033[79C\033[33m";
+      cout << "\n\033[79C\033[1;33m";
       spacefill (memory.calculate(), 2);
       cout << "\n\n\033[70C";
       for (int i = 10; i>=0; i--)
@@ -1564,7 +1592,7 @@ void cdbg::on_timer_tick ()
           }
           else
               cout << "\033[1;30m";
-          cout << "A\033[2C\033[33m";
+          cout << "A\033[2C\033[1;33m";
           spacefill (10*autocalc.memory_mult_low, 4);
           cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
           if (autocalc.auto_memory)
@@ -1573,7 +1601,7 @@ void cdbg::on_timer_tick ()
           }
           else
               cout << "\033[1;30m";
-          cout << "A\033[2C\033[33m";
+          cout << "A\033[2C\033[1;33m";
           spacefill (10*autocalc.memory_mult_high, 4);
       }
       else if (autocalc.enabled)
@@ -1595,7 +1623,7 @@ void cdbg::on_timer_tick ()
   {
       cout << "thermal" << "\033[2C\033[1;30m";
       spacefill(45 - (core_step%60), 2);
-      cout << "\n\033[79C\033[33m";
+      cout << "\n\033[79C\033[1;33m";
       spacefill(temperature.calculate(), 2);
       cout << "\n\n\033[70C";
       for (int i = 10; i>=0; i--)
@@ -1724,7 +1752,7 @@ void cdbg::on_timer_tick ()
           }
           else
               cout << "\033[1;30m";
-          cout << "A\033[2C\033[33m";
+          cout << "A\033[2C\033[1;33m";
           spacefill (10*autocalc.temperature_mult_low, 4);
           cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
           if (autocalc.auto_temperature)
@@ -1733,7 +1761,7 @@ void cdbg::on_timer_tick ()
           }
           else
               cout << "\033[1;30m";
-          cout << "A\033[2C\033[33m";
+          cout << "A\033[2C\033[1;33m";
           spacefill (10*autocalc.temperature_mult_high, 4);
       }
       else if (autocalc.enabled)
@@ -1755,7 +1783,7 @@ void cdbg::on_timer_tick ()
   {
       cout << "battery" << "\033[2C\033[1;30m";
       spacefill(60 - (core_step%60), 2);
-      cout << "\n\033[79C\033[33m";
+      cout << "\n\033[79C\033[1;33m";
       spacefill(battery.calculate(), 2);
       cout << "\n\n\033[70C";
       for (int i = 10; i>=0; i--)
@@ -1884,7 +1912,7 @@ void cdbg::on_timer_tick ()
           }
           else
               cout << "\033[1;30m";
-          cout << "A\033[2C\033[33m";
+          cout << "A\033[2C\033[1;33m";
           spacefill (10*autocalc.battery_mult_low, 4);
           cout << "\n\n\033[" << max_EQ*3 + 87 << "C";
           if (autocalc.auto_battery)
@@ -1893,7 +1921,7 @@ void cdbg::on_timer_tick ()
           }
           else
               cout << "\033[1;30m";
-          cout << "A\033[2C\033[33m";
+          cout << "A\033[2C\033[1;33m";
           spacefill (10*autocalc.battery_mult_high, 4);
       }
       else if (autocalc.enabled)
@@ -1935,8 +1963,10 @@ void cdbg::on_timer_tick ()
       cout << "\n\n\033[" << max_EQ*3 + 82 << "C";
       if (bulwers.flue)
           cout << "X";
+      else if (core_step > temperature.buff_size*temperature.buff_size)
+          cout << "-";
       else
-          cout << " ";
+          cout << ".";
       cout << "\n\n\n\033[" << max_EQ*3 + 76 << "C ";
       spacefill(100*(bulwers.fluehighval-bulwers.fluelowval)/bulwers.flueamplitude, 3);
       cout << "%\n\n\033[" << max_EQ*3 + 76 << "C";
@@ -1946,8 +1976,168 @@ void cdbg::on_timer_tick ()
       cout << "º";
       cout << "\n\033[" << max_EQ*3 + 76 << "C <";
       spacefill(bulwers.fluehighval-bulwers.fluelowval, 2);
-      cout << "º>";
-      cout << "\033[1A\n\033[13A";
+      cout << "º>\n\n\033[7C";
+      if (bulwers.lastnap_dtime > bulwers.max_mem_lag)
+          cout << "\033[1;32m";
+      else
+          cout << "\033[1;31m";
+      spacefill((int)((bulwers.lastnap_dtime%(24*60))/60), 2);
+      cout << "\033[1C";
+      spacefill((int)(bulwers.lastnap_dtime%60), 2);
+      cout << "\033[1;33m\033[9C";
+      if (ccap.enabled)
+      {
+          if (ccap.halted || ccap.tmp_halted)
+          {
+              cout << "\033[1;30mhalted";
+              cout << "\033[9C";
+              if (HRDWR.owncpu > (80*ccap.sleep_cpu_usage)/100)
+                  cout << "\033[1;31m";
+              else
+                  cout << "\033[1;33m";
+              spacefill((int)HRDWR.owncpu, 2);
+          }
+          else if (ccap.sleep)
+          {
+              cout << "\033[1;34msleep ";
+              cout << "\033[9C";
+              if (HRDWR.owncpu > (80*ccap.sleep_cpu_usage)/100)
+                  cout << "\033[1;31m";
+              else
+                  cout << "\033[1;33m";
+              spacefill((int)HRDWR.owncpu, 2);
+          }
+          else
+          {
+              cout << "\033[1;32mactive";
+              cout << "\033[9C";
+              if (HRDWR.owncpu > (80*ccap.max_cpu_usage)/100)
+                  cout << "\033[1;31m";
+              else
+                  cout << "\033[1;33m";
+              spacefill((int)HRDWR.owncpu, 2);
+          }
+      }
+      else
+          cout << "\033[1;30moff   ";
+      cout << "\n\n\033[7C\033[1;33m";
+      spacefill((int)(bulwers.lastnap_remembered_time%(24*60)/60), 2);
+      cout << "\033[1C";
+      spacefill((int)(bulwers.lastnap_remembered_time%60), 2);
+      cout << "\n\033[7C";
+      spacefill((int)(bulwers.lastnap_atime%(24*60)/60), 2);
+      cout << "\033[1C";
+      spacefill((int)(bulwers.lastnap_atime%60), 2);
+      cout << "\n\033[7C";
+      spacefill((int)(bulwers.lastnap_rest/3600)%24, 2);
+      cout << "\033[1C";
+      spacefill((int)(bulwers.lastnap_rest/60)%60, 2);
+      cout << "\n\033[7C";
+      spacefill((int)(bulwers.lastnap_saved%(24*60)/60), 2);
+      cout << "\033[1C";
+      spacefill((int)(bulwers.lastnap_saved%60), 2);
+      cout << "\033[3A\033[5C";
+      if (ccap.enabled)
+      {
+          spacefill(ccap.motionpos.first, 3);
+          cout << "\033[3C";
+          spacefill(ccap.motionpos.second, 3);
+          cout << "\n\033[15C";
+          spacefill(1000*ccap.motioncounter/(ccap.motionpicsSize.height*ccap.motionpicsSize.width), 2);
+          cout << "\033[3C";
+          spacefill(ccap.deactive_perc, 2);
+          cout << "\033[1C";
+          spacefill(ccap.active_perc, 2);
+          cout << "\n\033[15C";
+          spacefill((int)ccap.fps, 2);
+          cout << "\033[5C";
+          if (ccap.sleep)
+          {
+              if (ccap.tmp_halted)
+              {
+                  cout << "\033[1;30m";
+                  spacefill(ccap.retry_times, 3);
+              }
+              else if (ccap.fps > ccap.min_sleep_fps || !ccap.fps_adaptation_timer.isValid())
+              {
+                  if (100*ccap.fps < 125*ccap.min_sleep_fps)
+                      cout << "\033[1;31m ";
+                  else if (100*ccap.fps > 200*ccap.min_sleep_fps)
+                      cout << "\033[1;32m ";
+                  else
+                      cout << "\033[1;33m ";
+                  spacefill((int)ccap.min_sleep_fps, 2);
+              }
+              else
+              {
+                  cout << "\033[1;31m";
+                  spacefill((ccap.fps_adaptation_time-ccap.fps_adaptation_timer.elapsed())/1000, 3);
+              }
+              cout << "\033[1;33m\n\033[22C";
+              spacefill(ccap.sleepdelay, 4);
+          }
+          else
+          {
+              if (ccap.tmp_halted)
+              {
+                  cout << "\033[1;30m";
+                  spacefill(ccap.retry_times, 3);
+              }
+              else if (ccap.fps > ccap.min_active_fps || !ccap.fps_adaptation_timer.isValid())
+              {
+                  if (100*ccap.fps < 125*ccap.min_active_fps)
+                      cout << "\033[1;31m ";
+                  else if (100*ccap.fps > 200*ccap.min_active_fps)
+                      cout << "\033[1;32m ";
+                  else
+                      cout << "\033[1;33m ";
+                  spacefill((int)ccap.min_active_fps, 2);
+              }
+              else
+              {
+                  cout << "\033[1;31m";
+                  spacefill((ccap.fps_adaptation_time-ccap.fps_adaptation_timer.elapsed())/1000, 3);
+              }
+              cout << "\033[1;33m\n\033[22C";
+              spacefill(ccap.delay, 4);
+          }
+          cout << "\033[4A\n\033[38C";
+          if (ccap.env.colindex == 0)
+              cout << "XX";
+          if (ccap.env.colindex == 1)
+              cout << "\033[1;41m  ";
+          if (ccap.env.colindex == 2)
+              cout << "\033[1;43m  ";
+          if (ccap.env.colindex == 3)
+              cout << "\033[1;42m  ";
+          if (ccap.env.colindex == 4)
+              cout << "\033[1;44m  ";
+          if (ccap.env.colindex == 5)
+              cout << "\033[1;45m  ";
+          if (ccap.env.colindex == 6)
+              cout << "\033[1;47m  ";
+          if (ccap.env.colindex == 7)
+              cout << "\033[1;41m  ";
+          if (ccap.env.colindex == 8)
+              cout << "\033[1;40m  ";
+          cout << "\033[40m\033[1B\033[3D";
+          spacefill(ccap.env.global_avg, 3);
+          cout << "\033[1B\033[1D";
+          if (ccap.fun.fun > 0.0)
+              cout << "X";
+          else
+              cout << " ";
+          cout << "\033[1B\033[6D";
+          spacefill((int)ccap.fun.fun, 2);
+          cout << "\033[1C";
+          if (ccap.fun.newfun < 1.0)
+              spacefill((int)(100*ccap.fun.newfun), 3);
+          else
+              spacefill(100, 3);
+      }
+      else
+          cout << "\n\n\n";
+      cout << "\033[1A\n\033[20A";
 
   if (core->hdbg_enabled)
   {

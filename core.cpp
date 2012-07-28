@@ -236,7 +236,7 @@ void bul::update()
 
 void bul::flue_check()
 {
-    if (!flue && core_step > 2*temperature.buff_size)
+    if (!flue && core_step > temperature.buff_size*temperature.buff_size)
     {
         if ((double)temperature.value < fluelowval)
             fluelowval=temperature.value;
@@ -524,17 +524,17 @@ void bul::critical_services( Configuration * cfg )
     else if (outline == 20)
         outline = 0;
 
-    unsigned int atime = get_time().day_num*24*60 + get_time().hour/60;
-    unsigned int dtime = 0;
+    atime = get_time().day_num*24*60 + get_time().hour/60;
     bool recover = false;
     if (remembered_time > atime)
     {
         dtime = (24*60 - (remembered_time - (remembered_time%(24*60)))) + atime;
         recover = true;
     }
+    else
+        dtime = atime - remembered_time;
     if (remembered_time < atime-max_mem_lag)
     {
-        dtime = atime - remembered_time;
         recover = true;
     }
     if (recover)
@@ -546,6 +546,7 @@ void bul::critical_services( Configuration * cfg )
                 dtperc = 100;
             if (energy.start > dtperc*nrg_std*3600/100 + remembered_nrg)
                 energy.start = dtperc*nrg_std*3600/100 + remembered_nrg;
+            lastnap_rest = dtperc*(nrg_std)*3600/100;
         }
         else
         {
@@ -559,10 +560,23 @@ void bul::critical_services( Configuration * cfg )
                 else if (energy.start > dtperc*(nrg_std)*3600/100 + remembered_nrg)
                     energy.start = dtperc*(nrg_std)*3600/100 + remembered_nrg;
             }
+            lastnap_rest = dtperc*(nrg_std)*3600/100;
         }
+        if (energy.start > nrg_std*3600)
+            energy.start = nrg_std*3600;
+        lastnap_remembered_time = remembered_time;
+        lastnap_atime = atime;
+        lastnap_saved = remembered_nrg;
+        lastnap_dtime = dtime;
+        cerr << "nap log:\ndelta time was " << dtime << "min - it means: from " << (remembered_time%(24*60))/60 << ":" << remembered_time%60 << " to " << (atime%(24*60))/60 << ":" << atime%60 << "\n"
+             << "what is " << 100*dtime/(rest_time_std*60) << "% of daily rest time (" << rest_time_std << "h)\n"
+             << "bonus energy is: " << remembered_nrg/3600 << ":" << (remembered_nrg%3600)/60 << ":" << remembered_nrg%60 << " from unused energy and " << lastnap_rest/60 << " minutes from nap\n"
+             << "mainimum nap time was set to: " << max_mem_lag << "min.\n\n";
     }
     remembered_time = atime;
     remembered_nrg = energy.start - energy.value;
+    if (remembered_nrg > nrg_std*3600)
+        remembered_nrg = nrg_std*3600;
 
     //saving
 
@@ -666,6 +680,12 @@ void Core::bulwers_init ()
     bulwers.fluelowval                  = temperature.stable;
     if (bulwers.remembered_time == 0)
         bulwers.remembered_time         = get_time().day_num*60*24 + get_time().hour/60;
+    bulwers.lastnap_atime = 0;
+    bulwers.lastnap_remembered_time = 0;
+    bulwers.lastnap_rest = 0;
+    bulwers.lastnap_saved = 0;
+    bulwers.lastnap_dtime = 0;
+    bulwers.dtime = 0;
 
 }
 
@@ -1285,6 +1305,7 @@ void Core::bulwers_update ()
 
     if (autocalc.enabled)
         autocalc_reload ( Configuration::getInstance () );
+    bulwers.check_env(ccap.env.checked, Configuration::getInstance ());
 }
 
 Core::Core ( eyes_view * neyes )
@@ -1857,7 +1878,7 @@ void Core::autocalc_reload ( Configuration * cfg )
         if (temperature.value < temperature.EQbegin)
         {
             autocalc.temperature_freq[0]++;
-            cfg->setValue("core.temperature.EQbegin", (int)temperature.value);
+            cfg->setValue("core.temperature.EQbegin", (int)temperature.value-1);
             autocalc.forcesave = true;
             info << "autocalc caught new temperature: " << (int)temperature.value << " EQbegin switched to new value";
             warning << "it's recomended to restart Eyes as quick as it's possible!";
@@ -1872,7 +1893,7 @@ void Core::autocalc_reload ( Configuration * cfg )
         if (autocalc.temperature_curstep == temperature.EQsize)
         {
             autocalc.temperature_freq[temperature.EQsize]++;
-            cfg->setValue("core.temperature.EQend", (int)temperature.value);
+            cfg->setValue("core.temperature.EQend", (int)temperature.value+1);
             autocalc.forcesave = true;
             info << "autocalc caught new temperature: " << (int)temperature.value << " EQend switched to new value";
             warning << "it's recomended to restart Eyes as quick as it's possible!";
@@ -2196,6 +2217,27 @@ void Core::load_config ()
     bulwers.wkup_time       = cfg->lookupValue ("core.bulwers.wkup_time",               7           );
     bulwers.wkup_timew      = cfg->lookupValue ("core.bulwers.wkup_time_weekend",       10          );
     bulwers.wake_up_delay   = cfg->lookupValue ("core.bulwers.wkup_delay",              120         );
+    int counter             = cfg->lookupValue ("core.bulwers.envs_number",             0           );
+    for (int i = 0; i < counter; i++)
+    {
+        stringstream ss;
+        ss << i;
+        environment_data* tmpenv = new environment_data;
+        bulwers.envs.push_back(*tmpenv);
+        bulwers.envs[i].Rperc = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".Rperc")[0],0 ));
+        bulwers.envs[i].Yperc = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".Yperc")[0],0 ));
+        bulwers.envs[i].Gperc = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".Gperc")[0],0 ));
+        bulwers.envs[i].Bperc = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".Bperc")[0],0 ));
+        bulwers.envs[i].Pperc = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".Pperc")[0],0 ));
+        bulwers.envs[i].Hperc = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".Hperc")[0],0 ));
+        bulwers.envs[i].spenttime = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".spenttime")[0],0 ));
+        bulwers.envs[i].timer = 0;
+        delete (tmpenv);
+    }
+    bulwers.env_min_compability         = cfg->lookupValue ("core.bulwers.env_min_compability",         60.0        );
+    bulwers.env_update_impact           = cfg->lookupValue ("core.bulwers.env_update_impact",           5.0         );
+    bulwers.env_max_exotic_spenttime    = cfg->lookupValue ("core.bulwers.env_max_exotic_spenttime",    10.0        );
+    bulwers.env_saveinterval            = cfg->lookupValue ("core.bulwers.env_number",                  50          );
 
     //friendship_sector
 
@@ -2210,7 +2252,7 @@ void Core::load_config ()
     fship.func_scale        = cfg->lookupValue ("core.friendship.func_scale",           20          );
     fship.max_below         = cfg->lookupValue ("core.friendship.max_below_0",          5000        );
     fship.max_over          = cfg->lookupValue ("core.friendship.max_over_0",           5000        );
-    fship.mouse_bad         = cfg->lookupValue ("core.friendship.mouse_bad",            20          );
+    fship.mouse_bad         = cfg->lookupValue ("core.friendship.mouse_bad",            5           );
     fship.mouse_good        = cfg->lookupValue ("core.friendship.mouse_good",           1           );
     fship.stable            = cfg->lookupValue ("core.friendship.stable",               200         );
     fship.value             = cfg->lookupValue ("core.friendship.value",                0           );
@@ -2572,3 +2614,205 @@ void rootcontrol::action(string command)
     }
 }
 
+bool bul::check_env(bool enabled, Configuration * cfg)
+{
+    if (!enabled)
+        return 0;
+    bool retstat = false;
+    if (envs.size() == 0)
+    {
+        environment_data* newenv = new environment_data;
+        envs.push_back(*newenv);
+        envs[0].Rperc = 100*ccap.env.Rperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        envs[0].Yperc = 100*ccap.env.Yperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        envs[0].Gperc = 100*ccap.env.Gperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        envs[0].Bperc = 100*ccap.env.Bperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        envs[0].Pperc = 100*ccap.env.Pperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        envs[0].Hperc = 100*ccap.env.Hperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        envs[0].spenttime = 0;
+        envs[0].timer = 0;
+        info << "First environment added:\n"
+             << envs[0].Rperc << "% red\n"
+             << envs[0].Yperc << "% yellow\n"
+             << envs[0].Gperc << "% green\n"
+             << envs[0].Bperc << "% blue\n"
+             << envs[0].Pperc << "% pink\n"
+             << envs[0].Hperc << "% grey\n";
+        delete (newenv);
+        return 0;
+    }
+    else
+    {
+        // ---search for existing environment
+        short index = -1;
+        double max_compability = 0.0;
+        long long spenttime = 0;
+        environment_data curenv;
+        curenv.Rperc = 100*ccap.env.Rperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        curenv.Yperc = 100*ccap.env.Yperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        curenv.Gperc = 100*ccap.env.Gperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        curenv.Bperc = 100*ccap.env.Bperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        curenv.Pperc = 100*ccap.env.Pperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        curenv.Hperc = 100*ccap.env.Hperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        for (int i = 0; i<envs.size();i++)
+        {
+            double compability = 0;
+            int possible = 6;
+            spenttime += envs[i].spenttime;
+            if (curenv.Rperc > 10 && envs[i].Rperc > 10)
+            {
+                if (curenv.Rperc < envs[i].Rperc)
+                {
+                    compability+=100.0-(100*(-(curenv.Rperc - envs[i].Rperc))/envs[i].Rperc);
+                }
+                else
+                    compability+=100.0-(100.0*(curenv.Rperc - envs[i].Rperc)/curenv.Rperc);
+                cerr << "R: " << compability << "\n";
+            }
+            else
+                possible--;
+
+            if (curenv.Yperc > 10 && envs[i].Yperc > 10)
+            {
+                if (curenv.Yperc < envs[i].Yperc)
+                {
+                    compability+=100.0-(100*(-(curenv.Yperc - envs[i].Yperc))/envs[i].Yperc);
+                }
+                else
+                    compability+=100.0-(100.0*(curenv.Yperc - envs[i].Yperc)/curenv.Yperc);
+                cerr << "Y: " << compability << "\n";
+            }
+            else
+                possible--;
+
+            if (curenv.Gperc > 10 && envs[i].Gperc > 10)
+            {
+                if (curenv.Gperc < envs[i].Gperc)
+                {
+                    compability+=100.0-(100*(-(curenv.Gperc - envs[i].Gperc))/envs[i].Gperc);
+                }
+                else
+                    compability+=100.0-(100.0*(curenv.Gperc - envs[i].Gperc)/curenv.Gperc);
+                cerr << "G: " << compability << "\n";
+            }
+            else
+                possible--;
+
+            if (curenv.Bperc > 10 && envs[i].Bperc > 10)
+            {
+                if (curenv.Bperc < envs[i].Bperc)
+                {
+                    compability+=100.0-(100*(-(curenv.Bperc - envs[i].Bperc))/envs[i].Bperc);
+                }
+                else
+                    compability+=100.0-(100.0*(curenv.Bperc - envs[i].Bperc)/curenv.Bperc);
+                cerr << "B: " << compability << "\n";
+            }
+            else
+                possible--;
+
+            if (curenv.Pperc > 10 && envs[i].Pperc > 10)
+            {
+                if (curenv.Pperc < envs[i].Pperc)
+                {
+                    compability+=100.0-(100*(-(curenv.Pperc - envs[i].Pperc))/envs[i].Pperc);
+                }
+                else
+                    compability+=100.0-(100.0*(curenv.Pperc - envs[i].Pperc)/curenv.Pperc);
+                cerr << "P: " << compability << "\n";
+            }
+            else
+                possible--;
+
+            if (curenv.Hperc > 10 && envs[i].Hperc > 10)
+            {
+                if (curenv.Hperc < envs[i].Hperc)
+                {
+                    compability+=100.0-(100*(-(curenv.Hperc - envs[i].Hperc))/envs[i].Hperc);
+                }
+                else
+                    compability+=100.0-(100.0*(curenv.Hperc - envs[i].Hperc)/curenv.Hperc);
+                cerr << "H: " << compability << "\n";
+            }
+            else
+                possible--;
+
+            if (possible > 0)
+                compability/=(double)possible;
+            cerr << compability << "\n";
+            //cerr << envs[i].Rperc << "->" << curenv.Rperc << "\n"
+            //     << envs[i].Yperc << "->" << curenv.Yperc << "\n"
+            //     << envs[i].Gperc << "->" << curenv.Gperc << "\n"
+            //     << envs[i].Bperc << "->" << curenv.Bperc << "\n"
+            //     << envs[i].Pperc << "->" << curenv.Pperc << "\n"
+            //     << envs[i].Hperc << "->" << curenv.Hperc << "\n";
+            if (compability > max_compability && compability > env_min_compability)
+            {
+                max_compability = compability;
+                index = i;
+            }
+        }
+        if (index == -1)
+        {
+            info << "New environment mapped - adding to catalogue...\n";
+            environment_data* newenv = new environment_data;
+            envs.push_back(*newenv);
+            envs[envs.size()].Rperc = 100*ccap.env.Rperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+            envs[envs.size()].Yperc = 100*ccap.env.Yperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+            envs[envs.size()].Gperc = 100*ccap.env.Gperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+            envs[envs.size()].Bperc = 100*ccap.env.Bperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+            envs[envs.size()].Pperc = 100*ccap.env.Pperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+            envs[envs.size()].Hperc = 100*ccap.env.Hperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+            envs[envs.size()].spenttime = 0;
+            envs[envs.size()].timer = 0;
+            info << "New environment added:\n"
+                 << envs[envs.size()].Rperc << "% red\n"
+                 << envs[envs.size()].Yperc << "% yellow\n"
+                 << envs[envs.size()].Gperc << "% green\n"
+                 << envs[envs.size()].Bperc << "% blue\n"
+                 << envs[envs.size()].Pperc << "% pink\n"
+                 << envs[envs.size()].Hperc << "% grey\n";
+            delete (newenv);
+            retstat = 1;
+        }
+        else
+        {
+            info << "Mapped to environment " << index << "\n";
+            envs[index].Rperc=(double)envs[index].Rperc*(100.0-env_update_impact)/100.0 + (double)curenv.Rperc*env_update_impact/100.0;
+            envs[index].Yperc=(double)envs[index].Yperc*(100.0-env_update_impact)/100.0 + (double)curenv.Yperc*env_update_impact/100.0;
+            envs[index].Gperc=(double)envs[index].Gperc*(100.0-env_update_impact)/100.0 + (double)curenv.Gperc*env_update_impact/100.0;
+            envs[index].Bperc=(double)envs[index].Bperc*(100.0-env_update_impact)/100.0 + (double)curenv.Bperc*env_update_impact/100.0;
+            envs[index].Pperc=(double)envs[index].Pperc*(100.0-env_update_impact)/100.0 + (double)curenv.Pperc*env_update_impact/100.0;
+            envs[index].Hperc=(double)envs[index].Hperc*(100.0-env_update_impact)/100.0 + (double)curenv.Hperc*env_update_impact/100.0;
+            envs[index].timer++;
+            if (envs[index].timer > 3599)
+            {
+                envs[index].timer = 0;
+                envs[index].spenttime++;
+            }
+            if (envs[index].spenttime < spenttime*env_max_exotic_spenttime/100.0)
+                retstat = 1;
+            else
+                retstat = 0;
+        }
+        if (core_step%env_saveinterval == 0)
+        {
+            cerr << "\n\n\nenvSAVING\n\n\n";
+            for (int i = 0; i < envs.size(); i++)
+            {
+                stringstream ss;
+                ss << i;
+                cfg->setValue ( &("core.environment.env"+ss.str()+".Rperc")[0], (int)envs[i].Rperc );
+                cfg->setValue ( &("core.environment.env"+ss.str()+".Yperc")[0], (int)envs[i].Yperc );
+                cfg->setValue ( &("core.environment.env"+ss.str()+".Gperc")[0], (int)envs[i].Gperc );
+                cfg->setValue ( &("core.environment.env"+ss.str()+".Bperc")[0], (int)envs[i].Bperc );
+                cfg->setValue ( &("core.environment.env"+ss.str()+".Pperc")[0], (int)envs[i].Pperc );
+                cfg->setValue ( &("core.environment.env"+ss.str()+".Hperc")[0], (int)envs[i].Hperc );
+                cfg->setValue ( &("core.environment.env"+ss.str()+".spenttime")[0], (int)envs[i].spenttime );
+            }
+            cfg->setValue ( "core.bulwers.envs_number", (int)envs.size() );
+            cfg->save();
+        }
+        return retstat;
+    }
+}

@@ -219,31 +219,26 @@ double hardware::C_LOAD ()
   static double cpu_load = 0;
   static unsigned long p_idle = 0;
   static unsigned long p_total = 0;
-  static unsigned long p_pidu = 0;
-  static unsigned long p_pids = 0;
+  static unsigned long p_pidr = 0;
   static unsigned long a_idle = 0;
   static unsigned long a_total = 0;
-  static unsigned long a_pidu = 0;
-  static unsigned long a_pids = 0;
+  static unsigned long a_pidr = 0;
   static unsigned long d_total = 0;
   static unsigned long d_idle = 0;
-  static unsigned long d_pidu = 0;
-  static unsigned long d_pids = 0;
+  static unsigned long d_pidr = 0;
   a_idle = gcpu.idle;
   a_total = gcpu.total;
-  a_pidu = proctime.utime;
-  a_pids = proctime.stime;
+  a_pidr = proctime.rtime;
 
   d_total = a_total - p_total;
   d_idle = a_idle - p_idle;
-  d_pidu = a_pidu - p_pidu;
-  d_pids = a_pids - p_pids;
+  d_pidr = a_pidr - p_pidr;
+
   cpu_load = (100*(d_total - d_idle)) / d_total;
-  owncpu = (100* (d_pidu + d_pids)) / d_total;
+  owncpu = (100* (d_pidr)) / d_total;
   p_idle = a_idle;
   p_total = a_total;
-  p_pidu = a_pidu;
-  p_pids = a_pids;
+  p_pidr = a_pidr;
 
   return cpu_load;
 }

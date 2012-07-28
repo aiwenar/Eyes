@@ -64,7 +64,8 @@ void eyes_looker::interrupt ( int x, int y )
   x = bmin_x + x*(bmax_x-bmin_x)/100;
   y = bmin_y + y*(bmax_y-bmin_y)/100;
   look_at ( x-eyes->get_eyes_x1 (), y-eyes->get_eyes_y1 () );
-  timer->setInterval ( 2000 );
+  timer->stop();
+  timer->start( 3000 );
   eyes->repaint ();
 }
 

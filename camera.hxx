@@ -26,6 +26,61 @@ struct plama
     VPII punkty;
 };
 
+struct pixel
+{
+    unsigned short  B,
+                    G,
+                    R;
+};
+
+struct environment
+{
+    unsigned short* input;
+    unsigned short  max_tolerance,
+                    min_tolerance,
+                    colindex;
+    unsigned int    greencounter,
+                    bluecounter,
+                    redcounter,
+                    yellowcounter,
+                    pinkcounter,
+                    darkcounter,
+                    greycounter,
+                    lightcounter,
+                    tabsize,
+                    delay;
+    double          B_correct,
+                    G_correct,
+                    R_correct,
+                    Rperc,
+                    Yperc,
+                    Gperc,
+                    Bperc,
+                    Pperc,
+                    Lperc,
+                    Dperc,
+                    Hperc,
+                    global_avg;
+    pixel**         envmap;
+    QElapsedTimer   timer;
+    bool            checked;
+};
+
+struct funsys
+{
+    double          fun,
+                    newfun,
+                    forgetcalm,
+                    minfun;
+    QElapsedTimer   funchunktimer,
+                    funtimer,
+                    funforgettimer,
+                    totforgettimer;
+    unsigned int    funcounter,
+                    funchunk,
+                    totforget;
+};
+
 class camcapture
 {
 public:
@@ -35,10 +90,13 @@ public:
     void            init_motionpics(),
                     init_debug(),
                     sleepdetect(),
-                    optimize(int last_delay);
+                    optimize(int last_delay),
+                    envread(pixel** input),
+                    funcalc();
     IplImage*       get_image();
-    IplImage*       get_motionpics(double tolerance, IplImage *src);
+    IplImage*       get_motionpics(double tolerance, IplImage *input);
     bool**          img2bool(IplImage *input);
+    pixel**         img2env(IplImage *input);
     vector <plama>  splash_detect(bool **input, int min_splash_size);
 
     CvSize          motionpicsSize;
@@ -54,7 +112,8 @@ public:
                     debug,
                     deactiveworking,
                     tmp_halted,
-                    halted;
+                    halted,
+                    enabled;
     bool**          boolimage;
     vector <vector <pair<PII, PII> > >  midpoints;
     vector<int>     bucket,
@@ -78,8 +137,8 @@ public:
                     max_cpu_usage,
                     sleep_cpu_usage,
                     deactive_global_cpu_load,
-                    deactive_global_retry_timer,
-                    active_retry_times,
+                    tmp_deactive_timer,
+                    retry_times,
                     fps_adaptation_time,
                     mindelay,
                     minsleepdelay,
@@ -96,6 +155,8 @@ public:
                     operationsarea;
     QElapsedTimer   fps_adaptation_timer,
                     deactivetimer;
+    environment     env;
+    funsys          fun;
 };
 
 #endif // CAMERA_HXX

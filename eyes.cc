@@ -302,14 +302,14 @@ void eyes_view::open_images ( QString color )
   std::ostringstream oss1, oss2;
   oss1 << "./themes/" << ctheme << '/';
   theme = oss1.str ().c_str ();
+  // don't know why, ctheme is modified
+  ctheme = Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
   if ( access ( theme.toStdString().c_str(), R_OK | X_OK ) == -1 )
   {
     error << "(eyes) theme `" << ctheme << "` does not exists. Trying default one...\n";
     theme = "./themes/default/";
     ctheme = "default";
   }
-  // don't know why, ctheme is modified
-  ctheme = Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
   oss2 << "./imagetmp/" << ctheme << '/' << eyes_w << 'x' << eyes_h << '/';
   QString alt = oss2.str ().c_str ();
 

@@ -108,6 +108,18 @@ public:
     void                        init (QString adress);
 };
 
+struct environment_data
+{
+    double                      Rperc,
+                                Yperc,
+                                Gperc,
+                                Bperc,
+                                Pperc,
+                                Hperc;
+    unsigned long long          spenttime;
+    unsigned short              timer;
+};
+
 class bul
 {
 public:
@@ -115,7 +127,8 @@ public:
                                 wkup_active;
     bool                        wake_up,
                                 flue,
-                                no_update;
+                                no_update,
+                                check_env(bool enabled, Configuration * cfg );
     int                         total_mod;
     unsigned int                step,
                                 wall_01,
@@ -136,9 +149,17 @@ public:
                                 fluetimer,
                                 remembered_time,
                                 remembered_nrg,
+                                lastnap_remembered_time,
+                                lastnap_atime,
+                                lastnap_saved,
+                                lastnap_rest,
+                                lastnap_dtime,
+                                dtime,
+                                atime,
                                 max_mem_lag,
                                 rest_time_std,
-                                rest_time_wkend;
+                                rest_time_wkend,
+                                env_saveinterval;
     unsigned short              outline,
                                 prev_outline,
                                 eye,
@@ -172,11 +193,15 @@ public:
                                 flueimpact,
                                 fluestepdelay;
     double                      fluelowval,
-                                fluehighval;
+                                fluehighval,
+                                env_min_compability,
+                                env_update_impact,
+                                env_max_exotic_spenttime;
     void                        update(),
                                 flue_check(),
                                 critical_services( Configuration * cfg ),
                                 wake_up_chk();
+    vector <environment_data>   envs;
 };
 
 class friendship
