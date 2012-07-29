@@ -2621,16 +2621,16 @@ bool bul::check_env(bool enabled, Configuration * cfg)
     bool retstat = false;
     if (envs.size() == 0)
     {
-        environment_data* newenv = new environment_data;
-        envs.push_back(*newenv);
-        envs[0].Rperc = 100*ccap.env.Rperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
-        envs[0].Yperc = 100*ccap.env.Yperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
-        envs[0].Gperc = 100*ccap.env.Gperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
-        envs[0].Bperc = 100*ccap.env.Bperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
-        envs[0].Pperc = 100*ccap.env.Pperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
-        envs[0].Hperc = 100*ccap.env.Hperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
-        envs[0].spenttime = 0;
-        envs[0].timer = 0;
+        environment_data newenv;
+        newenv.Rperc = 100*ccap.env.Rperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        newenv.Yperc = 100*ccap.env.Yperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        newenv.Gperc = 100*ccap.env.Gperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        newenv.Bperc = 100*ccap.env.Bperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        newenv.Pperc = 100*ccap.env.Pperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        newenv.Hperc = 100*ccap.env.Hperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+        newenv.spenttime = 0;
+        newenv.timer = 0;
+        envs.push_back(newenv);
         info << "First environment added:\n"
              << envs[0].Rperc << "% red\n"
              << envs[0].Yperc << "% yellow\n"
@@ -2638,16 +2638,14 @@ bool bul::check_env(bool enabled, Configuration * cfg)
              << envs[0].Bperc << "% blue\n"
              << envs[0].Pperc << "% pink\n"
              << envs[0].Hperc << "% grey\n";
-        delete (newenv);
         return 0;
     }
     else
     {
         // ---search for existing environment
-        short index = -1;
-        double max_compability = 0.0;
+        envindex = -1;
+        env_max_compability = 0.0;
         long long spenttime = 0;
-        environment_data curenv;
         curenv.Rperc = 100*ccap.env.Rperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
         curenv.Yperc = 100*ccap.env.Yperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
         curenv.Gperc = 100*ccap.env.Gperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
@@ -2659,7 +2657,7 @@ bool bul::check_env(bool enabled, Configuration * cfg)
             double compability = 0;
             int possible = 6;
             spenttime += envs[i].spenttime;
-            if (curenv.Rperc > 10 && envs[i].Rperc > 10)
+            if ((curenv.Rperc > 10 && envs[i].Rperc > 10) || (curenv.Rperc > 25 || envs[i].Rperc > 25))
             {
                 if (curenv.Rperc < envs[i].Rperc)
                 {
@@ -2672,7 +2670,7 @@ bool bul::check_env(bool enabled, Configuration * cfg)
             else
                 possible--;
 
-            if (curenv.Yperc > 10 && envs[i].Yperc > 10)
+            if ((curenv.Yperc > 10 && envs[i].Yperc > 10) || (curenv.Yperc > 25 || envs[i].Yperc > 25))
             {
                 if (curenv.Yperc < envs[i].Yperc)
                 {
@@ -2685,7 +2683,7 @@ bool bul::check_env(bool enabled, Configuration * cfg)
             else
                 possible--;
 
-            if (curenv.Gperc > 10 && envs[i].Gperc > 10)
+            if ((curenv.Gperc > 10 && envs[i].Gperc > 10) || (curenv.Gperc > 25 || envs[i].Gperc > 25))
             {
                 if (curenv.Gperc < envs[i].Gperc)
                 {
@@ -2698,7 +2696,7 @@ bool bul::check_env(bool enabled, Configuration * cfg)
             else
                 possible--;
 
-            if (curenv.Bperc > 10 && envs[i].Bperc > 10)
+            if ((curenv.Bperc > 10 && envs[i].Bperc > 10) || (curenv.Bperc > 25 || envs[i].Bperc > 25))
             {
                 if (curenv.Bperc < envs[i].Bperc)
                 {
@@ -2711,7 +2709,7 @@ bool bul::check_env(bool enabled, Configuration * cfg)
             else
                 possible--;
 
-            if (curenv.Pperc > 10 && envs[i].Pperc > 10)
+            if ((curenv.Pperc > 10 && envs[i].Pperc > 10) || (curenv.Pperc > 25 || envs[i].Pperc > 25))
             {
                 if (curenv.Pperc < envs[i].Pperc)
                 {
@@ -2746,25 +2744,25 @@ bool bul::check_env(bool enabled, Configuration * cfg)
             //     << envs[i].Bperc << "->" << curenv.Bperc << "\n"
             //     << envs[i].Pperc << "->" << curenv.Pperc << "\n"
             //     << envs[i].Hperc << "->" << curenv.Hperc << "\n";
-            if (compability > max_compability && compability > env_min_compability)
+            if (compability > env_max_compability && compability > env_min_compability)
             {
-                max_compability = compability;
-                index = i;
+                env_max_compability = compability;
+                envindex = i;
             }
         }
-        if (index == -1)
+        if (envindex == -1)
         {
             info << "New environment mapped - adding to catalogue...\n";
-            environment_data* newenv = new environment_data;
-            envs.push_back(*newenv);
-            envs[envs.size()].Rperc = 100*ccap.env.Rperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
-            envs[envs.size()].Yperc = 100*ccap.env.Yperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
-            envs[envs.size()].Gperc = 100*ccap.env.Gperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
-            envs[envs.size()].Bperc = 100*ccap.env.Bperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
-            envs[envs.size()].Pperc = 100*ccap.env.Pperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
-            envs[envs.size()].Hperc = 100*ccap.env.Hperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
-            envs[envs.size()].spenttime = 0;
-            envs[envs.size()].timer = 0;
+            environment_data newenv;
+            newenv.Rperc = 100*ccap.env.Rperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+            newenv.Yperc = 100*ccap.env.Yperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+            newenv.Gperc = 100*ccap.env.Gperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+            newenv.Bperc = 100*ccap.env.Bperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+            newenv.Pperc = 100*ccap.env.Pperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+            newenv.Hperc = 100*ccap.env.Hperc/(100.0-ccap.env.Lperc-ccap.env.Dperc);
+            newenv.spenttime = 0;
+            newenv.timer = 0;
+            envs.push_back(newenv);
             info << "New environment added:\n"
                  << envs[envs.size()].Rperc << "% red\n"
                  << envs[envs.size()].Yperc << "% yellow\n"
@@ -2772,25 +2770,25 @@ bool bul::check_env(bool enabled, Configuration * cfg)
                  << envs[envs.size()].Bperc << "% blue\n"
                  << envs[envs.size()].Pperc << "% pink\n"
                  << envs[envs.size()].Hperc << "% grey\n";
-            delete (newenv);
             retstat = 1;
+            envindex = envs.size()-1;
         }
         else
         {
-            info << "Mapped to environment " << index << "\n";
-            envs[index].Rperc=(double)envs[index].Rperc*(100.0-env_update_impact)/100.0 + (double)curenv.Rperc*env_update_impact/100.0;
-            envs[index].Yperc=(double)envs[index].Yperc*(100.0-env_update_impact)/100.0 + (double)curenv.Yperc*env_update_impact/100.0;
-            envs[index].Gperc=(double)envs[index].Gperc*(100.0-env_update_impact)/100.0 + (double)curenv.Gperc*env_update_impact/100.0;
-            envs[index].Bperc=(double)envs[index].Bperc*(100.0-env_update_impact)/100.0 + (double)curenv.Bperc*env_update_impact/100.0;
-            envs[index].Pperc=(double)envs[index].Pperc*(100.0-env_update_impact)/100.0 + (double)curenv.Pperc*env_update_impact/100.0;
-            envs[index].Hperc=(double)envs[index].Hperc*(100.0-env_update_impact)/100.0 + (double)curenv.Hperc*env_update_impact/100.0;
-            envs[index].timer++;
-            if (envs[index].timer > 3599)
+            info << "Mapped to environment " << envindex << "\n";
+            envs[envindex].Rperc=(double)envs[envindex].Rperc*(100.0-env_update_impact)/100.0 + (double)curenv.Rperc*env_update_impact/100.0;
+            envs[envindex].Yperc=(double)envs[envindex].Yperc*(100.0-env_update_impact)/100.0 + (double)curenv.Yperc*env_update_impact/100.0;
+            envs[envindex].Gperc=(double)envs[envindex].Gperc*(100.0-env_update_impact)/100.0 + (double)curenv.Gperc*env_update_impact/100.0;
+            envs[envindex].Bperc=(double)envs[envindex].Bperc*(100.0-env_update_impact)/100.0 + (double)curenv.Bperc*env_update_impact/100.0;
+            envs[envindex].Pperc=(double)envs[envindex].Pperc*(100.0-env_update_impact)/100.0 + (double)curenv.Pperc*env_update_impact/100.0;
+            envs[envindex].Hperc=(double)envs[envindex].Hperc*(100.0-env_update_impact)/100.0 + (double)curenv.Hperc*env_update_impact/100.0;
+            envs[envindex].timer++;
+            if (envs[envindex].timer > 3599)
             {
-                envs[index].timer = 0;
-                envs[index].spenttime++;
+                envs[envindex].timer = 0;
+                envs[envindex].spenttime++;
             }
-            if (envs[index].spenttime < spenttime*env_max_exotic_spenttime/100.0)
+            if (envs[envindex].spenttime < spenttime*env_max_exotic_spenttime/100.0)
                 retstat = 1;
             else
                 retstat = 0;

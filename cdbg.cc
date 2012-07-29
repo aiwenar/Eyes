@@ -37,6 +37,7 @@ extern mouse_actions    mousea;
 extern hardware         HRDWR;
 extern friendship       fship;
 extern camcapture       ccap;
+extern rootcontrol      rtctrl;
 extern unsigned short   battery_state;
 extern unsigned short   mod_bat_plug;
 extern bool             once_plugged;
@@ -66,12 +67,12 @@ This is concept debug layout:
 #       |       |       | next_wall: | plug: val:  | ____        |    +----------------------------- | __º __º | multhigh  |
 # ===== | ===== | ===== | __________ |             | buffers:___ |     01 __ __ __ __ __ __ __ __ __ |  <__º>  | (A)  ____ |
 # -------------------------------------------------------------------------------------------------------------------------|
-# nap:  __:__    cam: active → load :__%     rootpanel  |
-# ------------------------------------------------------|
-# from: __:__ | X:___ Y:___ | env col: __ | mode: full  |
-# to:   __:__ | __% (__/__) | bright: ___ | screen: off |
-# rest: __:__ | __fps (↑__) | trip/fun: X | maxtemp:__º |
-# saved:__:__ | delay: ____ | fun: __←___ | minbatt:__% |
+# nap:  __:__    cam: active → load :__%     rootpanel  |   | R:__ (__)  avg col:__ | []    []   []   []   []  |
+# ------------------------------------------------------| e | Y:__ (__)  bright:___ | []    []   []   []   []  |
+# from: __:__ | X:___ Y:___ | trip/fun: X | mode: full  | n | G:__ (__)  reload:___ | []    []   []   []   []  |
+# to:   __:__ | __% (__/__) | fun: __←___ | screen: off | v | B:__ (__)  -----------| []    []   []   []   []  |
+# rest: __:__ | __fps (↑__) | reload: ___ | maxtemp:__º | S | P:__ (__)  2light:__% | []    []   []   []   []  |
+# saved:__:__ | delay: ____ | forget: ___ | minbatt:__% |   | ?:__ (__)  2dark :__% | __%  ___h ___h ___h ___h |
 
 
 And for everyone there are terminal instructions for that:
@@ -239,7 +240,7 @@ cdbg::cdbg ( Core * c ) :
   if ( battery.EQsize > max_EQ )
     max_EQ = battery.EQsize;
 
-  cout << "\033[40m\033[37m\n";
+  cout << "\033[40m\033[1;33m\033[37m\n";
   for ( int i = max_s+4 ; i>1 ; --i ) cout << '\n';
   for ( int i=max_s+5 ; i>1 ; --i )   cout << "\033[1A";
   for ( int i=64 ; i>0 ; --i )        cout << '-';
@@ -309,7 +310,11 @@ cdbg::cdbg ( Core * c ) :
   for (int i = 3; i>0; i--)    cout << "\033[1B\033[1D|";
   cout << "\033[13C|";
   for (int i = 5; i>0; i--)    cout << "\033[1A\033[1D|";
-  cout << "\n ------------------------------------------------------\n";
+  cout << "\033[3C|";
+  for (int i = 5; i>0; i--)    cout << "\033[1B\033[1D|";
+  cout << "\033[23C|";
+  for (int i = 5; i>0; i--)    cout << "\033[1A\033[1D|";
+  cout << "\n ------------------------------------------------------\n\n\033[72C-----------\033[2A\n";
   for (int i = max_s+9; i>0; i--)    cout << "\033[1A";
 
   cout << "\n\033[1A step:        special:\033[2B\033[21D"
@@ -330,11 +335,12 @@ cdbg::cdbg ( Core * c ) :
           "\033[65C  2 \033[" << max_EQ*3 + 7 << "Cbuffer:\n"
           "\033[65C  1 \n"
           "\033[65C  0 \033[" << max_EQ*3 + 7 << "Camplit.\n\n\n\n"
-          " nap:    :      cam:        → load :  %     rootpanel  \n\n"
-          " from:   :   \033[1C X:    Y:    \033[1C env col:    \033[1C mode:       \n"
-          " to:     :   \033[1C   % (  /  ) \033[1C bright:     \033[1C screen:     \n"
-          " rest:   :   \033[1C   fps (   ) \033[1C trip/fun:   \033[1C maxtemp:  º \n"
-          " saved:  :   \033[1C delay:      \033[1C fun:   ←    \033[1C minbatt:  % \033[1A\n"
+          " nap:    :      cam:        → load :  %     rootpanel  \033[5C \033[1;41m\033[1;37mR\033[40m\033[37m:   (  )  avg col:   \n"
+          "\033[57Ce\033[3C\033[1;37m\033[1;43mY\033[40m\033[37m:   (  )  bright:    \n"
+          " from:   :   \033[1C X:    Y:    \033[1C trip/fun:   \033[1C mode:       \033[2Cn\033[3C\033[1;37m\033[1;42mG\033[40m\033[37m:   (  )  reload:    \n"
+          " to:     :   \033[1C   % (  /  ) \033[1C fun:   ←    \033[1C screen:     \033[2Cv\033[3C\033[1;37m\033[1;44mB\033[40m\033[37m:   (  )  \n"
+          " rest:   :   \033[1C   fps (   ) \033[1C reload: ___ \033[1C maxtemp:  º \033[2CS\033[3C\033[1;37m\033[1;45mP\033[40m\033[37m:   (  )  2light:  % \n"
+          " saved:  :   \033[1C delay:      \033[1C forget: ___ \033[1C minbatt:  % \033[2C \033[3C\033[1;37m\033[1;40m?\033[40m\033[37m:   (  )  2dark:   % \033[1A\n"
           "\033[22A";
   if (autocalc.enabled)
   {
@@ -2101,7 +2107,69 @@ void cdbg::on_timer_tick ()
               cout << "\033[1;33m\n\033[22C";
               spacefill(ccap.delay, 4);
           }
-          cout << "\033[4A\n\033[38C";
+          cout << "\033[4A\n\033[39C";
+          if (ccap.fun.fun > 0.0)
+              cout << "X";
+          else
+              cout << " ";
+          cout << "\033[1B\033[6D";
+          spacefill((int)ccap.fun.fun, 2);
+          cout << "\033[1C";
+          if (ccap.fun.newfun < 1.0)
+              spacefill((int)(100*ccap.fun.newfun), 3);
+          else
+              spacefill(100, 3);
+          cout << "\033[1B\033[3D";
+          spacefill(abs((int)(ccap.fun.funchunk - ccap.fun.funchunktimer.elapsed()/1000)), 3);
+          cout << "\033[1B\033[3D";
+          spacefill(abs((int)(ccap.fun.totforget - ccap.fun.totforgettimer.elapsed()/1000)), 3);
+      }
+      else
+          cout << "\n\n\n";
+      cout << "\033[1A\n\033[50C\033[3A";
+      if (rtctrl.roottype)
+          cout << "full";
+      else
+          cout << "std ";
+      cout << "\033[3D\033[1B";
+      if (!HRDWR.screen_support)
+          cout << "off";
+      else
+          spacefill((int)(100*(battery.load-rtctrl.batt_suspend_perc)/(rtctrl.batt_start_perc-rtctrl.batt_suspend_perc)), 3);
+      cout << "\033[3D\033[1B";
+      if (rtctrl.temp_halt_enabled)
+          spacefill(rtctrl.temp_halt_start, 2);
+      else
+          cout << "off\033[1D";
+      cout << "\033[1B\033[2D";
+      spacefill(rtctrl.batt_suspend_perc, 2);
+      if (ccap.enabled)
+      {
+          cout << "\033[6A\n\033[64C";
+          spacefill((int)bulwers.curenv.Rperc, 2);
+          cout << "\033[1C";
+          spacefill((int)bulwers.envs[bulwers.envindex].Rperc, 2);
+          cout << "\033[1B\033[5D";
+          spacefill((int)bulwers.curenv.Yperc, 2);
+          cout << "\033[1C";
+          spacefill((int)bulwers.envs[bulwers.envindex].Yperc, 2);
+          cout << "\033[1B\033[5D";
+          spacefill((int)bulwers.curenv.Gperc, 2);
+          cout << "\033[1C";
+          spacefill((int)bulwers.envs[bulwers.envindex].Gperc, 2);
+          cout << "\033[1B\033[5D";
+          spacefill((int)bulwers.curenv.Bperc, 2);
+          cout << "\033[1C";
+          spacefill((int)bulwers.envs[bulwers.envindex].Bperc, 2);
+          cout << "\033[1B\033[5D";
+          spacefill((int)bulwers.curenv.Pperc, 2);
+          cout << "\033[1C";
+          spacefill((int)bulwers.envs[bulwers.envindex].Pperc, 2);
+          cout << "\033[1B\033[5D";
+          spacefill((int)bulwers.curenv.Hperc, 2);
+          cout << "\033[1C";
+          spacefill((int)bulwers.envs[bulwers.envindex].Hperc, 2);
+          cout << "\033[5A\033[11C";
           if (ccap.env.colindex == 0)
               cout << "XX";
           if (ccap.env.colindex == 1)
@@ -2122,21 +2190,152 @@ void cdbg::on_timer_tick ()
               cout << "\033[1;40m  ";
           cout << "\033[40m\033[1B\033[3D";
           spacefill(ccap.env.global_avg, 3);
-          cout << "\033[1B\033[1D";
-          if (ccap.fun.fun > 0.0)
-              cout << "X";
-          else
-              cout << " ";
-          cout << "\033[1B\033[6D";
-          spacefill((int)ccap.fun.fun, 2);
-          cout << "\033[1C";
-          if (ccap.fun.newfun < 1.0)
-              spacefill((int)(100*ccap.fun.newfun), 3);
-          else
-              spacefill(100, 3);
+          cout << "\033[1B\033[3D";
+          spacefill(abs((int)(ccap.env.delay - ccap.env.timer.elapsed()/1000)), 3);
+          cout << "\033[2B\033[3D";
+          spacefill((int)ccap.env.Lperc, 2);
+          cout << "\033[1B\033[2D";
+          spacefill((int)ccap.env.Dperc, 2);
+          if (ccap.env.checked)
+          {
+              cout << "\033[4C";
+              if ((int)bulwers.env_max_compability < 100)
+              {
+                  spacefill(bulwers.env_max_compability, 2);
+                  cout << "%";
+              }
+              else
+                  cout << "100";
+              cout << "\033[1A\033[3D";
+
+              ///////////////////
+
+              short counter = 5;
+              double perctab[6];
+              string indextab[6];
+              perctab[0] = bulwers.envs[bulwers.envindex].Rperc;
+              perctab[1] = bulwers.envs[bulwers.envindex].Yperc;
+              perctab[2] = bulwers.envs[bulwers.envindex].Gperc;
+              perctab[3] = bulwers.envs[bulwers.envindex].Bperc;
+              perctab[4] = bulwers.envs[bulwers.envindex].Pperc;
+              perctab[5] = bulwers.envs[bulwers.envindex].Hperc;
+              indextab[0] = "\033[1;31m";
+              indextab[1] = "\033[1;33m";
+              indextab[2] = "\033[1;32m";
+              indextab[3] = "\033[1;34m";
+              indextab[4] = "\033[1;35m";
+              indextab[5] = "\033[1;30m";
+
+              double sum = bulwers.envs[bulwers.envindex].Rperc +
+                           bulwers.envs[bulwers.envindex].Yperc +
+                           bulwers.envs[bulwers.envindex].Gperc +
+                           bulwers.envs[bulwers.envindex].Bperc +
+                           bulwers.envs[bulwers.envindex].Pperc +
+                           bulwers.envs[bulwers.envindex].Hperc;
+              for (int i = 0; i<5;i++)
+              {
+                  perctab[i]*=100.0/sum;
+              }
+
+              bool good = false;
+              while (!good)
+              {
+                  good = true;
+                  for (int i = 0; i < 5; i++)
+                  {
+                      if (perctab[i] < perctab[i+1])
+                      {
+                          good = false;
+                          swap(perctab[i], perctab[i+1]);
+                          swap(indextab[i], indextab[i+1]);
+                      }
+                  }
+              }
+              for (int i = 0; i<5; i++)
+              {
+                  cout << indextab[i];
+                  perctab[i]/=10.0;
+                  perctab[i]/=2.0;
+                  if (perctab[i] - (double)((int)perctab[i]) > 0.5)
+                      perctab[i]++;
+                  for (int j = 0; j<(int)perctab[i] && counter > 0;j++)
+                  {
+                      cout << "<>\033[1A\033[2D";
+                      counter--;
+                  }
+              }
+              cout << "\033[" << 6-counter << "B\033[1;33m\033[6C";
+              for (int i = 0; i < bulwers.envs.size(); i++)
+              {
+                  if (i != bulwers.envindex)
+                  {
+                      spacefill(bulwers.envs[i].spenttime, 3);
+                      cout << "h";
+
+                      cout << "\033[1A\033[3D";
+
+                      ///////////////////
+
+                      counter = 5;
+                      perctab[0] = bulwers.envs[i].Rperc;
+                      perctab[1] = bulwers.envs[i].Yperc;
+                      perctab[2] = bulwers.envs[i].Gperc;
+                      perctab[3] = bulwers.envs[i].Bperc;
+                      perctab[4] = bulwers.envs[i].Pperc;
+                      perctab[5] = bulwers.envs[i].Hperc;
+                      indextab[0] = "\033[1;31m";
+                      indextab[1] = "\033[1;33m";
+                      indextab[2] = "\033[1;32m";
+                      indextab[3] = "\033[1;34m";
+                      indextab[4] = "\033[1;35m";
+                      indextab[5] = "\033[1;30m";
+
+                      double sum = bulwers.envs[i].Rperc +
+                                   bulwers.envs[i].Yperc +
+                                   bulwers.envs[i].Gperc +
+                                   bulwers.envs[i].Bperc +
+                                   bulwers.envs[i].Pperc +
+                                   bulwers.envs[i].Hperc;
+                      for (int i = 0; i<5;i++)
+                      {
+                          perctab[i]*=100.0/sum;
+                      }
+
+                      bool good = false;
+                      while (!good)
+                      {
+                          good = true;
+                          for (int i = 0; i < 5; i++)
+                          {
+                              if (perctab[i] < perctab[i+1])
+                              {
+                                  good = false;
+                                  swap(perctab[i], perctab[i+1]);
+                                  swap(indextab[i], indextab[i+1]);
+                              }
+                          }
+                      }
+                      for (int i = 0; i<5; i++)
+                      {
+                          cout << indextab[i];
+                          perctab[i]/=10.0;
+                          perctab[i]/=2.0;
+                          if (perctab[i] - (double)((int)perctab[i]) > 0.5)
+                              perctab[i]++;
+                          for (int j = 0; j<(int)perctab[i] && counter > 0;j++)
+                          {
+                              cout << "<>\033[1A\033[2D";
+                              counter--;
+                          }
+                      }
+                      cout << "\033[" << 6-counter << "B\033[1;33m\033[4C";
+                  }
+              }
+          }
+
+          ////////////////////
+
       }
-      else
-          cout << "\n\n\n";
       cout << "\033[1A\n\033[20A";
 
   if (core->hdbg_enabled)

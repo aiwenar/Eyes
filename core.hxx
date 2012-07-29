@@ -129,7 +129,8 @@ public:
                                 flue,
                                 no_update,
                                 check_env(bool enabled, Configuration * cfg );
-    int                         total_mod;
+    int                         total_mod,
+                                envindex;
     unsigned int                step,
                                 wall_01,
                                 wall_02,
@@ -196,12 +197,14 @@ public:
                                 fluehighval,
                                 env_min_compability,
                                 env_update_impact,
-                                env_max_exotic_spenttime;
+                                env_max_exotic_spenttime,
+                                env_max_compability;
     void                        update(),
                                 flue_check(),
                                 critical_services( Configuration * cfg ),
                                 wake_up_chk();
     vector <environment_data>   envs;
+    environment_data            curenv;
 };
 
 class friendship

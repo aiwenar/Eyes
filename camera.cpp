@@ -17,6 +17,11 @@ bool camcapture::cam_init()
         return 0;
     }
     src = cvQueryFrame(cam);
+    if (src == NULL)
+    {
+        cerr << "Could not initialize camera\n";
+        return 0;
+    }
     return 1;
 }
 
@@ -748,9 +753,9 @@ camthread::camthread( eyes_view * neyes )
     ccap.env.R_correct              = cfg->lookupValue ( "cam.system.env_R_correction",             100.0 );
     ccap.env.delay                  = cfg->lookupValue ( "cam.system.env_reload_delay",                30 );
     ccap.fun.forgetcalm             = cfg->lookupValue ( "cam.system.fun_calm_percentage",           50.0 );
-    ccap.fun.funchunk               = cfg->lookupValue ( "cam.system.fun_chunk_size",                  30 );
-    ccap.fun.totforget              = cfg->lookupValue ( "cam.system.fun_total_forget_time",          180 );
-    ccap.fun.minfun                 = cfg->lookupValue ( "cam.system.fun_minfun",                    20.0 );
+    ccap.fun.funchunk               = cfg->lookupValue ( "cam.system.fun_chunk_size",                 300 );
+    ccap.fun.totforget              = cfg->lookupValue ( "cam.system.fun_total_forget_time",          900 );
+    ccap.fun.minfun                 = cfg->lookupValue ( "cam.system.fun_minfun",                    75.0 );
 
     if (ccap.enabled)
     {
