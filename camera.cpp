@@ -490,7 +490,7 @@ void camcapture::envread(pixel **input)
     env.pinkcounter = 0;
     env.lightcounter = 0;
     env.darkcounter = 0;
-    env.greencounter = 0;
+    env.greycounter = 0;
     double nextgavg = 0;
     for( int i = 0; i < motionpicsSize.height; i++ )
     {
@@ -580,7 +580,7 @@ void camcapture::envread(pixel **input)
             if (sign == ' ')
                 env.darkcounter++;
             if (sign == '-')
-                env.greencounter++;
+                env.greycounter++;
         }
     }
     env.Rperc = 100*env.redcounter/env.tabsize;
@@ -591,6 +591,7 @@ void camcapture::envread(pixel **input)
     env.Lperc = 100*env.lightcounter/env.tabsize;
     env.Dperc = 100*env.darkcounter/env.tabsize;
     env.Hperc = 100*env.greycounter/env.tabsize;
+    cerr << env.Hperc << "\n";
     env.global_avg=nextgavg/env.tabsize;
     env.colindex = 0;
     double max = 0.0;

@@ -2143,7 +2143,7 @@ void cdbg::on_timer_tick ()
           cout << "off\033[1D";
       cout << "\033[1B\033[2D";
       spacefill(rtctrl.batt_suspend_perc, 2);
-      if (ccap.enabled)
+      if (ccap.env.checked || bulwers.envs.size()>0)
       {
           cout << "\033[6A\n\033[64C";
           spacefill((int)bulwers.curenv.Rperc, 2);
@@ -2196,146 +2196,152 @@ void cdbg::on_timer_tick ()
           spacefill((int)ccap.env.Lperc, 2);
           cout << "\033[1B\033[2D";
           spacefill((int)ccap.env.Dperc, 2);
-          if (ccap.env.checked)
+
+          cout << "\033[4C";
+          if ((int)bulwers.env_max_compability < 100)
           {
-              cout << "\033[4C";
-              if ((int)bulwers.env_max_compability < 100)
+              spacefill(bulwers.env_max_compability, 2);
+              cout << "%";
+          }
+          else
+              cout << "100";
+          cout << "\033[1A\033[3D";
+
+          ///////////////////
+
+          short counter = 5;
+          double perctab[6];
+          string indextab[6];
+          perctab[0] = bulwers.envs[bulwers.envindex].Rperc;
+          perctab[1] = bulwers.envs[bulwers.envindex].Yperc;
+          perctab[2] = bulwers.envs[bulwers.envindex].Gperc;
+          perctab[3] = bulwers.envs[bulwers.envindex].Bperc;
+          perctab[4] = bulwers.envs[bulwers.envindex].Pperc;
+          perctab[5] = bulwers.envs[bulwers.envindex].Hperc;
+          indextab[0] = "\033[1;31m";
+          indextab[1] = "\033[1;33m";
+          indextab[2] = "\033[1;32m";
+          indextab[3] = "\033[1;34m";
+          indextab[4] = "\033[1;35m";
+          indextab[5] = "\033[1;30m";
+
+          double sum = bulwers.envs[bulwers.envindex].Rperc +
+                       bulwers.envs[bulwers.envindex].Yperc +
+                       bulwers.envs[bulwers.envindex].Gperc +
+                       bulwers.envs[bulwers.envindex].Bperc +
+                       bulwers.envs[bulwers.envindex].Pperc +
+                       bulwers.envs[bulwers.envindex].Hperc;
+          for (int i = 0; i<5;i++)
+          {
+              perctab[i]*=100.0/sum;
+          }
+
+          bool good = false;
+          while (!good)
+          {
+              good = true;
+              for (int i = 0; i < 5; i++)
               {
-                  spacefill(bulwers.env_max_compability, 2);
-                  cout << "%";
-              }
-              else
-                  cout << "100";
-              cout << "\033[1A\033[3D";
-
-              ///////////////////
-
-              short counter = 5;
-              double perctab[6];
-              string indextab[6];
-              perctab[0] = bulwers.envs[bulwers.envindex].Rperc;
-              perctab[1] = bulwers.envs[bulwers.envindex].Yperc;
-              perctab[2] = bulwers.envs[bulwers.envindex].Gperc;
-              perctab[3] = bulwers.envs[bulwers.envindex].Bperc;
-              perctab[4] = bulwers.envs[bulwers.envindex].Pperc;
-              perctab[5] = bulwers.envs[bulwers.envindex].Hperc;
-              indextab[0] = "\033[1;31m";
-              indextab[1] = "\033[1;33m";
-              indextab[2] = "\033[1;32m";
-              indextab[3] = "\033[1;34m";
-              indextab[4] = "\033[1;35m";
-              indextab[5] = "\033[1;30m";
-
-              double sum = bulwers.envs[bulwers.envindex].Rperc +
-                           bulwers.envs[bulwers.envindex].Yperc +
-                           bulwers.envs[bulwers.envindex].Gperc +
-                           bulwers.envs[bulwers.envindex].Bperc +
-                           bulwers.envs[bulwers.envindex].Pperc +
-                           bulwers.envs[bulwers.envindex].Hperc;
-              for (int i = 0; i<5;i++)
-              {
-                  perctab[i]*=100.0/sum;
-              }
-
-              bool good = false;
-              while (!good)
-              {
-                  good = true;
-                  for (int i = 0; i < 5; i++)
+                  if (perctab[i] < perctab[i+1])
                   {
-                      if (perctab[i] < perctab[i+1])
-                      {
-                          good = false;
-                          swap(perctab[i], perctab[i+1]);
-                          swap(indextab[i], indextab[i+1]);
-                      }
-                  }
-              }
-              for (int i = 0; i<5; i++)
-              {
-                  cout << indextab[i];
-                  perctab[i]/=10.0;
-                  perctab[i]/=2.0;
-                  if (perctab[i] - (double)((int)perctab[i]) > 0.5)
-                      perctab[i]++;
-                  for (int j = 0; j<(int)perctab[i] && counter > 0;j++)
-                  {
-                      cout << "<>\033[1A\033[2D";
-                      counter--;
-                  }
-              }
-              cout << "\033[" << 6-counter << "B\033[1;33m\033[6C";
-              for (int i = 0; i < bulwers.envs.size(); i++)
-              {
-                  if (i != bulwers.envindex)
-                  {
-                      spacefill(bulwers.envs[i].spenttime, 3);
-                      cout << "h";
-
-                      cout << "\033[1A\033[3D";
-
-                      ///////////////////
-
-                      counter = 5;
-                      perctab[0] = bulwers.envs[i].Rperc;
-                      perctab[1] = bulwers.envs[i].Yperc;
-                      perctab[2] = bulwers.envs[i].Gperc;
-                      perctab[3] = bulwers.envs[i].Bperc;
-                      perctab[4] = bulwers.envs[i].Pperc;
-                      perctab[5] = bulwers.envs[i].Hperc;
-                      indextab[0] = "\033[1;31m";
-                      indextab[1] = "\033[1;33m";
-                      indextab[2] = "\033[1;32m";
-                      indextab[3] = "\033[1;34m";
-                      indextab[4] = "\033[1;35m";
-                      indextab[5] = "\033[1;30m";
-
-                      double sum = bulwers.envs[i].Rperc +
-                                   bulwers.envs[i].Yperc +
-                                   bulwers.envs[i].Gperc +
-                                   bulwers.envs[i].Bperc +
-                                   bulwers.envs[i].Pperc +
-                                   bulwers.envs[i].Hperc;
-                      for (int i = 0; i<5;i++)
-                      {
-                          perctab[i]*=100.0/sum;
-                      }
-
-                      bool good = false;
-                      while (!good)
-                      {
-                          good = true;
-                          for (int i = 0; i < 5; i++)
-                          {
-                              if (perctab[i] < perctab[i+1])
-                              {
-                                  good = false;
-                                  swap(perctab[i], perctab[i+1]);
-                                  swap(indextab[i], indextab[i+1]);
-                              }
-                          }
-                      }
-                      for (int i = 0; i<5; i++)
-                      {
-                          cout << indextab[i];
-                          perctab[i]/=10.0;
-                          perctab[i]/=2.0;
-                          if (perctab[i] - (double)((int)perctab[i]) > 0.5)
-                              perctab[i]++;
-                          for (int j = 0; j<(int)perctab[i] && counter > 0;j++)
-                          {
-                              cout << "<>\033[1A\033[2D";
-                              counter--;
-                          }
-                      }
-                      cout << "\033[" << 6-counter << "B\033[1;33m\033[4C";
+                      good = false;
+                      swap(perctab[i], perctab[i+1]);
+                      swap(indextab[i], indextab[i+1]);
                   }
               }
           }
+          for (int i = 0; i<5; i++)
+          {
+              cout << indextab[i];
+              perctab[i]/=10.0;
+              perctab[i]/=2.0;
+              if (perctab[i] - (double)((int)perctab[i]) > 0.5)
+                  perctab[i]++;
+              for (int j = 0; j<(int)perctab[i] && counter > 0;j++)
+              {
+                  cout << "<>\033[1A\033[2D";
+                  counter--;
+              }
+          }
+          for (int i = 0; i<counter; i++)
+          {
+              cout << "  \033[1A\033[2D";
+          }
+          cout << "\033[6B\033[1;33m\033[6C";
+          for (int i = 0; i < bulwers.envs.size(); i++)
+          {
+              if (i != bulwers.envindex)
+              {
+                  spacefill(bulwers.envs[i].spenttime, 3);
+                  cout << "h";
+
+                  cout << "\033[1A\033[3D";
+
+                  ///////////////////
+
+                  counter = 5;
+                  perctab[0] = bulwers.envs[i].Rperc;
+                  perctab[1] = bulwers.envs[i].Yperc;
+                  perctab[2] = bulwers.envs[i].Gperc;
+                  perctab[3] = bulwers.envs[i].Bperc;
+                  perctab[4] = bulwers.envs[i].Pperc;
+                  perctab[5] = bulwers.envs[i].Hperc;
+                  indextab[0] = "\033[1;31m";
+                  indextab[1] = "\033[1;33m";
+                  indextab[2] = "\033[1;32m";
+                  indextab[3] = "\033[1;34m";
+                  indextab[4] = "\033[1;35m";
+                  indextab[5] = "\033[1;30m";
+
+                  double sum = bulwers.envs[i].Rperc +
+                               bulwers.envs[i].Yperc +
+                               bulwers.envs[i].Gperc +
+                               bulwers.envs[i].Bperc +
+                               bulwers.envs[i].Pperc +
+                               bulwers.envs[i].Hperc;
+                  for (int i = 0; i<5;i++)
+                  {
+                      perctab[i]*=100.0/sum;
+                  }
+
+                  bool good = false;
+                  while (!good)
+                  {
+                      good = true;
+                      for (int i = 0; i < 5; i++)
+                      {
+                          if (perctab[i] < perctab[i+1])
+                          {
+                              good = false;
+                              swap(perctab[i], perctab[i+1]);
+                              swap(indextab[i], indextab[i+1]);
+                          }
+                      }
+                  }
+                  for (int i = 0; i<5; i++)
+                  {
+                      cout << indextab[i];
+                      perctab[i]/=10.0;
+                      perctab[i]/=2.0;
+                      if (perctab[i] - (double)((int)perctab[i]) > 0.5)
+                          perctab[i]++;
+                      for (int j = 0; j<(int)perctab[i] && counter > 0;j++)
+                      {
+                          cout << "<>\033[1A\033[2D";
+                          counter--;
+                      }
+                  }
+                  for (int i = 0; i<counter; i++)
+                  {
+                      cout << "  \033[1A\033[2D";
+                  }
+                  cout << "\033[6B\033[1;33m\033[4C";
+              }
+          }
+      }
 
           ////////////////////
 
-      }
       cout << "\033[1A\n\033[20A";
 
   if (core->hdbg_enabled)
