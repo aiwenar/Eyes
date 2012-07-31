@@ -587,6 +587,14 @@ void bul::critical_services( Configuration * cfg )
 
     rtctrl.action("battery");
     rtctrl.action("temperature");
+    if (!ccap.sleep && rtctrl.scrnsaver_disabling)
+    {
+        cerr << "GO " << ccap.sleep << "\n";
+        rtctrl.shell("xscreensaver-command -deactivate > /dev/null");
+        rtctrl.shell("gnome-screensaver-command -d > /dev/null");
+        rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:false > /dev/null");
+        rtctrl.shell("killall ScreenSaverEngine > /dev/null");
+    }
 }
 
 void Core::bulwers_init ()
@@ -686,6 +694,7 @@ void Core::bulwers_init ()
     bulwers.lastnap_saved = 0;
     bulwers.lastnap_dtime = 0;
     bulwers.dtime = 0;
+    rtctrl.shelldetect();
 
 }
 
@@ -2358,6 +2367,9 @@ void Core::load_config ()
     rtctrl.suspendtohdd     = cfg->lookupValue ( "core.rootcontrol.suspendtohdd",       false       );
     rtctrl.temp_halt_enabled= cfg->lookupValue ( "core.rootcontrol.temp_halt_enabled",  true        );
     rtctrl.temp_halt_start  = cfg->lookupValue ( "core.rootcontrol.temp_halt_start",    85          );
+    rtctrl.scrnsaver_disabling  = cfg->lookupValue ( "core.rootcontrol.screensaver_disabling",  true        );
+    rtctrl.customshell      = cfg->lookupValue ( "core.rootcontrol.custom_shell",    false          );
+    rtctrl.shellname        = cfg->lookupValue ( "core.rootcontrol.shell_name",      "sh -c "       );
 
 }
 
@@ -2580,13 +2592,28 @@ void rootcontrol::execute(bool roottype, QString command)
     }
 }
 
+void rootcontrol::shell(string command)
+{
+    string newcommand = shellname;
+    newcommand += "\"";
+    newcommand += command;
+    newcommand += "\"";
+    execute(1, QString ( &newcommand[0] ));
+}
+
 void rootcontrol::action(string command)
 {
     if (command == "halt")
+    {
         execute(0, QString ( "halt" ));
+        return;
+    }
 
     if (command == "suspend")
+    {
         execute(roottype, QString ( "halt" ));
+        return;
+    }
 
     if (command == "battery")
     {
@@ -2601,6 +2628,7 @@ void rootcontrol::action(string command)
                 HRDWR.set_backlight(percentage);
             }
         }
+        return;
     }
 
     if (command == "temperature" && temp_halt_enabled)
@@ -2611,7 +2639,45 @@ void rootcontrol::action(string command)
             args << "-h" << "now";
             execute(1, "/sbin/shutdown", args);
         }
+        return;
     }
+
+    execute(1, QString ( &command[0] ));
+}
+
+void rootcontrol::shelldetect()
+{
+    if (customshell)
+    {
+        info << "shell set to: " << shellname << "\n";
+        return;
+    }
+    QProcess testshell;
+    testshell.start("sh -c \"echo aaa > /dev/null\"");
+    if (testshell.pid() != 0)
+    {
+        shellname = "sh -c ";
+        testshell.kill();
+    }
+    testshell.start("bash -c \"echo aaa > /dev/null\"");
+    if (testshell.pid() != 0)
+    {
+        shellname = "bash -c ";
+        testshell.kill();
+    }
+    testshell.start("tcsh -c \"echo aaa > /dev/null\"");
+    if (testshell.pid() != 0)
+    {
+        shellname = "tcsh -c ";
+        testshell.kill();
+    }
+    testshell.start("zsh -c \"echo aaa > /dev/null\"");
+    if (testshell.pid() != 0)
+    {
+        shellname = "zsh -c ";
+        testshell.kill();
+    }
+    info << "shell set to: " << shellname << "\n";
 }
 
 bool bul::check_env(bool enabled, Configuration * cfg)
@@ -2665,7 +2731,7 @@ bool bul::check_env(bool enabled, Configuration * cfg)
                 }
                 else
                     compability+=100.0-(100.0*(curenv.Rperc - envs[i].Rperc)/curenv.Rperc);
-                cerr << "R: " << compability << "\n";
+                //cerr << "R: " << compability << "\n";
             }
             else
                 possible--;
@@ -2678,7 +2744,7 @@ bool bul::check_env(bool enabled, Configuration * cfg)
                 }
                 else
                     compability+=100.0-(100.0*(curenv.Yperc - envs[i].Yperc)/curenv.Yperc);
-                cerr << "Y: " << compability << "\n";
+                //cerr << "Y: " << compability << "\n";
             }
             else
                 possible--;
@@ -2691,7 +2757,7 @@ bool bul::check_env(bool enabled, Configuration * cfg)
                 }
                 else
                     compability+=100.0-(100.0*(curenv.Gperc - envs[i].Gperc)/curenv.Gperc);
-                cerr << "G: " << compability << "\n";
+                //cerr << "G: " << compability << "\n";
             }
             else
                 possible--;
@@ -2704,7 +2770,7 @@ bool bul::check_env(bool enabled, Configuration * cfg)
                 }
                 else
                     compability+=100.0-(100.0*(curenv.Bperc - envs[i].Bperc)/curenv.Bperc);
-                cerr << "B: " << compability << "\n";
+                //cerr << "B: " << compability << "\n";
             }
             else
                 possible--;
@@ -2717,7 +2783,7 @@ bool bul::check_env(bool enabled, Configuration * cfg)
                 }
                 else
                     compability+=100.0-(100.0*(curenv.Pperc - envs[i].Pperc)/curenv.Pperc);
-                cerr << "P: " << compability << "\n";
+                //cerr << "P: " << compability << "\n";
             }
             else
                 possible--;
@@ -2730,14 +2796,14 @@ bool bul::check_env(bool enabled, Configuration * cfg)
                 }
                 else
                     compability+=100.0-(100.0*(curenv.Hperc - envs[i].Hperc)/curenv.Hperc);
-                cerr << "H: " << compability << "\n";
+                //cerr << "H: " << compability << "\n";
             }
             else
                 possible--;
 
             if (possible > 0)
                 compability/=(double)possible;
-            cerr << compability << "\n";
+            //cerr << compability << "\n";
             //cerr << envs[i].Rperc << "->" << curenv.Rperc << "\n"
             //     << envs[i].Yperc << "->" << curenv.Yperc << "\n"
             //     << envs[i].Gperc << "->" << curenv.Gperc << "\n"
@@ -2763,19 +2829,13 @@ bool bul::check_env(bool enabled, Configuration * cfg)
             newenv.spenttime = 0;
             newenv.timer = 0;
             envs.push_back(newenv);
-            info << "New environment added:\n"
-                 << envs[envs.size()].Rperc << "% red\n"
-                 << envs[envs.size()].Yperc << "% yellow\n"
-                 << envs[envs.size()].Gperc << "% green\n"
-                 << envs[envs.size()].Bperc << "% blue\n"
-                 << envs[envs.size()].Pperc << "% pink\n"
-                 << envs[envs.size()].Hperc << "% grey\n";
+            info << "New environment added:\n";
             retstat = 1;
             envindex = envs.size()-1;
         }
         else
         {
-            info << "Mapped to environment " << envindex << "\n";
+            //info << "Mapped to environment " << envindex << "\n";
             envs[envindex].Rperc=(double)envs[envindex].Rperc*(100.0-env_update_impact)/100.0 + (double)curenv.Rperc*env_update_impact/100.0;
             envs[envindex].Yperc=(double)envs[envindex].Yperc*(100.0-env_update_impact)/100.0 + (double)curenv.Yperc*env_update_impact/100.0;
             envs[envindex].Gperc=(double)envs[envindex].Gperc*(100.0-env_update_impact)/100.0 + (double)curenv.Gperc*env_update_impact/100.0;
@@ -2795,7 +2855,7 @@ bool bul::check_env(bool enabled, Configuration * cfg)
         }
         if (core_step%env_saveinterval == 0)
         {
-            cerr << "\n\n\nenvSAVING\n\n\n";
+            cerr << "Dropping environment...";
             for (int i = 0; i < envs.size(); i++)
             {
                 stringstream ss;

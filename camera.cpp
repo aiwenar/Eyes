@@ -591,7 +591,6 @@ void camcapture::envread(pixel **input)
     env.Lperc = 100*env.lightcounter/env.tabsize;
     env.Dperc = 100*env.darkcounter/env.tabsize;
     env.Hperc = 100*env.greycounter/env.tabsize;
-    cerr << env.Hperc << "\n";
     env.global_avg=nextgavg/env.tabsize;
     env.colindex = 0;
     double max = 0.0;

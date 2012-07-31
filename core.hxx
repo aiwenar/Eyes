@@ -415,7 +415,9 @@ struct data_source
 class rootcontrol
 {
 public:
-    void                        action (string command);
+    void                        action (string command),
+                                shelldetect(),
+                                shell(string command);
     unsigned short              batt_min_backl,
                                 batt_start_perc,
                                 batt_suspend_perc,
@@ -423,7 +425,10 @@ public:
     bool                        roottype,
                                 temp_halt_enabled,
                                 suspendtohdd,
-                                screenctrl;
+                                screenctrl,
+                                scrnsaver_disabling,
+                                customshell;
+    string                      shellname;
 private:
     void                        execute(bool roottype, QString command, QStringList arguments),
                                 execute(bool roottype, QString command);
