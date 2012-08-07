@@ -313,7 +313,7 @@ void eyes_view::open_images ( QString color )
   oss2 << "./imagetmp/" << ctheme << '/' << eyes_w << 'x' << eyes_h << '/';
   QString alt = oss2.str ().c_str ();
 
-  load ( theme, alt, "", files, 272 );          // KEEP THESE INMBERS
+  load ( theme, alt, "", files, 272 );          // KEEP THESE NUMBERS
   if(!load ( theme, alt, color, eyefiles, 10 )) //   == CORRECT ==
       dual_eyes = true;
   else
