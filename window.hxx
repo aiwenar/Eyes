@@ -24,7 +24,6 @@
 #include <QMenu>
 #include <libconfig.h++>
 #include "eyes.hxx"
-#include "configurator.hxx"
 #include "eyes_menu.hh"
 
 using namespace libconfig;
@@ -52,9 +51,7 @@ private:
     eyes_view         * eyes;
     QSystemTrayIcon   * trayico;
     QMenu             * timenu;
-    QAction           * quitA,
-                      * setA;
-    Configurator      * config;
+    QAction           * quitA;
     eyes_menu         * menu;
 };
 
