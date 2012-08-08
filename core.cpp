@@ -147,9 +147,33 @@ void bul::update()
             temperature.mod -
             battery.mod     -
             mod_bat_plug    -
-            fship.value/100 -
             mousea.mod      ;
 
+    cerr << "orginal mod: " << total_mod << "\n";
+    if (fship.value > 0)
+    {
+        if (total_mod > 0)
+        {
+            total_mod = (total_mod-((fship.max_bul_reduction*(100*fship.value/fship.max_over))/100)*(100*fship.value/fship.max_over))/100;
+            if (total_mod < 0)
+                total_mod = 0;
+        }
+        else
+            total_mod *= (double)(100*fship.value/fship.max_over)/100;
+    }
+    else
+    {
+        if (total_mod > 0)
+            total_mod *= (100*abs(fship.value)/fship.max_below)/100;
+        else
+        {
+            total_mod = (total_mod+((fship.max_bul_reduction*(100*fship.value/fship.max_below))/100)*(100*fship.value/fship.max_below))/100;
+            if (total_mod > 0)
+                total_mod = 0;
+        }
+
+    }
+    cerr << "modded mod: " << total_mod << "\n";
     //total_mod = 0;
     if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
         step += total_mod;
@@ -589,11 +613,21 @@ void bul::critical_services( Configuration * cfg )
     rtctrl.action("temperature");
     if (!ccap.sleep && rtctrl.scrnsaver_disabling)
     {
-        cerr << "GO " << ccap.sleep << "\n";
         rtctrl.shell("xscreensaver-command -deactivate > /dev/null");
         rtctrl.shell("gnome-screensaver-command -d > /dev/null");
         rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:false > /dev/null");
         rtctrl.shell("killall ScreenSaverEngine > /dev/null");
+    }
+
+    if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_1*(temperature.EQend-temperature.EQbegin)/100 && bulwers.hot < 1)
+        bulwers.hot = 1;
+    if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_2*(temperature.EQend-temperature.EQbegin)/100 && bulwers.hot < 2)
+        bulwers.hot = 2;
+    if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_3*(temperature.EQend-temperature.EQbegin)/100 && bulwers.hot < 3)
+    {
+        bulwers.hot = 3;
+        if (bulwers.shy < 1)
+            bulwers.shy = 1;
     }
 }
 
@@ -785,393 +819,465 @@ void eyes_view::graphics_prepare()
 {
     if (images_ready)
     {
-    if (bulwers.eye == 1)
-        send_eyes ( "eye_01" );
-    if (bulwers.eye == 2)
-        send_eyes ( "eye_02" );
-    if (bulwers.eye == 3)
-        send_eyes ( "eye_03" );
-    if (bulwers.eye == 4)
-        send_eyes ( "eye_04" );
-    if (bulwers.eye == 5)
-        send_eyes ( "eye_05" );
-    if (bulwers.eye == 6)
-        send_eyes ( "eye_06" );
-    if (bulwers.eye == 7)
-        send_eyes ( "eye_07" );
-    if (bulwers.eye == 8)
-        send_eyes ( "eye_08" );
-    if (bulwers.eye == 9)
-        send_eyes ( "eye_09" );
-    if (bulwers.eye == 10)
-        send_eyes ( "eye_10" );
+        if (bulwers.eye == 1)
+            send_eyes ( "eye_01" );
+        if (bulwers.eye == 2)
+            send_eyes ( "eye_02" );
+        if (bulwers.eye == 3)
+            send_eyes ( "eye_03" );
+        if (bulwers.eye == 4)
+            send_eyes ( "eye_04" );
+        if (bulwers.eye == 5)
+            send_eyes ( "eye_05" );
+        if (bulwers.eye == 6)
+            send_eyes ( "eye_06" );
+        if (bulwers.eye == 7)
+            send_eyes ( "eye_07" );
+        if (bulwers.eye == 8)
+            send_eyes ( "eye_08" );
+        if (bulwers.eye == 9)
+            send_eyes ( "eye_09" );
+        if (bulwers.eye == 10)
+            send_eyes ( "eye_10" );
 
 
 
-    if (bulwers.outline == 0)
-    {
-        int tmp = rand () % 4;
-        if (tmp == 0)
-            face_send = "cusual_01";
-        if (tmp == 1)
-            face_send = "bul_01";
-        if (tmp == 2)
-            face_send = "bul_02";
-        if (tmp == 3)
-            face_send = "bul_03";
-    }
-    else
-    {
-        if (bulwers.outline == 1)
+        if (bulwers.outline == 0)
         {
             int tmp = rand () % 4;
-            if (tmp == 0)
-                face_send = "slp_01";
-            if (tmp == 1)
-                face_send = "slp_02";
-            if (tmp == 2)
-                face_send = "slp_03";
-            if (tmp == 3)
-                face_send = "slp_04";
-        }
-        if (bulwers.outline == 2)
-        {
-            int tmp = rand () % 2;
-            if (tmp == 0)
-                face_send = "slp_04";
-            if (tmp == 1)
-                face_send = "slp_05";
-        }
-        if (bulwers.outline == 3)
-        {
-            int tmp = rand () % 2;
-            if (tmp == 0)
-                face_send = "slp_05";
-            if (tmp == 1)
-                face_send = "slp_06";
-        }
-
-        if (bulwers.outline == 4)
-        {
-            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "cusual_01";
             if (tmp == 1)
                 face_send = "bul_01";
             if (tmp == 2)
                 face_send = "bul_02";
-        }
-        if (bulwers.outline == 5)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_01";
-            if (tmp == 1)
-                face_send = "bul_02";
-            if (tmp == 2)
+            if (tmp == 3)
                 face_send = "bul_03";
         }
-        if (bulwers.outline == 6)
+        else
         {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_02";
-            if (tmp == 1)
-                face_send = "bul_03";
-            if (tmp == 2)
-                face_send = "bul_04";
-        }
-        if (bulwers.outline == 7)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_03";
-            if (tmp == 1)
-                face_send = "bul_04";
-            if (tmp == 2)
-                face_send = "bul_05";
-        }
-        if (bulwers.outline == 8)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_04";
-            if (tmp == 1)
-                face_send = "bul_05";
-            if (tmp == 2)
-                face_send = "bul_06";
-        }
-        if (bulwers.outline == 9)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_05";
-            if (tmp == 1)
-                face_send = "bul_06";
-            if (tmp == 2)
-                face_send = "bul_07";
-        }
-        if (bulwers.outline == 10)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_06";
-            if (tmp == 1)
-                face_send = "bul_07";
-            if (tmp == 2)
-                face_send = "bul_08";
-        }
-        if (bulwers.outline == 11)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_07";
-            if (tmp == 1)
-                face_send = "bul_08";
-            if (tmp == 2)
-                face_send = "bul_09";
-        }
-        if (bulwers.outline == 12)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_08";
-            if (tmp == 1)
-                face_send = "bul_09";
-            if (tmp == 2)
-                face_send = "bul_10";
-        }
-        if (bulwers.outline == 13)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_09";
-            if (tmp == 1)
-                face_send = "bul_10";
-            if (tmp == 2)
-                face_send = "bul_11";
-        }
-        if (bulwers.outline == 14)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_10";
-            if (tmp == 1)
-                face_send = "bul_11";
-            if (tmp == 2)
-                face_send = "bul_12";
-        }
-        if (bulwers.outline == 15)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_11";
-            if (tmp == 1)
-                face_send = "bul_12";
-            if (tmp == 2)
-                face_send = "bul_13";
-        }
-        if (bulwers.outline == 16)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_12";
-            if (tmp == 1)
-                face_send = "bul_13";
-            if (tmp == 2)
-                face_send = "bul_14";
-        }
-        if (bulwers.outline == 17)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_13";
-            if (tmp == 1)
-                face_send = "bul_14";
-            if (tmp == 2)
-                face_send = "bul_15";
-        }
-        if (bulwers.outline == 18)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_14";
-            if (tmp == 1)
-                face_send = "bul_15";
-            if (tmp == 2)
-                face_send = "bul_16";
-        }
-        if (bulwers.outline == 19)
-        {
-            int tmp = rand () % 2;
-            if (tmp == 0)
-                face_send = "bul_15";
-            if (tmp == 1)
-                face_send = "bul_16";
-        }
-    }
+            if (bulwers.outline == 1)
+            {
+                int tmp = rand () % 4;
+                if (tmp == 0)
+                    face_send = "slp_01";
+                if (tmp == 1)
+                    face_send = "slp_02";
+                if (tmp == 2)
+                    face_send = "slp_03";
+                if (tmp == 3)
+                    face_send = "slp_04";
+            }
+            if (bulwers.outline == 2)
+            {
+                int tmp = rand () % 2;
+                if (tmp == 0)
+                    face_send = "slp_04";
+                if (tmp == 1)
+                    face_send = "slp_05";
+            }
+            if (bulwers.outline == 3)
+            {
+                int tmp = rand () % 2;
+                if (tmp == 0)
+                    face_send = "slp_05";
+                if (tmp == 1)
+                    face_send = "slp_06";
+            }
 
-    if (bulwers.tired == 0)
-        toggle_layer(SLEEPY, false);
-    else if (bulwers.tired == 1)
-    {
-        toggle_layer(SLEEPY, true);
-        set_layer(SLEEPY, "tired_01");
-    }
-    else if (bulwers.tired == 2)
-    {
-        toggle_layer(SLEEPY, true);
-        set_layer(SLEEPY, "tired_02");
-    }
-    else if (bulwers.tired == 3)
-    {
-        toggle_layer(SLEEPY, true);
-        set_layer(SLEEPY, "tired_03");
-    }
+            if (bulwers.outline == 4)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "cusual_01";
+                if (tmp == 1)
+                    face_send = "bul_01";
+                if (tmp == 2)
+                    face_send = "bul_02";
+            }
+            if (bulwers.outline == 5)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_01";
+                if (tmp == 1)
+                    face_send = "bul_02";
+                if (tmp == 2)
+                    face_send = "bul_03";
+            }
+            if (bulwers.outline == 6)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_02";
+                if (tmp == 1)
+                    face_send = "bul_03";
+                if (tmp == 2)
+                    face_send = "bul_04";
+            }
+            if (bulwers.outline == 7)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_03";
+                if (tmp == 1)
+                    face_send = "bul_04";
+                if (tmp == 2)
+                    face_send = "bul_05";
+            }
+            if (bulwers.outline == 8)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_04";
+                if (tmp == 1)
+                    face_send = "bul_05";
+                if (tmp == 2)
+                    face_send = "bul_06";
+            }
+            if (bulwers.outline == 9)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_05";
+                if (tmp == 1)
+                    face_send = "bul_06";
+                if (tmp == 2)
+                    face_send = "bul_07";
+            }
+            if (bulwers.outline == 10)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_06";
+                if (tmp == 1)
+                    face_send = "bul_07";
+                if (tmp == 2)
+                    face_send = "bul_08";
+            }
+            if (bulwers.outline == 11)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_07";
+                if (tmp == 1)
+                    face_send = "bul_08";
+                if (tmp == 2)
+                    face_send = "bul_09";
+            }
+            if (bulwers.outline == 12)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_08";
+                if (tmp == 1)
+                    face_send = "bul_09";
+                if (tmp == 2)
+                    face_send = "bul_10";
+            }
+            if (bulwers.outline == 13)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_09";
+                if (tmp == 1)
+                    face_send = "bul_10";
+                if (tmp == 2)
+                    face_send = "bul_11";
+            }
+            if (bulwers.outline == 14)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_10";
+                if (tmp == 1)
+                    face_send = "bul_11";
+                if (tmp == 2)
+                    face_send = "bul_12";
+            }
+            if (bulwers.outline == 15)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_11";
+                if (tmp == 1)
+                    face_send = "bul_12";
+                if (tmp == 2)
+                    face_send = "bul_13";
+            }
+            if (bulwers.outline == 16)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_12";
+                if (tmp == 1)
+                    face_send = "bul_13";
+                if (tmp == 2)
+                    face_send = "bul_14";
+            }
+            if (bulwers.outline == 17)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_13";
+                if (tmp == 1)
+                    face_send = "bul_14";
+                if (tmp == 2)
+                    face_send = "bul_15";
+            }
+            if (bulwers.outline == 18)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_14";
+                if (tmp == 1)
+                    face_send = "bul_15";
+                if (tmp == 2)
+                    face_send = "bul_16";
+            }
+            if (bulwers.outline == 19)
+            {
+                int tmp = rand () % 2;
+                if (tmp == 0)
+                    face_send = "bul_15";
+                if (tmp == 1)
+                    face_send = "bul_16";
+            }
+        }
+        bool fun_evoked=false;
+        if (bulwers.hpp > 0 && bulwers.outline+4 < bulwers.max_fun_hpp_bul)
+        {
+            int tmp = rand () % 3;
+            if (tmp == 0)
+            {
+                fun_evoked=true;
+                if (bulwers.hpp == 1)
+                {
+                    int tmp = rand () % 2;
+                    if (tmp == 0)
+                    {
+                        face_send = "hpp_01";
+                    }
+                    if (tmp == 1)
+                    {
+                        face_send = "hpp_02";
+                    }
+                }
+                if (bulwers.hpp == 2)
+                {
+                    int tmp = rand () % 2;
+                    if (tmp == 0)
+                    {
+                        face_send = "hpp_02";
+                    }
+                    if (tmp == 1)
+                    {
+                        face_send = "hpp_03";
+                    }
+                }
+            }
+        }
+
+        if (bulwers.tired == 0)
+            toggle_layer(SLEEPY, false);
+        else
+        {
+            stringstream ss;
+            ss << bulwers.tired;
+            toggle_layer(SLEEPY, true);
+            set_layer(SLEEPY, &("tired_0" + ss.str())[0]);
+        }
+
+        if (bulwers.shy == 0)
+            toggle_layer(SHY, false);
+        else
+        {
+            stringstream ss;
+            ss << bulwers.shy;
+            toggle_layer(SHY, true);
+            set_layer(SHY, &("shy_0" + ss.str())[0]);
+        }
+
+        if (bulwers.hot == 0)
+            toggle_layer(HOT, false);
+        else
+        {
+            stringstream ss;
+            ss << bulwers.hot;
+            toggle_layer(HOT, true);
+            set_layer(HOT, &("sweat_0" + ss.str())[0]);
+        }
 
 
-    int anim_num_1 = 0;
-    int anim_num_2 = 0;
 
-           if (s_anim.face_prev == "bul_16" ||
-               s_anim.face_prev == "sh_01"  ||
-               s_anim.face_prev == "slp_10" ||
-               s_anim.face_prev == "cusual_01" ||
-               s_anim.face_prev == "bul_01" ||
-               s_anim.face_prev == "bul_02" ||
-               s_anim.face_prev == "bul_03" ||
-               s_anim.face_prev == "bul_04" ||
-               s_anim.face_prev == "bul_05" ||
-               s_anim.face_prev == "bul_06" ||
-               s_anim.face_prev == "bul_07" ||
-               s_anim.face_prev == "bul_08" ||
-               s_anim.face_prev == "bul_09" ||
-               s_anim.face_prev == "bul_10" ||
-               s_anim.face_prev == "bul_11" ||
-               s_anim.face_prev == "bul_12" ||
-               s_anim.face_prev == "bul_13" ||
-               s_anim.face_prev == "bul_14" ||
-               s_anim.face_prev == "bul_15" ||
-               s_anim.face_prev == "slp_01" ||
-               s_anim.face_prev == "slp_02" ||
-               s_anim.face_prev == "slp_03" ||
-               s_anim.face_prev == "slp_04" ||
-               s_anim.face_prev == "slp_05" ||
-               s_anim.face_prev == "slp_06" )
+        int anim_num_1 = 0;
+        int anim_num_2 = 0;
+
+       if (s_anim.face_prev == "bul_16" ||
+           s_anim.face_prev == "sh_01"  ||
+           s_anim.face_prev == "slp_10" ||
+           s_anim.face_prev == "cusual_01" ||
+           s_anim.face_prev == "bul_01" ||
+           s_anim.face_prev == "bul_02" ||
+           s_anim.face_prev == "bul_03" ||
+           s_anim.face_prev == "bul_04" ||
+           s_anim.face_prev == "bul_05" ||
+           s_anim.face_prev == "bul_06" ||
+           s_anim.face_prev == "bul_07" ||
+           s_anim.face_prev == "bul_08" ||
+           s_anim.face_prev == "bul_09" ||
+           s_anim.face_prev == "bul_10" ||
+           s_anim.face_prev == "bul_11" ||
+           s_anim.face_prev == "bul_12" ||
+           s_anim.face_prev == "bul_13" ||
+           s_anim.face_prev == "bul_14" ||
+           s_anim.face_prev == "bul_15" ||
+           s_anim.face_prev == "slp_01" ||
+           s_anim.face_prev == "slp_02" ||
+           s_anim.face_prev == "slp_03" ||
+           s_anim.face_prev == "slp_04" ||
+           s_anim.face_prev == "slp_05" ||
+           s_anim.face_prev == "slp_06" )
+           anim_num_1 = 0;
+
+
+           anim_num_2 = 0;
+
+       if (face_send == "bul_16" ||
+           face_send == "slp_10" )
+           anim_num_2 = 0;
+       if (face_send == "hpp_01")
+           anim_num_2 = 0;
+       if (face_send == "bul_09" ||
+           face_send == "bul_10" ||
+           face_send == "bul_11" ||
+           face_send == "bul_12" ||
+           face_send == "bul_13" ||
+           face_send == "bul_14" ||
+           face_send == "bul_15" ||
+           face_send == "hpp_02" )
+           anim_num_2 = 5;
+       if (face_send == "cusual_01" ||
+           face_send == "bul_01" ||
+           face_send == "bul_02" ||
+           face_send == "bul_03" ||
+           face_send == "bul_04" ||
+           face_send == "slp_01" ||
+           face_send == "slp_02" ||
+           face_send == "slp_03" ||
+           face_send == "slp_04" ||
+           face_send == "slp_05" ||
+           face_send == "hpp_03" )
+           anim_num_2 = 4;
+       if (face_send == "bul_05" ||
+           face_send == "bul_06" ||
+           face_send == "bul_07" ||
+           face_send == "bul_08" ||
+           face_send == "slp_06" ||
+           face_send == "hpp_04" )
+           anim_num_2 = 3;
+
+
+
+
+       if (face_send == "")
+           face_send = "slp_10";
+       if (s_anim.face_prev == "")
+           s_anim.face_prev = "slp_10";
+
+
+        //info << "core pics settings begin\n";
+
+       anims_send (face_send, s_anim.face_prev + "_close", face_send + "_open", anim_num_1, anim_num_2);
+
+       if (bulwers.outline == 20 && bulwers.prev_outline != 20)
+       {
+           face_send = "sh_01";
+           anims_send (face_send, s_anim.face_prev + "_close", "sh_02_open", anim_num_1, 7);
+           interrupt();
+       }
+
+       if (bulwers.outline != 20 && bulwers.prev_outline == 20)
+       {
+           face_send = "cusual_01";
+           anims_send (face_send, "sh_01_close", "cusual_01_open", 0, 4);
+       }
+       if (bulwers.outline == 20 && bulwers.prev_outline == 20)
+       {
+           face_send = "sh_01";
+           anims_send (face_send, "sh_02_close", "sh_01_open", 0, 0);
+       }
+
+       if (bulwers.outline == 21)
+       {
+           face_send = "slp_10";
+           anims_send ("slp_10", s_anim.face_prev + "_close", "slp_10_open", anim_num_1, 0);
+       }
+
+       //cerr << bulwers.outline << " " << face_send.toStdString() << " " << s_anim.face_prev.toStdString() << " " << mousea.hpp_active << "\n";
+
+       if (s_anim.face_prev == "hpp_07")
+       {
+           if (!mousea.hpp_active)
+           {
+               //cerr << "hpp07 N\n";
                anim_num_1 = 0;
-
-
-               anim_num_2 = 0;
-
-           if (face_send == "bul_16" ||
-               face_send == "slp_10" )
-               anim_num_2 = 0;
-           if (face_send == "bul_09" ||
-               face_send == "bul_10" ||
-               face_send == "bul_11" ||
-               face_send == "bul_12" ||
-               face_send == "bul_13" ||
-               face_send == "bul_14" ||
-               face_send == "bul_15" )
-               anim_num_2 = 5;
-           if (face_send == "cusual_01" ||
-               face_send == "bul_01" ||
-               face_send == "bul_02" ||
-               face_send == "bul_03" ||
-               face_send == "bul_04" ||
-               face_send == "slp_01" ||
-               face_send == "slp_02" ||
-               face_send == "slp_03" ||
-               face_send == "slp_04" ||
-               face_send == "slp_05" )
-               anim_num_2 = 4;
-           if (face_send == "bul_05" ||
-               face_send == "bul_06" ||
-               face_send == "bul_07" ||
-               face_send == "bul_08" ||
-               face_send == "slp_06" )
-               anim_num_2 = 3;
-
-
-
-
-           if (face_send == "")
-               face_send = "slp_10";
-           if (s_anim.face_prev == "")
-               s_anim.face_prev = "slp_10";
-
-
-            //info << "core pics settings begin\n";
-
-           anims_send (face_send, s_anim.face_prev + "_close", face_send + "_open", anim_num_1, anim_num_2);
-
-           if (bulwers.outline == 20 && bulwers.prev_outline != 20)
-           {
-               face_send = "sh_01";
-               anims_send (face_send, s_anim.face_prev + "_close", "sh_02_open", anim_num_1, 7);
-               interrupt();
-           }
-
-           if (bulwers.outline != 20 && bulwers.prev_outline == 20)
-           {
-               face_send = "cusual_01";
-               anims_send (face_send, "sh_01_close", "cusual_01_open", 0, 4);
-           }
-           if (bulwers.outline == 20 && bulwers.prev_outline == 20)
-           {
-               face_send = "sh_01";
-               anims_send (face_send, "sh_02_close", "sh_01_open", 0, 0);
-           }
-
-           if (bulwers.outline == 21)
-           {
-               face_send = "slp_10";
-               anims_send ("slp_10", s_anim.face_prev + "_close", "slp_10_open", anim_num_1, 0);
-           }
-
-           //cerr << bulwers.outline << " " << face_send.toStdString() << " " << s_anim.face_prev.toStdString() << " " << mousea.hpp_active << "\n";
-
-           if (s_anim.face_prev == "hpp_07")
-           {
-               if (!mousea.hpp_active)
+               if (bulwers.outline <= 4)
                {
-                   //cerr << "hpp07 N\n";
-                   anim_num_1 = 0;
-                   if (bulwers.outline <= 4)
-                   {
-                       anims_send (face_send, "hpp_continue", "hpp_01_open", anim_num_1, 6);
-                   }
-                   else if (bulwers.outline <= 6)
-                   {
-                       anims_send (face_send, "hpp_continue", "hpp_02_open", anim_num_1, 5);
-                   }
-                   else if (bulwers.outline <= 8)
-                   {
-                       anims_send (face_send, "hpp_continue", "hpp_03_open", anim_num_1, 4);
-                   }
-                   else
-                   {
-                       anims_send (face_send, "hpp_continue", "hpp_04_open", anim_num_1, 3);
-                   }
-                   interrupt();
+                   anims_send (face_send, "hpp_continue", "hpp_01_open", anim_num_1, 6);
+               }
+               else if (bulwers.outline <= 6)
+               {
+                   anims_send (face_send, "hpp_continue", "hpp_02_open", anim_num_1, 5);
+               }
+               else if (bulwers.outline <= 8)
+               {
+                   anims_send (face_send, "hpp_continue", "hpp_03_open", anim_num_1, 4);
                }
                else
                {
-                   anims_send ("hpp_07", "hpp_continue", "hpp_continue", 0, 0);
-                   mousea.hpp_active = false;
+                   anims_send (face_send, "hpp_continue", "hpp_04_open", anim_num_1, 3);
                }
-           }
-           else if (mousea.hpp_active && bulwers.outline <= mousea.max_hpp_bul+3)
-           {
-               hpp_evoke();
-               mousea.hpp_active = false;
-           }
-           if (mousea.hit_active)
-           {
-               mousea.hit_active = 0;
                interrupt();
            }
+           else
+           {
+               anims_send ("hpp_07", "hpp_continue", "hpp_continue", 0, 0);
+               mousea.hpp_active = false;
+           }
        }
+       else if (mousea.hpp_active && bulwers.outline <= mousea.max_hpp_bul+3)
+       {
+           hpp_evoke();
+           mousea.hpp_active = false;
+       }
+       if (mousea.hit_active)
+       {
+           mousea.hit_active = 0;
+           interrupt();
+       }
+       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+       if (fun_evoked)
+       {
+           if (bulwers.outline <= 4)
+           {
+               anims_send (face_send, "hpp_01_close", face_send +"_open", anim_num_1, anim_num_2);
+           }
+           else if (bulwers.outline <= 6)
+           {
+               anims_send (face_send, "hpp_02_close", face_send +"_open", anim_num_1, anim_num_2);
+           }
+           else if (bulwers.outline <= 8)
+           {
+               anims_send (face_send, "hpp_03_close", face_send +"_open", anim_num_1, anim_num_2);
+           }
+           else
+           {
+               anims_send (face_send, "hpp_04_close", face_send +"_open", anim_num_1, anim_num_2);
+           }
+       }
+    }
 }
 
 void friendship::save(Configuration *cfg)
@@ -1224,6 +1330,8 @@ void friendship::mouseimpact(unsigned int impact)
     {
         for (int i = 0; i < impact; i++)
         {
+            bulwers.step += pow((double)mouse_bad, func_mouse_hit);
+            cerr<<bulwers.value<<"\n";
             value-=pow((double)mouse_bad, func_mouse_hit);
             if (value < -(int)max_below)
                 value = -(int)max_below;
@@ -1315,6 +1423,7 @@ void Core::bulwers_update ()
     if (autocalc.enabled)
         autocalc_reload ( Configuration::getInstance () );
     bulwers.check_env(ccap.env.checked, Configuration::getInstance ());
+    bulwers.fun_check();
 }
 
 Core::Core ( eyes_view * neyes )
@@ -2246,25 +2355,33 @@ void Core::load_config ()
     bulwers.env_min_compability         = cfg->lookupValue ("core.bulwers.env_min_compability",         60.0        );
     bulwers.env_update_impact           = cfg->lookupValue ("core.bulwers.env_update_impact",           5.0         );
     bulwers.env_max_exotic_spenttime    = cfg->lookupValue ("core.bulwers.env_max_exotic_spenttime",    10.0        );
-    bulwers.env_saveinterval            = cfg->lookupValue ("core.bulwers.env_number",                  50          );
+    bulwers.env_saveinterval            = cfg->lookupValue ("core.bulwers.env_saveinterval",            50          );
+    bulwers.sweat_perc_1                = cfg->lookupValue ("core.bulwers.sweat_perc_1",                50.0        );
+    bulwers.sweat_perc_2                = cfg->lookupValue ("core.bulwers.sweat_perc_2",                75.0        );
+    bulwers.sweat_perc_3                = cfg->lookupValue ("core.bulwers.sweat_perc_3",                90.0        );
+    bulwers.hpp_fun_perc_1              = cfg->lookupValue ("core.bulwers.hpp_fun_perc_1",              60.0        );
+    bulwers.hpp_fun_perc_2              = cfg->lookupValue ("core.bulwers.hpp_fun_perc_2",              150.0       );
+    bulwers.max_fun_hpp_bul             = cfg->lookupValue ("core.bulwers.max_hpp_fun_evoke_bul",       5           );
 
     //friendship_sector
 
-    fship.calm_perc_high    = cfg->lookupValue ("core.friendship.calm_percentage_high", 5           );
-    fship.calm_perc_low     = cfg->lookupValue ("core.friendship.calm_percentage_low",  10          );
-    fship.calm_timer        = cfg->lookupValue ("core.friendship.calm_timer",           60          );
-    fship.func_calm_high    = cfg->lookupValue ("core.friendship.func_calm_high",       1.8         );
-    fship.func_calm_low     = cfg->lookupValue ("core.friendship.func_calm_low",        1.8         );
-    fship.func_mouse_high   = cfg->lookupValue ("core.friendship.func_mouse_high",      1.8         );
-    fship.func_mouse_low    = cfg->lookupValue ("core.friendship.func_mouse_low",       1.8         );
-    fship.func_mouse_hit    = cfg->lookupValue ("core.friendship.func_mouse_hit",       1.8         );
-    fship.func_scale        = cfg->lookupValue ("core.friendship.func_scale",           20          );
-    fship.max_below         = cfg->lookupValue ("core.friendship.max_below_0",          5000        );
-    fship.max_over          = cfg->lookupValue ("core.friendship.max_over_0",           5000        );
-    fship.mouse_bad         = cfg->lookupValue ("core.friendship.mouse_bad",            5           );
-    fship.mouse_good        = cfg->lookupValue ("core.friendship.mouse_good",           1           );
-    fship.stable            = cfg->lookupValue ("core.friendship.stable",               200         );
-    fship.value             = cfg->lookupValue ("core.friendship.value",                0           );
+    fship.calm_perc_high        = cfg->lookupValue ("core.friendship.calm_percentage_high", 5           );
+    fship.calm_perc_low         = cfg->lookupValue ("core.friendship.calm_percentage_low",  10          );
+    fship.calm_timer            = cfg->lookupValue ("core.friendship.calm_timer",           60          );
+    fship.func_calm_high        = cfg->lookupValue ("core.friendship.func_calm_high",       1.8         );
+    fship.func_calm_low         = cfg->lookupValue ("core.friendship.func_calm_low",        1.8         );
+    fship.func_mouse_high       = cfg->lookupValue ("core.friendship.func_mouse_high",      1.8         );
+    fship.func_mouse_low        = cfg->lookupValue ("core.friendship.func_mouse_low",       1.8         );
+    fship.func_mouse_hit        = cfg->lookupValue ("core.friendship.func_mouse_hit",       1.8         );
+    fship.func_scale            = cfg->lookupValue ("core.friendship.func_scale",           20          );
+    fship.max_below             = cfg->lookupValue ("core.friendship.max_below_0",          5000        );
+    fship.max_over              = cfg->lookupValue ("core.friendship.max_over_0",           5000        );
+    fship.mouse_bad             = cfg->lookupValue ("core.friendship.mouse_bad",            5           );
+    fship.mouse_good            = cfg->lookupValue ("core.friendship.mouse_good",           1           );
+    fship.max_bul_reduction     = cfg->lookupValue ("core.friendship.max_bul_reduction",    60          );
+    fship.stable                = cfg->lookupValue ("core.friendship.stable",               200         );
+    fship.value                 = cfg->lookupValue ("core.friendship.value",                0           );
+    fship.funboost              = cfg->lookupValue ("core.friendship.value",                0.5         );
 
     //basic_sector
 
@@ -2872,5 +2989,21 @@ bool bul::check_env(bool enabled, Configuration * cfg)
             cfg->save();
         }
         return retstat;
+    }
+}
+
+void bul::fun_check()
+{
+    if (!ccap.enabled)
+        return;
+    if (ccap.fun.fun > hpp_fun_perc_2)
+        hpp = 2;
+    else if (ccap.fun.fun > hpp_fun_perc_1)
+        hpp = 1;
+    else
+        hpp = 0;
+    if (hpp > 0)
+    {
+        fship.value+=fship.value*fship.funboost/100.0;
     }
 }

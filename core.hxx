@@ -167,9 +167,8 @@ public:
                                 tired,
                                 hot,
                                 shy,
-                                layer2,
-                                layer3,
-                                layer4,
+                                hpp,
+                                max_fun_hpp_bul,
                                 value,
                                 wake_up_delay,
                                 current_wkup_delay,
@@ -195,6 +194,11 @@ public:
                                 fluestepdelay;
     double                      fluelowval,
                                 fluehighval,
+                                sweat_perc_1,
+                                sweat_perc_2,
+                                sweat_perc_3,
+                                hpp_fun_perc_1,
+                                hpp_fun_perc_2,
                                 env_min_compability,
                                 env_update_impact,
                                 env_max_exotic_spenttime,
@@ -202,7 +206,8 @@ public:
     void                        update(),
                                 flue_check(),
                                 critical_services( Configuration * cfg ),
-                                wake_up_chk();
+                                wake_up_chk(),
+                                fun_check();
     vector <environment_data>   envs;
     environment_data            curenv;
 };
@@ -217,7 +222,8 @@ public:
                                 calm_perc_low,
                                 calm_perc_high,
                                 max_below,
-                                max_over;
+                                max_over,
+                                max_bul_reduction;
     double                      func_calm_low,
                                 func_calm_high,
                                 func_mouse_low,
@@ -227,6 +233,7 @@ public:
                                 func_scale,
                                 mouse_good,
                                 mouse_bad,
+                                funboost,
                                 funccalc(double angle, unsigned int current);
     long double                 value;
     bool                        to_save;
