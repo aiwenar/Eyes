@@ -14,7 +14,6 @@ SOURCES += \
   looker.cc\
   window.cc\
   core.cpp\
-  configurator.cc \
   configuration.cc \
     memory.cc \
     hardware.cc \
@@ -30,7 +29,6 @@ HEADERS += \
   debug.hxx\
   eyes.hxx\
   core.hxx\
-  configurator.hxx \
   configuration.hxx \
   memory.hxx \
   cdbg.hxx \
