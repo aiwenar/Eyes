@@ -37,7 +37,6 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     setAttribute ( Qt::WA_MouseTracking, true );
     //setWindowFlags ( Qt::SplashScreen );
     eyes = new eyes_view ( this, color, size_multiplier );
-    config = new Configurator ( (QWidget*)nil );
     info << "(window) loading icon " << (eyes->theme + QString ("icon") + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
     QPixmap tmp;
     tmp.load ( eyes->theme + QString ("icon") + eyes->get_color_suffix () + ".png" );
@@ -54,16 +53,11 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
         trayico = new QSystemTrayIcon ( this );
         trayico->setIcon ( *tico );
         trayico->setToolTip ( "!eyesy!" );
-        config->set_icon ( tico );
         //actions
-        setA = new QAction ( tr ( "&Settings" ), this );
-        connect ( setA, SIGNAL ( triggered () ), config, SLOT ( show () ) );
         quitA = new QAction ( tr ( "&Quit" ), this );
         connect ( quitA, SIGNAL ( triggered () ), this, SLOT ( onQuit () ) );
         //menu
         timenu = new QMenu ( this );
-        timenu->addAction ( setA );
-        timenu->addSeparator ();
         timenu->addAction ( quitA );
         //iconend
         trayico->setContextMenu ( timenu );
