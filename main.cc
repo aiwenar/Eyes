@@ -20,7 +20,6 @@
 
 #include <iostream>
 #include <string>
-#include <libconfig.h++>
 
 #include "window.hxx"
 #include "debug.hxx"
@@ -94,7 +93,7 @@ int main ( int argc, char ** argv )
           if ( arg.at ( i+1 ) == "colors" )
           {
             cout << help_colors;
-            Config cfg;
+            /* Config cfg;
             try
             {
               cfg.readFile ( "colors.cfg" );
@@ -111,7 +110,7 @@ int main ( int argc, char ** argv )
             {
               cfg.lookupValue ( ( QString ( "colors.list." ) + j ).toStdString (), color );
               cout << "\t" << color << "\n";
-            }
+            } */
             exit ( 0 );
           }
         }
