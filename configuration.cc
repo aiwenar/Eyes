@@ -23,32 +23,31 @@
 
 using namespace std;
 
-Configuration * Configuration::_cfg = 0;
+QMap <const char*,Configuration*> Configuration::instances;
 
-Configuration * Configuration::getInstance ()
+Configuration * Configuration::getInstance ( const char * file )
 {
-    if ( _cfg == 0 )
-        _cfg = new Configuration ();
-    return _cfg;
+  Configuration * cfg = instances[file];
+  if ( cfg == 0 )
+  {
+    cfg = new Configuration ( file );
+    instances[file] = cfg;
+  }
+  return cfg;
 }
 
-Configuration::Configuration ()
+Configuration::Configuration ( const char * file )
+: cfg   ()
+, file  ( file )
 {
-  try
-  {
-    cfg.readFile ( "config.cfg" );
-  }
-  catch ( ... )
-  {
-    warning << "(Configuration) configuration read failure, falling back to emergency values.\n";
-  }
+  cfg.read ( file );
   needsave = false;
 }
 
 double Configuration::lookupValue ( const char * path, const double def )
 {
-  float tmp;
-  if ( not cfg.lookupValue ( path, tmp ) )
+  double tmp;
+  if ( not cfg.get ( path, tmp ) )
   {
     error << "lookup for: "
           << path
@@ -64,7 +63,7 @@ double Configuration::lookupValue ( const char * path, const double def )
 bool Configuration::lookupValue ( const char * path, bool def )
 {
     bool tmp;
-    if ( not cfg.lookupValue ( path, tmp ) )
+    if ( not cfg.get ( path, tmp ) )
     {
         error << "lookup for: "
               << path
@@ -80,7 +79,7 @@ bool Configuration::lookupValue ( const char * path, bool def )
 char * Configuration::lookupValue ( const char * path, const char * def )
 {
     std::string tmp;
-    if ( not cfg.lookupValue ( &(*path), tmp ) )
+    if ( not cfg.get ( &(*path), tmp ) )
     {
         error << "lookup for: "
               << path
@@ -96,7 +95,7 @@ char * Configuration::lookupValue ( const char * path, const char * def )
 char Configuration::lookupValue ( const char * path, char def )
 {
     std::string tmp;
-    if ( not cfg.lookupValue ( &(*path), tmp ) )
+    if ( not cfg.get ( &(*path), tmp ) )
     {
         error << "lookup for: "
               << path
@@ -111,8 +110,8 @@ char Configuration::lookupValue ( const char * path, char def )
 
 int Configuration::lookupValue ( const char * path, int def )
 {
-    int tmp;
-    if ( not cfg.lookupValue ( &(*path), tmp ) )
+    long long tmp;
+    if ( not cfg.get ( &(*path), tmp ) )
     {
         error << "lookup for: "
               << path
@@ -127,14 +126,14 @@ int Configuration::lookupValue ( const char * path, int def )
 
 bool Configuration::setValue ( const char * path, double value )
 {
-  lookup ( path, libconfig::Setting::TypeFloat ) = value;
+  lookup ( path, sc::Value::t_float ) = value;
   needsave = true;
   return true;
 }
 
 bool Configuration::setValue (const char *path, bool value)
 {
-    lookup ( path, libconfig::Setting::TypeBoolean ) = value;
+    lookup ( path, sc::Value::t_boolean ) = value;
     needsave = true;
     return true;
 }
@@ -142,21 +141,21 @@ bool Configuration::setValue (const char *path, bool value)
 bool Configuration::setValue ( const char *path, char value )
 {
   char val[2] = {value,'\0'};
-  lookup ( path, libconfig::Setting::TypeString ) = val;
+  lookup ( path, sc::Value::t_string ) = (const char*)val;
   needsave = true;
   return true;
 }
 
 bool Configuration::setValue ( const char *path, const char *value )
 {
-    lookup ( path, libconfig::Setting::TypeString ) = value;
+    lookup ( path, sc::Value::t_string ) = value;
     needsave = true;
     return false;
 }
 
 bool Configuration::setValue ( const char *path, int value )
 {
-    lookup ( path, libconfig::Setting::TypeInt ) = value;
+    lookup ( path, sc::Value::t_number ) = value;
     needsave = true;
     return false;
 }
@@ -166,26 +165,33 @@ void Configuration::save ()
   if ( needsave )
   {
     info << "(Configuration) configuration changed, saving.\n";
-    cfg.writeFile ( "config.cfg" );
+    cfg.save ( file );
     needsave = false;
   }
   else
     info << "(Configuration) configuration not changed, skipping save.\n";
 }
 
-libconfig::Setting& Configuration::lookup ( const char * path, libconfig::Setting::Type type )
+sc::Value& Configuration::lookup ( const char * path, sc::Value::Type type )
 {
   if ( not cfg.exists ( path ) )
   {
-    libconfig::Setting * set = &cfg.getRoot ();
+    sc::Value&  val = cfg.root ();
     QStringList paths = QString ( path ).split ( "." );
-    for ( int i=0 ; i<paths.size () ; ++i )
+    int i=0;
+    if ( paths[0] == "" )
+      i = 1;
+    for ( ; i<paths.size () ; ++i )
     {
-      if ( not set->exists ( paths[i].toStdString () ) )
-        set->add ( paths[i].toStdString (), i+1 == paths.size() ? type : libconfig::Setting::TypeGroup );
-      set = &((*set)[paths[i].toStdString ()]);
+      if ( not val.exists ( paths[i].toStdString () ) )
+      {
+        val = val.append ( i+1 == paths.size () ? type : sc::Value::t_group );
+        val.name ( paths[i].toStdString () );
+      }
+      else
+        val = val[paths[i].toStdString ()];
     }
-    return *set;
+    return val;
   }
-  return cfg.lookup ( path );
+  return cfg[path];
 }
