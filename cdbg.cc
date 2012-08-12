@@ -38,6 +38,7 @@ extern hardware         HRDWR;
 extern friendship       fship;
 extern camcapture       ccap;
 extern rootcontrol      rtctrl;
+extern disease          flue;
 extern unsigned short   battery_state;
 extern unsigned short   mod_bat_plug;
 extern bool             once_plugged;
@@ -1967,21 +1968,21 @@ void cdbg::on_timer_tick ()
       cout << "\n\n\033[" << max_EQ*3 + 76 << "C";
       spacefill (bulwers.current_wkup_delay, 7);
       cout << "\n\n\033[" << max_EQ*3 + 82 << "C";
-      if (bulwers.flue)
+      if (flue.active)
           cout << "X";
       else if (core_step > temperature.buff_size*temperature.buff_size)
           cout << "-";
       else
           cout << ".";
       cout << "\n\n\n\033[" << max_EQ*3 + 76 << "C ";
-      spacefill(100*(bulwers.fluehighval-bulwers.fluelowval)/bulwers.flueamplitude, 3);
+      spacefill(100*(flue.highval-flue.lowval)/flue.amplitude, 3);
       cout << "%\n\n\033[" << max_EQ*3 + 76 << "C";
-      spacefill(bulwers.fluelowval, 2);
+      spacefill(flue.lowval, 2);
       cout << "º ";
-      spacefill(bulwers.fluehighval, 2);
+      spacefill(flue.highval, 2);
       cout << "º";
       cout << "\n\033[" << max_EQ*3 + 76 << "C <";
-      spacefill(bulwers.fluehighval-bulwers.fluelowval, 2);
+      spacefill(flue.highval-flue.lowval, 2);
       cout << "º>\n\n\033[7C";
       if (bulwers.lastnap_dtime > bulwers.max_mem_lag)
           cout << "\033[1;32m";
@@ -2402,11 +2403,9 @@ void cdbg::on_timer_tick ()
     chck_s ();
     cout << "tfreq" << " " << temperature.frequency;
     chck_s ();
-    cout << "tempt" << " " << bulwers.flueamplitude;
+    cout << "tempt" << " " << flue.amplitude;
     chck_s ();
-    cout << "flutm" << " " << bulwers.fluetimer;
-    chck_s ();
-    cout << "gtflu" << " " << bulwers.flue;
+    cout << "gtflu" << " " << flue.active;
     chck_s ();
     cout << "timev" << " " << (unsigned short)times.value << " h";
     chck_s ();

@@ -103,6 +103,8 @@ static const char * files[]     = {
     "bhclap_10_a", "bhclap_10_m", "bhclap_10_o", "bhclap_10_s",     //264
     "bhclap_11_a", "bhclap_11_m", "bhclap_11_o", "bhclap_11_s",     //268
     "tired_01", "tired_02", "tired_03",                             //272
+    "sweat_01", "sweat_02", "sweat_03",
+    "shy_01",   "shy_02",   "shy_03",
     "spec"
 };
 static const char * eyefiles[]  = {
@@ -313,7 +315,7 @@ void eyes_view::open_images ( QString color )
   oss2 << "./imagetmp/" << ctheme << '/' << eyes_w << 'x' << eyes_h << '/';
   QString alt = oss2.str ().c_str ();
 
-  load ( theme, alt, "", files, 272 );          // KEEP THESE NUMBERS
+  load ( theme, alt, "", files, 278 );          // KEEP THESE NUMBERS
   if(!load ( theme, alt, color, eyefiles, 10 )) //   == CORRECT ==
       dual_eyes = true;
   else

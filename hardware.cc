@@ -208,6 +208,33 @@ unsigned int hardware::sys_backlight_full (string path)
     return atoi (&back[0]);
 }
 
+unsigned short hardware::sensors_temp (string path)
+{
+    if (cores_paths.size()==0)
+    {
+        string input = get_file(&path[0]);
+        string temp = "";
+        for (int i = 0; i<input.size()-2; i++)
+                temp+=input[i];
+        return atoi (&temp[0])/1000;
+    }
+    else
+    {
+        unsigned short highest = 0;
+        for (int i = 0; i<cores_paths.size();i++)
+        {
+            string input = get_file(&(cores_paths[i])[0]);
+            string temp = "";
+            for (int i = 0; i<input.size()-2; i++)
+                    temp+=input[i];
+            unsigned short int_temp = atoi (&temp[0])/1000;
+            if (int_temp > highest)
+                highest = int_temp;
+        }
+        return highest;
+    }
+}
+
 double hardware::C_LOAD ()
 {
   glibtop_init();
@@ -375,10 +402,13 @@ unsigned int percental::convert(unsigned short val)
             {
             case 'l':
                 mod = -i*lin_num;
+                break;
             case 'q':
                 mod = -i*i;
+                break;
             case 'f':
                 mod = -i + mod_prev;
+                break;
             }
         }
     }
@@ -392,10 +422,13 @@ unsigned int percental::convert(unsigned short val)
             {
             case 'l':
                 mod = i*lin_num;
+                break;
             case 'q':
                 mod = i*i;
+                break;
             case 'f':
                 mod = i + mod_prev;
+                break;
             }
         }
 
@@ -466,10 +499,13 @@ unsigned int unital::convert(unsigned short val)
             {
             case 'l':
                 mod = -i*lin_num;
+                break;
             case 'q':
                 mod = -i*i;
+                break;
             case 'f':
                 mod = -i + mod_prev;
+                break;
             }
         }
     }
@@ -483,10 +519,13 @@ unsigned int unital::convert(unsigned short val)
             {
             case 'l':
                 mod = i*lin_num;
+                break;
             case 'q':
                 mod = i*i;
+                break;
             case 'f':
                 mod = i + mod_prev;
+                break;
             }
         }
     }
@@ -830,14 +869,69 @@ void hardware::system_check()
                 path += "/temp";
                 input = get_file (&path[0]);
                 if (input == "");
-                        //info << "searching for custom battery path - failed\n";
+                        //info << "searching for custom thermal sensor path - failed\n";
                 else
                 {
                         final_temp_solution = 2;
                         final_path_temp = path;
-                        info << "searching for custom battery path - success\n";
+                        info << "searching for custom thermal sensor path - success\n";
                 }
         }
+
+        /////////////////////////////////////////////////////////////////////////////////////////////
+
+        for (int i = 0; i < 10; i++)
+        {
+                string input = "";
+                string path = "/sys/devices/platform/coretemp.";
+                path += i+48;
+                path += "/temp1_input";
+                input = get_file (&path[0]);
+                if (input == "");
+                        //info << "sys(thermal_zone" << i << ") - failed\n";
+                else
+                {
+                        cores_paths.clear();
+                        final_temp_solution = 3;
+                        final_path_temp = "/sys/devices/platform/coretemp.";
+                        final_path_temp += i+48;
+                        info << "thermal sensor for cpu: " << i+1 << " found on: " << final_path_temp << "\n";
+                        final_path_temp += "/temp";
+                        for (int j = 2; j < 129; j++)
+                        {
+                            string corepath = final_path_temp;
+                            corepath += j+48;
+                            corepath += "_input";
+                            input = get_file (&corepath[0]);
+                            if (input == "");
+                                    //info << "sys(thermal_zone" << i << ") - failed\n";
+                            else
+                            {
+                                info << "core " << j-1 << "thermal sensor found on: " << corepath << "\n";
+                                cores_paths.push_back(corepath);
+                            }
+                        }
+                        final_path_temp += "1_input";
+                }
+        }
+        if (special_thername)
+        {
+                string input = "";
+                string path = "/sys/devices/platform/";
+                path += cfg_battname;
+                path += "/temp";
+                input = get_file (&path[0]);
+                if (input == "");
+                        //info << "searching for custom thermal sensor path - failed\n";
+                else
+                {
+                        final_temp_solution = 3;
+                        final_path_temp = path;
+                        info << "searching for custom thermal sensor path - success\n";
+                }
+        }
+
+
         if (final_temp_solution == 0)
             warning << "No thermal sensors found!\n";
 
@@ -859,6 +953,10 @@ void hardware::system_check()
         case 2:
             src_temp = &hardware::sys_temp;
             info << "thermal sensor: sys\n";
+            break;
+        case 3:
+            src_temp = &hardware::sensors_temp;
+            info << "thermal sensor: lm-sensors\n";
             break;
         }
 

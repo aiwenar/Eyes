@@ -126,7 +126,6 @@ public:
     char                        wkup_reason,
                                 wkup_active;
     bool                        wake_up,
-                                flue,
                                 no_update,
                                 check_env(bool enabled, Configuration * cfg );
     int                         total_mod,
@@ -147,7 +146,6 @@ public:
                                 wall_13,
                                 wall_14,
                                 wall_15,
-                                fluetimer,
                                 remembered_time,
                                 remembered_nrg,
                                 lastnap_remembered_time,
@@ -169,6 +167,7 @@ public:
                                 shy,
                                 hpp,
                                 max_fun_hpp_bul,
+                                smile_probability,
                                 value,
                                 wake_up_delay,
                                 current_wkup_delay,
@@ -188,13 +187,8 @@ public:
                                 timelow_3w,
                                 timehigh_1w,
                                 timehigh_2w,
-                                timehigh_3w,
-                                flueamplitude,
-                                flueimpact,
-                                fluestepdelay;
-    double                      fluelowval,
-                                fluehighval,
-                                sweat_perc_1,
+                                timehigh_3w;
+    double                      sweat_perc_1,
                                 sweat_perc_2,
                                 sweat_perc_3,
                                 hpp_fun_perc_1,
@@ -204,12 +198,54 @@ public:
                                 env_max_exotic_spenttime,
                                 env_max_compability;
     void                        update(),
-                                flue_check(),
                                 critical_services( Configuration * cfg ),
                                 wake_up_chk(),
                                 fun_check();
     vector <environment_data>   envs;
     environment_data            curenv;
+};
+
+struct disease_time
+{
+    unsigned short              day,
+                                month,
+                                year,
+                                lenght;
+    double                      minute_perc,
+                                invertion_step,
+                                progress;
+};
+
+class disease
+{
+public:
+    bool                        active,
+                                expired(disease_time disease_data);
+    unsigned short              amplitude,
+                                step_perc_1,
+                                step_perc_2,
+                                step_perc_3,
+                                step_perc_4,
+                                step_perc_5,
+                                visual_impact_probability_1,
+                                visual_impact_probability_2,
+                                visual_impact_probability_3,
+                                visual_impact_probability_4,
+                                visual_impact_probability_5;
+    double                      lowval,
+                                highval,
+                                update_impact,
+                                fun_impact,
+                                pet_impact,
+                                hit_impact,
+                                bul_impact,
+                                max_bul_booster,
+                                invertion_perc;
+    void                        check( Configuration * cfg ),
+                                attack( Configuration * cfg ),
+                                visual_impact(double progress);
+    disease_time                last_date;
+    QTimer                      uptimer;
 };
 
 class friendship

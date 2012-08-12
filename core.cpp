@@ -60,6 +60,7 @@ eMu_zone        eMu;
 data_source     d_src;
 friendship      fship;
 rootcontrol     rtctrl;
+disease         flue;
 extern camcapture ccap;
 
 void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto )
@@ -148,32 +149,37 @@ void bul::update()
             battery.mod     -
             mod_bat_plug    -
             mousea.mod      ;
+    if(flue.active && total_mod > 0)
+        total_mod+=(double)(total_mod)*flue.max_bul_booster/100.0;
 
-    cerr << "orginal mod: " << total_mod << "\n";
-    if (fship.value > 0)
+    if (!flue.active)
     {
-        if (total_mod > 0)
+        cerr << "orginal mod: " << total_mod << "\n";
+        if (fship.value > 0)
         {
-            total_mod = (total_mod-((fship.max_bul_reduction*(100*fship.value/fship.max_over))/100)*(100*fship.value/fship.max_over))/100;
-            if (total_mod < 0)
-                total_mod = 0;
-        }
-        else
-            total_mod *= (double)(100*fship.value/fship.max_over)/100;
-    }
-    else
-    {
-        if (total_mod > 0)
-            total_mod *= (100*abs(fship.value)/fship.max_below)/100;
-        else
-        {
-            total_mod = (total_mod+((fship.max_bul_reduction*(100*fship.value/fship.max_below))/100)*(100*fship.value/fship.max_below))/100;
             if (total_mod > 0)
-                total_mod = 0;
+            {
+                total_mod = (total_mod-((fship.max_bul_reduction*(100*fship.value/fship.max_over))/100)*(100*fship.value/fship.max_over))/100;
+                if (total_mod < 0)
+                    total_mod = 0;
+            }
+            else
+                total_mod *= (double)(100*fship.value/fship.max_over)/100;
         }
+        else
+        {
+            if (total_mod > 0)
+                total_mod *= (100*abs(fship.value)/fship.max_below)/100;
+            else
+            {
+                total_mod = (total_mod+((fship.max_bul_reduction*(100*fship.value/fship.max_below))/100)*(100*fship.value/fship.max_below))/100;
+                if (total_mod > 0)
+                    total_mod = 0;
+            }
 
+        }
+        cerr << "modded mod: " << total_mod << "\n";
     }
-    cerr << "modded mod: " << total_mod << "\n";
     //total_mod = 0;
     if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
         step += total_mod;
@@ -258,49 +264,158 @@ void bul::update()
     prev_bat_plug = battery_state;
 }
 
-void bul::flue_check()
+void disease::check(Configuration *cfg)
 {
-    if (!flue && core_step > temperature.buff_size*temperature.buff_size)
+    if (core_step > temperature.buff_size*temperature.buff_size)
     {
-        if ((double)temperature.value < fluelowval)
-            fluelowval=temperature.value;
-        if ((double)temperature.value > fluehighval)
-            fluehighval = temperature.value;
-        fluehighval-=(fluehighval-(double)temperature.stable)/(double)flueimpact;
-        fluelowval+=((double)temperature.stable-fluelowval)/(double)flueimpact;
-        if (fluehighval - fluelowval > (double)flueamplitude)
-            flue = true;
+        if ((double)temperature.value < lowval)
+            lowval=temperature.value;
+        if ((double)temperature.value > highval)
+            highval = temperature.value;
+        highval-=(highval-(double)temperature.stable)*(double)update_impact/100.0;
+        lowval+=((double)temperature.stable-lowval)*(double)update_impact/100.0;
+        if (highval - lowval > (double)amplitude)
+        {
+            active = true;
+            unsigned short init_day     = get_time().day_num;
+            unsigned short init_month   = get_time().month;
+            unsigned short init_year    = get_time().year;
+            last_date.lenght = rand () % 3 + 3;
+            last_date.minute_perc = 100.0/(double)(last_date.lenght*(24-bulwers.rest_time_std)*60);
+            last_date.invertion_step = last_date.minute_perc*invertion_perc;
+            cfg->setValue("core.flue.last_date.day", init_day);
+            cfg->setValue("core.flue.last_date.month", init_month);
+            cfg->setValue("core.flue.last_date.year", init_year);
+            cfg->setValue("core.flue.last_date.lenght", last_date.lenght);
+            cfg->setValue("core.flue.last_date.perc_per_min",  last_date.minute_perc);
+            cfg->setValue("core.flue.last_date.invertion_per_min",  last_date.invertion_step);
+            cfg->save();
+        }
     }
+}
+
+void disease::attack(Configuration *cfg)
+{
+    cerr << "orginal progress: " << last_date.progress << "\n";
+    last_date.progress+=bulwers.total_mod*bul_impact/100.0;
+    cerr << "after_bulwers: " << last_date.progress << "\n";
+    last_date.progress+=ccap.fun.fun*fun_impact/100.0;
+    if (mousea.mod > 0)
+        last_date.progress+=mousea.mod*pet_impact/100.0;
     else
+        last_date.progress+=mousea.mod*hit_impact/100.0;
+    cerr << "after_mouse: " << last_date.progress << "\n";
+    if (core_step % 60 == 0)
     {
-        if (fluetimer > 3*fluestepdelay)
+        last_date.progress+=last_date.minute_perc;
+        if (expired(last_date))
+            last_date.minute_perc-=last_date.invertion_step;
+        cfg->save();
+    }
+    visual_impact(last_date.progress);
+
+    if (last_date.progress < 0)
+        flue.active = false;
+}
+
+bool disease::expired(disease_time disease_data)
+{
+    int dtime = 0;
+    dtime+=(get_time().year - disease_data.year)*365;
+    dtime+=(get_time().month - disease_data.month)*30;
+    dtime+=(get_time().day_num - disease_data.day);
+    if (dtime > disease_data.lenght)
+        return true;
+    else
+        return false;
+}
+
+void disease::visual_impact(double progress)
+{
+    unsigned short lvl = 0;
+    if (progress > step_perc_1)
+        lvl = 1;
+    if (progress > step_perc_2)
+        lvl = 2;
+    if (progress > step_perc_3)
+        lvl = 3;
+    if (progress > step_perc_4)
+        lvl = 4;
+    if (progress > step_perc_5)
+        lvl = 5;
+
+    if (lvl == 0)
+        return;
+
+    switch (lvl)
+    {
+    case 1:
+        if (bulwers.tired < 1)
+            bulwers.tired = 1;
+        if (rand() % visual_impact_probability_1 == 0)
         {
-            hot = 3;
-            shy = 3;
-            energy.value+=6;
-            if (value < 12)
-                value = 12;
+            if (bulwers.outline < 8)
+            {
+                bulwers.outline = 1;
+            }
         }
-        else if (fluetimer > 2*fluestepdelay)
+        break;
+    case 2:
+        if (bulwers.tired < 2)
+            bulwers.tired = 2;
+        if (rand() % visual_impact_probability_2 == 0)
         {
-            hot = 2;
-            shy = 2;
-            fluetimer++;
-            energy.value+=2;
-            if (value < 8)
-                value = 8;
+            if (bulwers.outline < 8)
+            {
+                bulwers.outline = 1;
+            }
         }
-        else if (fluetimer > fluestepdelay)
+        break;
+    case 3:
+        if (bulwers.tired < 2)
+            bulwers.tired = 2;
+        if (bulwers.shy < 1)
+            bulwers.shy = 1;
+        if (bulwers.hot < 1)
+            bulwers.hot = 1;
+        if (rand() % visual_impact_probability_3 == 0)
         {
-            hot = 1;
-            shy = 1;
-            fluetimer++;
-            energy.value++;
-            if (value < 6)
-                value = 6;
+            if (bulwers.outline < 10)
+            {
+                bulwers.outline = 2;
+            }
         }
-        else
-            fluetimer++;
+        break;
+    case 4:
+        if (bulwers.tired < 3)
+            bulwers.tired = 3;
+        if (bulwers.shy < 2)
+            bulwers.shy = 2;
+        if (bulwers.hot < 2)
+            bulwers.hot = 2;
+        if (rand() % visual_impact_probability_4 == 0)
+        {
+            if (bulwers.outline < 12)
+            {
+                bulwers.outline = 3;
+            }
+        }
+        break;
+    case 5:
+        if (bulwers.tired < 3)
+            bulwers.tired = 3;
+        if (bulwers.shy < 3)
+            bulwers.shy = 3;
+        if (bulwers.hot < 3)
+            bulwers.hot = 3;
+        if (rand() % visual_impact_probability_5 == 0)
+        {
+            if (bulwers.outline < 13)
+            {
+                bulwers.outline = 3;
+            }
+        }
+        break;
     }
 }
 
@@ -414,7 +529,7 @@ void bul::critical_services( Configuration * cfg )
     wkup_active = 0;
     if (get_time ().day != 7)
     {
-        if (times.value < timelow_1 || times.value > timehigh_1 || energy.value > energy.start + energy.wide - 5 || fluetimer > fluestepdelay)
+        if (times.value < timelow_1 || times.value > timehigh_1 || energy.value > energy.start + energy.wide - 5)
         {
             wkup_active = 1;
             tired = 1;
@@ -428,7 +543,7 @@ void bul::critical_services( Configuration * cfg )
                     outline = 1;
             }
         }
-        if (times.value < timelow_2 || times.value > timehigh_2 || energy.value > energy.start + energy.wide - 3 || fluetimer > 2*fluestepdelay)
+        if (times.value < timelow_2 || times.value > timehigh_2 || energy.value > energy.start + energy.wide - 3)
         {
             wkup_active = 1;
             tired = 2;
@@ -441,7 +556,7 @@ void bul::critical_services( Configuration * cfg )
                     outline = 2;
             }
         }
-        if (times.value < timelow_3 || times.value > timehigh_3 || energy.value > energy.start + energy.wide - 1 || fluetimer > 3*fluestepdelay )
+        if (times.value < timelow_3 || times.value > timehigh_3 || energy.value > energy.start + energy.wide - 1)
         {
             wkup_active = 1;
             tired = 3;
@@ -462,7 +577,7 @@ void bul::critical_services( Configuration * cfg )
     }
     else
     {
-        if (times.value < timelow_1w || times.value > timehigh_1w ||  energy.value > energy.start + energy.wide - 5*3600 || fluetimer > fluestepdelay)
+        if (times.value < timelow_1w || times.value > timehigh_1w ||  energy.value > energy.start + energy.wide - 5*3600)
         {
             wkup_active = 1;
             tired = 1;
@@ -475,7 +590,7 @@ void bul::critical_services( Configuration * cfg )
                     outline = 1;
             }
         }
-        if (times.value < timelow_2w || times.value > timehigh_2w ||  energy.value > energy.start + energy.wide - 4*3600 || fluetimer > 2*fluestepdelay)
+        if (times.value < timelow_2w || times.value > timehigh_2w ||  energy.value > energy.start + energy.wide - 4*3600)
         {
             wkup_active = 1;
             tired = 2;
@@ -488,7 +603,7 @@ void bul::critical_services( Configuration * cfg )
                     outline = 2;
             }
         }
-        if (times.value < timelow_3w || times.value > timehigh_3w ||  energy.value > energy.start + energy.wide - 3*3600 || fluetimer > 3*fluestepdelay)
+        if (times.value < timelow_3w || times.value > timehigh_3w ||  energy.value > energy.start + energy.wide - 3*3600)
         {
             wkup_active = 1;
             tired = 3;
@@ -619,15 +734,32 @@ void bul::critical_services( Configuration * cfg )
         rtctrl.shell("killall ScreenSaverEngine > /dev/null");
     }
 
-    if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_1*(temperature.EQend-temperature.EQbegin)/100 && bulwers.hot < 1)
-        bulwers.hot = 1;
-    if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_2*(temperature.EQend-temperature.EQbegin)/100 && bulwers.hot < 2)
-        bulwers.hot = 2;
-    if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_3*(temperature.EQend-temperature.EQbegin)/100 && bulwers.hot < 3)
+    if (core_step > temperature.buff_size*temperature.buff_size)
     {
-        bulwers.hot = 3;
-        if (bulwers.shy < 1)
-            bulwers.shy = 1;
+        if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_3*(temperature.EQend-temperature.EQbegin)/100)
+        {
+            bulwers.hot++;
+            if (bulwers.shy < 1)
+                bulwers.shy = 1;
+        }
+        else if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_2*(temperature.EQend-temperature.EQbegin)/100)
+        {
+            bulwers.hot++;
+            if (bulwers.shy > 0)
+                bulwers.shy = 0;
+        }
+        else if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_1*(temperature.EQend-temperature.EQbegin)/100)
+        {
+            bulwers.hot++;
+            if (bulwers.shy > 0)
+                bulwers.shy = 0;
+        }
+        else if (bulwers.hot > 0)
+        {
+            bulwers.hot--;
+            if (bulwers.shy > 0)
+                bulwers.shy = 0;
+        }
     }
 }
 
@@ -716,10 +848,6 @@ void Core::bulwers_init ()
     bulwers.wkup_active                 = 0    ;
     bulwers.wkup_reason                 = 0    ;
     bulwers.current_wkup_delay          = bulwers.wake_up_delay;
-    bulwers.flue                        = false;
-    bulwers.fluetimer                   = 0    ;
-    bulwers.fluehighval                 = temperature.stable;
-    bulwers.fluelowval                  = temperature.stable;
     if (bulwers.remembered_time == 0)
         bulwers.remembered_time         = get_time().day_num*60*24 + get_time().hour/60;
     bulwers.lastnap_atime = 0;
@@ -1047,7 +1175,7 @@ void eyes_view::graphics_prepare()
         bool fun_evoked=false;
         if (bulwers.hpp > 0 && bulwers.outline+4 < bulwers.max_fun_hpp_bul)
         {
-            int tmp = rand () % 3;
+            int tmp = rand () % bulwers.smile_probability;
             if (tmp == 0)
             {
                 fun_evoked=true;
@@ -1331,7 +1459,6 @@ void friendship::mouseimpact(unsigned int impact)
         for (int i = 0; i < impact; i++)
         {
             bulwers.step += pow((double)mouse_bad, func_mouse_hit);
-            cerr<<bulwers.value<<"\n";
             value-=pow((double)mouse_bad, func_mouse_hit);
             if (value < -(int)max_below)
                 value = -(int)max_below;
@@ -1407,7 +1534,7 @@ void Core::bulwers_update ()
     cpu.mod = cpu.convert(cpu.calculate());
     memory.mod = memory.convert(memory.calculate());
     battery.mod = battery.convert(battery.calculate());
-    temperature.mod = temperature.convert(HRDWR.temperatura());
+    temperature.mod = temperature.convert(temperature.calculate());
     times.mod = times.calculate();
     energy.mod = energy.calculate();
     mousea.mod = mousea.impact*mousea.convert()/100;
@@ -1415,8 +1542,11 @@ void Core::bulwers_update ()
     if (!bulwers.no_update)
     {
         bulwers.update();
-        bulwers.flue_check();
         bulwers.critical_services( Configuration::getInstance () );
+        if (!flue.active)
+            flue.check( Configuration::getInstance () );
+        else
+            flue.attack( Configuration::getInstance () );
     }
     bulwers.no_update = false;
 
@@ -2241,7 +2371,7 @@ void Core::load_config ()
 
     temperature.frequency   = cfg->lookupValue ( "core.temperature.frequency",          'q'         );
     temperature.lin_num     = cfg->lookupValue ( "core.temperature.linear_modifier",    2           );
-    temperature.stable      = cfg->lookupValue ( "core.temperature.stable",             56          );
+    temperature.stable      = cfg->lookupValue ( "core.temperature.stable",             54          );
     temperature.steps       = cfg->lookupValue ( "core.temperature.steps",              12          );
     temperature.loseless    = cfg->lookupValue ( "core.temperature.adaptation",         2           );
     temperature.buffered    = cfg->lookupValue ( "core.temperature.buffered",           true        );
@@ -2309,9 +2439,6 @@ void Core::load_config ()
     bulwers.wall_13         = cfg->lookupValue ("core.bulwers.wall_13",                 98700       );
     bulwers.wall_14         = cfg->lookupValue ("core.bulwers.wall_14",                 159700      );
     bulwers.wall_15         = cfg->lookupValue ("core.bulwers.wall_15",                 258400      );
-    bulwers.flueamplitude   = cfg->lookupValue ("core.bulwers.flueamplitude",           20          );
-    bulwers.flueimpact      = cfg->lookupValue ("core.bulwers.flueimpact",              100         );
-    bulwers.fluestepdelay   = cfg->lookupValue ("core.bulwers.fluestepdelay",           300         );
     bulwers.remembered_nrg  = cfg->lookupValue ("core.bulwers.remembered_energy",       0           );
     bulwers.remembered_time = cfg->lookupValue ("core.bulwers.remembered_time",         0           );
     bulwers.max_mem_lag     = cfg->lookupValue ("core.bulwers.max_memory_lag",          10          );
@@ -2381,7 +2508,7 @@ void Core::load_config ()
     fship.max_bul_reduction     = cfg->lookupValue ("core.friendship.max_bul_reduction",    60          );
     fship.stable                = cfg->lookupValue ("core.friendship.stable",               200         );
     fship.value                 = cfg->lookupValue ("core.friendship.value",                0           );
-    fship.funboost              = cfg->lookupValue ("core.friendship.value",                0.5         );
+    fship.funboost              = cfg->lookupValue ("core.friendship.funboost",             0.5         );
 
     //basic_sector
 
@@ -2488,6 +2615,36 @@ void Core::load_config ()
     rtctrl.customshell      = cfg->lookupValue ( "core.rootcontrol.custom_shell",    false          );
     rtctrl.shellname        = cfg->lookupValue ( "core.rootcontrol.shell_name",      "sh -c "       );
 
+    //flue
+
+    flue.active             = cfg->lookupValue ("core.flue.active",                     false       );
+    flue.last_date.day      = cfg->lookupValue ("core.flue.last_date.day",              0           );
+    flue.last_date.month    = cfg->lookupValue ("core.flue.last_date.month",            0           );
+    flue.last_date.year     = cfg->lookupValue ("core.flue.last_date.year",             0           );
+    flue.last_date.lenght   = cfg->lookupValue ("core.flue.last_date.lenght",           3           );
+    flue.last_date.minute_perc = cfg->lookupValue ("core.flue.last_date.perc_per_min",  0.034       );
+    flue.last_date.invertion_step = cfg->lookupValue ("core.flue.last_date.invertion_per_min",  0.005       );
+    flue.last_date.progress = cfg->lookupValue ("core.flue.last_date.progress",         0.0         );
+    flue.amplitude          = cfg->lookupValue ("core.flue.temperature_max_amplitude",  20          );
+    flue.highval            = cfg->lookupValue ("core.flue.temperature_highest",        (double)temperature.stable);
+    flue.lowval             = cfg->lookupValue ("core.flue.temperature_lowest",         (double)temperature.stable);
+    flue.update_impact      = cfg->lookupValue ("core.flue.update_impact",              1.0         );
+    flue.bul_impact         = cfg->lookupValue ("core.flue.bulwers_impact",             0.01        );
+    flue.fun_impact         = cfg->lookupValue ("core.flue.fun_impact",                 0.2         );
+    flue.pet_impact         = cfg->lookupValue ("core.flue.pet_impact",                 -0.5        );
+    flue.hit_impact         = cfg->lookupValue ("core.flue.hit_impact",                 0.01        );
+    flue.max_bul_booster    = cfg->lookupValue ("core.flue.max_bulwers_booster",        100.0       );
+    flue.invertion_perc     = cfg->lookupValue ("core.flue.invertion_perc",             0.01        );
+    flue.visual_impact_probability_1     = cfg->lookupValue ("core.flue.visual_impact_probability_1",             5        );
+    flue.visual_impact_probability_2     = cfg->lookupValue ("core.flue.visual_impact_probability_2",             4        );
+    flue.visual_impact_probability_3     = cfg->lookupValue ("core.flue.visual_impact_probability_3",             3        );
+    flue.visual_impact_probability_4     = cfg->lookupValue ("core.flue.visual_impact_probability_4",             2        );
+    flue.visual_impact_probability_5     = cfg->lookupValue ("core.flue.visual_impact_probability_5",             1        );
+    flue.step_perc_1        = cfg->lookupValue ("core.flue.step_perc.lvl_1",            50          );
+    flue.step_perc_2        = cfg->lookupValue ("core.flue.step_perc.lvl_2",            70          );
+    flue.step_perc_3        = cfg->lookupValue ("core.flue.step_perc.lvl_3",            80          );
+    flue.step_perc_4        = cfg->lookupValue ("core.flue.step_perc.lvl_4",            90          );
+    flue.step_perc_5        = cfg->lookupValue ("core.flue.step_perc.lvl_5",            100         );
 }
 
 void handler (int signal)

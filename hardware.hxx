@@ -53,7 +53,8 @@ public:
                             proc_bat_state      (string path),
                             sys_temp            (string path),
                             sys_bat_uni         (string path),
-                            sys_bat_state       (string path);
+                            sys_bat_state       (string path),
+                            sensors_temp        (string path);
     char                    final_temp_solution,
                             final_now_solution,
                             final_full_solution,
@@ -69,6 +70,7 @@ public:
                             backlight_fpath,
                             backlight_npath,
                             get_file            (char* path);
+    vector <string>         cores_paths;
 };
 
 extern          hardware        HRDWR;
