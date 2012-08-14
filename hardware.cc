@@ -31,6 +31,7 @@
 
 hardware        HRDWR;
 sdate           get_time    ();
+extern int      core_step;
 
 string hardware::get_file (char* path)
 {
@@ -389,10 +390,9 @@ unsigned short hardware::emutemp(string path)
 
 
 
-unsigned int percental::convert(unsigned short val)
+int percental::convert(unsigned short val)
 {
-    mod_prev = 0;
-    mod = 0;
+    /*
     for (unsigned short i = 0; i<=steps; i++)
     {
         mod_prev = mod;
@@ -433,7 +433,16 @@ unsigned int percental::convert(unsigned short val)
         }
 
     }
-    return mod;
+    */
+    if (val < stable-safezone)
+    {
+        return -(int)(pow((double)(stable-val-safezone), degree)*mod_correction_pos);
+    }
+    if (val > stable+safezone)
+    {
+        return (int)(pow((double)(val-stable-safezone), degree)*mod_correction_neg);
+    }
+    return 0;
 }
 
 
@@ -460,37 +469,68 @@ unsigned int percental::calculate ()
     }
 }
 
-unsigned int unital::calculate()
+
+void percental::get_load( double function )
 {
-    if (EQsize == 1)
-        return value;
-    int curstep = 0;
-    int perc = 0;
-    if (value < EQbegin)
-        return EQ[0];
-    for (int i = 0; i<=EQsize; i++)
+    if (buffered)
     {
-        if (value >= EQbegin + ((EQend-EQbegin)/EQsize)*i)
-            curstep = i;
-        else
-            break;
+        current_probe_small ++;
+
+        if (current_probe_small == buff_size)
+            current_probe_small = 0;
+
+        sector_small[current_probe_small] = function;
+        if (sector_small[current_probe_small] > 100)
+            sector_small[current_probe_small] = stable;
+        if (sector_small[current_probe_small] == 100)
+            sector_small[current_probe_small] = 99;
+
+        for (unsigned short i = 0; i< buff_size;i++)
+        {
+            probes[current_probe] += sector_small[i];
+        }
+        probes [current_probe] /= buff_size + 1;
+
+        if (core_step % 10 == 0)
+        {
+           current_probe ++;
+
+           for (unsigned short i = 0; i<buff_size;i++)
+           {
+               load += probes [i];
+           }
+
+           load /= buff_size + 1;
+
+           if (current_probe == buff_size)
+               current_probe = 0;
+        }
+
+
     }
-    if (curstep == EQsize)
-        return EQ[EQsize];
     else
-    {
-        perc = 100*(value-(EQbegin + ((EQend-EQbegin)/EQsize)*curstep))/((EQend-EQbegin)/EQsize);
-        return EQ[curstep] + perc*(EQ[curstep+1]-EQ[curstep])/100;
-    }
+        load = function;
 }
 
 
 
-unsigned int unital::convert(unsigned short val)
+bool percental::ready()
+{
+    if (!buffered)
+        return true;
+    if (core_step > buff_size*buff_size)
+        return true;
+    else
+        return false;
+}
+
+
+
+int unital::convert(unsigned short val)
 {
     mod = 0;
     mod_prev = 0;
-    for (unsigned short i = 0; i<=steps; i++)
+    /*for (unsigned short i = 0; i<=steps; i++)
     {
         mod_prev = mod;
         if (val <= stable - loseless - (i*unit))
@@ -528,8 +568,97 @@ unsigned int unital::convert(unsigned short val)
                 break;
             }
         }
+    }*/
+    if (val < stable-safezone)
+    {
+        return -(int)(pow((double)(stable-val-safezone), degree)*mod_correction_pos);
     }
-    return mod;
+    if (val > stable+safezone)
+    {
+        return (int)(pow((double)(val-stable-safezone), degree)*mod_correction_neg);
+    }
+    return 0;
+}
+
+
+
+unsigned int unital::calculate()
+{
+    if (EQsize == 1)
+        return value;
+    int curstep = 0;
+    int perc = 0;
+    if (value < EQbegin)
+        return EQ[0];
+    for (int i = 0; i<=EQsize; i++)
+    {
+        if (value >= EQbegin + ((EQend-EQbegin)/EQsize)*i)
+            curstep = i;
+        else
+            break;
+    }
+    if (curstep == EQsize)
+        return EQ[EQsize];
+    else
+    {
+        perc = 100*(value-(EQbegin + ((EQend-EQbegin)/EQsize)*curstep))/((EQend-EQbegin)/EQsize);
+        return EQ[curstep] + perc*(EQ[curstep+1]-EQ[curstep])/100;
+    }
+}
+
+
+
+void unital::get_load( unsigned short function )
+{
+    if (buffered)
+    {
+        current_probe_small ++;
+
+        if (current_probe_small == buff_size)
+            current_probe_small = 0;
+
+        sector_small[current_probe_small] = function;
+
+        if (sector_small[current_probe_small] > 100)
+            sector_small[current_probe_small] = stable;
+        if (sector_small[current_probe_small] == 100)
+            sector_small[current_probe_small] = 99;
+
+        for (unsigned short i = 0; i< buff_size;i++)
+        {
+            probes[current_probe] += sector_small[i];
+        }
+
+        probes [current_probe] /= buff_size + 1;
+
+        if (core_step % 10 == 0)
+        {
+            current_probe ++;
+
+            for (unsigned short i = 0; i<buff_size;i++)
+            {
+                value += probes [i];
+            }
+            value /= buff_size + 1;
+
+            if (current_probe == buff_size)
+                current_probe = 0;
+        }
+    }
+    else
+        value = function;
+}
+
+
+
+bool unital::ready()
+{
+    if (!buffered)
+        return true;
+    if (core_step > buff_size*buff_size)
+        return true;
+    else
+        return false;
 }
 
 

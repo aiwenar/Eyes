@@ -51,18 +51,22 @@ public:
                                 stable;
     unsigned int                buff_size,
                                 EQsize,
-                                steps,
+                                max_mod_pos,
+                                max_mod_neg,
                                 lin_num,
                                 current_probe,
                                 current_probe_small,
-                                loseless,
-                                calculate(),
-                                convert(unsigned short val);
+                                safezone,
+                                calculate();
+    int                         convert(unsigned short val);
     vector <int>                EQ;
-    char                        frequency;
+    double                      degree,
+                                mod_correction_pos,
+                                mod_correction_neg;
     void                        get_load (double),
                                 init (QString adress);
-    bool                        buffered;
+    bool                        buffered,
+                                ready();
 };
 
 class unital
@@ -78,19 +82,23 @@ public:
                                 EQsize,
                                 EQbegin,
                                 EQend,
-                                steps,
+                                max_mod_pos,
+                                max_mod_neg,
                                 unit,
                                 lin_num,
                                 current_probe,
                                 current_probe_small,
-                                loseless,
-                                calculate(),
-                                convert(unsigned short val);
+                                safezone,
+                                calculate();
+    int                         convert(unsigned short val);
     vector <int>                EQ;
-    char                        frequency;
+    double                      degree,
+                                mod_correction_pos,
+                                mod_correction_neg;
     void                        get_load (unsigned short),
                                 init (QString adress);
-    bool                        buffered;
+    bool                        buffered,
+                                ready();
 };
 
 class timal
@@ -127,6 +135,7 @@ public:
                                 wkup_active;
     bool                        wake_up,
                                 no_update,
+                                force_autosave,
                                 check_env(bool enabled, Configuration * cfg );
     int                         total_mod,
                                 envindex;
@@ -158,7 +167,8 @@ public:
                                 max_mem_lag,
                                 rest_time_std,
                                 rest_time_wkend,
-                                env_saveinterval;
+                                env_saveinterval,
+                                autosave_interval;
     unsigned short              outline,
                                 prev_outline,
                                 eye,
@@ -187,7 +197,8 @@ public:
                                 timelow_3w,
                                 timehigh_1w,
                                 timehigh_2w,
-                                timehigh_3w;
+                                timehigh_3w,
+                                quickcalm_bulwers;
     double                      sweat_perc_1,
                                 sweat_perc_2,
                                 sweat_perc_3,
@@ -196,11 +207,13 @@ public:
                                 env_min_compability,
                                 env_update_impact,
                                 env_max_exotic_spenttime,
-                                env_max_compability;
+                                env_max_compability,
+                                quickcalm;
     void                        update(),
                                 critical_services( Configuration * cfg ),
                                 wake_up_chk(),
-                                fun_check();
+                                fun_check(),
+                                autosave ( Configuration * cfg );
     vector <environment_data>   envs;
     environment_data            curenv;
 };

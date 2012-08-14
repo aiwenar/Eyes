@@ -391,14 +391,14 @@ void cdbg::on_timer_tick ()
       {
           if (i != cpu.current_probe)
           {
-              if (cpu.probes[i] <= cpu.stable - cpu.loseless)
+              if (cpu.probes[i] <= cpu.stable - cpu.safezone)
               {
                   if (cpu.probes[i] < 10)
                     cout << "\033[1;32m  "  << (unsigned short)cpu.probes[i] << "\n";
                   else
                     cout << "\033[1;32m "  << (unsigned short)cpu.probes[i] << "\n";
               }
-              else if (cpu.probes[i] >= cpu.stable + cpu.loseless)
+              else if (cpu.probes[i] >= cpu.stable + cpu.safezone)
               {
                   if (cpu.probes[i] < 10)
                     cout << "\033[1;31m  " << (unsigned short)cpu.probes[i] << "\n";
@@ -429,14 +429,14 @@ void cdbg::on_timer_tick ()
       {
           if (i != cpu.current_probe_small)
           {
-              if (cpu.sector_small[i] <= cpu.stable - cpu.loseless)
+              if (cpu.sector_small[i] <= cpu.stable - cpu.safezone)
               {
                   if (cpu.sector_small[i] < 10)
                       cout << "\033[1;32m\033[4C" << (unsigned short)cpu.sector_small[i] << "  \n";
                   else
                       cout << "\033[1;32m\033[4C" << (unsigned short)cpu.sector_small[i] << " \n";
               }
-              else if (cpu.sector_small[i] >= cpu.stable + cpu.loseless)
+              else if (cpu.sector_small[i] >= cpu.stable + cpu.safezone)
               {
                   if (cpu.sector_small[i] < 10)
                       cout << "\033[1;31m\033[4C" << (unsigned short)cpu.sector_small[i] << "  \n";
@@ -462,9 +462,9 @@ void cdbg::on_timer_tick ()
   }
   else
   {
-      if (cpu.load <= cpu.stable - cpu.loseless)
+      if (cpu.load <= cpu.stable - cpu.safezone)
           cout << "\033[1;32m " << (unsigned short)cpu.load << " \n";
-      else if (cpu.load >= cpu.stable + cpu.loseless)
+      else if (cpu.load >= cpu.stable + cpu.safezone)
           cout << "\033[1;31m " << (unsigned short)cpu.load << " \n";
       else
           cout << "\033[1;30m " << (unsigned short)cpu.load << " \n";
@@ -472,93 +472,25 @@ void cdbg::on_timer_tick ()
 
   cout << "\n" << "\033[1C";
 
-  switch ( cpu.frequency )
+  if (cpu.mod < 0)
+      cout << "\033[1;32m";
+  else if (cpu.mod > 0)
+      cout << "\033[1;31m";
+  else
+      cout << "\033[1;30m";
+
+  unsigned short barperc;
+  if (cpu.load < cpu.stable)
+      barperc = 100*abs(cpu.mod)/cpu.max_mod_neg;
+  else
+      barperc = 100*abs(cpu.mod)/cpu.max_mod_pos;
+  for (int i = 0; i < 5; i++)
   {
-  case 'l':
-      if (cpu.mod <= 0)
-      {
-          unsigned short s = 5 * (double(-cpu.mod) / double(cpu.lin_num*cpu.steps));
-          if (s == 0 && cpu.mod < 0)
-              s = 1;
-          cout << "\033[1;32m";
-          for ( unsigned int i = s; i > 0; i--)
-              cout << "=";
+      cout << "=";
+      if (i*20 > barperc)
           cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-              cout << "=";
-      }
-      else
-      {
-          unsigned short s = 5 * (double(cpu.mod) / double(cpu.lin_num*cpu.steps));
-          if (s == 0 && cpu.mod > 0)
-              s = 1;
-          cout << "\033[1;31m";
-          for ( unsigned int i = s; i > 0; i--)
-              cout << "=";
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-              cout << "=";
-      }
-
-  case 'q':
-      if (cpu.mod <= 0)
-      {
-          unsigned short s = 5 * (double(-cpu.mod) / double(cpu.steps*cpu.steps));
-          if (s == 0 && cpu.mod < 0)
-              s = 1;
-          cout << "\033[1;32m";
-          for ( unsigned int i = s; i > 0; i--)
-              cout << "=";
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-              cout << "=";
-      }
-      else
-      {
-          unsigned short s = 5 * (double(cpu.mod) / double(cpu.steps*cpu.steps));
-          if (s == 0 && cpu.mod > 0)
-              s = 1;
-          cout << "\033[1;31m";
-          for ( unsigned int i = s; i > 0; i--)
-              cout << "=";
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-              cout << "=";
-      }
-
-  case 'f':
-      unsigned short max_mod = 0;
-      unsigned short max_mod_prev = 0;
-      for (unsigned int i = 0; i <= cpu.steps; i++)
-      {
-          max_mod_prev = max_mod;
-          max_mod = i + max_mod_prev;
-      }
-      if (cpu.mod <= 0)
-      {
-          unsigned short s = 5 * (double(-cpu.mod) / double(max_mod));
-          if (s == 0 && cpu.mod < 0)
-              s = 1;
-          cout << "\033[1;32m";
-          for (unsigned short i = s; i > 0; i--)
-              cout << "=";
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-              cout << "=";
-      }
-      else
-      {
-          unsigned short s = 5 * (double(cpu.mod) / double(max_mod));
-          if (s == 0 && cpu.mod > 0)
-              s = 1;
-          cout << "\033[1;31m";
-          for ( unsigned int i = s; i > 0; i--)
-              cout << "=";
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-              cout << "=";
-      }
   }
+
 
   if (cpu.buffered)
       for (unsigned short i = 0; i<= cpu.buff_size+1; i++)
@@ -574,14 +506,14 @@ void cdbg::on_timer_tick ()
       {
           if (i != memory.current_probe)
           {
-              if (memory.probes[i] <= memory.stable - memory.loseless)
+              if (memory.probes[i] <= memory.stable - memory.safezone)
               {
                   if (memory.probes[i] < 10)
                     cout << "\033[1;32m\033[8C  " << (unsigned short)memory.probes[i] << "\n";
                   else
                     cout << "\033[1;32m\033[8C " << (unsigned short)memory.probes[i] << "\n";
               }
-              else if (memory.probes[i] >= memory.stable + memory.loseless)
+              else if (memory.probes[i] >= memory.stable + memory.safezone)
               {
                   if (memory.probes[i] < 10)
                     cout << "\033[1;31m\033[8C  " << (unsigned short)memory.probes[i] << "\n";
@@ -613,14 +545,14 @@ void cdbg::on_timer_tick ()
       {
           if (i != memory.current_probe_small)
           {
-              if (memory.sector_small[i] <= memory.stable - memory.loseless)
+              if (memory.sector_small[i] <= memory.stable - memory.safezone)
               {
                   if (memory.sector_small[i] < 10)
                       cout << "\033[1;32m\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
                   else
                       cout << "\033[1;32m\033[12C" << (unsigned short)memory.sector_small[i] << " \n";
               }
-              else if (memory.sector_small[i] >= memory.stable + memory.loseless)
+              else if (memory.sector_small[i] >= memory.stable + memory.safezone)
               {
                   if (memory.sector_small[i] < 10)
                       cout << "\033[1;31m\033[12C" << (unsigned short)memory.sector_small[i] << "  \n";
@@ -646,107 +578,32 @@ void cdbg::on_timer_tick ()
   }
   else
   {
-      if (memory.load <= memory.stable - memory.loseless)
+      if (memory.load <= memory.stable - memory.safezone)
           cout << "\033[1;32m\033[9C" << (unsigned short)memory.load << " \n";
-      else if (memory.load >= memory.stable + memory.loseless)
+      else if (memory.load >= memory.stable + memory.safezone)
           cout << "\033[1;31m\033[9C" << (unsigned short)memory.load << " \n";
       else
           cout << "\033[1;30m\033[9C" << (unsigned short)memory.load << " \n";
   }
 
   cout << "\n" << "\033[9C";
-  if (memory.frequency == 'l')
-  {
-      if (memory.mod <= 0)
-      {
-          unsigned short s = 5 * (double(-memory.mod) / double(memory.lin_num*memory.steps));
-          if (s == 0 && memory.mod < 0)
-              s = 1;
-          cout << "\033[1;32m";
-          for ( unsigned int i = s; i > 0; i--)
-              cout << "=";
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-              cout << "=";
-      }
-      else
-      {
-          unsigned short s = 5 * (double(memory.mod) / double(memory.lin_num*memory.steps));
-          if (s == 0 && memory.mod > 0)
-              s = 1;
-          cout << "\033[1;31m";
-          for ( unsigned int i = s; i > 0; i--)
-              cout << "=";
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-              cout << "=";
-      }
-  }
-  if (memory.frequency == 'q')
-  {
-      if (memory.mod <= 0)
-      {
-          unsigned short s = 5 * (double(-memory.mod) / double(memory.steps*memory.steps));
-          if (s == 0 && memory.mod < 0)
-              s = 1;
-          cout << "\033[1;32m";
-          for ( unsigned int i = s; i > 0; i--)
-              cout << "=";
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-              cout << "=";
-      }
-      else
-      {
-          unsigned short s = 5 * (double(memory.mod) / double(memory.steps*memory.steps));
-          if (s == 0 && memory.mod > 0)
-              s = 1;
-          cout << "\033[1;31m";
-          for ( unsigned int i = s; i > 0; i--)
-              cout << "=";
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-              cout << "=";
-      }
-  }
 
-  if (memory.frequency == 'f')
+  if (memory.mod < 0)
+      cout << "\033[1;32m";
+  else if (memory.mod > 0)
+      cout << "\033[1;31m";
+  else
+      cout << "\033[1;30m";
+
+  if (memory.load < memory.stable)
+      barperc = 100*abs(memory.mod)/memory.max_mod_neg;
+  else
+      barperc = 100*abs(memory.mod)/memory.max_mod_pos;
+  for (int i = 0; i < 5; i++)
   {
-      unsigned short max_mod = 0;
-      unsigned short max_mod_prev = 0;
-      for (unsigned int i = 0; i <= memory.steps; i++)
-      {
-          max_mod_prev = max_mod;
-          max_mod = i + max_mod_prev;
-      }
-      if (memory.mod <= 0)
-      {
-          unsigned short s = 5 * (double(-memory.mod) / double(max_mod));
-          if (s == 0 && memory.mod < 0)
-              s = 1;
-          cout << "\033[1;32m";
-          for (unsigned short i = s; i > 0; i--)
-              cout << "=";
+      cout << "=";
+      if (i*20 > barperc)
           cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-              cout << "=";
-      }
-      else
-      {
-          unsigned short s = 5 * (double(memory.mod) / double(max_mod));
-          if (s == 0 && memory.mod > 0)
-              s = 1;
-          cout << "\033[1;31m";
-          for ( unsigned int i = s; i > 0; i--)
-          {
-              cout << "=";
-          }
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-          {
-              cout << "=";
-          }
-      }
   }
 
   if (memory.buffered)
@@ -769,18 +626,18 @@ void cdbg::on_timer_tick ()
           {
               if (temperature.probes[i] < 10)
               {
-                  if (temperature.probes[i] <= temperature.stable - temperature.loseless)
+                  if (temperature.probes[i] <= temperature.stable - temperature.safezone)
                       cout << "\033[1;32m" << "\033[16C" << "  " << (unsigned short)temperature.probes[i] << "\n";
-                  else if (temperature.probes[i] >= temperature.stable + temperature.loseless)
+                  else if (temperature.probes[i] >= temperature.stable + temperature.safezone)
                       cout << "\033[1;31m" << "\033[16C" << "  " << (unsigned short)temperature.probes[i] << "\n";
                   else
                       cout << "\033[1;30m" << "\033[16C" << "  " << (unsigned short)temperature.probes[i] << "\n";
               }
               else
               {
-                  if (temperature.probes[i] <= temperature.stable - temperature.loseless)
+                  if (temperature.probes[i] <= temperature.stable - temperature.safezone)
                       cout << "\033[1;32m" << "\033[16C" << " " << (unsigned short)temperature.probes[i] << "\n";
-                  else if (temperature.probes[i] >= temperature.stable + temperature.loseless)
+                  else if (temperature.probes[i] >= temperature.stable + temperature.safezone)
                       cout << "\033[1;31m" << "\033[16C" << " " << (unsigned short)temperature.probes[i] << "\n";
                   else
                       cout << "\033[1;30m" << "\033[16C" << " " << (unsigned short)temperature.probes[i] << "\n";
@@ -797,9 +654,9 @@ void cdbg::on_timer_tick ()
   }
   else
   {
-      if (temperature.value <= temperature.stable - temperature.loseless)
+      if (temperature.value <= temperature.stable - temperature.safezone)
           cout << "\033[1;32m" << "\033[16C" << " " << (unsigned short)temperature.value << "\n";
-      else if (temperature.value >= temperature.stable + temperature.loseless)
+      else if (temperature.value >= temperature.stable + temperature.safezone)
           cout << "\033[1;31m" << "\033[16C" << " " << (unsigned short)temperature.value << "\n";
       else
           cout << "\033[1;30m" << "\033[16C" << " " << (unsigned short)temperature.value << "\n";
@@ -807,120 +664,25 @@ void cdbg::on_timer_tick ()
 
 
   cout << "\n" << "\033[17C";
-  /*
-  if (temperature.frequency == 'l')
+
+
+  if (temperature.mod < 0)
+      cout << "\033[1;32m";
+  else if (temperature.mod > 0)
+      cout << "\033[1;31m";
+  else
+      cout << "\033[1;30m";
+
+  if (temperature.value < temperature.stable)
+      barperc = 100*abs(temperature.mod)/temperature.max_mod_neg;
+  else
+      barperc = 100*abs(temperature.mod)/temperature.max_mod_pos;
+  for (int i = 0; i < 5; i++)
   {
-      if (temperature.mod <= 0)
-      {
-          unsigned short s = 5 * (double(-temperature.mod) / double(temperature.steps*temperature.lin_num));
-          if (s == 0 && temperature.mod < 0)
-              s = 1;
-          cout << "\033[1;32m";
-          for ( unsigned int i = s; i > 0; i--)
-          {
-              cout << "=";
-          }
+      cout << "=";
+      if (i*20 > barperc)
           cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-          {
-              cout << "=";
-          }
-      }
-      else
-      {
-          unsigned short s = 5 * (double(temperature.mod) / double(temperature.steps*temperature.lin_num));
-          if (s == 0 && temperature.mod > 0)
-              s = 1;
-          cout << "\033[1;31m";
-          for ( unsigned int i = s; i > 0; i--)
-          {
-              cout << "=";
-          }
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-          {
-              cout << "=";
-          }
-      }
   }
-  if (temperature.frequency == 'q')
-  {
-      if (temperature.mod <= 0)
-      {
-          unsigned short s = 5 * (double(-temperature.mod) / double(temperature.steps*temperature.steps));
-          if (s == 0 && temperature.mod < 0)
-              s = 1;
-          cout << "\033[1;32m";
-          for ( unsigned int i = s; i > 0; i--)
-          {
-              cout << "=";
-          }
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-          {
-              cout << "=";
-          }
-      }
-      else
-      {
-          unsigned short s = 5 * (double(temperature.mod) / double(temperature.steps*temperature.steps));
-          if (s == 0 && temperature.mod > 0)
-              s = 1;
-          cout << "\033[1;31m";
-          for ( unsigned int i = s; i > 0; i--)
-          {
-              cout << "=";
-          }
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-          {
-              cout << "=";
-          }
-      }
-  }
-  if (temperature.frequency == 'f')
-  {
-      unsigned short max_mod = 0;
-      unsigned short max_mod_prev = 0;
-      for (unsigned int i = 0; i <= temperature.steps; i++)
-      {
-          max_mod_prev = max_mod;
-          max_mod = i + max_mod_prev;
-      }
-      if (temperature.mod <= 0)
-      {
-          unsigned short s = 5 * (double(-temperature.mod) / double(max_mod));
-          if (s == 0 && temperature.mod < 0)
-              s = 1;
-          cout << "\033[1;32m";
-          for (unsigned short i = s; i > 0; i--)
-          {
-              cout << "=";
-          }
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-          {
-              cout << "=";
-          }
-      }
-      else
-      {
-          unsigned short s = 5 * (double(temperature.mod) / double(max_mod));
-          if (s == 0 && temperature.mod > 0)
-              s = 1;
-          cout << "\033[1;31m";
-          for (unsigned short i = s; i > 0; i--)
-          {
-              cout << "=";
-          }
-          cout << "\033[1;30m";
-          for (unsigned short m = 5 - s; m > 0; m--)
-          {
-              cout << "=";
-          }
-      }
-  }
-  */
 
   if (temperature.buffered)
   {
@@ -935,14 +697,14 @@ void cdbg::on_timer_tick ()
       {
           if (i != temperature.current_probe_small)
           {
-              if (temperature.sector_small[i] <= temperature.stable - temperature.loseless)
+              if (temperature.sector_small[i] <= temperature.stable - temperature.safezone)
               {
                   if (temperature.sector_small[i] < 10)
                       cout << "\033[1;32m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << "  \n";
                   else
                       cout << "\033[1;32m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << " \n";
               }
-              else if (temperature.sector_small[i] >= temperature.stable + temperature.loseless)
+              else if (temperature.sector_small[i] >= temperature.stable + temperature.safezone)
               {
                   if (temperature.sector_small[i] < 10)
                       cout << "\033[1;31m" << "\033[20C" << (unsigned short)temperature.sector_small[i] << "  \n";
@@ -2357,33 +2119,33 @@ void cdbg::on_timer_tick ()
     chck_s ();
     cout << "cstbl" << " " << (unsigned short)cpu.stable << " %";
     chck_s ();
-    cout << "closs" << " " << (unsigned short)cpu.loseless;
+    cout << "closs" << " " << (unsigned short)cpu.safezone;
     chck_s ();
     cout << "clnum" << " " << (unsigned short)cpu.lin_num;
     chck_s ();
-    cout << "cfreq" << " " << cpu.frequency;
+    cout << "cfreq" << " " << cpu.degree;
     chck_s ();
     cout << "mload" << " " << (unsigned short)memory.load << " %";
     chck_s ();
     cout << "mstbl" << " " << (unsigned short)memory.stable << " %";
     chck_s ();
-    cout << "mloss" << " " << (unsigned short)memory.loseless;
+    cout << "mloss" << " " << (unsigned short)memory.safezone;
     chck_s ();
     cout << "mlnum" << " " << (unsigned short)memory.lin_num;
     chck_s ();
-    cout << "mfreq" << " " << memory.frequency;
+    cout << "mfreq" << " " << memory.degree;
     chck_s ();
     cout << "bload" << " " << (unsigned short)battery.load << " %";
     chck_s ();
     cout << "bstbl" << " " << (unsigned short)battery.stable << " %";
     chck_s ();
-    cout << "bloss" << " " << (unsigned short)battery.loseless;
+    cout << "bloss" << " " << (unsigned short)battery.safezone;
     chck_s ();
     cout << "blnum" << " " << (unsigned short)battery.lin_num;
     chck_s ();
     cout << "bstat" << " " << battery_state;
     chck_s ();
-    cout << "bfreq" << " " << battery.frequency;
+    cout << "bfreq" << " " << battery.degree;
     chck_s ();
     cout << "pbplg" << " " << prev_bat_plug;
     chck_s ();
@@ -2395,13 +2157,13 @@ void cdbg::on_timer_tick ()
     chck_s ();
     cout << "tstbl" << " " << (unsigned short)temperature.stable << "ºC";
     chck_s ();
-    cout << "tloss" << " " << (unsigned short)temperature.loseless;
+    cout << "tloss" << " " << (unsigned short)temperature.safezone;
     chck_s ();
     cout << "tlnum" << " " << (unsigned short)temperature.lin_num;
     chck_s ();
     cout << "tunit" << " " << (unsigned short)temperature.unit;
     chck_s ();
-    cout << "tfreq" << " " << temperature.frequency;
+    cout << "tfreq" << " " << temperature.degree;
     chck_s ();
     cout << "tempt" << " " << flue.amplitude;
     chck_s ();

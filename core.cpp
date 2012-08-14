@@ -141,20 +141,25 @@ void bul::update()
 {
 
     total_mod =
-            cpu.mod         +
-            memory.mod      +
             times.mod       +
-            energy.mod      +
-            temperature.mod -
-            battery.mod     -
+            energy.mod      -
             mod_bat_plug    -
             mousea.mod      ;
+    if (cpu.ready())
+        total_mod += cpu.mod;
+    if (memory.ready())
+        total_mod += memory.mod;
+    if (temperature.ready())
+        total_mod += temperature.mod;
+    if (battery.ready())
+        total_mod -= battery.mod;
+
     if(flue.active && total_mod > 0)
-        total_mod+=(double)(total_mod)*flue.max_bul_booster/100.0;
+        total_mod+=(double)(total_mod)*flue.last_date.progress*flue.max_bul_booster/100.0;
 
     if (!flue.active)
     {
-        cerr << "orginal mod: " << total_mod << "\n";
+        //cerr << "orginal mod: " << total_mod << "\n";
         if (fship.value > 0)
         {
             if (total_mod > 0)
@@ -178,7 +183,7 @@ void bul::update()
             }
 
         }
-        cerr << "modded mod: " << total_mod << "\n";
+        //cerr << "modded mod: " << total_mod << "\n";
     }
     //total_mod = 0;
     if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
@@ -225,6 +230,9 @@ void bul::update()
     if (eMu.bulwers)
         value = eMu.bulwers_val;
 
+    if (value >= quickcalm_bulwers)
+        step-=(((double)step)*quickcalm)/100.0;
+
     if (once_plugged)
     {
         if (battery_state == 2 && prev_bat_plug != 2)
@@ -264,9 +272,15 @@ void bul::update()
     prev_bat_plug = battery_state;
 }
 
+void bul::autosave(Configuration *cfg)
+{
+    cfg->save();
+    force_autosave = false;
+}
+
 void disease::check(Configuration *cfg)
 {
-    if (core_step > temperature.buff_size*temperature.buff_size)
+    if (temperature.ready())
     {
         if ((double)temperature.value < lowval)
             lowval=temperature.value;
@@ -274,6 +288,8 @@ void disease::check(Configuration *cfg)
             highval = temperature.value;
         highval-=(highval-(double)temperature.stable)*(double)update_impact/100.0;
         lowval+=((double)temperature.stable-lowval)*(double)update_impact/100.0;
+        cfg->setValue("core.flue.temperature_highest", highval);
+        cfg->setValue("core.flue.temperature_lowest", lowval);
         if (highval - lowval > (double)amplitude)
         {
             active = true;
@@ -283,13 +299,24 @@ void disease::check(Configuration *cfg)
             last_date.lenght = rand () % 3 + 3;
             last_date.minute_perc = 100.0/(double)(last_date.lenght*(24-bulwers.rest_time_std)*60);
             last_date.invertion_step = last_date.minute_perc*invertion_perc;
+            last_date.progress = last_date.minute_perc;
             cfg->setValue("core.flue.last_date.day", init_day);
             cfg->setValue("core.flue.last_date.month", init_month);
             cfg->setValue("core.flue.last_date.year", init_year);
             cfg->setValue("core.flue.last_date.lenght", last_date.lenght);
             cfg->setValue("core.flue.last_date.perc_per_min",  last_date.minute_perc);
             cfg->setValue("core.flue.last_date.invertion_per_min",  last_date.invertion_step);
-            cfg->save();
+            cfg->setValue("core.flue.last_date.progress", last_date.progress);
+            cfg->setValue("core.flue.active", true);
+            bulwers.force_autosave = true;
+            cerr << "flue log:\n" <<
+                    "\n  init_day: " << init_day <<
+                    "\n  init_month: " << init_month <<
+                    "\n  init_year: " << init_year <<
+                    "\n  leng: " << last_date.lenght <<
+                    "\n  minute step: " << last_date.minute_perc <<
+                    "\n  invertion step: " << last_date.invertion_step <<
+                    "\n\n";
         }
     }
 }
@@ -297,20 +324,32 @@ void disease::check(Configuration *cfg)
 void disease::attack(Configuration *cfg)
 {
     cerr << "orginal progress: " << last_date.progress << "\n";
-    last_date.progress+=bulwers.total_mod*bul_impact/100.0;
-    cerr << "after_bulwers: " << last_date.progress << "\n";
+
+    if (temperature.ready() && cpu.ready() && memory.ready() && battery.ready())
+    {
+        last_date.progress+=bulwers.total_mod*bul_impact/100.0;
+        cerr << "after_bulwers: " << last_date.progress << "\n";
+    }
+
     last_date.progress+=ccap.fun.fun*fun_impact/100.0;
     if (mousea.mod > 0)
         last_date.progress+=mousea.mod*pet_impact/100.0;
     else
         last_date.progress+=mousea.mod*hit_impact/100.0;
     cerr << "after_mouse: " << last_date.progress << "\n";
+    cerr << "bulwers multiplier: " << (double)(bulwers.total_mod)*last_date.progress*max_bul_booster/100.0 << "\n";
+    cerr << "mult: " << last_date.progress*max_bul_booster/100.0 << "\n";
+
     if (core_step % 60 == 0)
     {
         last_date.progress+=last_date.minute_perc;
         if (expired(last_date))
+        {
             last_date.minute_perc-=last_date.invertion_step;
-        cfg->save();
+            cfg->setValue("core.flue.last_date.perc_per_min",  last_date.minute_perc);
+        }
+        cfg->setValue("core.flue.last_date.progress", last_date.progress);
+        bulwers.force_autosave = true;
     }
     visual_impact(last_date.progress);
 
@@ -731,10 +770,10 @@ void bul::critical_services( Configuration * cfg )
         rtctrl.shell("xscreensaver-command -deactivate > /dev/null");
         rtctrl.shell("gnome-screensaver-command -d > /dev/null");
         rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:false > /dev/null");
-        rtctrl.shell("killall ScreenSaverEngine > /dev/null");
+        rtctrl.shell("killall ScreenSaverEngine > /dev/null 2>/dev/null");
     }
 
-    if (core_step > temperature.buff_size*temperature.buff_size)
+    if (temperature.ready())
     {
         if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_3*(temperature.EQend-temperature.EQbegin)/100)
         {
@@ -779,6 +818,8 @@ void Core::bulwers_init ()
             cpu.sector_small.push_back (cpu.stable);
         }
     }
+    cpu.mod_correction_neg = cpu.max_mod_neg/pow((double)(100.0-cpu.stable-cpu.safezone), cpu.degree);
+    cpu.mod_correction_pos = cpu.max_mod_pos/pow((double)(cpu.stable-cpu.safezone), cpu.degree);
 
     if (memory.buffered)
     {
@@ -794,6 +835,8 @@ void Core::bulwers_init ()
             memory.sector_small.push_back (memory.stable);
         }
     }
+    memory.mod_correction_neg = memory.max_mod_neg/pow((double)(100.0-memory.stable-memory.safezone), memory.degree);
+    memory.mod_correction_pos = memory.max_mod_pos/pow((double)(memory.stable-memory.safezone), memory.degree);
 
     if (battery.buffered)
     {
@@ -809,6 +852,8 @@ void Core::bulwers_init ()
             battery.sector_small.push_back (battery.stable);
         }
     }
+    battery.mod_correction_pos = battery.max_mod_pos/pow((double)(100.0-battery.stable-battery.safezone), battery.degree);
+    battery.mod_correction_neg = battery.max_mod_neg/pow((double)(battery.stable-battery.safezone), battery.degree);
 
     if (temperature.buffered)
     {
@@ -824,6 +869,8 @@ void Core::bulwers_init ()
             temperature.sector_small.push_back (temperature.stable);
         }
     }
+    temperature.mod_correction_pos = temperature.max_mod_pos/pow((double)(100.0-temperature.stable-temperature.safezone), temperature.degree);
+    temperature.mod_correction_neg = temperature.max_mod_neg/pow((double)(temperature.stable-temperature.safezone), temperature.degree);
 
     mousea.cur                          = 0    ;
     mousea.result                       = 0    ;
@@ -837,110 +884,28 @@ void Core::bulwers_init ()
         mousea.buffer.push_back (0);
     }
 
-    energy.value                        = 0    ;
-    energy.start                       *= 3600 ;
-    energy.wide                        *= 3600 ;
-    once_plugged                        = false;
-    mod_bat_plug                        = 0    ;
-    bulwers.step                        = 0    ;
-    bulwers.wake_up                     = false;
-    bulwers.no_update                   = false;
-    bulwers.wkup_active                 = 0    ;
-    bulwers.wkup_reason                 = 0    ;
+    energy.value                        = 0     ;
+    energy.start                       *= 3600  ;
+    energy.wide                        *= 3600  ;
+    once_plugged                        = false ;
+    mod_bat_plug                        = 0     ;
+    bulwers.step                        = 0     ;
+    bulwers.wake_up                     = false ;
+    bulwers.no_update                   = false ;
+    bulwers.wkup_active                 = 0     ;
+    bulwers.wkup_reason                 = 0     ;
     bulwers.current_wkup_delay          = bulwers.wake_up_delay;
     if (bulwers.remembered_time == 0)
         bulwers.remembered_time         = get_time().day_num*60*24 + get_time().hour/60;
-    bulwers.lastnap_atime = 0;
-    bulwers.lastnap_remembered_time = 0;
-    bulwers.lastnap_rest = 0;
-    bulwers.lastnap_saved = 0;
-    bulwers.lastnap_dtime = 0;
-    bulwers.dtime = 0;
+    bulwers.lastnap_atime               = 0     ;
+    bulwers.lastnap_remembered_time     = 0     ;
+    bulwers.lastnap_rest                = 0     ;
+    bulwers.lastnap_saved               = 0     ;
+    bulwers.lastnap_dtime               = 0     ;
+    bulwers.dtime                       = 0     ;
+    bulwers.force_autosave              = false ;
     rtctrl.shelldetect();
 
-}
-
-void percental::get_load( double function )
-{
-    if (buffered)
-    {
-        current_probe_small ++;
-
-        if (current_probe_small == buff_size)
-            current_probe_small = 0;
-
-        sector_small[current_probe_small] = function;
-        if (sector_small[current_probe_small] > 100)
-            sector_small[current_probe_small] = stable;
-        if (sector_small[current_probe_small] == 100)
-            sector_small[current_probe_small] = 99;
-
-        for (unsigned short i = 0; i< buff_size;i++)
-        {
-            probes[current_probe] += sector_small[i];
-        }
-        probes [current_probe] /= buff_size + 1;
-
-        if (core_step % 10 == 0)
-        {
-           current_probe ++;
-
-           for (unsigned short i = 0; i<buff_size;i++)
-           {
-               load += probes [i];
-           }
-
-           load /= buff_size + 1;
-
-           if (current_probe == buff_size)
-               current_probe = 0;
-        }
-
-
-    }
-    else
-        load = function;
-}
-
-void unital::get_load( unsigned short function )
-{
-    if (buffered)
-    {
-        current_probe_small ++;
-
-        if (current_probe_small == buff_size)
-            current_probe_small = 0;
-
-        sector_small[current_probe_small] = function;
-
-        if (sector_small[current_probe_small] > 100)
-            sector_small[current_probe_small] = stable;
-        if (sector_small[current_probe_small] == 100)
-            sector_small[current_probe_small] = 99;
-
-        for (unsigned short i = 0; i< buff_size;i++)
-        {
-            probes[current_probe] += sector_small[i];
-        }
-
-        probes [current_probe] /= buff_size + 1;
-
-        if (core_step % 10 == 0)
-        {
-            current_probe ++;
-
-            for (unsigned short i = 0; i<buff_size;i++)
-            {
-                value += probes [i];
-            }
-            value /= buff_size + 1;
-
-            if (current_probe == buff_size)
-                current_probe = 0;
-        }
-    }
-    else
-        value = function;
 }
 
 void eyes_view::graphics_prepare()
@@ -1384,7 +1349,6 @@ void eyes_view::graphics_prepare()
            mousea.hit_active = 0;
            interrupt();
        }
-       ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
        if (fun_evoked)
        {
@@ -1547,6 +1511,8 @@ void Core::bulwers_update ()
             flue.check( Configuration::getInstance () );
         else
             flue.attack( Configuration::getInstance () );
+        if ((core_step+1) % bulwers.autosave_interval == 0 || bulwers.force_autosave )
+            bulwers.autosave( Configuration::getInstance() );
     }
     bulwers.no_update = false;
 
@@ -2325,7 +2291,7 @@ void Core::autocalc_reload ( Configuration * cfg )
                 autocalc.temperature_freq[i]/=2.0;
             }
         }
-        cfg->save();
+        bulwers.force_autosave = true;
         autocalc.save_next = autocalc.save_interval;
         autocalc.forcesave = false;
     }
@@ -2335,11 +2301,12 @@ void Core::load_config ()
 {
     Configuration * cfg = Configuration::getInstance ();
 
-    cpu.frequency           = cfg->lookupValue ( "core.cpu.frequency",                  'f'         );
+    cpu.degree              = cfg->lookupValue ( "core.cpu.degree",                     1.5         );
     cpu.lin_num             = cfg->lookupValue ( "core.cpu.linear_modifier",            0           );
     cpu.stable              = cfg->lookupValue ( "core.cpu.stable",                     25          );
-    cpu.steps               = cfg->lookupValue ( "core.cpu.steps",                      10          );
-    cpu.loseless            = cfg->lookupValue ( "core.cpu.adaptation",                 10          );
+    cpu.max_mod_neg         = cfg->lookupValue ( "core.cpu.max_mod_neg",                100         );
+    cpu.max_mod_pos         = cfg->lookupValue ( "core.cpu.max_mod_pos",                50          );
+    cpu.safezone            = cfg->lookupValue ( "core.cpu.safezone",                   10          );
     cpu.buffered            = cfg->lookupValue ( "core.cpu.buffered",                   true        );
     cpu.buff_size           = cfg->lookupValue ( "core.cpu.buffer_size",                10          );
     cpu.EQsize              = cfg->lookupValue ( "core.cpu.EQsize",                     30          );
@@ -2352,11 +2319,12 @@ void Core::load_config ()
 
     //mem_section
 
-    memory.frequency        = cfg->lookupValue ( "core.memory.frequency",               'q'         );
+    memory.degree           = cfg->lookupValue ( "core.memory.degree",                  1.5         );
     memory.lin_num          = cfg->lookupValue ( "core.memory.linear_modifier",         2           );
     memory.stable           = cfg->lookupValue ( "core.memory.stable",                  25          );
-    memory.steps            = cfg->lookupValue ( "core.memory.steps",                   8           );
-    memory.loseless         = cfg->lookupValue ( "core.memory.adaptation",              10          );
+    memory.max_mod_neg      = cfg->lookupValue ( "core.memory.max_mod_neg",             100         );
+    memory.max_mod_pos      = cfg->lookupValue ( "core.memory.max_mod_pos",             50          );
+    memory.safezone         = cfg->lookupValue ( "core.memory.safezone",                10          );
     memory.buffered         = cfg->lookupValue ( "core.memory.buffered",                true        );
     memory.buff_size        = cfg->lookupValue ( "core.memory.buffer_size",             10          );
     memory.EQsize           = cfg->lookupValue ( "core.memory.EQsize",                  30          );
@@ -2369,11 +2337,12 @@ void Core::load_config ()
 
     //temperature_section
 
-    temperature.frequency   = cfg->lookupValue ( "core.temperature.frequency",          'q'         );
+    temperature.degree      = cfg->lookupValue ( "core.temperature.degree",             1.5         );
     temperature.lin_num     = cfg->lookupValue ( "core.temperature.linear_modifier",    2           );
     temperature.stable      = cfg->lookupValue ( "core.temperature.stable",             54          );
-    temperature.steps       = cfg->lookupValue ( "core.temperature.steps",              12          );
-    temperature.loseless    = cfg->lookupValue ( "core.temperature.adaptation",         2           );
+    temperature.max_mod_neg = cfg->lookupValue ( "core.temperature.max_mod_neg",        200         );
+    temperature.max_mod_pos = cfg->lookupValue ( "core.temperature.max_mod_pos",        100         );
+    temperature.safezone    = cfg->lookupValue ( "core.temperature.safezone",           5           );
     temperature.buffered    = cfg->lookupValue ( "core.temperature.buffered",           true        );
     temperature.buff_size   = cfg->lookupValue ( "core.temperature.buffer_size",        10          );
     temperature.unit        = cfg->lookupValue ( "core.temperature.unit",               1           );
@@ -2389,11 +2358,12 @@ void Core::load_config ()
 
     //battery_section
 
-    battery.frequency       = cfg->lookupValue ( "core.battery.frequency",              'l'         );
+    battery.degree          = cfg->lookupValue ( "core.battery.degree",                 1.5         );
     battery.lin_num         = cfg->lookupValue ( "core.battery.linear_modifier",        0           );
     battery.stable          = cfg->lookupValue ( "core.battery.stable",                 25          );
-    battery.steps           = cfg->lookupValue ( "core.battery.steps",                  8           );
-    battery.loseless        = cfg->lookupValue ( "core.battery.adaptation",             10          );
+    battery.max_mod_neg     = cfg->lookupValue ( "core.battery.max_mod_neg",            100         );
+    battery.max_mod_pos     = cfg->lookupValue ( "core.battery.max_mod_pos",            60          );
+    battery.safezone        = cfg->lookupValue ( "core.battery.safezone",               10          );
     battery.buffered        = cfg->lookupValue ( "core.battery.buffered",               false       );
     battery.buff_size       = cfg->lookupValue ( "core.battery.buffer_size",            10          );
     battery.EQsize          = cfg->lookupValue ( "core.battery.EQsize",                 30          );
@@ -2489,6 +2459,9 @@ void Core::load_config ()
     bulwers.hpp_fun_perc_1              = cfg->lookupValue ("core.bulwers.hpp_fun_perc_1",              60.0        );
     bulwers.hpp_fun_perc_2              = cfg->lookupValue ("core.bulwers.hpp_fun_perc_2",              150.0       );
     bulwers.max_fun_hpp_bul             = cfg->lookupValue ("core.bulwers.max_hpp_fun_evoke_bul",       5           );
+    bulwers.autosave_interval           = cfg->lookupValue ("core.bulwers.autosave_interval",           300         );
+    bulwers.quickcalm                   = cfg->lookupValue ("core.bulwers.quickcalm_perc",              0.1         );
+    bulwers.quickcalm_bulwers           = cfg->lookupValue ("core.bulwers.quickcalm_min_bulwers",       5           );
 
     //friendship_sector
 
@@ -2520,7 +2493,7 @@ void Core::load_config ()
     autocalc.enabled                            = cfg->lookupValue("core.autocalc.enabled",                         true        );
     autocalc.save_interval                      = cfg->lookupValue("core.autocalc.interval",                        300         );
     autocalc.start_delay                        = cfg->lookupValue("core.autocalc.delay",                           120         );
-    autocalc.impact                             = cfg->lookupValue("core.autocalc.impact",                          1           );
+    autocalc.impact                             = cfg->lookupValue("core.autocalc.impact",                          0.1         );
     autocalc.cpu_enabled                        = cfg->lookupValue("core.autocalc.cpu.enabled",                     true        );
     autocalc.auto_cpu                           = cfg->lookupValue("core.autocalc.cpu.auto_angle",                  true        );
     autocalc.cpu_swalll                         = cfg->lookupValue("core.autocalc.cpu.stable_wall_low",             50          );
@@ -2628,7 +2601,7 @@ void Core::load_config ()
     flue.amplitude          = cfg->lookupValue ("core.flue.temperature_max_amplitude",  20          );
     flue.highval            = cfg->lookupValue ("core.flue.temperature_highest",        (double)temperature.stable);
     flue.lowval             = cfg->lookupValue ("core.flue.temperature_lowest",         (double)temperature.stable);
-    flue.update_impact      = cfg->lookupValue ("core.flue.update_impact",              1.0         );
+    flue.update_impact      = cfg->lookupValue ("core.flue.update_impact",              0.2         );
     flue.bul_impact         = cfg->lookupValue ("core.flue.bulwers_impact",             0.01        );
     flue.fun_impact         = cfg->lookupValue ("core.flue.fun_impact",                 0.2         );
     flue.pet_impact         = cfg->lookupValue ("core.flue.pet_impact",                 -0.5        );
@@ -3143,7 +3116,7 @@ bool bul::check_env(bool enabled, Configuration * cfg)
                 cfg->setValue ( &("core.environment.env"+ss.str()+".spenttime")[0], (int)envs[i].spenttime );
             }
             cfg->setValue ( "core.bulwers.envs_number", (int)envs.size() );
-            cfg->save();
+            bulwers.force_autosave = true;
         }
         return retstat;
     }
