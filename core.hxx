@@ -155,6 +155,7 @@ public:
                                 wall_13,
                                 wall_14,
                                 wall_15,
+                                limiter,
                                 remembered_time,
                                 remembered_nrg,
                                 lastnap_remembered_time,

@@ -233,6 +233,9 @@ void bul::update()
     if (value >= quickcalm_bulwers)
         step-=(((double)step)*quickcalm)/100.0;
 
+    if (step > limiter)
+        step = limiter;
+
     if (once_plugged)
     {
         if (battery_state == 2 && prev_bat_plug != 2)
@@ -335,7 +338,7 @@ void disease::attack(Configuration *cfg)
     if (mousea.mod > 0)
         last_date.progress+=mousea.mod*pet_impact/100.0;
     else
-        last_date.progress+=mousea.mod*hit_impact/100.0;
+        last_date.progress-=mousea.mod*hit_impact/100.0;
     cerr << "after_mouse: " << last_date.progress << "\n";
     cerr << "bulwers multiplier: " << (double)(bulwers.total_mod)*last_date.progress*max_bul_booster/100.0 << "\n";
     cerr << "mult: " << last_date.progress*max_bul_booster/100.0 << "\n";
@@ -558,7 +561,7 @@ void bul::critical_services( Configuration * cfg )
         eye = 6;
     }
 
-    if (value != 0 && outline != 20 && outline != 21)
+    if (value != 0 && outline != 20 && wake_up)
         outline = value + 3;
     if (outline != 20 && value == 0)
         outline = 0;
@@ -694,6 +697,7 @@ void bul::critical_services( Configuration * cfg )
                 wkup_active = 2;
         }
     }
+    cerr << outline << "\n";
     if (battery_state == 0)
     {
         outline = 20;
@@ -762,6 +766,8 @@ void bul::critical_services( Configuration * cfg )
     cfg->setValue("core.bulwers.remembered_energy", (int)remembered_nrg);
     if (fship.to_save)
         cfg->setValue("core.friendship.value", (int)fship.value);
+    if (wake_up)
+        cfg->setValue("core.bulwers.saved_step", (int)step);
 
     rtctrl.action("battery");
     rtctrl.action("temperature");
@@ -771,33 +777,25 @@ void bul::critical_services( Configuration * cfg )
         rtctrl.shell("gnome-screensaver-command -d > /dev/null");
         rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:false > /dev/null");
         rtctrl.shell("killall ScreenSaverEngine > /dev/null 2>/dev/null");
+        rtctrl.shell("xset dpms force on > /dev/null");
     }
 
     if (temperature.ready())
     {
+        bulwers.hot = 0;
+        bulwers.shy = 0;
         if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_3*(temperature.EQend-temperature.EQbegin)/100)
         {
-            bulwers.hot++;
-            if (bulwers.shy < 1)
-                bulwers.shy = 1;
+            bulwers.hot=3;
+            bulwers.shy = 1;
         }
         else if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_2*(temperature.EQend-temperature.EQbegin)/100)
         {
-            bulwers.hot++;
-            if (bulwers.shy > 0)
-                bulwers.shy = 0;
+            bulwers.hot=2;
         }
         else if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_1*(temperature.EQend-temperature.EQbegin)/100)
         {
-            bulwers.hot++;
-            if (bulwers.shy > 0)
-                bulwers.shy = 0;
-        }
-        else if (bulwers.hot > 0)
-        {
-            bulwers.hot--;
-            if (bulwers.shy > 0)
-                bulwers.shy = 0;
+            bulwers.hot=1;
         }
     }
 }
@@ -889,7 +887,6 @@ void Core::bulwers_init ()
     energy.wide                        *= 3600  ;
     once_plugged                        = false ;
     mod_bat_plug                        = 0     ;
-    bulwers.step                        = 0     ;
     bulwers.wake_up                     = false ;
     bulwers.no_update                   = false ;
     bulwers.wkup_active                 = 0     ;
@@ -2301,10 +2298,10 @@ void Core::load_config ()
 {
     Configuration * cfg = Configuration::getInstance ();
 
-    cpu.degree              = cfg->lookupValue ( "core.cpu.degree",                     1.5         );
+    cpu.degree              = cfg->lookupValue ( "core.cpu.degree",                     2.0         );
     cpu.lin_num             = cfg->lookupValue ( "core.cpu.linear_modifier",            0           );
     cpu.stable              = cfg->lookupValue ( "core.cpu.stable",                     25          );
-    cpu.max_mod_neg         = cfg->lookupValue ( "core.cpu.max_mod_neg",                100         );
+    cpu.max_mod_neg         = cfg->lookupValue ( "core.cpu.max_mod_neg",                60          );
     cpu.max_mod_pos         = cfg->lookupValue ( "core.cpu.max_mod_pos",                50          );
     cpu.safezone            = cfg->lookupValue ( "core.cpu.safezone",                   10          );
     cpu.buffered            = cfg->lookupValue ( "core.cpu.buffered",                   true        );
@@ -2319,7 +2316,7 @@ void Core::load_config ()
 
     //mem_section
 
-    memory.degree           = cfg->lookupValue ( "core.memory.degree",                  1.5         );
+    memory.degree           = cfg->lookupValue ( "core.memory.degree",                  3.0         );
     memory.lin_num          = cfg->lookupValue ( "core.memory.linear_modifier",         2           );
     memory.stable           = cfg->lookupValue ( "core.memory.stable",                  25          );
     memory.max_mod_neg      = cfg->lookupValue ( "core.memory.max_mod_neg",             100         );
@@ -2342,7 +2339,7 @@ void Core::load_config ()
     temperature.stable      = cfg->lookupValue ( "core.temperature.stable",             54          );
     temperature.max_mod_neg = cfg->lookupValue ( "core.temperature.max_mod_neg",        200         );
     temperature.max_mod_pos = cfg->lookupValue ( "core.temperature.max_mod_pos",        100         );
-    temperature.safezone    = cfg->lookupValue ( "core.temperature.safezone",           5           );
+    temperature.safezone    = cfg->lookupValue ( "core.temperature.safezone",           8           );
     temperature.buffered    = cfg->lookupValue ( "core.temperature.buffered",           true        );
     temperature.buff_size   = cfg->lookupValue ( "core.temperature.buffer_size",        10          );
     temperature.unit        = cfg->lookupValue ( "core.temperature.unit",               1           );
@@ -2394,6 +2391,7 @@ void Core::load_config ()
 
     //bulwers_sector
 
+    bulwers.step            = cfg->lookupValue ("core.bulwers.saved_step",              0           );
     bulwers.wall_01         = cfg->lookupValue ("core.bulwers.wall_01",                 300         );
     bulwers.wall_02         = cfg->lookupValue ("core.bulwers.wall_02",                 500         );
     bulwers.wall_03         = cfg->lookupValue ("core.bulwers.wall_03",                 800         );
@@ -2409,6 +2407,7 @@ void Core::load_config ()
     bulwers.wall_13         = cfg->lookupValue ("core.bulwers.wall_13",                 98700       );
     bulwers.wall_14         = cfg->lookupValue ("core.bulwers.wall_14",                 159700      );
     bulwers.wall_15         = cfg->lookupValue ("core.bulwers.wall_15",                 258400      );
+    bulwers.limiter         = cfg->lookupValue ("core.bulwers.wall_15",                 500000      );
     bulwers.remembered_nrg  = cfg->lookupValue ("core.bulwers.remembered_energy",       0           );
     bulwers.remembered_time = cfg->lookupValue ("core.bulwers.remembered_time",         0           );
     bulwers.max_mem_lag     = cfg->lookupValue ("core.bulwers.max_memory_lag",          10          );
@@ -2599,14 +2598,14 @@ void Core::load_config ()
     flue.last_date.invertion_step = cfg->lookupValue ("core.flue.last_date.invertion_per_min",  0.005       );
     flue.last_date.progress = cfg->lookupValue ("core.flue.last_date.progress",         0.0         );
     flue.amplitude          = cfg->lookupValue ("core.flue.temperature_max_amplitude",  20          );
-    flue.highval            = cfg->lookupValue ("core.flue.temperature_highest",        (double)temperature.stable);
-    flue.lowval             = cfg->lookupValue ("core.flue.temperature_lowest",         (double)temperature.stable);
+    flue.highval            = cfg->lookupValue ("core.flue.temperature_highest",        (double)(temperature.stable+1));
+    flue.lowval             = cfg->lookupValue ("core.flue.temperature_lowest",         (double)(temperature.stable-1));
     flue.update_impact      = cfg->lookupValue ("core.flue.update_impact",              0.2         );
-    flue.bul_impact         = cfg->lookupValue ("core.flue.bulwers_impact",             0.01        );
+    flue.bul_impact         = cfg->lookupValue ("core.flue.bulwers_impact",             0.001       );
     flue.fun_impact         = cfg->lookupValue ("core.flue.fun_impact",                 0.2         );
     flue.pet_impact         = cfg->lookupValue ("core.flue.pet_impact",                 -0.5        );
-    flue.hit_impact         = cfg->lookupValue ("core.flue.hit_impact",                 0.01        );
-    flue.max_bul_booster    = cfg->lookupValue ("core.flue.max_bulwers_booster",        100.0       );
+    flue.hit_impact         = cfg->lookupValue ("core.flue.hit_impact",                 100.0       );
+    flue.max_bul_booster    = cfg->lookupValue ("core.flue.max_bulwers_booster",        10.0        );
     flue.invertion_perc     = cfg->lookupValue ("core.flue.invertion_perc",             0.01        );
     flue.visual_impact_probability_1     = cfg->lookupValue ("core.flue.visual_impact_probability_1",             5        );
     flue.visual_impact_probability_2     = cfg->lookupValue ("core.flue.visual_impact_probability_2",             4        );
