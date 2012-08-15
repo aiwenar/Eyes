@@ -312,7 +312,7 @@ void disease::check(Configuration *cfg)
             cfg->setValue("core.flue.last_date.progress", last_date.progress);
             cfg->setValue("core.flue.active", true);
             bulwers.force_autosave = true;
-            cerr << "flue log:\n" <<
+            info << "flue log:\n" <<
                     "\n  init_day: " << init_day <<
                     "\n  init_month: " << init_month <<
                     "\n  init_year: " << init_year <<
@@ -326,12 +326,12 @@ void disease::check(Configuration *cfg)
 
 void disease::attack(Configuration *cfg)
 {
-    cerr << "orginal progress: " << last_date.progress << "\n";
+    //cerr << "orginal progress: " << last_date.progress << "\n";
 
     if (temperature.ready() && cpu.ready() && memory.ready() && battery.ready())
     {
         last_date.progress+=bulwers.total_mod*bul_impact/100.0;
-        cerr << "after_bulwers: " << last_date.progress << "\n";
+        //cerr << "after_bulwers: " << last_date.progress << "\n";
     }
 
     last_date.progress+=ccap.fun.fun*fun_impact/100.0;
@@ -339,9 +339,9 @@ void disease::attack(Configuration *cfg)
         last_date.progress+=mousea.mod*pet_impact/100.0;
     else
         last_date.progress-=mousea.mod*hit_impact/100.0;
-    cerr << "after_mouse: " << last_date.progress << "\n";
-    cerr << "bulwers multiplier: " << (double)(bulwers.total_mod)*last_date.progress*max_bul_booster/100.0 << "\n";
-    cerr << "mult: " << last_date.progress*max_bul_booster/100.0 << "\n";
+    //cerr << "after_mouse: " << last_date.progress << "\n";
+    //cerr << "bulwers multiplier: " << (double)(bulwers.total_mod)*last_date.progress*max_bul_booster/100.0 << "\n";
+    //cerr << "mult: " << last_date.progress*max_bul_booster/100.0 << "\n";
 
     if (core_step % 60 == 0)
     {
@@ -697,7 +697,7 @@ void bul::critical_services( Configuration * cfg )
                 wkup_active = 2;
         }
     }
-    cerr << outline << "\n";
+    //cerr << outline << "\n";
     if (battery_state == 0)
     {
         outline = 20;
