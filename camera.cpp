@@ -27,7 +27,8 @@ bool camcapture::cam_init()
 
 IplImage* camcapture::get_image()
 {
-    cvResize(cvQueryFrame(cam), resized);
+    src = cvQueryFrame(cam);
+    cvResize(src, resized);
     return resized;
 }
 
@@ -37,6 +38,7 @@ void camcapture::init_motionpics()
     resized = cvCreateImage ( motionpicsSize, src->depth, src->nChannels);
     movingAverage = cvCreateImage( motionpicsSize, IPL_DEPTH_32F, src->nChannels);
     dst = cvCreateImage( motionpicsSize, IPL_DEPTH_8U, 1 );
+    facegrey = cvCreateImage( cvSize(src->width, src->height), IPL_DEPTH_8U, 1 );
     boolimage = new bool*[src->height];
     env.envmap = new pixel*[src->height];
     for (int i = 0; i < src->height; i++)
@@ -66,6 +68,15 @@ void camcapture::init_motionpics()
     delay = 100;
     sleepdelay = 500;
     fps = 25;
+
+    char *faceCascadeFilename = "/usr/share/OpenCV/haarcascades/haarcascade_frontalface_alt.xml";
+    faceCascade = (CvHaarClassifierCascade*)cvLoad(faceCascadeFilename, 0, 0, 0);
+
+    if( !faceCascade )
+    {
+        cerr << "Couldnt load Face detector " << faceCascadeFilename << "\n";
+        exit(1);
+    }
 }
 
 IplImage* camcapture::get_motionpics(double tolerance, IplImage *input)
@@ -107,6 +118,110 @@ bool** camcapture::img2bool(IplImage *input)
         }
     }
     return boolimage;
+}
+
+
+vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, CvHaarClassifierCascade* cascade)
+{
+        // Smallest face size.
+        CvSize minFeatureSize = cvSize(inputImg->width*minfacesize, inputImg->height*minfacesize);
+        // Only search for 1 face.
+        int flags = CV_HAAR_DO_ROUGH_SEARCH;
+        // How detailed should the search be.
+        float search_scale_factor = 1.1f;
+        IplImage *detectImg;
+        IplImage *greyImg = 0;
+        CvMemStorage* storage;
+        CvRect rc;
+        double t;
+        CvSeq* rects;
+        CvSize size;
+        int i, ms, nFaces;
+        vector<CvRect> retvec;
+        retvec.clear();
+
+        storage = cvCreateMemStorage(0);
+        cvClearMemStorage( storage );
+
+
+        // If the image is color, use a greyscale copy of the image.
+        detectImg = (IplImage*)inputImg;
+        if (inputImg->nChannels > 1) {
+                size = cvSize(inputImg->width, inputImg->height);
+                greyImg = cvCreateImage(size, IPL_DEPTH_8U, 1 );
+                cvCvtColor( inputImg, greyImg, CV_BGR2GRAY );
+                detectImg = greyImg;	// Use the greyscale image.
+        }
+
+        // Detect all the faces in the greyscale image.
+        t = (double)cvGetTickCount();
+        rects = cvHaarDetectObjects( detectImg, cascade, storage,
+                        search_scale_factor, 3, flags, minFeatureSize);
+        t = (double)cvGetTickCount() - t;
+        ms = cvRound( t / ((double)cvGetTickFrequency() * 1000.0) );
+        nFaces = rects->total;
+        //printf("Face Detection took %d ms and found %d objects\n", ms, nFaces);
+        cerr << "Detected " << nFaces << " faces\n";
+
+        // Get the first detected face (the biggest).
+        if (nFaces > 0)
+        {
+            for (int i = 0; i<nFaces; i++)
+            {
+                retvec.push_back(*(CvRect*)cvGetSeqElem( rects, i ));
+            }
+        }
+
+        if (greyImg)
+                cvReleaseImage( &greyImg );
+        cvReleaseMemStorage( &storage );
+        //cvReleaseHaarClassifierCascade( &cascade );
+
+        return retvec;	// Return the biggest face found, or (-1,-1,-1,-1).
+}
+
+
+vector<IplImage*> camcapture::cropImages(IplImage *input, vector<CvRect> region)
+{
+        faceimg.clear();
+        IplImage *imageCropped;
+        IplImage *croptemp = cvCreateImage(cvSize(input->width, input->height), input->depth, input->nChannels);
+        cvCopy(input, croptemp);
+
+        // Set the desired region of interest.
+        for (int i = 0; i < region.size(); i++)
+        {
+            if (croptemp->width <= 0 || croptemp->height <= 0
+                    || region[i].width <= 0 || region[i].height <= 0) {
+                    //cerr << "ERROR in cropImage(): invalid dimensions." << endl;
+                    exit(1);
+            }
+
+            if (croptemp->depth != IPL_DEPTH_8U) {
+                    //cerr << "ERROR in cropImage(): image depth is not 8." << endl;
+                    exit(1);
+            }
+
+            cvSetImageROI(croptemp, region[i]);
+            // Copy region of interest into a new iplImage and return it.
+            imageCropped = cvCreateImage(cvSize(region[i].width, region[i].height), croptemp->depth, croptemp->nChannels);
+            cvCopy(croptemp, imageCropped);
+            faceimg.push_back(cvCreateImage(cvSize(100,100), imageCropped->depth, imageCropped->nChannels));// Copy just the region.
+            cvResize(imageCropped, faceimg[i]);
+            cvEqualizeHist(faceimg[i], faceimg[i]);
+        }
+
+        return faceimg;
+}
+
+
+void camcapture::faceprocessing(IplImage *source)
+{
+
+    // Perform face detection on the input image, using the given Haar classifier
+    vector <CvRect> faceRects = detectFaceInImage(src, faceCascade);
+    cvCvtColor( src, facegrey, CV_RGB2GRAY );
+    cropImages(facegrey, faceRects);
 }
 
 vector <plama> camcapture::splash_detect(bool **input, int min_splash_size)
@@ -655,8 +770,8 @@ void camcapture::funcalc()
     }
     if (fun.funchunktimer.elapsed()/1000 > fun.funchunk)
     {
-        cerr << "CHUNK!\n";
-        cerr << sleep << " oldfuncounter: " << fun.funcounter << " ";
+        //cerr << "CHUNK!\n";
+        //cerr << sleep << " oldfuncounter: " << fun.funcounter << " ";
         fun.funchunktimer.restart();
         if (fun.funtimer.isValid())
         {
@@ -668,13 +783,13 @@ void camcapture::funcalc()
         {
             fun.totforgettimer.restart();
             fun.fun+=fun.newfun*((double)fun.funchunk/300.0);
-            cerr << "GOOD fun:" << fun.fun << " ";
+            //cerr << "GOOD fun:" << fun.fun << " ";
         }
         else
             fun.fun*=fun.forgetcalm/100.0;
         if (fun.totforgettimer.elapsed()/1000 > fun.totforget)
             fun.fun = 0.0;
-        cerr << "funcounter: " << fun.funcounter << " newfun: " << fun.newfun << "\n";
+       // cerr << "funcounter: " << fun.funcounter << " newfun: " << fun.newfun << "\n";
         fun.funcounter = 0;
     }
 }
@@ -683,21 +798,33 @@ bool camcapture::main()
 {
 
     bool retstat = false;
-    ccap.get_image();
-    if (ccap.env.timer.elapsed() > ccap.env.delay*1000)
+    get_image();
+    if (env.timer.elapsed() > env.delay*1000)
     {
-        ccap.envread(ccap.img2env(resized));
-        ccap.env.timer.restart();
+        envread(img2env(resized));
+        env.timer.restart();
     }
-    if (ccap.motion_detect(ccap.splash_detect(ccap.img2bool(ccap.get_motionpics(ccap.averagecalc(fps), resized)), ccap.min_splash_size)))
+    if (motion_detect(splash_detect(img2bool(get_motionpics(averagecalc(fps), resized)), min_splash_size)))
         retstat = true;
-    ccap.sleepdetect();
+    sleepdetect();
     funcalc();
+    faceprocessing(src);
 
-    if (ccap.debug)
+    static int counter = 0;
+
+    if (debug)
     {
-        cvShowImage("DISPA", ccap.dst);
-        cvShowImage("DISPB", ccap.resized);
+        cvShowImage("DISPA", dst);
+        cvShowImage("DISPB", resized);
+        for (int i = 0; i < faceimg.size(); i++)
+        {
+            stringstream ss;
+            ss << i;
+            counter++;
+            cvShowImage(&("DISP" + ss.str())[0] , faceimg[i]);
+            ss << "." << counter;
+            cvSaveImage(&("./test/test"+ ss.str() + ".jpg")[0] ,faceimg[i]);
+        }
     }
 
     return retstat;
@@ -716,6 +843,7 @@ camthread::camthread( eyes_view * neyes )
     Configuration * cfg = Configuration::getInstance ();
     eyes = neyes;
 
+    ccap.enabled                    = cfg->lookupValue ( "cam.enabled",                              true );
     ccap.forget_timer               = cfg->lookupValue ( "cam.system.forget_timer",                    10 );
     ccap.min_splash_size            = cfg->lookupValue ( "cam.system.min_splash_size",                 40 );
     ccap.max_buff                   = cfg->lookupValue ( "cam.system.max_buff",                        10 );
@@ -745,7 +873,6 @@ camthread::camthread( eyes_view * neyes )
     ccap.operationsarea.ST          = cfg->lookupValue ( "cam.user.view_area_percentage_X",            80 );
     ccap.operationsarea.ND          = cfg->lookupValue ( "cam.user.view_area_percentage_Y",            60 );
     ccap.debug                      = cfg->lookupValue ( "cam.system.showdebug",                    false );
-    ccap.enabled                    = cfg->lookupValue ( "cam.ccap.enabled",                         true );
     ccap.env.max_tolerance          = cfg->lookupValue ( "cam.system.env_max_tolerance",               30 );
     ccap.env.min_tolerance          = cfg->lookupValue ( "cam.system.env_min_tolerance",                5 );
     ccap.env.B_correct              = cfg->lookupValue ( "cam.system.env_B_correction",              90.0 );
@@ -756,6 +883,7 @@ camthread::camthread( eyes_view * neyes )
     ccap.fun.funchunk               = cfg->lookupValue ( "cam.system.fun_chunk_size",                 300 );
     ccap.fun.totforget              = cfg->lookupValue ( "cam.system.fun_total_forget_time",          900 );
     ccap.fun.minfun                 = cfg->lookupValue ( "cam.system.fun_minfun",                    75.0 );
+    ccap.minfacesize                = cfg->lookupValue ( "cam.system.min_face_size",                  0.1 );
 
     if (ccap.enabled)
     {

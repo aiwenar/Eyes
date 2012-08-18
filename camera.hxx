@@ -92,21 +92,27 @@ public:
                     sleepdetect(),
                     optimize(int last_delay),
                     envread(pixel** input),
-                    funcalc();
+                    funcalc(),
+                    faceprocessing(IplImage * source);
     IplImage*       get_image();
     IplImage*       get_motionpics(double tolerance, IplImage *input);
     bool**          img2bool(IplImage *input);
     pixel**         img2env(IplImage *input);
     vector <plama>  splash_detect(bool **input, int min_splash_size);
+    vector<CvRect>  detectFaceInImage(IplImage *inputImg, CvHaarClassifierCascade* cascade);
+    vector<IplImage*>       cropImages(IplImage *img, vector<CvRect> region);
 
     CvSize          motionpicsSize;
+    CvHaarClassifierCascade* faceCascade;
     CvCapture       *cam;
     IplImage        *src,
                     *difference,
                     *resized,
                     *movingAverage,
                     *dst,
-                    *temp;
+                    *temp,
+                    *facegrey;
+    vector <IplImage*>   faceimg;
     bool            first,
                     sleep,
                     debug,
@@ -150,6 +156,7 @@ public:
                     min_active_fps,
                     min_sleep_fps,
                     fps,
+                    minfacesize,
                     averagecalc(double ifps);
     pair<int, int>  motionpos,
                     operationsarea;

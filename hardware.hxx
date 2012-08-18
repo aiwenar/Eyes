@@ -73,6 +73,131 @@ public:
     vector <string>         cores_paths;
 };
 
+
+struct sdate
+{
+    unsigned short              day,
+                                month,
+                                day_num;
+    unsigned int                hour,
+                                year;
+};
+
+struct a_calc_data
+{
+    vector<long double>         freq,
+                                virtualEQ,
+                                curve;
+    long double                 impact,
+                                current,
+                                mult_low,
+                                mult_low_converter,
+                                mult_high,
+                                mult_high_converter,
+                                common,
+                                exoticlow,
+                                exotichigh,
+                                curve_correct,
+                                freq_angle_low,
+                                freq_angle_high;
+    int                         curstep,
+                                perc,
+                                curmid,
+                                stablepointlow,
+                                stablepointhigh;
+    unsigned short              swalll,
+                                swallh;
+    bool                        enabled,
+                                auto_degree,
+                                simple,
+                                forcesave;
+    string                      name;
+};
+
+class percental
+{
+public:
+    short                       mod,
+                                mod_prev;
+    vector <double>             probes,
+                                sector_small;
+    double                      load,
+                                stable;
+    unsigned int                buff_size,
+                                EQsize,
+                                max_mod_pos,
+                                max_mod_neg,
+                                lin_num,
+                                current_probe,
+                                current_probe_small,
+                                safezone,
+                                calculate();
+    int                         convert(unsigned short val);
+    vector <int>                EQ;
+    double                      degree,
+                                mod_correction_pos,
+                                mod_correction_neg;
+    void                        get_load (double),
+                                init (QString adress);
+    bool                        buffered,
+                                ready(),
+                                autocalc(),
+                                ac_save( Configuration * cfg ),
+                                ac_init( string name );
+    a_calc_data                 ac;
+};
+
+class unital
+{
+public:
+    short                       mod,
+                                mod_prev;
+    vector<unsigned short>      probes,
+                                sector_small;
+    unsigned int                value,
+                                stable,
+                                buff_size,
+                                EQsize,
+                                EQbegin,
+                                EQend,
+                                max_mod_pos,
+                                max_mod_neg,
+                                unit,
+                                lin_num,
+                                current_probe,
+                                current_probe_small,
+                                safezone,
+                                calculate();
+    int                         convert(unsigned short val);
+    vector <int>                EQ;
+    double                      degree,
+                                mod_correction_pos,
+                                mod_correction_neg;
+    void                        get_load (unsigned short),
+                                init (QString adress);
+    bool                        buffered,
+                                ready(),
+                                autocalc( Configuration * cfg ),
+                                ac_save( Configuration * cfg ),
+                                ac_init( string name);
+    a_calc_data                 ac;
+};
+
+class timal
+{
+public:
+    short                       mod;
+    unsigned int                value,
+                                start,
+                                steps,
+                                lin_num,
+                                wide,
+                                end,
+                                calculate();
+    char                        frequency;
+    void                        init (QString adress);
+};
+
 extern          hardware        HRDWR;
 extern          sdate           get_time    ();
 extern          unital          temperature;
