@@ -35,6 +35,7 @@ IplImage* camcapture::get_image()
 void camcapture::init_motionpics()
 {
     difference = cvCreateImage ( motionpicsSize, src->depth, src->nChannels);
+    compare_pic = cvCreateImage ( cvSize(100,100), IPL_DEPTH_8U, 1);
     resized = cvCreateImage ( motionpicsSize, src->depth, src->nChannels);
     movingAverage = cvCreateImage( motionpicsSize, IPL_DEPTH_32F, src->nChannels);
     dst = cvCreateImage( motionpicsSize, IPL_DEPTH_8U, 1 );
@@ -49,6 +50,22 @@ void camcapture::init_motionpics()
     {
         env.envmap[i] = new pixel[src->width];
     }
+    faceImgArr = new IplImage** [2];
+    for (int i = 0; i<2; i++)
+    {
+        faceImgArr[i] = new IplImage* [150];
+    }
+    for (int i = 0;i<2;i++)
+    {
+        for (int j =0;j<150;j++)
+        {
+            stringstream ss;
+            ss << i << "." << j;
+            faceImgArr[i][j] = cvLoadImage(&("./test/test" + ss.str() + ".jpg")[0], CV_LOAD_IMAGE_GRAYSCALE);
+        }
+    }
+    facerects = new CvSeq*[4];
+    faceDetectMisses = 0;
     env.tabsize = motionpicsSize.width*motionpicsSize.height;
     env.global_avg = 150;
     env.checked = false;
@@ -69,13 +86,21 @@ void camcapture::init_motionpics()
     sleepdelay = 500;
     fps = 25;
 
-    char *faceCascadeFilename = "/usr/share/OpenCV/haarcascades/haarcascade_frontalface_alt.xml";
-    faceCascade = (CvHaarClassifierCascade*)cvLoad(faceCascadeFilename, 0, 0, 0);
+    faceCascade = new CvHaarClassifierCascade* [5];
+    correctcascade = new bool [5];
+    faceCascade[0] = (CvHaarClassifierCascade*)cvLoad("/usr/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml", 0, 0, 0);
+    faceCascade[1] = (CvHaarClassifierCascade*)cvLoad("/usr/share/OpenCV/haarcascades/haarcascade_frontalface_alt.xml", 0, 0, 0);
+    faceCascade[2] = (CvHaarClassifierCascade*)cvLoad("/usr/share/OpenCV/haarcascades/haarcascade_frontalface_alt2.xml", 0, 0, 0);
+    faceCascade[3] = (CvHaarClassifierCascade*)cvLoad("/usr/share/OpenCV/haarcascades/haarcascade_frontalface_alt_tree.xml", 0, 0, 0);
+    faceCascade[4] = (CvHaarClassifierCascade*)cvLoad("/usr/share/OpenCV/haarcascades/haarcascade_eye.xml", 0, 0, 0);
 
-    if( !faceCascade )
+    for (int i=0;i<5;i++)
     {
-        cerr << "Couldnt load Face detector " << faceCascadeFilename << "\n";
-        exit(1);
+        if( !faceCascade[i] )
+        {
+            cerr << "Couldnt load Face detector " << i+1 << "\n";
+            correctcascade[i] = true;
+        }
     }
 }
 
@@ -121,7 +146,7 @@ bool** camcapture::img2bool(IplImage *input)
 }
 
 
-vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, CvHaarClassifierCascade* cascade)
+vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, CvHaarClassifierCascade** cascade)
 {
         // Smallest face size.
         CvSize minFeatureSize = cvSize(inputImg->width*minfacesize, inputImg->height*minfacesize);
@@ -132,13 +157,10 @@ vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, CvHaarClassifie
         IplImage *detectImg;
         IplImage *greyImg = 0;
         CvMemStorage* storage;
-        CvRect rc;
         double t;
-        CvSeq* rects;
         CvSize size;
         int i, ms, nFaces;
-        vector<CvRect> retvec;
-        retvec.clear();
+        vector<CvRect> retvec[4];
 
         storage = cvCreateMemStorage(0);
         cvClearMemStorage( storage );
@@ -153,22 +175,29 @@ vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, CvHaarClassifie
                 detectImg = greyImg;	// Use the greyscale image.
         }
 
-        // Detect all the faces in the greyscale image.
-        t = (double)cvGetTickCount();
-        rects = cvHaarDetectObjects( detectImg, cascade, storage,
-                        search_scale_factor, 3, flags, minFeatureSize);
-        t = (double)cvGetTickCount() - t;
-        ms = cvRound( t / ((double)cvGetTickFrequency() * 1000.0) );
-        nFaces = rects->total;
-        //printf("Face Detection took %d ms and found %d objects\n", ms, nFaces);
-        cerr << "Detected " << nFaces << " faces\n";
-
-        // Get the first detected face (the biggest).
-        if (nFaces > 0)
+        for (int i=0;i<4;i++)
         {
-            for (int i = 0; i<nFaces; i++)
+            retvec[i].clear();
+            if (!correctcascade[i])
+                continue;
+            // Detect all the faces in the greyscale image.
+            t = (double)cvGetTickCount();
+            facerects[i] = cvHaarDetectObjects( detectImg, cascade[i], storage,
+                            search_scale_factor, 3, flags, minFeatureSize);
+            t = (double)cvGetTickCount() - t;
+            ms = cvRound( t / ((double)cvGetTickFrequency() * 1000.0) );
+            nFaces = facerects[i]->total;
+            //printf("Face Detection took %d ms and found %d objects\n", ms, nFaces);
+            //cerr << "Detected " << nFaces << " faces witch method: " << i+1 << "\n";
+
+            // Get the first detected face (the biggest).
+            if (nFaces > 0)
             {
-                retvec.push_back(*(CvRect*)cvGetSeqElem( rects, i ));
+                for (int j = 0; j<nFaces; j++)
+                {
+                    retvec[i].push_back(*(CvRect*)cvGetSeqElem( facerects[i], j ));
+                }
+                retvec[i] = mergePartialFaces(retvec[i], minMergeArea);
             }
         }
 
@@ -177,7 +206,292 @@ vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, CvHaarClassifie
         cvReleaseMemStorage( &storage );
         //cvReleaseHaarClassifierCascade( &cascade );
 
-        return retvec;	// Return the biggest face found, or (-1,-1,-1,-1).
+        return generateAvgRect(retvec);	// Return the biggest face found, or (-1,-1,-1,-1).
+}
+
+
+vector <CvRect> camcapture::mergePartialFaces(vector<CvRect> input, double minMatchPerc)
+{
+    //cerr << "start of merging...\n";
+    vector <pair<int, int> > matched;
+    matched.clear();
+    for (int i = 0; i<input.size(); i++)
+    {
+        for(int j = i;j<input.size(); j++)
+        {
+            if ((input[i].x < input[j].x && input[i].x+input[i].width > input[j].x ) ||
+                (input[j].x+input[j].height < input[i].x+input[i].height && input[j].x+input[j].height > input[i].x ) ||
+                (input[j].x < input[i].x && input[j].x+input[j].width > input[i].x ) ||
+                (input[i].x+input[i].height < input[j].x+input[j].height && input[i].x+input[i].height > input[j].x ) )
+            {
+                if ((input[i].y < input[j].y && input[i].y+input[i].height > input[j].y ) ||
+                    (input[j].y+input[j].height < input[i].y+input[i].height && input[j].y+input[j].height > input[i].y ) ||
+                    (input[j].y < input[i].y && input[j].y+input[j].height > input[i].y ) ||
+                    (input[i].y+input[i].height < input[j].y+input[j].height && input[i].y+input[i].height > input[j].y ) )
+                {
+                    if (i < j)
+                    {
+                        matched.push_back(make_pair(i, j));
+                    }
+                    else if (j < i)
+                        matched.push_back(make_pair(j, i));
+                }
+            }
+        }
+    }
+
+    //if (input.size() > 1)
+    //{
+    //    cerr << "CAUGHT\n";
+    //    cerr << input[0].x << " " << input[0].width << "\n";
+    //    cerr << input[1].x << " " << input[1].width << "\n";
+    //}
+
+    //cerr << "merging...\n";
+
+    vector <int> useless;
+    useless.clear();
+    for (int i = 0; i<matched.size(); i++)
+    {
+        pair <int, int> duplicated;
+        if (input[matched[i].ST].x < input[matched[i].ND].x)
+            duplicated.first = -input[matched[i].ND].x;
+        else
+            duplicated.first = -input[matched[i].ST].x;
+        if (input[matched[i].ST].x+input[matched[i].ST].width < input[matched[i].ND].x+input[matched[i].ND].width)
+            duplicated.first += input[matched[i].ST].x+input[matched[i].ST].width;
+        else
+            duplicated.first += input[matched[i].ND].x+input[matched[i].ND].width;
+
+        if (input[matched[i].ST].y < input[matched[i].ND].y)
+            duplicated.second = -input[matched[i].ST].y;
+        else
+            duplicated.second = -input[matched[i].ND].y;
+        if (input[matched[i].ST].y+input[matched[i].ST].height < input[matched[i].ND].y+input[matched[i].ND].height)
+            duplicated.second += input[matched[i].ST].y+input[matched[i].ST].height;
+        else
+            duplicated.second += input[matched[i].ND].y+input[matched[i].ND].height;
+
+        if ((duplicated.first > input[matched[i].ST].width*minMatchPerc || duplicated.first > input[matched[i].ND].width*minMatchPerc) &&
+            (duplicated.second > input[matched[i].ST].height*minMatchPerc || duplicated.second > input[matched[i].ND].height*minMatchPerc) )
+        {
+            if (input[matched[i].ST].x > input[matched[i].ND].x)
+                input[matched[i].ST].x = input[matched[i].ND].x;
+            if (input[matched[i].ST].x+input[matched[i].ST].width < input[matched[i].ND].x+input[matched[i].ND].width)
+                input[matched[i].ST].width = (input[matched[i].ND].x+input[matched[i].ND].width) - input[matched[i].ST].x;
+
+            if (input[matched[i].ST].y > input[matched[i].ND].y)
+                input[matched[i].ST].y = input[matched[i].ND].y;
+            if (input[matched[i].ST].y+input[matched[i].ST].height < input[matched[i].ND].y+input[matched[i].ND].height)
+                input[matched[i].ST].height = (input[matched[i].ND].y+input[matched[i].ND].height) - input[matched[i].ST].y;
+            useless.push_back(matched[i].ND);
+            //cerr << "merged\n";
+        }
+        //else
+            //cerr << "not merged\n";
+    }
+    for (int i = 0; i<useless.size(); i++)
+    {
+        input.erase(input.begin() + useless[i] - i);
+        //cerr << "ERASED\n";
+    }
+    //cerr << "end of merging\n";
+
+    return input;
+}
+
+
+vector <CvRect> camcapture::generateAvgRect(vector<CvRect> input[4])
+{
+    vector <CvRect> retvec;
+    retvec.clear();
+    vector <CvRect> tmp;
+    for (int i = 0; i < input[0].size(); i++)
+    {
+        //cerr << "firststep in " << i << " picture of vector 0\n";
+        tmp.clear();
+        tmp.push_back(input[0][i]);
+        for (int j = 1; j<4;j++)
+        {
+            //cerr << "step2 in " << j << " second vector \n";
+            for (int k = 0 ;k < input[j].size();k++)
+            {
+                //cerr << "step3 in " << k << " picture - size of" << input[j].size() << "\n";
+                if (compareRect(input[0][i], input[j][k], minSizeMatch, minPosMatch))
+                {
+                    //cerr << "MATCH!\n";
+                    tmp.push_back(input[j][k]);
+                    input[j].erase(input[j].begin()+k);
+                    break;
+                }
+                //else
+                    //cerr << "-";
+            }
+        }
+        if (tmp.size() == 4)
+        {
+            //cerr << "MAPPED TRUE FACE\n";
+            retvec.push_back(input[0][i]);
+            retvec[retvec.size()-1].x += tmp[1].x + tmp[2].x + tmp[3].x;
+            retvec[retvec.size()-1].x /=4;
+            if (retvec[retvec.size()-1].x < 0)
+                retvec[retvec.size()-1].x = 0;
+            retvec[retvec.size()-1].y += tmp[1].y + tmp[2].y + tmp[3].y;
+            retvec[retvec.size()-1].y /=4;
+            if (retvec[retvec.size()-1].y < 0)
+                retvec[retvec.size()-1].y = 0;
+            retvec[retvec.size()-1].width += tmp[1].width + tmp[2].width + tmp[3].width;
+            retvec[retvec.size()-1].width /=4;
+            if (retvec[retvec.size()-1].x + retvec[retvec.size()-1].width > facegrey->width)
+                retvec[retvec.size()-1].width = facegrey->width-retvec[retvec.size()-1].x;
+            retvec[retvec.size()-1].height += tmp[1].height + tmp[2].height + tmp[3].height;
+            retvec[retvec.size()-1].height /=4;
+            if (retvec[retvec.size()-1].y + retvec[retvec.size()-1].height > facegrey->height)
+                retvec[retvec.size()-1].height = facegrey->height-retvec[retvec.size()-1].y;
+        }
+    }
+    //cerr << "TOTAL TRUEFACE " << retvec.size() << "\n";
+    return retvec;
+}
+
+bool camcapture::compareRect(CvRect a, CvRect b, double size_precision, double pos_precision)
+{
+    if (a.width <= b.width*(1.0+size_precision) || b.width <= a.width*(1.0+size_precision))
+    {
+        if (a.height <= b.height*(1.0+size_precision) || b.height <= a.height*(1.0+size_precision))
+        {
+            if (abs((a.x + a.width/2) - (b.x + b.width/2)) < facegrey->width*pos_precision && abs((a.y + a.height/2) - (b.y + b.height/2)) < facegrey->height*pos_precision )
+                return true;
+        }
+    }
+    return false;
+}
+
+void camcapture::unrotate(vector<IplImage *> input, CvHaarClassifierCascade* cascade)
+{
+    // Smallest face size.
+    CvSize minFeatureSize = cvSize(10, 10);
+    // Only search for 1 face.
+    int flags = CV_HAAR_DO_ROUGH_SEARCH;
+    // How detailed should the search be.
+    float search_scale_factor = 1.1f;
+    CvMemStorage* storage;
+    double t;
+    CvSeq* rects;
+    int ms, nEyes;
+    vector<pair <pair <int,int>, pair <int,int> > > newrotvec;
+    newrotvec.clear();
+
+    storage = cvCreateMemStorage(0);
+    cvClearMemStorage( storage );
+
+    for (int i=0;i<input.size() && correctcascade[4];i++)
+    {
+        // Detect all the faces in the greyscale image.
+        t = (double)cvGetTickCount();
+
+        rects = cvHaarDetectObjects( input[i], cascade, storage,
+                        search_scale_factor, 2, flags, minFeatureSize);
+
+        t = (double)cvGetTickCount() - t;
+        ms = cvRound( t / ((double)cvGetTickFrequency() * 1000.0) );
+
+        nEyes = rects->total;
+        //printf("Face Detection took %d ms and found %d objects\n", ms, nFaces);
+        //cerr << "Detected " << nEyes << " eyes\n";
+        if (nEyes == 2)
+        {
+            newrotvec.push_back(make_pair(make_pair((*(CvRect*)cvGetSeqElem( rects, 0 )).x +(*(CvRect*)cvGetSeqElem( rects, 0 )).width/2 , (*(CvRect*)cvGetSeqElem( rects, 0 )).y +(*(CvRect*)cvGetSeqElem( rects, 0 )).height/2), make_pair((*(CvRect*)cvGetSeqElem( rects, 1 )).x +(*(CvRect*)cvGetSeqElem( rects, 1 )).width/2 , (*(CvRect*)cvGetSeqElem( rects, 1 )).y +(*(CvRect*)cvGetSeqElem( rects, 1 )).height/2)));
+            cvRectangle(
+                        input[i],
+                        cvPoint((*(CvRect*)cvGetSeqElem( rects, 0 )).x, (*(CvRect*)cvGetSeqElem( rects, 0 )).y),
+                        cvPoint((*(CvRect*)cvGetSeqElem( rects, 0 )).x + (*(CvRect*)cvGetSeqElem( rects, 0 )).width, (*(CvRect*)cvGetSeqElem( rects, 0 )).y + (*(CvRect*)cvGetSeqElem( rects, 0 )).height),
+                        CV_RGB(255, 255, 255),
+                        1, 8, 0
+                    );
+            cvRectangle(
+                        input[i],
+                        cvPoint((*(CvRect*)cvGetSeqElem( rects, 1 )).x, (*(CvRect*)cvGetSeqElem( rects, 1 )).y),
+                        cvPoint((*(CvRect*)cvGetSeqElem( rects, 1 )).x + (*(CvRect*)cvGetSeqElem( rects, 1 )).width, (*(CvRect*)cvGetSeqElem( rects, 1 )).y + (*(CvRect*)cvGetSeqElem( rects, 1 )).height),
+                        CV_RGB(255, 255, 255),
+                        1, 8, 0
+                    );
+        }
+        else if (i < rotvec.size())
+            newrotvec.push_back(rotvec[i]);
+        else
+            newrotvec.push_back(make_pair(make_pair(-1, -1), make_pair(-1, -1)));
+
+        if (newrotvec[i].ST.ST != -1)
+        {
+            //cerr << "ROTATING\n";
+            double x = rotvec[i].ST.ST-rotvec[i].ND.ST;
+            if (x<0)
+                x = -x;
+            double y = rotvec[i].ST.ND-rotvec[i].ND.ND;
+            if (rotvec[i].ST.ST > rotvec[i].ND.ST)
+                y = -y;
+            double d = sqrt(x*x + y*y);
+            float m[6];
+            CvMat M = cvMat(2, 3, CV_32F, m);
+            int w = input[i]->width;
+            int h = input[i]->height;
+            m[0] = (float)( cos(y/d) );
+            m[1] = (float)( sin(x/d) );
+            m[3] = -m[1];
+            m[4] = m[0];
+            m[2] = w*0.5f;
+            m[5] = h*0.5f;
+
+            //cerr << m[0] << " " << m[1] << "\n";
+            // Make a spare image for the result
+            CvSize sizeRotated;
+            sizeRotated.width = cvRound(w);
+            sizeRotated.height = cvRound(h);
+
+            // Rotate
+            IplImage *imageRotated = cvCreateImage( sizeRotated,
+                    input[i]->depth, input[i]->nChannels );
+
+            // Transform the image
+            cvGetQuadrangleSubPix( input[i], imageRotated, &M);
+            input[i] = imageRotated;
+        }
+        rotvec = newrotvec;
+
+        // Get the first detected face (the biggest).
+    }
+
+    cvReleaseMemStorage( &storage );
+    //cvReleaseHaarClassifierCascade( &cascade );
+}
+
+
+void camcapture::connect_faces(vector<IplImage *> input, vector<IplImage *> output)
+{
+    if (input.size() > output.size())
+    {
+        for (int i = 0; i < output.size(); i++)
+        {
+            for (int j = 0; j < input.size(); j++)
+            {
+                cvAbsDiff(output[i],input[j],compare_pic);
+                long long sum = 0;
+                bool ** booltab = img2bool(compare_pic);
+                for (int l = 0; l<100; l++)
+                {
+                    for (int m = 0; m<100; m++)
+                    {
+                        sum += booltab[l][m];
+                    }
+                }
+            }
+        }
+    }
+    else
+    {
+
+    }
 }
 
 
@@ -222,6 +536,13 @@ void camcapture::faceprocessing(IplImage *source)
     vector <CvRect> faceRects = detectFaceInImage(src, faceCascade);
     cvCvtColor( src, facegrey, CV_RGB2GRAY );
     cropImages(facegrey, faceRects);
+    //unrotate(faceimg, faceCascade[4]);
+    newFace = make_pair(-1, -1);
+    //newFace = make_pair(100-(100*(facerects[i].x+facerects[i].width/2))/facegrey->width, (100*(facerects[i].y+facerects[i].height/2))/facegrey->height);
+    if (faceimg.size() > 0)
+        facePresent = true;
+    else
+        facePresent = false;
 }
 
 vector <plama> camcapture::splash_detect(bool **input, int min_splash_size)
@@ -808,9 +1129,16 @@ bool camcapture::main()
         retstat = true;
     sleepdetect();
     funcalc();
-    faceprocessing(src);
+    if (faceDetectMisses == faceDetectDelay)
+    {
+        faceprocessing(src);
+        faceDetectMisses = 0;
+    }
+    else
+        faceDetectMisses++;
 
-    static int counter = 0;
+    //static int counter = 0;
+
 
     if (debug)
     {
@@ -820,12 +1148,13 @@ bool camcapture::main()
         {
             stringstream ss;
             ss << i;
-            counter++;
+            //counter++;
             cvShowImage(&("DISP" + ss.str())[0] , faceimg[i]);
-            ss << "." << counter;
-            cvSaveImage(&("./test/test"+ ss.str() + ".jpg")[0] ,faceimg[i]);
+            //ss << "." << counter;
+            //cvSaveImage(&("./test/test"+ ss.str() + ".jpg")[0] ,faceimg[i]);
         }
     }
+    prevfaceimg = faceimg;
 
     return retstat;
 }
@@ -884,6 +1213,10 @@ camthread::camthread( eyes_view * neyes )
     ccap.fun.totforget              = cfg->lookupValue ( "cam.system.fun_total_forget_time",          900 );
     ccap.fun.minfun                 = cfg->lookupValue ( "cam.system.fun_minfun",                    75.0 );
     ccap.minfacesize                = cfg->lookupValue ( "cam.system.min_face_size",                  0.1 );
+    ccap.minMergeArea               = cfg->lookupValue ( "cam.system.min_merge_area",                 0.4 );
+    ccap.minPosMatch                = cfg->lookupValue ( "cam.system.min_position_match",             0.1 );
+    ccap.minSizeMatch               = cfg->lookupValue ( "cam.system.min_size_match",                 0.5 );
+    ccap.faceDetectDelay            = cfg->lookupValue ( "cam.system.face_detect_delay",              20  );
 
     if (ccap.enabled)
     {
@@ -925,6 +1258,8 @@ void camthread::tick()
             ccap.motionpos.ND = (100* ccap.motionpos.ND)/(ccap.motionpicsSize.height);
             eyes->look_at(ccap.motionpos.ST, ccap.motionpos.ND, ccap.operationsarea);
         }
+        else if (ccap.newFace.first != -1)
+            eyes->look_at(ccap.newFace.ST, ccap.newFace.ND, ccap.operationsarea);
         ccap.optimize(speedmeter.elapsed());
         if (!ccap.sleep)
             timer->setInterval ( ccap.delay );

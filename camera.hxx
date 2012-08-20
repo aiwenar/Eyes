@@ -7,6 +7,7 @@
 
 // OpenCV includes.
 #include <opencv2/opencv.hpp>
+#include <cvaux.hpp>
 #include "eyes.hxx"
 
 using namespace std;
@@ -86,40 +87,54 @@ class camcapture
 public:
     bool            cam_init(),
                     motion_detect(vector <plama> plamy),
-                    main();
+                    main(),
+                    compareRect(CvRect a, CvRect b, double size_precision, double pos_precision);
     void            init_motionpics(),
                     init_debug(),
                     sleepdetect(),
                     optimize(int last_delay),
                     envread(pixel** input),
                     funcalc(),
-                    faceprocessing(IplImage * source);
+                    faceprocessing(IplImage * source),
+                    connect_faces(vector<IplImage*>input, vector<IplImage*>output),
+                    unrotate (vector<IplImage*> input, CvHaarClassifierCascade* cascade);
     IplImage*       get_image();
     IplImage*       get_motionpics(double tolerance, IplImage *input);
     bool**          img2bool(IplImage *input);
     pixel**         img2env(IplImage *input);
     vector <plama>  splash_detect(bool **input, int min_splash_size);
-    vector<CvRect>  detectFaceInImage(IplImage *inputImg, CvHaarClassifierCascade* cascade);
+    vector<CvRect>  detectFaceInImage(IplImage *inputImg, CvHaarClassifierCascade** cascade),
+                    mergePartialFaces(vector<CvRect> input, double minMatchPerc),
+                    generateAvgRect(vector<CvRect> input[4]);
     vector<IplImage*>       cropImages(IplImage *img, vector<CvRect> region);
 
     CvSize          motionpicsSize;
-    CvHaarClassifierCascade* faceCascade;
+    CvHaarClassifierCascade** faceCascade;
+    vector<pair <pair <int,int>, pair <int,int> > > rotvec;
     CvCapture       *cam;
     IplImage        *src,
                     *difference,
+                    *compare_pic,
                     *resized,
                     *movingAverage,
                     *dst,
                     *temp,
                     *facegrey;
-    vector <IplImage*>   faceimg;
+    vector <IplImage*>  faceimg,
+                        prevfaceimg;
+    IplImage ***    faceImgArr;
+    IplImage **     eigenVector,
+                    avgFace;
+    CvSeq**         facerects;
     bool            first,
                     sleep,
                     debug,
                     deactiveworking,
                     tmp_halted,
                     halted,
-                    enabled;
+                    enabled,
+                    facePresent;
+    bool*           correctcascade;
     bool**          boolimage;
     vector <vector <pair<PII, PII> > >  midpoints;
     vector<int>     bucket,
@@ -148,7 +163,9 @@ public:
                     fps_adaptation_time,
                     mindelay,
                     minsleepdelay,
-                    catch_speed;
+                    catch_speed,
+                    faceDetectMisses,
+                    faceDetectDelay;
     double          reference_sleep_average,
                     reference_active_average,
                     reference_fps,
@@ -157,9 +174,13 @@ public:
                     min_sleep_fps,
                     fps,
                     minfacesize,
+                    minMergeArea,
+                    minPosMatch,
+                    minSizeMatch,
                     averagecalc(double ifps);
     pair<int, int>  motionpos,
-                    operationsarea;
+                    operationsarea,
+                    newFace;
     QElapsedTimer   fps_adaptation_timer,
                     deactivetimer;
     environment     env;
