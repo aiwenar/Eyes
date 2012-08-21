@@ -68,13 +68,22 @@ This is concept debug layout:
 #       |       |       | next_wall: | plug: val:  | ____        |    +----------------------------- | __º __º | multhigh  |
 # ===== | ===== | ===== | __________ |             | buffers:___ |     01 __ __ __ __ __ __ __ __ __ |  <__º>  | (A)  ____ |
 # -------------------------------------------------------------------------------------------------------------------------|
-# nap:  __:__    cam: active → load :__%     rootpanel  |   | R:__ (__)  avg col:__ | []    []   []   []   []  |
-# ------------------------------------------------------| e | Y:__ (__)  bright:___ | []    []   []   []   []  |
-# from: __:__ | X:___ Y:___ | trip/fun: X | mode: full  | n | G:__ (__)  reload:___ | []    []   []   []   []  |
-# to:   __:__ | __% (__/__) | fun: __←___ | screen: off | v | B:__ (__)  -----------| []    []   []   []   []  |
-# rest: __:__ | __fps (↑__) | reload: ___ | maxtemp:__º | S | P:__ (__)  2light:__% | []    []   []   []   []  |
-# saved:__:__ | delay: ____ | forget: ___ | minbatt:__% |   | ?:__ (__)  2dark :__% | __%  ___h ___h ___h ___h |
+# nap:  __:__    cam: active → load :__%     rootpanel  | [detect] |   | R:__ (__)  avg col:__ | []    []   []   []   []  |
+# ------------------------------------------------------| in slp _ | e | Y:__ (__)  bright:___ | []    []   []   []   []  |
+# from: __:__ | X:___ Y:___ | trip/fun: X | mode: full  | casc. __ | n | G:__ (__)  reload:___ | []    []   []   []   []  |
+# to:   __:__ | __% (__/__) | fun: __←___ | screen: off | found __ | v | B:__ (__)  -----------| []    []   []   []   []  |
+# rest: __:__ | __fps (↑__) | reload: ___ | maxtemp:__º | ___/___  | S | P:__ (__)  2light:__% | []    []   []   []   []  |
+# saved:__:__ | delay: ____ | forget: ___ | minbatt:__% |   ___    |   | ?:__ (__)  2dark :__% | __%  ___h ___h ___h ___h |
 
+    _____________
+  _/             \
+ /    ____________
+| ===(    \    \  )
+|     \____\/\___/
+ \_    ,_____     /
+   \___'_________/
+
+   --Like a boss stamp (for some emergency stuff
 
 And for everyone there are terminal instructions for that:
 
@@ -311,10 +320,13 @@ cdbg::cdbg ( Core * c ) :
   for (int i = 3; i>0; i--)    cout << "\033[1B\033[1D|";
   cout << "\033[13C|";
   for (int i = 5; i>0; i--)    cout << "\033[1A\033[1D|";
-  cout << "\033[3C|";
+  cout << "\033[10C|";
   for (int i = 5; i>0; i--)    cout << "\033[1B\033[1D|";
-  cout << "\033[23C|";
+  cout << "\033[3C|";
   for (int i = 5; i>0; i--)    cout << "\033[1A\033[1D|";
+  cout << "\033[23C|";
+  for (int i = 5; i>0; i--)    cout << "\033[1B\033[1D|";
+  cout << "\033[5A";
   cout << "\n ------------------------------------------------------\n\n\033[72C-----------\033[2A\n";
   for (int i = max_s+9; i>0; i--)    cout << "\033[1A";
 
@@ -336,12 +348,12 @@ cdbg::cdbg ( Core * c ) :
           "\033[65C  2 \033[" << max_EQ*3 + 7 << "Cbuffer:\n"
           "\033[65C  1 \n"
           "\033[65C  0 \033[" << max_EQ*3 + 7 << "Camplit.\n\n\n\n"
-          " nap:    :      cam:        → load :  %     rootpanel  \033[5C \033[1;41m\033[1;37mR\033[40m\033[37m:   (  )  avg col:   \n"
-          "\033[57Ce\033[3C\033[1;37m\033[1;43mY\033[40m\033[37m:   (  )  bright:    \n"
-          " from:   :   \033[1C X:    Y:    \033[1C trip/fun:   \033[1C mode:       \033[2Cn\033[3C\033[1;37m\033[1;42mG\033[40m\033[37m:   (  )  reload:    \n"
-          " to:     :   \033[1C   % (  /  ) \033[1C fun:   ←    \033[1C screen:     \033[2Cv\033[3C\033[1;37m\033[1;44mB\033[40m\033[37m:   (  )  \n"
-          " rest:   :   \033[1C   fps (   ) \033[1C reload: ___ \033[1C maxtemp:  º \033[2CS\033[3C\033[1;37m\033[1;45mP\033[40m\033[37m:   (  )  2light:  % \n"
-          " saved:  :   \033[1C delay:      \033[1C forget: ___ \033[1C minbatt:  % \033[2C \033[3C\033[1;37m\033[1;40m?\033[40m\033[37m:   (  )  2dark:   % \033[1A\n"
+          " nap:    :      cam:        → load :  %     rootpanel  \033[16C \033[1;41m\033[1;37mR\033[40m\033[37m:   (  )  avg col:   \n"
+          "\033[57Cin slp  \033[3Ce\033[3C\033[1;37m\033[1;43mY\033[40m\033[37m:   (  )  bright:    \n"
+          " from:   :   \033[1C X:    Y:    \033[1C trip/fun:   \033[1C mode:       \033[2Ccasc.   \033[3Cn\033[3C\033[1;37m\033[1;42mG\033[40m\033[37m:   (  )  reload:    \n"
+          " to:     :   \033[1C   % (  /  ) \033[1C fun:   ←    \033[1C screen:     \033[2Cfound   \033[3Cv\033[3C\033[1;37m\033[1;44mB\033[40m\033[37m:   (  )  \n"
+          " rest:   :   \033[1C   fps (   ) \033[1C reload: ___ \033[1C maxtemp:  º \033[2C   /    \033[3CS\033[3C\033[1;37m\033[1;45mP\033[40m\033[37m:   (  )  2light:  % \n"
+          " saved:  :   \033[1C delay:      \033[1C forget: ___ \033[1C minbatt:  % \033[2C  ___   \033[4C\033[3C\033[1;37m\033[1;40m?\033[40m\033[37m:   (  )  2dark:   % \033[1A\n"
           "\033[22A";
   if (autocalc.enabled)
   {
@@ -1906,9 +1918,33 @@ void cdbg::on_timer_tick ()
           cout << "off\033[1D";
       cout << "\033[1B\033[2D";
       spacefill(rtctrl.batt_suspend_perc, 2);
+
+      if (ccap.enabled)
+      {
+          cout << "\033[6A\n\033[57C";
+          if (ccap.faceDetectEnabled && ccap.facePresent)
+              cout << "\033[1;32m";
+          else
+              cout << "\033[1;30m";
+          cout << "[detect]\033[1;33m\033[1B\033[1D";
+          if (ccap.faceDetectInSleep)
+              cout << "X";
+          else
+              cout << " ";
+          cout << "\033[1B\033[2D";
+          spacefill(ccap.faceCascade.size(), 2);
+          cout << "\033[1B\033[2D";
+          spacefill(ccap.faceimg.size(), 2);
+          cout << "\033[1B\033[8D\033[1;32m";
+          spacefill(ccap.faceDetectDelay, 3);
+          cout << "\033[1C\033[1;34m";
+          spacefill(ccap.faceDetectSleepDelay, 3);
+          cout << "\033[1B\033[5D\033[1;33m";
+          spacefill(ccap.faceDetectMisses, 3);
+      }
       if (ccap.env.checked || bulwers.envs.size()>0)
       {
-          cout << "\033[6A\n\033[64C";
+          cout << "\033[6A\n\033[75C";
           spacefill((int)bulwers.curenv.Rperc, 2);
           cout << "\033[1C";
           spacefill((int)bulwers.envs[bulwers.envindex].Rperc, 2);

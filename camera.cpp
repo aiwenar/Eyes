@@ -64,7 +64,6 @@ void camcapture::init_motionpics()
             faceImgArr[i][j] = cvLoadImage(&("./test/test" + ss.str() + ".jpg")[0], CV_LOAD_IMAGE_GRAYSCALE);
         }
     }
-    facerects = new CvSeq*[4];
     faceDetectMisses = 0;
     env.tabsize = motionpicsSize.width*motionpicsSize.height;
     env.global_avg = 150;
@@ -86,21 +85,106 @@ void camcapture::init_motionpics()
     sleepdelay = 500;
     fps = 25;
 
-    faceCascade = new CvHaarClassifierCascade* [5];
-    correctcascade = new bool [5];
-    faceCascade[0] = (CvHaarClassifierCascade*)cvLoad("/usr/share/OpenCV/haarcascades/haarcascade_frontalface_default.xml", 0, 0, 0);
-    faceCascade[1] = (CvHaarClassifierCascade*)cvLoad("/usr/share/OpenCV/haarcascades/haarcascade_frontalface_alt.xml", 0, 0, 0);
-    faceCascade[2] = (CvHaarClassifierCascade*)cvLoad("/usr/share/OpenCV/haarcascades/haarcascade_frontalface_alt2.xml", 0, 0, 0);
-    faceCascade[3] = (CvHaarClassifierCascade*)cvLoad("/usr/share/OpenCV/haarcascades/haarcascade_frontalface_alt_tree.xml", 0, 0, 0);
-    faceCascade[4] = (CvHaarClassifierCascade*)cvLoad("/usr/share/OpenCV/haarcascades/haarcascade_eye.xml", 0, 0, 0);
-
-    for (int i=0;i<5;i++)
+    for (int i=0;i<faceCascade.size();i++)
     {
         if( !faceCascade[i] )
         {
-            cerr << "Couldnt load Face detector " << i+1 << "\n";
-            correctcascade[i] = true;
+            faceCascade.erase(faceCascade.begin()+i);
+            cerr << "Couldnt load Face detector\n";
+            i--;
         }
+    }
+    if (faceCascade.size() == 0)
+    {
+        cerr << "Warning: Could not load specified cascades - trying to fuck this situation like a boss...\n";
+        rescue_cascades();
+    }
+    if (faceCascade.size() == 0)
+    {
+        faceDetectEnabled = false;
+        cerr << "Error: Beeing like a boss failed - could not find any cascade - disabling recognition\n";
+    }
+    facerects = new CvSeq*[faceCascade.size()];
+
+}
+
+void camcapture::rescue_cascades()
+{
+    string emergency_cascades[4];
+    emergency_cascades[0] = "haarcascade_frontalface_alt_tree.xml";
+    emergency_cascades[1] = "haarcascade_frontalface_alt.xml";
+    emergency_cascades[2] = "haarcascade_frontalface_alt2.xml";
+    emergency_cascades[3] = "haarcascade_frontalface_default.xml";
+
+    string possible_dir = "/usr/share/opencv/haarcascades/";
+
+    for (int i = 0; i<4; i++)
+    {
+        faceCascade.push_back((CvHaarClassifierCascade*)cvLoad(&(possible_dir + emergency_cascades[i])[0], 0, 0, 0));
+    }
+    for (int i=0;i<faceCascade.size();i++)
+    {
+        if( !faceCascade[i] )
+        {
+            faceCascade.erase(faceCascade.begin()+i);
+            i--;
+        }
+    }
+
+    if (faceCascade.size() == 0)
+    {
+        cerr << "Couldnt load Face detector in " << possible_dir << "\n";
+        possible_dir = "/usr/share/OpenCV/haarcascades/";
+
+        for (int i = 0; i<4; i++)
+        {
+            faceCascade.push_back((CvHaarClassifierCascade*)cvLoad(&(possible_dir + emergency_cascades[i])[0], 0, 0, 0));
+        }
+        for (int i=0;i<faceCascade.size();i++)
+        {
+            if( !faceCascade[i] )
+            {
+                faceCascade.erase(faceCascade.begin()+i);
+                i--;
+            }
+        }
+
+        if (faceCascade.size() == 0)
+        {
+            cerr << "Couldnt load Face detector in " << possible_dir << "\n";
+            possible_dir = "/usr/share/OpenCV/data/haarcascades/";
+
+            for (int i = 0; i<4; i++)
+            {
+                faceCascade.push_back((CvHaarClassifierCascade*)cvLoad(&(possible_dir + emergency_cascades[i])[0], 0, 0, 0));
+            }
+            for (int i=0;i<faceCascade.size();i++)
+            {
+                if( !faceCascade[i] )
+                {
+                    faceCascade.erase(faceCascade.begin()+i);
+                    i--;
+                }
+            }
+        }
+
+        if (faceCascade.size() == 0)
+            cerr << "Couldnt load Face detector in " << possible_dir << "\n";
+    }
+
+    if (faceCascade.size()!=0)
+    {
+        cerr << "Success!\n" <<
+                "    _____________   \n" <<
+                "  _/             \\  \n" <<
+                " /     ____________ \n" <<
+                "|  ===(    \\    \\  )\n" <<
+                "|      \\____\\/\\___/ \n" <<
+                " \\_    ,_____     / \n" <<
+                "   \\___'_________/  \n" <<
+                "\n" <<
+                "               LIKE A BOSS...\n\n";
+        Configuration::getInstance()->setValue("cam.system.face_cascades_dir", &possible_dir[0]);
     }
 }
 
@@ -146,7 +230,7 @@ bool** camcapture::img2bool(IplImage *input)
 }
 
 
-vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, CvHaarClassifierCascade** cascade)
+vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, vector <CvHaarClassifierCascade*> cascade)
 {
         // Smallest face size.
         CvSize minFeatureSize = cvSize(inputImg->width*minfacesize, inputImg->height*minfacesize);
@@ -160,7 +244,7 @@ vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, CvHaarClassifie
         double t;
         CvSize size;
         int i, ms, nFaces;
-        vector<CvRect> retvec[4];
+        vector<CvRect> retvec[cascade.size()];
 
         storage = cvCreateMemStorage(0);
         cvClearMemStorage( storage );
@@ -175,11 +259,9 @@ vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, CvHaarClassifie
                 detectImg = greyImg;	// Use the greyscale image.
         }
 
-        for (int i=0;i<4;i++)
+        for (int i=0;i<cascade.size();i++)
         {
             retvec[i].clear();
-            if (!correctcascade[i])
-                continue;
             // Detect all the faces in the greyscale image.
             t = (double)cvGetTickCount();
             facerects[i] = cvHaarDetectObjects( detectImg, cascade[i], storage,
@@ -301,7 +383,7 @@ vector <CvRect> camcapture::mergePartialFaces(vector<CvRect> input, double minMa
 }
 
 
-vector <CvRect> camcapture::generateAvgRect(vector<CvRect> input[4])
+vector <CvRect> camcapture::generateAvgRect(vector<CvRect> input[])
 {
     vector <CvRect> retvec;
     retvec.clear();
@@ -311,7 +393,7 @@ vector <CvRect> camcapture::generateAvgRect(vector<CvRect> input[4])
         //cerr << "firststep in " << i << " picture of vector 0\n";
         tmp.clear();
         tmp.push_back(input[0][i]);
-        for (int j = 1; j<4;j++)
+        for (int j = 1; j<faceCascade.size();j++)
         {
             //cerr << "step2 in " << j << " second vector \n";
             for (int k = 0 ;k < input[j].size();k++)
@@ -328,24 +410,28 @@ vector <CvRect> camcapture::generateAvgRect(vector<CvRect> input[4])
                     //cerr << "-";
             }
         }
-        if (tmp.size() == 4)
+        if (tmp.size() == faceCascade.size())
         {
             //cerr << "MAPPED TRUE FACE\n";
             retvec.push_back(input[0][i]);
-            retvec[retvec.size()-1].x += tmp[1].x + tmp[2].x + tmp[3].x;
-            retvec[retvec.size()-1].x /=4;
+            for (int i = 1; i < faceCascade.size() ; i++)
+                retvec[retvec.size()-1].x += tmp[i].x;
+            retvec[retvec.size()-1].x /=faceCascade.size();
             if (retvec[retvec.size()-1].x < 0)
                 retvec[retvec.size()-1].x = 0;
-            retvec[retvec.size()-1].y += tmp[1].y + tmp[2].y + tmp[3].y;
-            retvec[retvec.size()-1].y /=4;
+            for (int i = 1; i < faceCascade.size() ; i++)
+                retvec[retvec.size()-1].y += tmp[i].y;
+            retvec[retvec.size()-1].y /=faceCascade.size();
             if (retvec[retvec.size()-1].y < 0)
                 retvec[retvec.size()-1].y = 0;
-            retvec[retvec.size()-1].width += tmp[1].width + tmp[2].width + tmp[3].width;
-            retvec[retvec.size()-1].width /=4;
+            for (int i = 1; i < faceCascade.size() ; i++)
+                retvec[retvec.size()-1].width += tmp[i].width;
+            retvec[retvec.size()-1].width /=faceCascade.size();
             if (retvec[retvec.size()-1].x + retvec[retvec.size()-1].width > facegrey->width)
                 retvec[retvec.size()-1].width = facegrey->width-retvec[retvec.size()-1].x;
-            retvec[retvec.size()-1].height += tmp[1].height + tmp[2].height + tmp[3].height;
-            retvec[retvec.size()-1].height /=4;
+            for (int i = 1; i < faceCascade.size() ; i++)
+                retvec[retvec.size()-1].height += tmp[i].height;
+            retvec[retvec.size()-1].height /=faceCascade.size();
             if (retvec[retvec.size()-1].y + retvec[retvec.size()-1].height > facegrey->height)
                 retvec[retvec.size()-1].height = facegrey->height-retvec[retvec.size()-1].y;
         }
@@ -1129,14 +1215,17 @@ bool camcapture::main()
         retstat = true;
     sleepdetect();
     funcalc();
-    if (faceDetectMisses == faceDetectDelay)
+    if (faceDetectEnabled && (!sleep || faceDetectInSleep))
     {
-        faceprocessing(src);
-        faceDetectMisses = 0;
+        if ( (!sleep && (faceDetectMisses >= faceDetectDelay)) || (sleep && (faceDetectMisses >= faceDetectSleepDelay)) )
+        {
+            faceprocessing(src);
+            faceDetectMisses = 0;
+        }
+        else
+            faceDetectMisses ++;
     }
-    else
-        faceDetectMisses++;
-
+    //cerr << faceDetectMisses << "\n";
     //static int counter = 0;
 
 
@@ -1194,9 +1283,9 @@ camthread::camthread( eyes_view * neyes )
     ccap.min_active_fps             = cfg->lookupValue ( "cam.user.min_active_fps",                     1 );
     ccap.min_sleep_fps              = cfg->lookupValue ( "cam.user.min_sleep_fps",                    0.5 );
     ccap.fps_adaptation_time        = cfg->lookupValue ( "cam.system.fps_adaptation_time",          10000 );
-    ccap.retry_times                = cfg->lookupValue ( "cam.system.temphalt_retry_times",             8 );
+    ccap.retry_times                = cfg->lookupValue ( "cam.system.temphalt_retry_times",            80 );
     ccap.deactive_global_cpu_load   = cfg->lookupValue ( "cam.system.cpu_halt_load",                   80 );
-    ccap.tmp_deactive_timer         = cfg->lookupValue ( "cam.system.cpu_halt_retry_timer",         30000 );
+    ccap.tmp_deactive_timer         = cfg->lookupValue ( "cam.system.cpu_halt_retry_timer",         10000 );
     ccap.mindelay                   = cfg->lookupValue ( "cam.system.min_fps_delay",                   50 );
     ccap.minsleepdelay              = cfg->lookupValue ( "cam.system.min_sleepfps_delay",             150 );
     ccap.operationsarea.ST          = cfg->lookupValue ( "cam.user.view_area_percentage_X",            80 );
@@ -1216,7 +1305,26 @@ camthread::camthread( eyes_view * neyes )
     ccap.minMergeArea               = cfg->lookupValue ( "cam.system.min_merge_area",                 0.4 );
     ccap.minPosMatch                = cfg->lookupValue ( "cam.system.min_position_match",             0.1 );
     ccap.minSizeMatch               = cfg->lookupValue ( "cam.system.min_size_match",                 0.5 );
+    ccap.faceDetectEnabled          = cfg->lookupValue ( "cam.system.face_detect_enabled",          true  );
+    ccap.faceDetectInSleep          = cfg->lookupValue ( "cam.system.face_detect_when_sleep",       true  );
     ccap.faceDetectDelay            = cfg->lookupValue ( "cam.system.face_detect_delay",              20  );
+    ccap.faceDetectSleepDelay       = cfg->lookupValue ( "cam.system.face_detect_sleep_delay",       100  );
+    ccap.cascadesPath               = cfg->lookupValue ( "cam.system.face_cascades_dir", "/usr/share/OpenCV/haarcascades/");
+    int * cascadesnum = new int;
+    *cascadesnum                    = cfg->lookupValue ( "cam.system.face_cascades_number",            4  );
+    string emergency_cascades[4];
+    emergency_cascades[0] = "haarcascade_frontalface_alt_tree.xml";
+    emergency_cascades[1] = "haarcascade_frontalface_alt.xml";
+    emergency_cascades[2] = "haarcascade_frontalface_alt2.xml";
+    emergency_cascades[3] = "haarcascade_frontalface_default.xml";
+    for (cascadesnum; *cascadesnum>0;(*cascadesnum)--)
+    {
+        stringstream ss;
+        ss << *cascadesnum;
+        string temp = (ccap.cascadesPath + cfg->lookupValue ( &("cam.system.face_cascade" + ss.str())[0], &emergency_cascades[*cascadesnum-1][0] ));
+        ccap.faceCascade.push_back((CvHaarClassifierCascade*)cvLoad( &temp[0], 0, 0, 0));
+    }
+    delete(cascadesnum);
 
     if (ccap.enabled)
     {

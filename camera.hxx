@@ -97,19 +97,20 @@ public:
                     funcalc(),
                     faceprocessing(IplImage * source),
                     connect_faces(vector<IplImage*>input, vector<IplImage*>output),
-                    unrotate (vector<IplImage*> input, CvHaarClassifierCascade* cascade);
+                    unrotate (vector<IplImage*> input, CvHaarClassifierCascade* cascade),
+                    rescue_cascades();
     IplImage*       get_image();
     IplImage*       get_motionpics(double tolerance, IplImage *input);
     bool**          img2bool(IplImage *input);
     pixel**         img2env(IplImage *input);
     vector <plama>  splash_detect(bool **input, int min_splash_size);
-    vector<CvRect>  detectFaceInImage(IplImage *inputImg, CvHaarClassifierCascade** cascade),
+    vector<CvRect>  detectFaceInImage(IplImage *inputImg, vector <CvHaarClassifierCascade*> cascade),
                     mergePartialFaces(vector<CvRect> input, double minMatchPerc),
-                    generateAvgRect(vector<CvRect> input[4]);
+                    generateAvgRect(vector<CvRect> input[]);
     vector<IplImage*>       cropImages(IplImage *img, vector<CvRect> region);
 
     CvSize          motionpicsSize;
-    CvHaarClassifierCascade** faceCascade;
+    vector <CvHaarClassifierCascade*> faceCascade;
     vector<pair <pair <int,int>, pair <int,int> > > rotvec;
     CvCapture       *cam;
     IplImage        *src,
@@ -133,7 +134,9 @@ public:
                     tmp_halted,
                     halted,
                     enabled,
-                    facePresent;
+                    facePresent,
+                    faceDetectEnabled,
+                    faceDetectInSleep;
     bool*           correctcascade;
     bool**          boolimage;
     vector <vector <pair<PII, PII> > >  midpoints;
@@ -165,7 +168,8 @@ public:
                     minsleepdelay,
                     catch_speed,
                     faceDetectMisses,
-                    faceDetectDelay;
+                    faceDetectDelay,
+                    faceDetectSleepDelay;
     double          reference_sleep_average,
                     reference_active_average,
                     reference_fps,
@@ -185,6 +189,7 @@ public:
                     deactivetimer;
     environment     env;
     funsys          fun;
+    string          cascadesPath;
 };
 
 #endif // CAMERA_HXX

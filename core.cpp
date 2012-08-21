@@ -771,7 +771,7 @@ void bul::critical_services( Configuration * cfg )
 
     rtctrl.action("battery");
     rtctrl.action("temperature");
-    if ((!ccap.sleep || ccap.facePresent) && rtctrl.scrnsaver_disabling)
+    if ((!ccap.sleep || (ccap.facePresent && ccap.faceDetectInSleep)) && rtctrl.scrnsaver_disabling)
     {
         rtctrl.shell("xscreensaver-command -deactivate > /dev/null");
         rtctrl.shell("gnome-screensaver-command -d > /dev/null");
