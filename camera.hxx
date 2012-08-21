@@ -104,9 +104,9 @@ public:
     bool**          img2bool(IplImage *input);
     pixel**         img2env(IplImage *input);
     vector <plama>  splash_detect(bool **input, int min_splash_size);
-    vector<CvRect>  detectFaceInImage(IplImage *inputImg, vector <CvHaarClassifierCascade*> cascade),
+    vector<CvRect>  detectFaceInImage(IplImage *inputImg, CvHaarClassifierCascade* cascade),
                     mergePartialFaces(vector<CvRect> input, double minMatchPerc),
-                    generateAvgRect(vector<CvRect> input[]);
+                    generateAvgRect(vector<CvRect> input[], int size);
     vector<IplImage*>       cropImages(IplImage *img, vector<CvRect> region);
 
     CvSize          motionpicsSize;
@@ -120,13 +120,15 @@ public:
                     *movingAverage,
                     *dst,
                     *temp,
-                    *facegrey;
+                    *facegrey,
+                    *srcforrec;
     vector <IplImage*>  faceimg,
                         prevfaceimg;
+    vector <CvRect> * faceAreas;
     IplImage ***    faceImgArr;
     IplImage **     eigenVector,
                     avgFace;
-    CvSeq**         facerects;
+    CvSeq*          facerects;
     bool            first,
                     sleep,
                     debug,
@@ -136,7 +138,8 @@ public:
                     enabled,
                     facePresent,
                     faceDetectEnabled,
-                    faceDetectInSleep;
+                    faceDetectInSleep,
+                    recognitionInProgress;
     bool*           correctcascade;
     bool**          boolimage;
     vector <vector <pair<PII, PII> > >  midpoints;
@@ -169,7 +172,8 @@ public:
                     catch_speed,
                     faceDetectMisses,
                     faceDetectDelay,
-                    faceDetectSleepDelay;
+                    faceDetectSleepDelay,
+                    currentcascade;
     double          reference_sleep_average,
                     reference_active_average,
                     reference_fps,

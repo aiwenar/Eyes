@@ -64,6 +64,8 @@ void camcapture::init_motionpics()
             faceImgArr[i][j] = cvLoadImage(&("./test/test" + ss.str() + ".jpg")[0], CV_LOAD_IMAGE_GRAYSCALE);
         }
     }
+    recognitionInProgress = false;
+    currentcascade = 0;
     faceDetectMisses = 0;
     env.tabsize = motionpicsSize.width*motionpicsSize.height;
     env.global_avg = 150;
@@ -104,7 +106,7 @@ void camcapture::init_motionpics()
         faceDetectEnabled = false;
         cerr << "Error: Beeing like a boss failed - could not find any cascade - disabling recognition\n";
     }
-    facerects = new CvSeq*[faceCascade.size()];
+    faceAreas = new vector <CvRect> [faceCascade.size()];
 
 }
 
@@ -230,7 +232,7 @@ bool** camcapture::img2bool(IplImage *input)
 }
 
 
-vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, vector <CvHaarClassifierCascade*> cascade)
+vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, CvHaarClassifierCascade* cascade)
 {
         // Smallest face size.
         CvSize minFeatureSize = cvSize(inputImg->width*minfacesize, inputImg->height*minfacesize);
@@ -238,57 +240,40 @@ vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, vector <CvHaarC
         int flags = CV_HAAR_DO_ROUGH_SEARCH;
         // How detailed should the search be.
         float search_scale_factor = 1.1f;
-        IplImage *detectImg;
-        IplImage *greyImg = 0;
         CvMemStorage* storage;
         double t;
         CvSize size;
         int i, ms, nFaces;
-        vector<CvRect> retvec[cascade.size()];
+        vector <CvRect> retvec;
 
         storage = cvCreateMemStorage(0);
         cvClearMemStorage( storage );
 
+        retvec.clear();
+        // Detect all the faces in the greyscale image.
+        t = (double)cvGetTickCount();
+        facerects = cvHaarDetectObjects( inputImg, cascade, storage,
+                        search_scale_factor, 3, flags, minFeatureSize);
+        t = (double)cvGetTickCount() - t;
+        ms = cvRound( t / ((double)cvGetTickFrequency() * 1000.0) );
+        nFaces = facerects->total;
+        //printf("Face Detection took %d ms and found %d objects\n", ms, nFaces);
+        cerr << "Detected " << nFaces << " faces witch method: " << currentcascade+1 << "\n";
 
-        // If the image is color, use a greyscale copy of the image.
-        detectImg = (IplImage*)inputImg;
-        if (inputImg->nChannels > 1) {
-                size = cvSize(inputImg->width, inputImg->height);
-                greyImg = cvCreateImage(size, IPL_DEPTH_8U, 1 );
-                cvCvtColor( inputImg, greyImg, CV_BGR2GRAY );
-                detectImg = greyImg;	// Use the greyscale image.
-        }
-
-        for (int i=0;i<cascade.size();i++)
+        // Get the first detected face (the biggest).
+        if (nFaces > 0)
         {
-            retvec[i].clear();
-            // Detect all the faces in the greyscale image.
-            t = (double)cvGetTickCount();
-            facerects[i] = cvHaarDetectObjects( detectImg, cascade[i], storage,
-                            search_scale_factor, 3, flags, minFeatureSize);
-            t = (double)cvGetTickCount() - t;
-            ms = cvRound( t / ((double)cvGetTickFrequency() * 1000.0) );
-            nFaces = facerects[i]->total;
-            //printf("Face Detection took %d ms and found %d objects\n", ms, nFaces);
-            //cerr << "Detected " << nFaces << " faces witch method: " << i+1 << "\n";
-
-            // Get the first detected face (the biggest).
-            if (nFaces > 0)
+            for (int j = 0; j<nFaces; j++)
             {
-                for (int j = 0; j<nFaces; j++)
-                {
-                    retvec[i].push_back(*(CvRect*)cvGetSeqElem( facerects[i], j ));
-                }
-                retvec[i] = mergePartialFaces(retvec[i], minMergeArea);
+                retvec.push_back(*(CvRect*)cvGetSeqElem( facerects, j ));
             }
+            retvec = mergePartialFaces(retvec, minMergeArea);
         }
 
-        if (greyImg)
-                cvReleaseImage( &greyImg );
         cvReleaseMemStorage( &storage );
         //cvReleaseHaarClassifierCascade( &cascade );
 
-        return generateAvgRect(retvec);	// Return the biggest face found, or (-1,-1,-1,-1).
+        return retvec;	// Return the biggest face found, or (-1,-1,-1,-1).
 }
 
 
@@ -383,7 +368,7 @@ vector <CvRect> camcapture::mergePartialFaces(vector<CvRect> input, double minMa
 }
 
 
-vector <CvRect> camcapture::generateAvgRect(vector<CvRect> input[])
+vector <CvRect> camcapture::generateAvgRect(vector<CvRect> input[], int size)
 {
     vector <CvRect> retvec;
     retvec.clear();
@@ -393,7 +378,7 @@ vector <CvRect> camcapture::generateAvgRect(vector<CvRect> input[])
         //cerr << "firststep in " << i << " picture of vector 0\n";
         tmp.clear();
         tmp.push_back(input[0][i]);
-        for (int j = 1; j<faceCascade.size();j++)
+        for (int j = 1; j<size;j++)
         {
             //cerr << "step2 in " << j << " second vector \n";
             for (int k = 0 ;k < input[j].size();k++)
@@ -410,28 +395,28 @@ vector <CvRect> camcapture::generateAvgRect(vector<CvRect> input[])
                     //cerr << "-";
             }
         }
-        if (tmp.size() == faceCascade.size())
+        if (tmp.size() == size)
         {
             //cerr << "MAPPED TRUE FACE\n";
             retvec.push_back(input[0][i]);
-            for (int i = 1; i < faceCascade.size() ; i++)
+            for (int i = 1; i < size ; i++)
                 retvec[retvec.size()-1].x += tmp[i].x;
-            retvec[retvec.size()-1].x /=faceCascade.size();
+            retvec[retvec.size()-1].x /=size;
             if (retvec[retvec.size()-1].x < 0)
                 retvec[retvec.size()-1].x = 0;
-            for (int i = 1; i < faceCascade.size() ; i++)
+            for (int i = 1; i < size ; i++)
                 retvec[retvec.size()-1].y += tmp[i].y;
-            retvec[retvec.size()-1].y /=faceCascade.size();
+            retvec[retvec.size()-1].y /=size;
             if (retvec[retvec.size()-1].y < 0)
                 retvec[retvec.size()-1].y = 0;
-            for (int i = 1; i < faceCascade.size() ; i++)
+            for (int i = 1; i < size ; i++)
                 retvec[retvec.size()-1].width += tmp[i].width;
-            retvec[retvec.size()-1].width /=faceCascade.size();
+            retvec[retvec.size()-1].width /=size;
             if (retvec[retvec.size()-1].x + retvec[retvec.size()-1].width > facegrey->width)
                 retvec[retvec.size()-1].width = facegrey->width-retvec[retvec.size()-1].x;
-            for (int i = 1; i < faceCascade.size() ; i++)
+            for (int i = 1; i < size ; i++)
                 retvec[retvec.size()-1].height += tmp[i].height;
-            retvec[retvec.size()-1].height /=faceCascade.size();
+            retvec[retvec.size()-1].height /=size;
             if (retvec[retvec.size()-1].y + retvec[retvec.size()-1].height > facegrey->height)
                 retvec[retvec.size()-1].height = facegrey->height-retvec[retvec.size()-1].y;
         }
@@ -591,17 +576,6 @@ vector<IplImage*> camcapture::cropImages(IplImage *input, vector<CvRect> region)
         // Set the desired region of interest.
         for (int i = 0; i < region.size(); i++)
         {
-            if (croptemp->width <= 0 || croptemp->height <= 0
-                    || region[i].width <= 0 || region[i].height <= 0) {
-                    //cerr << "ERROR in cropImage(): invalid dimensions." << endl;
-                    exit(1);
-            }
-
-            if (croptemp->depth != IPL_DEPTH_8U) {
-                    //cerr << "ERROR in cropImage(): image depth is not 8." << endl;
-                    exit(1);
-            }
-
             cvSetImageROI(croptemp, region[i]);
             // Copy region of interest into a new iplImage and return it.
             imageCropped = cvCreateImage(cvSize(region[i].width, region[i].height), croptemp->depth, croptemp->nChannels);
@@ -619,16 +593,30 @@ void camcapture::faceprocessing(IplImage *source)
 {
 
     // Perform face detection on the input image, using the given Haar classifier
-    vector <CvRect> faceRects = detectFaceInImage(src, faceCascade);
-    cvCvtColor( src, facegrey, CV_RGB2GRAY );
-    cropImages(facegrey, faceRects);
-    //unrotate(faceimg, faceCascade[4]);
-    newFace = make_pair(-1, -1);
-    //newFace = make_pair(100-(100*(facerects[i].x+facerects[i].width/2))/facegrey->width, (100*(facerects[i].y+facerects[i].height/2))/facegrey->height);
-    if (faceimg.size() > 0)
-        facePresent = true;
+    if (currentcascade == 0)
+        cvCvtColor( src, facegrey, CV_RGB2GRAY );
+    recognitionInProgress = true;
+    faceAreas[currentcascade] = detectFaceInImage(facegrey, faceCascade[currentcascade]);
+    if (currentcascade == faceCascade.size()-1)
+    {
+        cropImages(facegrey, generateAvgRect(faceAreas, faceCascade.size()));
+        for (int i = 0; i<faceCascade.size();i++)
+        {
+            faceAreas[i].clear();
+        }
+        currentcascade = 0;
+        newFace = make_pair(-1, -1);
+        //newFace = make_pair(100-(100*(facerects[i].x+facerects[i].width/2))/facegrey->width, (100*(facerects[i].y+facerects[i].height/2))/facegrey->height);
+        if (faceimg.size() > 0)
+            facePresent = true;
+        else
+            facePresent = false;
+        //unrotate(faceimg, faceCascade[4]);
+        recognitionInProgress = false;
+    }
     else
-        facePresent = false;
+        currentcascade++;
+    cerr << currentcascade << "\n";
 }
 
 vector <plama> camcapture::splash_detect(bool **input, int min_splash_size)
@@ -929,7 +917,7 @@ void camcapture::optimize(int last_delay)
                 halted = true;
         }
         else
-            fps_adaptation_timer.restart();
+            fps_adaptation_timer.invalidate();
     }
     else
     {
@@ -965,6 +953,7 @@ void camcapture::optimize(int last_delay)
             else
                 halted = true;
         }
+        fps_adaptation_timer.invalidate();
     }
 }
 
@@ -1215,9 +1204,9 @@ bool camcapture::main()
         retstat = true;
     sleepdetect();
     funcalc();
-    if (faceDetectEnabled && (!sleep || faceDetectInSleep))
+    if ((faceDetectEnabled && (!sleep || faceDetectInSleep)) || recognitionInProgress )
     {
-        if ( (!sleep && (faceDetectMisses >= faceDetectDelay)) || (sleep && (faceDetectMisses >= faceDetectSleepDelay)) )
+        if (( (!sleep && (faceDetectMisses >= faceDetectDelay)) || (sleep && (faceDetectMisses >= faceDetectSleepDelay))) || recognitionInProgress )
         {
             faceprocessing(src);
             faceDetectMisses = 0;
@@ -1386,7 +1375,7 @@ void camthread::tick()
     {
         disconnect(timer, 0, 0, 0);
         cvReleaseCapture(&ccap.cam);
-        cerr << "System is too slow for caption with specified maximum cpu loads - capture deactivated permanently\n";
+        cerr << "System is too slow for capture with specified maximum cpu loads - capture deactivated permanently\n";
     }
     speedmeter.start();
 }
