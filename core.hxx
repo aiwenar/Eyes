@@ -400,9 +400,16 @@ public:
                                 temp_halt_enabled,
                                 suspendtohdd,
                                 screenctrl,
-                                scrnsaver_disabling,
-                                customshell;
-    string                      shellname;
+                                scrnsaver_management,
+                                customshell,
+                                scrnsav_X,
+                                scrnsav_kde,
+                                scrnsav_gnome,
+                                scrnsav_mac,
+                                scrnsav_custom;
+    string                      shellname,
+                                scrnsav_custom_on,
+                                scrnsav_custom_off;
 private:
     void                        execute(bool roottype, QString command, QStringList arguments),
                                 execute(bool roottype, QString command);

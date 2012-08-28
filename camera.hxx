@@ -7,6 +7,7 @@
 
 // OpenCV includes.
 #include <opencv2/opencv.hpp>
+#include <opencv2/contrib/contrib.hpp>
 #include <cvaux.hpp>
 #include "eyes.hxx"
 
@@ -85,10 +86,15 @@ struct funsys
 class camcapture
 {
 public:
+
+    //methods
+
     bool            cam_init(),
                     motion_detect(vector <plama> plamy),
                     main(),
-                    compareRect(CvRect a, CvRect b, double size_precision, double pos_precision);
+                    compareRect(CvRect a, CvRect b, double size_precision, double pos_precision),
+                    addFaceData(vector <IplImage*>  input, vector<PII> inputmatches, vector<vector <int> > * prevrecords);
+
     void            init_motionpics(),
                     init_debug(),
                     sleepdetect(),
@@ -99,36 +105,57 @@ public:
                     connect_faces(vector<IplImage*>input, vector<IplImage*>output),
                     unrotate (vector<IplImage*> input, CvHaarClassifierCascade* cascade),
                     rescue_cascades();
+
+    int             searchFace(IplImage * input, cv::Ptr<cv::FaceRecognizer> inputModel, double precision),
+                    screensaver_management();
+
+    double          averagecalc(double ifps);
+
     IplImage*       get_image();
+
     IplImage*       get_motionpics(double tolerance, IplImage *input);
+
     bool**          img2bool(IplImage *input);
+
     pixel**         img2env(IplImage *input);
+
     vector <plama>  splash_detect(bool **input, int min_splash_size);
+
     vector<CvRect>  detectFaceInImage(IplImage *inputImg, CvHaarClassifierCascade* cascade),
                     mergePartialFaces(vector<CvRect> input, double minMatchPerc),
                     generateAvgRect(vector<CvRect> input[], int size);
+
     vector<IplImage*>       cropImages(IplImage *img, vector<CvRect> region);
 
+    vector<PII>     trackFaces(vector<IplImage*> inputL, vector<IplImage*> inputR);
+
+
+    //variables
+
+
     CvSize          motionpicsSize;
-    vector <CvHaarClassifierCascade*> faceCascade;
-    vector<pair <pair <int,int>, pair <int,int> > > rotvec;
-    CvCapture       *cam;
-    IplImage        *src,
-                    *difference,
-                    *compare_pic,
-                    *resized,
-                    *movingAverage,
-                    *dst,
-                    *temp,
-                    *facegrey,
-                    *srcforrec;
-    vector <IplImage*>  faceimg,
-                        prevfaceimg;
-    vector <CvRect> * faceAreas;
-    IplImage ***    faceImgArr;
+
+    cv::Ptr<cv::FaceRecognizer> facesModel;
+
+    CvSeq*          facerects;
+
+    CvCapture     * cam;
+
+    IplImage      * src,
+                  * difference,
+                  * compare_pic,
+                  * resized,
+                  * movingAverage,
+                  * dst,
+                  * temp,
+                  * facegrey,
+                  * srcforrec;
+
     IplImage **     eigenVector,
                     avgFace;
-    CvSeq*          facerects;
+
+    IplImage ***    faceImgArr;
+
     bool            first,
                     sleep,
                     debug,
@@ -139,13 +166,46 @@ public:
                     facePresent,
                     faceDetectEnabled,
                     faceDetectInSleep,
-                    recognitionInProgress;
+                    recognitionInProgress,
+                    faceRecognitionEnabled,
+                    overdetect,
+                    activate_screensaver,
+                    deactivate_screensaver,
+                    turnoff_screen;
+
     bool*           correctcascade;
+
     bool**          boolimage;
-    vector <vector <pair<PII, PII> > >  midpoints;
-    vector<int>     bucket,
-                    prevdists;
-    vector<plama>   plamy;
+
+
+
+    vector <vector <pair<PII, PII> > >      midpoints;
+
+    vector<int>                             bucket,
+                                            prevdists,
+                                            facesBankIndex,
+                                            facesBankQuantities,
+                                            faceSamples;
+
+    vector<vector <int> >                 * pathRecords;
+
+    vector<pair <pair <int,int>, pair <int,int> > > rotvec;
+
+    vector<pair <int, vector <IplImage> > > newFacesImgs;
+
+    vector <IplImage*>                      faceimg,
+                                            prevfaceimg;
+
+    vector <CvHaarClassifierCascade*>       faceCascade;
+
+    vector <cv::Mat>                        facesBank;
+
+    vector <CvRect>                       * faceAreas;
+
+    vector<plama>                           plamy;
+
+
+
     int             timer,
                     forget_timer,
                     prevmax,
@@ -170,10 +230,18 @@ public:
                     mindelay,
                     minsleepdelay,
                     catch_speed,
-                    faceDetectMisses,
                     faceDetectDelay,
                     faceDetectSleepDelay,
-                    currentcascade;
+                    currentcascade,
+                    presenceCounter,
+                    presenceBufferSize,
+                    maxRecognitionBufferSize,
+                    faceImageDropDelay,
+                    prevNewFace,
+                    newFaceLookAtTimeMin,
+                    newFaceLookAtTimeMax,
+                    newFaceLookAtRemained;
+
     double          reference_sleep_average,
                     reference_active_average,
                     reference_fps,
@@ -185,15 +253,21 @@ public:
                     minMergeArea,
                     minPosMatch,
                     minSizeMatch,
-                    averagecalc(double ifps);
+                    faceRecognisePrecision,
+                    faceRecognizerTreshold;
+
     pair<int, int>  motionpos,
                     operationsarea,
                     newFace;
+
     QElapsedTimer   fps_adaptation_timer,
-                    deactivetimer;
+                    deactivetimer,
+                    detectionTimer;
+
     environment     env;
     funsys          fun;
-    string          cascadesPath;
+    string          cascadesPath,
+                    facesBankPath;
 };
 
 #endif // CAMERA_HXX

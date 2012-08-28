@@ -1936,11 +1936,11 @@ void cdbg::on_timer_tick ()
           cout << "\033[1B\033[2D";
           spacefill(ccap.faceimg.size(), 2);
           cout << "\033[1B\033[8D\033[1;32m";
-          spacefill(ccap.faceDetectDelay, 3);
+          spacefill(ccap.faceDetectDelay/1000, 3);
           cout << "\033[1C\033[1;34m";
-          spacefill(ccap.faceDetectSleepDelay, 3);
+          spacefill(ccap.faceDetectSleepDelay/1000, 3);
           cout << "\033[1B\033[5D\033[1;33m";
-          spacefill(ccap.faceDetectMisses, 3);
+          spacefill(ccap.detectionTimer.elapsed()/1000, 3);
       }
       if (ccap.env.checked || bulwers.envs.size()>0)
       {

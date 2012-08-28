@@ -771,14 +771,52 @@ void bul::critical_services( Configuration * cfg )
 
     rtctrl.action("battery");
     rtctrl.action("temperature");
-    if ((!ccap.sleep || (ccap.facePresent && ccap.faceDetectInSleep)) && rtctrl.scrnsaver_disabling)
+    if (rtctrl.scrnsaver_management && ccap.enabled)
     {
-        rtctrl.shell("xscreensaver-command -deactivate > /dev/null");
-        rtctrl.shell("gnome-screensaver-command -d > /dev/null");
-        rtctrl.shell("gnome-screensaver-command -p > /dev/null 2>/dev/null");
-        rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:false > /dev/null");
-        rtctrl.shell("killall ScreenSaverEngine > /dev/null 2>/dev/null");
-        rtctrl.shell("xset dpms force on > /dev/null");
+        int screensaverstate = ccap.screensaver_management();
+
+        cerr << "Return statement of menagement: " << screensaverstate << "\noverdetect is: " << ccap.overdetect << "\n";
+
+        if (screensaverstate == -1 && ccap.deactivate_screensaver)
+        {
+            if (rtctrl.scrnsav_X)
+                rtctrl.shell("xscreensaver-command -deactivate > /dev/null");
+            if (rtctrl.scrnsav_gnome)
+            {
+                rtctrl.shell("gnome-screensaver-command -d > /dev/null");
+                rtctrl.shell("gnome-screensaver-command -p > /dev/null 2>/dev/null");
+            }
+            if (rtctrl.scrnsav_kde)
+                rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:false > /dev/null");
+            if (rtctrl.scrnsav_mac)
+                rtctrl.shell("killall ScreenSaverEngine > /dev/null 2>/dev/null");
+            if (rtctrl.scrnsav_custom)
+                rtctrl.shell(rtctrl.scrnsav_custom_off + " >/dev/null 2>/dev/null");
+
+            rtctrl.shell("xset dpms force on > /dev/null");
+        }
+        if (screensaverstate == 1)
+        {
+            if (ccap.activate_screensaver)
+            {
+                if (rtctrl.scrnsav_X)
+                    rtctrl.shell("xscreensaver-command -activate > /dev/null");
+                if (rtctrl.scrnsav_gnome)
+                    rtctrl.shell("gnome-screensaver-command -a > /dev/null");
+                if (rtctrl.scrnsav_kde)
+                    rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:true > /dev/null");
+                if (rtctrl.scrnsav_mac);
+                    rtctrl.shell("open /System/Library/Frameworks/ScreenSaver.framework/Resources/ScreenSaverEngine.app > /dev/null 2>/dev/null");
+                    //defaults -currentHost write com.apple.screensaver idleTime 180
+                if (rtctrl.scrnsav_custom)
+                    rtctrl.shell(rtctrl.scrnsav_custom_on + " >/dev/null 2>/dev/null");
+            }
+
+            if (ccap.turnoff_screen)
+            {
+                rtctrl.shell("xset dpms force off > /dev/null 2>/dev/null");
+            }
+        }
     }
 
     if (temperature.ready())
@@ -1870,9 +1908,16 @@ void Core::load_config ()
     rtctrl.suspendtohdd     = cfg->lookupValue ( "core.rootcontrol.suspendtohdd",       false       );
     rtctrl.temp_halt_enabled= cfg->lookupValue ( "core.rootcontrol.temp_halt_enabled",  true        );
     rtctrl.temp_halt_start  = cfg->lookupValue ( "core.rootcontrol.temp_halt_start",    85          );
-    rtctrl.scrnsaver_disabling  = cfg->lookupValue ( "core.rootcontrol.screensaver_disabling",  true        );
+    rtctrl.scrnsaver_management  = cfg->lookupValue ( "core.rootcontrol.screensaver_management",  true        );
     rtctrl.customshell      = cfg->lookupValue ( "core.rootcontrol.custom_shell",    false          );
     rtctrl.shellname        = cfg->lookupValue ( "core.rootcontrol.shell_name",      "sh -c "       );
+    rtctrl.scrnsav_X        = cfg->lookupValue ( "core.rootcontrol.manage_xscreensaver",          true        );
+    rtctrl.scrnsav_kde      = cfg->lookupValue ( "core.rootcontrol.manage_kde_screensaver",       true        );
+    rtctrl.scrnsav_gnome    = cfg->lookupValue ( "core.rootcontrol.manage_gnome_screensaver",     true        );
+    rtctrl.scrnsav_mac      = cfg->lookupValue ( "core.rootcontrol.manage_mac_screensaver",       true        );
+    rtctrl.scrnsav_custom   = cfg->lookupValue ( "core.rootcontrol.manage_custom_screensaver",   false        );
+    rtctrl.scrnsav_custom_on     = cfg->lookupValue ( "core.rootcontrol.manage_custom_screensaver_on",   "xscreensaver-command -activate"        );
+    rtctrl.scrnsav_custom_off    = cfg->lookupValue ( "core.rootcontrol.manage_custom_screensaver_off",  "xscreensaver-command -deactivate"      );
 
     //flue
 
