@@ -102,7 +102,6 @@ public:
                     envread(pixel** input),
                     funcalc(),
                     faceprocessing(IplImage * source),
-                    connect_faces(vector<IplImage*>input, vector<IplImage*>output),
                     unrotate (vector<IplImage*> input, CvHaarClassifierCascade* cascade),
                     rescue_cascades();
 
@@ -127,7 +126,7 @@ public:
 
     vector<IplImage*>       cropImages(IplImage *img, vector<CvRect> region);
 
-    vector<PII>     trackFaces(vector<IplImage*> inputL, vector<IplImage*> inputR);
+    vector<PII>     trackFaces(vector<CvRect> inputL, vector<CvRect> inputR, int maxDist, double ignoreDist);
 
 
     //variables
@@ -187,20 +186,21 @@ public:
                                             facesBankQuantities,
                                             faceSamples;
 
-    vector<vector <int> >                 * pathRecords;
+    vector<vector <int> >                   pathRecords;
 
     vector<pair <pair <int,int>, pair <int,int> > > rotvec;
 
     vector<pair <int, vector <IplImage> > > newFacesImgs;
 
-    vector <IplImage*>                      faceimg,
-                                            prevfaceimg;
+    vector <IplImage*>                      faceimg;
 
     vector <CvHaarClassifierCascade*>       faceCascade;
 
     vector <cv::Mat>                        facesBank;
 
-    vector <CvRect>                       * faceAreas;
+    vector <CvRect>                       * faceAreas,
+                                            faceRectsPrev,
+                                            avgRects;
 
     vector<plama>                           plamy;
 
@@ -240,7 +240,9 @@ public:
                     prevNewFace,
                     newFaceLookAtTimeMin,
                     newFaceLookAtTimeMax,
-                    newFaceLookAtRemained;
+                    newFaceLookAtRemained,
+                    maxFacesPerImg;
+    int **          hungarianInput;
 
     double          reference_sleep_average,
                     reference_active_average,
@@ -254,7 +256,8 @@ public:
                     minPosMatch,
                     minSizeMatch,
                     faceRecognisePrecision,
-                    faceRecognizerTreshold;
+                    faceRecognizerTreshold,
+                    faceTrackMaxDist;
 
     pair<int, int>  motionpos,
                     operationsarea,

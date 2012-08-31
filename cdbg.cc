@@ -2197,8 +2197,6 @@ void cdbg::on_timer_tick ()
     chck_s ();
     cout << "tlnum" << " " << (unsigned short)temperature.lin_num;
     chck_s ();
-    cout << "tunit" << " " << (unsigned short)temperature.unit;
-    chck_s ();
     cout << "tfreq" << " " << temperature.degree;
     chck_s ();
     cout << "tempt" << " " << flue.amplitude;

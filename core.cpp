@@ -31,6 +31,7 @@
 #include "core.hxx"
 #include "eyes.hxx"
 #include "camera.hxx"
+#include "connection.hxx"
 #include "debug.hxx"
 #include "cdbg.hxx"
 #include "hardware.hxx"
@@ -1664,7 +1665,6 @@ void Core::load_config ()
     temperature.safezone    = cfg->lookupValue ( "core.temperature.safezone",           8           );
     temperature.buffered    = cfg->lookupValue ( "core.temperature.buffered",           true        );
     temperature.buff_size   = cfg->lookupValue ( "core.temperature.buffer_size",        10          );
-    temperature.unit        = cfg->lookupValue ( "core.temperature.unit",               1           );
     temperature.EQbegin     = cfg->lookupValue ( "core.temperature.EQbegin",            30          );
     temperature.EQend       = cfg->lookupValue ( "core.temperature.EQend",              70          );
     temperature.EQsize      = cfg->lookupValue ( "core.temperature.EQsize",             30          );
@@ -2000,6 +2000,8 @@ void Core::run ()
     info << "(core) end of core preparing\n";
     timer->start ( 1000 );
     _cdbg = new cdbg ( this );
+    connection_gate * connection = new connection_gate();
+    connection->serverStart();
 
     struct sigaction sa;
     sa.sa_handler = handler;

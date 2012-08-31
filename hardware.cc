@@ -1448,3 +1448,9 @@ void hardware::system_check()
             }
 
 }
+
+
+double hardware::equalize(double min, double max, double input, double degree)
+{
+    return pow(input-min, degree)*((max-min)/pow((max-min), degree))+min;
+}

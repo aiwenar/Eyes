@@ -20,7 +20,9 @@ SOURCES += \
     cdbg.cc \
     ostream.cc \
     eyes_menu.cc \
-    camera.cpp
+    camera.cpp \
+    hungarian.cpp \
+    connection.cc
 
 HEADERS += \ 
   defines.hxx\
@@ -35,12 +37,16 @@ HEADERS += \
   hardware.hxx \
   ostream.hh \
     eyes_menu.hh \
-    camera.hxx
+    camera.hxx \
+    hungarian.h \
+    connection.hxx
 
 OTHER_FILES += \ 
   README.markdown\
   color.cfg\
   .gitignore
+
+QT += network
 
 system(./scripts/checklibs)
 
@@ -61,6 +67,10 @@ LIBS += \
 
 system ( echo "Eyes configured." )
 system ( echo "  type 'make' to build Eyes." )
+
+
+
+
 
 
 

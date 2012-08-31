@@ -71,6 +71,7 @@ public:
                             backlight_npath,
                             get_file            (char* path);
     vector <string>         cores_paths;
+    double                  equalize(double min, double max, double input, double degree);
 };
 
 
@@ -114,8 +115,7 @@ struct a_calc_data
     string                      name;
 };
 
-class percental
-{
+class hardwareData {
 public:
     short                       mod,
                                 mod_prev;
@@ -147,40 +147,34 @@ public:
     a_calc_data                 ac;
 };
 
-class unital
+class percental : public hardwareData
 {
 public:
-    short                       mod,
-                                mod_prev;
-    vector<unsigned short>      probes,
-                                sector_small;
+    double                      load;
+    unsigned int                calculate();
+    int                         convert(unsigned short val);
+    void                        get_load (double),
+                                init (QString adress);
+    bool                        ready(),
+                                autocalc(),
+                                ac_save( Configuration * cfg ),
+                                ac_init( string name );
+};
+
+class unital : public hardwareData
+{
+public:
     unsigned int                value,
-                                stable,
-                                buff_size,
-                                EQsize,
                                 EQbegin,
                                 EQend,
-                                max_mod_pos,
-                                max_mod_neg,
-                                unit,
-                                lin_num,
-                                current_probe,
-                                current_probe_small,
-                                safezone,
                                 calculate();
     int                         convert(unsigned short val);
-    vector <int>                EQ;
-    double                      degree,
-                                mod_correction_pos,
-                                mod_correction_neg;
     void                        get_load (unsigned short),
                                 init (QString adress);
-    bool                        buffered,
-                                ready(),
+    bool                        ready(),
                                 autocalc( Configuration * cfg ),
                                 ac_save( Configuration * cfg ),
                                 ac_init( string name);
-    a_calc_data                 ac;
 };
 
 class timal

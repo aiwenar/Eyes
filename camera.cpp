@@ -1,5 +1,6 @@
 #include "camera.hxx"
 #include "hardware.hxx"
+#include "hungarian.h"
 #include "core.hxx"
 #include <unistd.h>
 #include <sys/stat.h>
@@ -118,6 +119,15 @@ void camcapture::init_motionpics()
             cerr << "Error: Beeing like a boss failed - could not find any cascade - disabling recognition\n";
         }
         faceAreas = new vector <CvRect> [faceCascade.size()];
+
+        if (faceRecognitionEnabled)
+        {
+            hungarianInput = new int *[maxFacesPerImg];
+            for (int i = 0; i < maxFacesPerImg; i++)
+            {
+                hungarianInput[i] = new int[maxFacesPerImg];
+            }
+        }
     }
 
 }
@@ -550,34 +560,6 @@ void camcapture::unrotate(vector<IplImage *> input, CvHaarClassifierCascade* cas
 }
 
 
-void camcapture::connect_faces(vector<IplImage *> input, vector<IplImage *> output)
-{
-    if (input.size() > output.size())
-    {
-        for (int i = 0; i < output.size(); i++)
-        {
-            for (int j = 0; j < input.size(); j++)
-            {
-                cvAbsDiff(output[i],input[j],compare_pic);
-                long long sum = 0;
-                bool ** booltab = img2bool(compare_pic);
-                for (int l = 0; l<100; l++)
-                {
-                    for (int m = 0; m<100; m++)
-                    {
-                        sum += booltab[l][m];
-                    }
-                }
-            }
-        }
-    }
-    else
-    {
-
-    }
-}
-
-
 vector<IplImage*> camcapture::cropImages(IplImage *input, vector<CvRect> region)
 {
         //faceimg.clear();
@@ -613,8 +595,163 @@ int camcapture::searchFace(IplImage *input, Ptr<FaceRecognizer> inputModel, doub
 }
 
 
-vector <PII> camcapture::trackFaces(vector<IplImage *> inputL, vector<IplImage *> inputR)
+/*
+
+  hungarian input:
+
+        R
+    [1][2][3][4]
+  L [2]
+    [3]
+    [4]
+
+  */
+
+
+vector <PII> camcapture::trackFaces(vector<CvRect> inputL, vector<CvRect> inputR, int maxDist, double ignoreDist)
 {
+    int newsize = maxFacesPerImg;
+    bool toresize = false;
+    if (inputL.size() > newsize)
+    {
+        toresize = true;
+        newsize = inputL.size();
+    }
+    if (inputR.size() > newsize)
+    {
+        toresize = true;
+        newsize = inputR.size();
+    }
+    if (toresize)
+    {
+        for (int i = 0; i < maxFacesPerImg; i++)
+        {
+            for (int j = 0; j < maxFacesPerImg; j++)
+            {
+                delete(&hungarianInput[i][j]);
+            }
+            delete(&hungarianInput[i]);
+        }
+        delete (&hungarianInput);
+        maxFacesPerImg = newsize;
+        hungarianInput = new int * [maxFacesPerImg];
+        for (int i = 0; i < maxFacesPerImg; i++)
+        {
+            hungarianInput[i] = new int[maxFacesPerImg];
+        }
+
+    }
+
+    vector <pair < int, int > > retvec (0);
+    if (inputL.size() == 0 && inputR.size() == 0)
+        return retvec;
+    if (inputR.size() == 1 && inputL.size() == 1)
+    {
+        if (sqrt( ((inputR[0].x+inputR[0].width/2)-(inputL[0].x+inputL[0].width/2))*((inputR[0].x+inputR[0].width/2)-(inputL[0].x+inputL[0].width/2)) +
+                  ((inputR[0].y+inputR[0].height/2)-(inputL[0].y+inputL[0].height/2))*((inputR[0].y+inputR[0].height/2)-(inputL[0].y+inputL[0].height/2)) ) > (double)maxDist*ignoreDist)
+        {
+            retvec.push_back(make_pair (-1, 0));
+            retvec.push_back(make_pair (0, -1));
+        }
+        else
+            retvec.push_back(make_pair (0, 0));
+        return retvec;
+    }
+    if (inputR.size() == 1 && inputL.size() == 0)
+    {
+        retvec.push_back(make_pair(-1, 0));
+        return retvec;
+    }
+    if (inputR.size() == 0 && inputL.size() == 1)
+    {
+        retvec.push_back(make_pair(0, -1));
+        return retvec;
+    }
+
+    cerr << "Beginning standard matching process:\nCounting distances...";
+
+    for (int i = 0; i < inputL.size(); i++)
+    {
+        for (int j = 0; j < inputR.size(); j++)
+        {
+            hungarianInput[i][j] = sqrt( ((inputR[j].x+inputR[j].width/2)-(inputL[i].x+inputL[i].width/2))*((inputR[j].x+inputR[j].width/2)-(inputL[i].x+inputL[i].width/2)) +
+                                         ((inputR[j].y+inputR[j].height/2)-(inputL[i].y+inputL[i].height/2))*((inputR[j].y+inputR[j].height/2)-(inputL[i].y+inputL[i].height/2)) );
+            if ((double)hungarianInput[j][i] < (double)maxDist*ignoreDist)
+                hungarianInput[i][j] = (int)HRDWR.equalize(0, maxDist, hungarianInput[j][i], 1.5);
+            else //blacklist element:
+                hungarianInput[i][j] = maxDist;
+        }
+    }
+
+    cerr << "DUN!\nbaking hungarian vector:\n";
+
+    if (inputL.size() < inputR.size())
+    {
+        cerr << "switched to L < R...\nResizing to nxn matrix...";
+        for (int i = inputL.size(); i < inputR.size(); i++)
+        {
+            for (int j = 0; j < inputR.size(); j++)
+            {
+                hungarianInput[i][j] = maxDist;
+            }
+        }
+        cerr << "DUN!\nGetting return statement from hungarian method...";
+        retvec = hungarian::hungarian(inputR.size(), inputR.size(), hungarianInput);
+        cerr << "DUN!\nConverting to -1 notation...";
+        // convert to correct notation:
+        for (int i = 0; i < retvec.size(); i++)
+        {
+            if (retvec[i].ST >= inputL.size())
+                retvec[i].ST = -1;
+        }
+        cerr << "DUN!\neliminating blacklisted...\n";
+    }
+    else
+    {
+        cerr << "switched to L >= R...\nResizing to nxn matrix...";
+        for (int i = inputR.size(); i < inputL.size(); i++)
+        {
+            for (int j = 0; j < inputL.size(); j++)
+            {
+                hungarianInput[j][i] = maxDist;
+            }
+        }
+        cerr << "DUN!\nGetting return statement from hungarian method...";
+        retvec = hungarian::hungarian(inputL.size(), inputL.size(), hungarianInput);
+        cerr << "DUN!\nConverting to -1 notation...";
+        // convert to correct notation:
+        for (int i = 0; i < retvec.size(); i++)
+        {
+            if (retvec[i].ND >= inputR.size())
+                retvec[i].ND = -1;
+        }
+        cerr << "DUN!\neliminating blacklisted...\n";
+    }
+
+
+    cerr << "input vector:\n";
+    for (int i = 0; i < retvec.size(); i++)
+    {
+        cerr << retvec[i].ST << " -> " << retvec[i].ND << "\n";
+    }
+    //eliminate blacklisted
+    cerr << "beginning...\n";
+    for (int i = 0; i < retvec.size(); i++)
+    {
+        if (retvec[i].ST != -1 && retvec[i].ND != -1)
+        {
+            if (hungarianInput[retvec[i].ST][retvec[i].ND] == maxDist)
+            {
+                cerr << "erasing...";
+                retvec.push_back(make_pair(retvec[i].ST, -1));
+                retvec.push_back(make_pair(-1, retvec[i].ND));
+                retvec.erase(retvec.begin()+i);
+                i--;
+                cerr << "DUN!\n";
+            }
+        }
+    }
+    return retvec;
 
 }
 
@@ -646,8 +783,20 @@ vector <PII> camcapture::trackFaces(vector<IplImage *> inputL, vector<IplImage *
 
 bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches, vector<vector <int> > *prevrecords)
 {
+    //if there is no faces on image - clear everything
+    if (inputmatches.size() == 0)
+    {
+        prevrecords[0].clear();
+        prevrecords[1].clear();
+        newFacesImgs.clear();
+        faceSamples.clear();
+        return 0;
+    }
     //baking faces paths vectors
+    cerr << "Baking faces paths:\n";
+    cerr << inputmatches.size() << "\n" << inputmatches[0].ST << " " << inputmatches[0].ND << "\n";
 
+    cerr << "prevrec size: " << prevrecords[0].size() << "\n";
     for (int i = 0; i<prevrecords[0].size(); i++)
     {
         // search existing faces
@@ -663,8 +812,10 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
 
                     if (prevrecords[0][i].size() == maxRecognitionBufferSize)
                     {
-                        prevrecords[0][i].erase(prevrecords[0][i].begin());
-                        prevrecords[1][i].erase(prevrecords[0][i].begin());
+                        cerr << "erasing old records...";
+                        prevrecords[0][i].erase(prevrecords[0][i].begin()+0);
+                        prevrecords[1][i].erase(prevrecords[1][i].begin()+0);
+                        cerr << "DUN!\n";
                     }
                     faceSamples[i]++;
                     prevrecords[0][i].push_back(inputmatches[j].ND);
@@ -694,7 +845,10 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
             }
         }
     }
+    cerr << "result " << prevrecords[0].size() << "\n";
     // if there are still untracked faces...
+    cerr << "Tracking for new faces\n";
+
     if (inputmatches.size() != 0)
     {
         for (int i = 0; i < inputmatches.size(); i++)
@@ -703,12 +857,17 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
             {
                 // add them if everything works correctly
 
+                cerr << "addin new record...";
                 vector <int> newface (0);
                 prevrecords[0].push_back(newface);
                 prevrecords[1].push_back(newface);
                 prevrecords[0][prevrecords[0].size()-1].push_back(inputmatches[i].ND);
                 prevrecords[1][prevrecords[1].size()-1].push_back(searchFace(input[inputmatches[i].ND], facesModel, faceRecognisePrecision));
                 faceSamples.push_back(1);
+                cerr << "DUN!:\n";
+                cerr << prevrecords[0][prevrecords[0].size()-1][prevrecords[0][prevrecords[0].size()-1].size() -1] << " " <<
+                        prevrecords[1][prevrecords[1].size()-1][prevrecords[1][prevrecords[1].size()-1].size() -1] << " " <<
+                        faceSamples[faceSamples.size()-1] << "\n";
             }
             else
             {
@@ -717,12 +876,27 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
             }
         }
     }
+    for (int i = 0; i < prevrecords[0].size(); i++)
+    {
+        for (int j = 0; j < prevrecords[0][i].size(); j++)
+            cerr << "[" << prevrecords[0][i][j] << "]";
+        cerr << "\n";
+    }
+    cerr << "\n";
+    for (int i = 0; i < prevrecords[1].size(); i++)
+    {
+        for (int j = 0; j < prevrecords[1][i].size(); j++)
+            cerr << "[" << prevrecords[1][i][j] << "]";
+        cerr << "\n";
+    }
 
     //get average recognision if there is at least minimal samplaes number
+    cerr << "recognition\n";
 
     vector <int> avgRecognitions (0);
-    for (int i = 0; prevrecords[1].size(); i++)
+    for (int i = 0; i < prevrecords[1].size(); i++)
     {
+        cerr << "reco step 1...";
         if (prevrecords[1][i].size() == maxRecognitionBufferSize)
         {
             vector <pair <int, int> > counter (0);
@@ -755,14 +929,18 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
         else
             avgRecognitions.push_back(-2);
 
+        cerr << "DUN!\nreco step 2...";
+
         if ((prevrecords[1][i][prevrecords[1][i].size()-1] == -1 && prevrecords[1][i].size() < maxRecognitionBufferSize) || avgRecognitions[i] == -1)
         {
+            if ((prevrecords[1][i][prevrecords[1][i].size()-1] == -1 && prevrecords[1][i].size() < maxRecognitionBufferSize))
+                overdetect = true;
             bool present = false;
             for (int j = 0; j < newFacesImgs.size(); j++)
             {
                 if (newFacesImgs[j].ST == i)
                 {
-                    newFacesImgs[j].ND.push_back(*input[prevrecords[0][i][prevrecords[0][i].size()-1]]);
+                    newFacesImgs[j].ND.push_back(*cvCloneImage(input[prevrecords[0][i][prevrecords[0][i].size()-1]]));
                     present = true;
                 }
             }
@@ -770,23 +948,29 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
             {
                 vector <IplImage> newface (0);
                 newFacesImgs.push_back(make_pair(i, newface));
-                newFacesImgs[newFacesImgs.size()-1].ND.push_back(*input[prevrecords[0][i][prevrecords[0][i].size()-1]]);
+                newFacesImgs[newFacesImgs.size()-1].ND.push_back(*cvCloneImage(input[prevrecords[0][i][prevrecords[0][i].size()-1]]));
             }
         }
+        cerr << "DUN!\n";
     }
+
+    cerr << "\n";
+    for (int i = 0; i < avgRecognitions.size(); i++)
+        cerr << "[" << avgRecognitions[i] << "] (" << faceSamples[i] << ")\n";
 
 
     bool toreload = false;
 
     // chceck if face save record is necessary:
+    cerr << "savin\'\n";
 
     for (int i = 0; i < faceSamples.size(); i++)
     {
         if (faceSamples[i] >= faceImageDropDelay)
         {
-            faceSamples[i] = 0;
-            if (avgRecognitions[i] != -2 && avgRecognitions[i] != -1)
+            if (avgRecognitions[i] != -2 && avgRecognitions[i] != -1 && avgRecognitions[i] == prevrecords[1][i][prevrecords[1][i].size()-1])
             {
+                faceSamples[i] = 0;
                 facesBank.push_back(Mat (input[prevrecords[0][i][prevrecords[0][i].size()-1]]));
                 facesBankIndex.push_back(avgRecognitions[i]);
                 facesBankQuantities[avgRecognitions[i]]++;
@@ -809,24 +993,26 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
 
 
     //search for filled new face bases:
+    cerr << "savin\'2\n";
 
     for (int i = 0; i < newFacesImgs.size(); i++)
     {
         if (newFacesImgs[i].ND.size() == maxRecognitionBufferSize)
         {
             cerr << "Detected new face:\n";
-            stringstream ss, ss2;
+            stringstream ss, ss2, ss3;
             ss << facesBankQuantities.size();
             if ( -1 == mkdir ( &(ccap.facesBankPath + ss.str() + "/")[0], S_IRUSR | S_IWUSR | S_IXUSR ) and errno != EEXIST  )
             {
                 cerr << "Couldn't create faces dir - disabling recognition";
                 ccap.faceRecognitionEnabled = false;
             }
-            HRDWR.set_file(ccap.facesBankPath + ss.str() + "/" + "size", string ("10"));
-            facesBankQuantities.push_back(10);
+            ss3 << maxRecognitionBufferSize;
+            HRDWR.set_file(ccap.facesBankPath + ss.str() + "/" + "size", ss3.str());
+            facesBankQuantities.push_back(maxRecognitionBufferSize);
             ss2 << facesBankQuantities.size();
             HRDWR.set_file(ccap.facesBankPath + "size", ss2.str());
-            cerr << "sizeof new face set to 10, new dir name: " << ss.str() << ". Bank size changed to: " << ss2.str() << "\n";
+            cerr << "sizeof new face set to " << ss3.str() << ", new dir name: " << ss.str() << ". Bank size changed to: " << ss2.str() << "\n";
             for (int j = 0; j < maxRecognitionBufferSize; j++)
             {
                 facesBank.push_back(Mat (&newFacesImgs[i].ND[j]));
@@ -846,7 +1032,10 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
     {
         facesModel = createEigenFaceRecognizer(0, ccap.faceRecognizerTreshold);
         facesModel->train(facesBank, facesBankIndex);
+        return true;
     }
+    else
+        return false;
 /*
     for (int i = 0; i < input.size(); i++)
     {
@@ -914,21 +1103,24 @@ void camcapture::faceprocessing(IplImage *source)
     // Perform face detection on the input image, using the given Haar classifier
     if (currentcascade == faceCascade.size())
     {
-        addFaceData(faceimg, trackFaces(prevfaceimg,faceimg), pathRecords);
+        overdetect = false;
+        addFaceData(faceimg, trackFaces(faceRectsPrev,avgRects, sqrt(facegrey->width*facegrey->width + facegrey->height*facegrey->height), faceTrackMaxDist/100.0), &pathRecords);
+        faceRectsPrev = avgRects;
         currentcascade = -1;
         recognitionInProgress = false;
-        overdetect = false;
     }
     else
     {
         if (currentcascade == 0)
             cvCvtColor( src, facegrey, CV_RGB2GRAY );
         recognitionInProgress = true;
+        for (int i = 0; i < faceAreas[currentcascade].size(); i++)
+            delete(&faceAreas[currentcascade][i]);
         faceAreas[currentcascade] = detectFaceInImage(facegrey, faceCascade[currentcascade]);
     }
     if (currentcascade == faceCascade.size()-1)
     {
-        vector <CvRect> avgRects = generateAvgRect(faceAreas, faceCascade.size());
+        avgRects = generateAvgRect(faceAreas, faceCascade.size());
         for (int i = 0; i < faceimg.size(); i++)
         {
             if (faceimg[i] != 0)
@@ -945,7 +1137,7 @@ void camcapture::faceprocessing(IplImage *source)
         {
             if (sleep)
                 newFaceLookAtRemained = 0;
-            if (prevfaceimg.size() == 0)
+            if (faceRectsPrev.size() == 0)
             {
                 newFaceLookAtRemained = newFaceLookAtTimeMin + (rand() % (newFaceLookAtTimeMax - newFaceLookAtTimeMin));
                 newFace.ST = 0;
@@ -1625,7 +1817,7 @@ bool camcapture::main()
     {
         cvShowImage("DISPA", dst);
         cvShowImage("DISPB", resized);
-        for (int i = 0; i < faceimg.size(); i++)
+        /*for (int i = 0; i < faceimg.size(); i++)
         {
             stringstream ss;
             ss << i;
@@ -1633,9 +1825,17 @@ bool camcapture::main()
             cvShowImage(&("DISP" + ss.str())[0] , faceimg[i]);
             //ss << "." << counter;
             //cvSaveImage(&("./test/test"+ ss.str() + ".jpg")[0] ,faceimg[i]);
+        }*/
+        for (int i = 0; i < newFacesImgs.size(); i++)
+        {
+            stringstream ss;
+            ss << i;
+            //counter++;
+            cvShowImage(&("DISP" + ss.str())[0] , &newFacesImgs[i].ND[newFacesImgs[i].ND.size()-1]);
+            //ss << "." << counter;
+            //cvSaveImage(&("./test/test"+ ss.str() + ".jpg")[0] ,faceimg[i]);
         }
     }
-    prevfaceimg = faceimg;
 
     return retstat;
 }
@@ -1729,6 +1929,8 @@ camthread::camthread( eyes_view * neyes )
     ccap.faceRecognizerTreshold     = cfg->lookupValue ( "cam.system.face_recognition_treshold",   3500.0 );
     ccap.faceImageDropDelay         = cfg->lookupValue ( "cam.system.face_recognise_drop_delay",       15 );
     ccap.maxRecognitionBufferSize   = cfg->lookupValue ( "cam.system.max_recognition_buffer_size",     10 );
+    ccap.maxFacesPerImg             = cfg->lookupValue ( "cam.system.faces_per_frame_matrix_size",     10 );
+    ccap.faceTrackMaxDist           = cfg->lookupValue ( "cam.system.face_track_max_match_dist",     10.0 );
     ccap.facesBankPath = "./faces/";
 
     if (!ccap.enabled)
