@@ -141,7 +141,7 @@ bool Configuration::setValue (const char *path, bool value)
 bool Configuration::setValue ( const char *path, char value )
 {
   char val[2] = {value,'\0'};
-  lookup ( path, sc::Value::t_string ) = (const char*)val;
+  lookup ( path, sc::Value::t_string ) = (char*)val;
   needsave = true;
   return true;
 }
@@ -176,22 +176,27 @@ sc::Value& Configuration::lookup ( const char * path, sc::Value::Type type )
 {
   if ( not cfg.exists ( path ) )
   {
-    sc::Value&  val = cfg.root ();
+    sc::Value * val = &cfg.root ();
     QStringList paths = QString ( path ).split ( "." );
-    int i=0;
+    int i = 0;
     if ( paths[0] == "" )
       i = 1;
-    for ( ; i<paths.size () ; ++i )
+    for ( ; i<paths.size ()-1 ; ++i )
     {
-      if ( not val.exists ( paths[i].toStdString () ) )
+      std::string p = ".";
+      p += paths[i].toStdString ();
+      if ( not val->exists ( p ) )
       {
-        val = val.append ( i+1 == paths.size () ? type : sc::Value::t_group );
-        val.name ( paths[i].toStdString () );
+        sc::Value * val2 = &val->append ( sc::Value::t_group );
+        val2->name ( paths[i].toStdString () );
+        val = val2;
       }
       else
-        val = val[paths[i].toStdString ()];
+        val = &((*val)[p]);
     }
-    return val;
+    val = &val->append ( type );
+    val->name ( paths[paths.size ()-1].toStdString () );
+    return *val;
   }
   return cfg[path];
 }
