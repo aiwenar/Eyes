@@ -40,33 +40,7 @@ const char *verstr = "0.9.1½ alpha";
 bool is_finished;
 bool images_ready;
 
-QString get_face_suffix ( QString face )
-{
-    /*Config cfg;
-    std::string ret;
-    try
-    {
-        cfg.readFile ( "colors.cfg" );
-        if ( not cfg.lookupValue ( ( QString ( "colors." ) + face + ".suffix" ).toStdString (), ret ) )
-        {
-            cfg.lookupValue ( "colors.default", ret );
-            if ( not cfg.lookupValue ( ( QString ( "colors." ) + ret.c_str () + ".suffix" ).toStdString (), ret ) )
-                return QString ( "_g" );
-        }
-    }
-    catch ( libconfig::ParseException e )
-    {
-        cerr << "Error while parsing configuration file.\n"
-              << e.what () << '\n'
-              << e.getFile () << '\n'
-              << e.getLine () << '\n'
-              << e.getError () << '\n';
-        return QString ( "_g" );
-    }
-    return QString ( ret.c_str () );*/
-}
-
-eyes_view::eyes_view ( QWidget * parent, QString ncolor, double size_m )
+eyes_view::eyes_view ( QWidget * parent,/* QString ncolor, */double size_m )
 : QWidget ( parent )
 , pics    ()
 , eyes    ()
@@ -85,28 +59,29 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor, double size_m )
     // loading configuration
     info << "(eyes) loading config...\n";
     Configuration * cfg = Configuration::getInstance ();
+    ThemeManager * tm = ThemeManager::instance ();
+    theme = cfg->lookupValue ( ".ui.theme", "default" );
+    tm->load ( theme.toStdString () );
     string scolor;
-    scolor  = cfg->lookupValue ( "ui.color",                    "green"         );
-    eye_swL = cfg->lookupValue ( "ui.eyeL.size_X",              60              )*size_multiplier;
-    eye_shL = cfg->lookupValue ( "ui.eyeL.size_Y",              eye_swL         )*size_multiplier;
-    eye_mwL = cfg->lookupValue ( "ui.eyeL.mirror_size_X",       9               )*size_multiplier;
-    eye_mhL = cfg->lookupValue ( "ui.eyeL.mirror_size_Y",       eye_mwL         )*size_multiplier;
-    eye_swR = cfg->lookupValue ( "ui.eyeR.size_X",              eye_swL         )*size_multiplier;
-    eye_shR = cfg->lookupValue ( "ui.eyeR.size_Y",              eye_shL         )*size_multiplier;
-    eye_mwR = cfg->lookupValue ( "ui.eyeR.mirror_size_X",       eye_mwL         )*size_multiplier;
-    eye_mhR = cfg->lookupValue ( "ui.eyeR.mirror_size_Y",       eye_mhL         )*size_multiplier;
-    epx1    = cfg->lookupValue ( "ui.eyeL.posX",                46              )*size_multiplier; //.14375; //46;
-    epx2    = cfg->lookupValue ( "ui.eyeR.posX",                213             )*size_multiplier; //.665625; //213;
-    mpx1    = cfg->lookupValue ( "ui.eyeL.mirror_posX",         83              )*size_multiplier;//.259375;
-    mpx2    = cfg->lookupValue ( "ui.eyeR.mirror_posX",         (int)(mpx1+(epx2-epx1)) )*size_multiplier;//.7875; //252;
-    epy1    = cfg->lookupValue ( "ui.eyeL.posY",                10              )*size_multiplier;//.125; //10;
-    epy2    = cfg->lookupValue ( "ui.eyeR.posY",                epy1            )*size_multiplier;//.125; //10;
-    mpy1    = cfg->lookupValue ( "ui.eyeL.mirror_posY",         24              )*size_multiplier;//.3; //24;
-    mpy2    = cfg->lookupValue ( "ui.eyeR.mirror_posY",         mpy1            )*size_multiplier;//.3; //24;
-    ThemeManager::instance ()->load ( theme.toStdString ().c_str () );
+    scolor  =cfg->lookupValue ( ".ui.color",                    "green"         );
+    eye_swL = tm->lookupValue ( ".ui.eyeL.size_X",              60              )*size_multiplier;
+    eye_shL = tm->lookupValue ( ".ui.eyeL.size_Y",              eye_swL         )*size_multiplier;
+    eye_mwL = tm->lookupValue ( ".ui.eyeL.mirror_size_X",       9               )*size_multiplier;
+    eye_mhL = tm->lookupValue ( ".ui.eyeL.mirror_size_Y",       eye_mwL         )*size_multiplier;
+    eye_swR = tm->lookupValue ( ".ui.eyeR.size_X",              eye_swL         )*size_multiplier;
+    eye_shR = tm->lookupValue ( ".ui.eyeR.size_Y",              eye_shL         )*size_multiplier;
+    eye_mwR = tm->lookupValue ( ".ui.eyeR.mirror_size_X",       eye_mwL         )*size_multiplier;
+    eye_mhR = tm->lookupValue ( ".ui.eyeR.mirror_size_Y",       eye_mhL         )*size_multiplier;
+    epx1    = tm->lookupValue ( ".ui.eyeL.posX",                46              )*size_multiplier; //.14375; //46;
+    epx2    = tm->lookupValue ( ".ui.eyeR.posX",                223             )*size_multiplier; //.665625; //213;
+    mpx1    = tm->lookupValue ( ".ui.eyeL.mirror_posX",         83              )*size_multiplier;//.259375;
+    mpx2    = tm->lookupValue ( ".ui.eyeR.mirror_posX",         (int)(mpx1+(epx2-epx1)) )*size_multiplier;//.7875; //252;
+    epy1    = tm->lookupValue ( ".ui.eyeL.posY",                10              )*size_multiplier;//.125; //10;
+    epy2    = tm->lookupValue ( ".ui.eyeR.posY",                epy1            )*size_multiplier;//.125; //10;
+    mpy1    = tm->lookupValue ( ".ui.eyeL.mirror_posY",         (double)24      )*size_multiplier;//.3; //24;
+    mpy2    = tm->lookupValue ( ".ui.eyeR.mirror_posY",         mpy1            )*size_multiplier;//.3; //24;
+    color   = tm->color       ( scolor.c_str () ).c_str ();
     dual_eyes = ThemeManager::instance ()->dual ();
-    if ( ( color = get_face_suffix ( ncolor ) ) == "NIL" )
-        color = get_face_suffix ( QString ( scolor.c_str () ) );
     is_finished = false;
     images_ready = false;
     // initializing submodules
@@ -143,7 +118,7 @@ char * _s;
 void _som ( int i, int max ) // I have no idea why i've named it like that.
 {
     i ++;
-    cerr << "\033[2K\033[100D" << _s;
+    cerr << "\r\e[K" << _s;
     if ( i < max )
     {
       std::ostringstream ss;
@@ -189,7 +164,7 @@ void eyes_view::load ( QString folder, QString alt, const char * suffix, const _
     {
       if ( -1 == access ( ( folder + files[i].file + suffix + ".png" ).toStdString ().c_str (), F_OK | R_OK ) )
       {
-        cerr << '\n';
+        cerr << "\r\e[K";
         info << "(eyes) file " << ( theme + files[i].file + suffix + ".png" ).toStdString () << " missing.\n";
         no_file = true;
         delete file;
@@ -230,12 +205,12 @@ void eyes_view::load ( QString folder, QString alt, const char * suffix, const _
 void eyes_view::open_images ( const char * color )
 {
   _s = "(eyes) loading images...  ";
-  const char * ctheme = Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
+  const char * ctheme = Configuration::getInstance ()->lookupValue ( ".ui.theme", "default" );
   std::ostringstream oss1, oss2;
   oss1 << "./themes/" << ctheme << '/';
   theme = oss1.str ().c_str ();
   // don't know why, ctheme is modified
-  ctheme = Configuration::getInstance ()->lookupValue ( "ui.theme", "default" );
+  ctheme = Configuration::getInstance ()->lookupValue ( ".ui.theme", "default" );
   if ( access ( theme.toStdString().c_str(), R_OK | X_OK ) == -1 )
   {
     error << "(eyes) theme `" << ctheme << "` does not exists. Trying default one...\n";
@@ -258,23 +233,19 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     QPainter paint ( this );
     QPainter parea ( area );
     area->fill ( QColor ( 0, 0, 0 ) );
-    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics[face+"_a"] );
-    parea.drawPixmap ( epx1, epy1, eye_swL, eye_shL, *pics[eye + "_L"] );
-    parea.drawPixmap ( epx2, epy2, eye_swR, eye_shR, *pics[eye + "_R"] );
-    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics[face+"_s"] );
-    parea.drawPixmap ( int(mpx1), int(mpy1), eye_mwL, eye_mhL, *pics[spec] );
-    parea.drawPixmap ( int(mpx2), int(mpy2), eye_mwR, eye_mhR, *pics[spec] );
-    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics[face+"_m"] );
-    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics[face+"_o"] );
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics.value ( face+"_a" ) );
+    parea.drawPixmap ( epx1, epy1, eye_swL, eye_shL, *pics.value ( eye + "_L" ) );
+    parea.drawPixmap ( epx2, epy2, eye_swR, eye_shR, *pics.value ( eye + "_R" ) );
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics.value ( face+"_s" ) );
+    parea.drawPixmap ( int(mpx1), int(mpy1), eye_mwL, eye_mhL, *pics.value ( spec ) );
+    parea.drawPixmap ( int(mpx2), int(mpy2), eye_mwR, eye_mhR, *pics.value ( spec ) );
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics.value ( face+"_m" ) );
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics.value ( face+"_o" ) );
     parea.end ();
     area->setMask ( pics[face+"_a"]->mask () );
     for ( int i=0 ; i<NUM_LAYERS ; i++ )
-    {
       if ( layers[i].drawable )
-      {
-        paint.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics[layers[i].face] );
-      }
-    }
+        paint.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics.value ( layers[i].face ) );
     paint.drawPixmap ( 0, 0, eyes_w, eyes_h, *area );
 }
 

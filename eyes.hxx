@@ -29,12 +29,18 @@ extern const char *verstr;
  * Some introduction to Eyes Project
  */
 
+#include "configuration.hxx"
+#include "defines.hxx"
+#include "animation.hxx"
+#include "camera.hxx"
+
 #include <QWidget>
 #include <QGraphicsScene>
 #include <QImage>
 #include <QPixmap>
 #include <QBitmap>
 #include <QMap>
+#include <QHash>
 #include <QList>
 #include <QMouseEvent>
 #include <QtConcurrentRun>
@@ -47,12 +53,6 @@ extern const char *verstr;
 #include <libconfig.h++>
 #include <ostream>
 
-#include "defines.hxx"
-#include "animation.hxx"
-#include "configuration.hxx"
-#include "camera.hxx"
-
-\
 #define NUM_LAYERS  3
 
 extern int  eye_swL,
@@ -102,7 +102,7 @@ public:
      * Construct eyes_view with color \p color.
      * @param color Color of the eyes.
      */
-    explicit            eyes_view           ( QWidget * parent, QString color, double size_m );
+    explicit            eyes_view           ( QWidget * parent, /*QString color, */double size_m );
     /// Destruct eyes_view.
                         ~eyes_view          ();
     /// Called when window need to be redrawed. Redraw eyes.
@@ -163,8 +163,8 @@ private:
         bool    drawable;
     };
 
-    void  open_images ( QString color );
-    bool  load        ( QString folder, QString alt, QString suffix, const char ** files, int num );
+    void  open_images ( const char * color );
+    void  load        ( QString folder, QString alt, const char * suffix, const struct _img_loadinfo[], int num );
     _layer                * layers;
     QTimer                * timer;
     QTime                   time;
@@ -177,8 +177,8 @@ private:
                             face_queue,
                             spec,
                             color;
-    QMap<QString,QPixmap>   pics;
-    QMap<QString,QPixmap>   eyes;
+    QHash<QString,QPixmap*> pics;
+    QHash<QString,QPixmap>  eyes;
     QFuture<void>           c_main;
     int                     px,
                             py,
