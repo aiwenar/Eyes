@@ -1,6 +1,6 @@
 #!/bin/bash
 
-LCONF="1.4.7"
+CONF="0.0.1"
 GTOP="2.0"
 QTCORE="4.0.0"
 QTGUI="4.0.0"
@@ -26,7 +26,7 @@ check_version()
   fi
 }
 
-check_version "libconfig++" $LCONF
+check_version "stackonfigure" $CONF
 check_version "libgtop-2.0" $GTOP
 check_version "QtCore" $QTCORE
 check_version "QtGui" $QTGUI
