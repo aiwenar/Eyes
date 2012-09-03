@@ -8,6 +8,7 @@
 // OpenCV includes.
 #include <opencv2/opencv.hpp>
 #include "eyes.hxx"
+#include <QElapsedTimer>
 
 using namespace std;
 

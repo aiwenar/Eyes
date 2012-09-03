@@ -36,8 +36,8 @@ eyes_clapper::eyes_clapper ( eyes_view * neyes ) :
     stage = 0;
     info << "(clapper) loading config...\n";
     Configuration * cfg = Configuration::getInstance ();
-    min_dl = cfg->lookupValue ( "ui.clapper.delay.min", 5 );
-    max_dl = cfg->lookupValue ( "ui.clapper.delay.max", 35 );
+    min_dl = cfg->lookupValue ( ".ui.clapper.delay.min", 5 );
+    max_dl = cfg->lookupValue ( ".ui.clapper.delay.max", 35 );
     info << "(clapper) ready!\n";
     start = "slp_10_open";
     end = "slp_10_close";
