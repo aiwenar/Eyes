@@ -580,10 +580,10 @@ void bul::critical_services( Configuration * cfg )
 
     //saving
 
-    cfg->setValue("core.bulwers.remembered_time", (int)remembered_time);
-    cfg->setValue("core.bulwers.remembered_energy", (int)remembered_nrg);
+    cfg->setValue(".core.bulwers.remembered_time", (int)remembered_time);
+    cfg->setValue(".core.bulwers.remembered_energy", (int)remembered_nrg);
     if (fship.to_save)
-        cfg->setValue("core.friendship.value", (int)fship.value);
+        cfg->setValue(".core.friendship.value", (int)fship.value);
 
     rtctrl.action("battery");
     rtctrl.action("temperature");
@@ -1177,7 +1177,7 @@ void eyes_view::graphics_prepare()
 void friendship::save(Configuration *cfg)
 {
     if (to_save)
-        cfg->setValue("core.friendship.value", (int)value);
+        cfg->setValue(".core.friendship.value", (int)value);
 }
 
 double friendship::funccalc(double angle, unsigned int current)
@@ -1887,7 +1887,7 @@ void Core::autocalc_reload ( Configuration * cfg )
         if (temperature.value < temperature.EQbegin)
         {
             autocalc.temperature_freq[0]++;
-            cfg->setValue("core.temperature.EQbegin", (int)temperature.value-1);
+            cfg->setValue(".core.temperature.EQbegin", (int)temperature.value-1);
             autocalc.forcesave = true;
             info << "autocalc caught new temperature: " << (int)temperature.value << " EQbegin switched to new value";
             warning << "it's recomended to restart Eyes as quick as it's possible!";
@@ -1902,7 +1902,7 @@ void Core::autocalc_reload ( Configuration * cfg )
         if (autocalc.temperature_curstep == temperature.EQsize)
         {
             autocalc.temperature_freq[temperature.EQsize]++;
-            cfg->setValue("core.temperature.EQend", (int)temperature.value+1);
+            cfg->setValue(".core.temperature.EQend", (int)temperature.value+1);
             autocalc.forcesave = true;
             info << "autocalc caught new temperature: " << (int)temperature.value << " EQend switched to new value";
             warning << "it's recomended to restart Eyes as quick as it's possible!";
@@ -2048,7 +2048,7 @@ void Core::autocalc_reload ( Configuration * cfg )
             {
                 stringstream ss;
                 ss << i;
-                cfg->setValue ( &("core.cpu.EQ"+ss.str())[0], (int)autocalc.cpu_virtualEQ[i] );
+                cfg->setValue ( &(".core.cpu.EQ"+ss.str())[0], (int)autocalc.cpu_virtualEQ[i] );
                 cpu.EQ[i] = (int)autocalc.cpu_virtualEQ[i];
                 autocalc.cpu_freq[i]/=2.0;
             }
@@ -2059,7 +2059,7 @@ void Core::autocalc_reload ( Configuration * cfg )
             {
                 stringstream ss;
                 ss << i;
-                cfg->setValue ( &("core.memory.EQ"+ss.str())[0], (int)autocalc.memory_virtualEQ[i] );
+                cfg->setValue ( &(".core.memory.EQ"+ss.str())[0], (int)autocalc.memory_virtualEQ[i] );
                 memory.EQ[i] = (int)autocalc.memory_virtualEQ[i];
                 autocalc.memory_freq[i]/=2.0;
             }
@@ -2070,7 +2070,7 @@ void Core::autocalc_reload ( Configuration * cfg )
             {
                 stringstream ss;
                 ss << i;
-                cfg->setValue ( &("core.battery.EQ"+ss.str())[0], (int)autocalc.battery_virtualEQ[i] );
+                cfg->setValue ( &(".core.battery.EQ"+ss.str())[0], (int)autocalc.battery_virtualEQ[i] );
                 battery.EQ[i] = (int)autocalc.battery_virtualEQ[i];
                 autocalc.battery_freq[i]/=2.0;
             }
@@ -2081,7 +2081,7 @@ void Core::autocalc_reload ( Configuration * cfg )
             {
                 stringstream ss;
                 ss << i;
-                cfg->setValue ( &("core.temperature.EQ"+ss.str())[0], (int)autocalc.temperature_virtualEQ[i] );
+                cfg->setValue ( &(".core.temperature.EQ"+ss.str())[0], (int)autocalc.temperature_virtualEQ[i] );
                 temperature.EQ[i] = (int)autocalc.temperature_virtualEQ[i];
                 autocalc.temperature_freq[i]/=2.0;
             }
@@ -2096,219 +2096,219 @@ void Core::load_config ()
 {
     Configuration * cfg = Configuration::getInstance ();
 
-    cpu.frequency           = cfg->lookupValue ( "core.cpu.frequency",                  'f'         );
-    cpu.lin_num             = cfg->lookupValue ( "core.cpu.linear_modifier",            0           );
-    cpu.stable              = cfg->lookupValue ( "core.cpu.stable",                     25          );
-    cpu.steps               = cfg->lookupValue ( "core.cpu.steps",                      10          );
-    cpu.loseless            = cfg->lookupValue ( "core.cpu.adaptation",                 10          );
-    cpu.buffered            = cfg->lookupValue ( "core.cpu.buffered",                   true        );
-    cpu.buff_size           = cfg->lookupValue ( "core.cpu.buffer_size",                10          );
-    cpu.EQsize              = cfg->lookupValue ( "core.cpu.EQsize",                     30          );
+    cpu.frequency           = cfg->lookupValue ( ".core.cpu.frequency",                  'f'         );
+    cpu.lin_num             = cfg->lookupValue ( ".core.cpu.linear_modifier",            0           );
+    cpu.stable              = cfg->lookupValue ( ".core.cpu.stable",                     25          );
+    cpu.steps               = cfg->lookupValue ( ".core.cpu.steps",                      10          );
+    cpu.loseless            = cfg->lookupValue ( ".core.cpu.adaptation",                 10          );
+    cpu.buffered            = cfg->lookupValue ( ".core.cpu.buffered",                   true        );
+    cpu.buff_size           = cfg->lookupValue ( ".core.cpu.buffer_size",                10          );
+    cpu.EQsize              = cfg->lookupValue ( ".core.cpu.EQsize",                     30          );
     for (unsigned short i = 0; i<=cpu.EQsize; i++)
     {
         stringstream ss;
         ss << i;
-        cpu.EQ.push_back (cfg->lookupValue ( &("core.cpu.EQ"+ss.str())[0], (int)cpu.stable ));
+        cpu.EQ.push_back (cfg->lookupValue ( &(".core.cpu.EQ"+ss.str())[0], (int)cpu.stable ));
     }
 
     //mem_section
 
-    memory.frequency        = cfg->lookupValue ( "core.memory.frequency",               'q'         );
-    memory.lin_num          = cfg->lookupValue ( "core.memory.linear_modifier",         2           );
-    memory.stable           = cfg->lookupValue ( "core.memory.stable",                  25          );
-    memory.steps            = cfg->lookupValue ( "core.memory.steps",                   8           );
-    memory.loseless         = cfg->lookupValue ( "core.memory.adaptation",              10          );
-    memory.buffered         = cfg->lookupValue ( "core.memory.buffered",                true        );
-    memory.buff_size        = cfg->lookupValue ( "core.memory.buffer_size",             10          );
-    memory.EQsize           = cfg->lookupValue ( "core.memory.EQsize",                  30          );
+    memory.frequency        = cfg->lookupValue ( ".core.memory.frequency",               'q'         );
+    memory.lin_num          = cfg->lookupValue ( ".core.memory.linear_modifier",         2           );
+    memory.stable           = cfg->lookupValue ( ".core.memory.stable",                  25          );
+    memory.steps            = cfg->lookupValue ( ".core.memory.steps",                   8           );
+    memory.loseless         = cfg->lookupValue ( ".core.memory.adaptation",              10          );
+    memory.buffered         = cfg->lookupValue ( ".core.memory.buffered",                true        );
+    memory.buff_size        = cfg->lookupValue ( ".core.memory.buffer_size",             10          );
+    memory.EQsize           = cfg->lookupValue ( ".core.memory.EQsize",                  30          );
     for (unsigned short i = 0; i<=memory.EQsize; i++)
     {
         stringstream ss;
         ss << i;
-        memory.EQ.push_back (cfg->lookupValue ( &("core.memory.EQ"+ss.str())[0], (int)memory.stable ));
+        memory.EQ.push_back (cfg->lookupValue ( &(".core.memory.EQ"+ss.str())[0], (int)memory.stable ));
     }
 
     //temperature_section
 
-    temperature.frequency   = cfg->lookupValue ( "core.temperature.frequency",          'q'         );
-    temperature.lin_num     = cfg->lookupValue ( "core.temperature.linear_modifier",    2           );
-    temperature.stable      = cfg->lookupValue ( "core.temperature.stable",             56          );
-    temperature.steps       = cfg->lookupValue ( "core.temperature.steps",              12          );
-    temperature.loseless    = cfg->lookupValue ( "core.temperature.adaptation",         2           );
-    temperature.buffered    = cfg->lookupValue ( "core.temperature.buffered",           true        );
-    temperature.buff_size   = cfg->lookupValue ( "core.temperature.buffer_size",        10          );
-    temperature.unit        = cfg->lookupValue ( "core.temperature.unit",               1           );
-    temperature.EQbegin     = cfg->lookupValue ( "core.temperature.EQbegin",            30          );
-    temperature.EQend       = cfg->lookupValue ( "core.temperature.EQend",              70          );
-    temperature.EQsize      = cfg->lookupValue ( "core.temperature.EQsize",             30          );
+    temperature.frequency   = cfg->lookupValue ( ".core.temperature.frequency",          'q'         );
+    temperature.lin_num     = cfg->lookupValue ( ".core.temperature.linear_modifier",    2           );
+    temperature.stable      = cfg->lookupValue ( ".core.temperature.stable",             56          );
+    temperature.steps       = cfg->lookupValue ( ".core.temperature.steps",              12          );
+    temperature.loseless    = cfg->lookupValue ( ".core.temperature.adaptation",         2           );
+    temperature.buffered    = cfg->lookupValue ( ".core.temperature.buffered",           true        );
+    temperature.buff_size   = cfg->lookupValue ( ".core.temperature.buffer_size",        10          );
+    temperature.unit        = cfg->lookupValue ( ".core.temperature.unit",               1           );
+    temperature.EQbegin     = cfg->lookupValue ( ".core.temperature.EQbegin",            30          );
+    temperature.EQend       = cfg->lookupValue ( ".core.temperature.EQend",              70          );
+    temperature.EQsize      = cfg->lookupValue ( ".core.temperature.EQsize",             30          );
     for (unsigned short i = 0; i<=temperature.EQsize; i++)
     {
         stringstream ss;
         ss << i;
-        temperature.EQ.push_back (cfg->lookupValue ( &("core.temperature.EQ"+ss.str())[0], (int)temperature.stable ));
+        temperature.EQ.push_back (cfg->lookupValue ( &(".core.temperature.EQ"+ss.str())[0], (int)temperature.stable ));
     }
 
     //battery_section
 
-    battery.frequency       = cfg->lookupValue ( "core.battery.frequency",              'l'         );
-    battery.lin_num         = cfg->lookupValue ( "core.battery.linear_modifier",        0           );
-    battery.stable          = cfg->lookupValue ( "core.battery.stable",                 25          );
-    battery.steps           = cfg->lookupValue ( "core.battery.steps",                  8           );
-    battery.loseless        = cfg->lookupValue ( "core.battery.adaptation",             10          );
-    battery.buffered        = cfg->lookupValue ( "core.battery.buffered",               false       );
-    battery.buff_size       = cfg->lookupValue ( "core.battery.buffer_size",            10          );
-    battery.EQsize          = cfg->lookupValue ( "core.battery.EQsize",                 30          );
+    battery.frequency       = cfg->lookupValue ( ".core.battery.frequency",              'l'         );
+    battery.lin_num         = cfg->lookupValue ( ".core.battery.linear_modifier",        0           );
+    battery.stable          = cfg->lookupValue ( ".core.battery.stable",                 25          );
+    battery.steps           = cfg->lookupValue ( ".core.battery.steps",                  8           );
+    battery.loseless        = cfg->lookupValue ( ".core.battery.adaptation",             10          );
+    battery.buffered        = cfg->lookupValue ( ".core.battery.buffered",               false       );
+    battery.buff_size       = cfg->lookupValue ( ".core.battery.buffer_size",            10          );
+    battery.EQsize          = cfg->lookupValue ( ".core.battery.EQsize",                 30          );
     for (unsigned short i = 0; i<=battery.EQsize; i++)
     {
         stringstream ss;
         ss << i;
-        battery.EQ.push_back (cfg->lookupValue ( &("core.battery.EQ"+ss.str())[0], (int)battery.stable ));
+        battery.EQ.push_back (cfg->lookupValue ( &(".core.battery.EQ"+ss.str())[0], (int)battery.stable ));
     }
 
     //times_sector
 
-    times.frequency         = cfg->lookupValue ( "core.times.frequency",                'q'         );
-    times.lin_num           = cfg->lookupValue ( "core.times.quad_modifier",            2           );
-    times.start             = cfg->lookupValue ( "core.times.start",                    20          );
-    times.steps             = cfg->lookupValue ( "core.times.steps",                    6           );
-    times.end               = cfg->lookupValue ( "core.times.end",                      6           );
-    times.wide              = cfg->lookupValue ( "core.times.wide",                     6           );
+    times.frequency         = cfg->lookupValue ( ".core.times.frequency",                'q'         );
+    times.lin_num           = cfg->lookupValue ( ".core.times.quad_modifier",            2           );
+    times.start             = cfg->lookupValue ( ".core.times.start",                    20          );
+    times.steps             = cfg->lookupValue ( ".core.times.steps",                    6           );
+    times.end               = cfg->lookupValue ( ".core.times.end",                      6           );
+    times.wide              = cfg->lookupValue ( ".core.times.wide",                     6           );
 
     //energy_sector
 
-    energy.frequency        = cfg->lookupValue ( "core.energy.frequency",               'q'         );
-    energy.lin_num          = cfg->lookupValue ( "core.energy.quad_modifier",           2           );
-    energy.start            = cfg->lookupValue ( "core.energy.start",                   16          );
-    energy.steps            = cfg->lookupValue ( "core.energy.steps",                   6           );
-    energy.end              = cfg->lookupValue ( "core.energy.end",                     0           );
-    energy.wide             = cfg->lookupValue ( "core.energy.wide",                    6           );
+    energy.frequency        = cfg->lookupValue ( ".core.energy.frequency",               'q'         );
+    energy.lin_num          = cfg->lookupValue ( ".core.energy.quad_modifier",           2           );
+    energy.start            = cfg->lookupValue ( ".core.energy.start",                   16          );
+    energy.steps            = cfg->lookupValue ( ".core.energy.steps",                   6           );
+    energy.end              = cfg->lookupValue ( ".core.energy.end",                     0           );
+    energy.wide             = cfg->lookupValue ( ".core.energy.wide",                    6           );
 
     //bulwers_sector
 
-    bulwers.wall_01         = cfg->lookupValue ("core.bulwers.wall_01",                 300         );
-    bulwers.wall_02         = cfg->lookupValue ("core.bulwers.wall_02",                 500         );
-    bulwers.wall_03         = cfg->lookupValue ("core.bulwers.wall_03",                 800         );
-    bulwers.wall_04         = cfg->lookupValue ("core.bulwers.wall_04",                 1300        );
-    bulwers.wall_05         = cfg->lookupValue ("core.bulwers.wall_05",                 2100        );
-    bulwers.wall_06         = cfg->lookupValue ("core.bulwers.wall_06",                 3400        );
-    bulwers.wall_07         = cfg->lookupValue ("core.bulwers.wall_07",                 5500        );
-    bulwers.wall_08         = cfg->lookupValue ("core.bulwers.wall_08",                 8900        );
-    bulwers.wall_09         = cfg->lookupValue ("core.bulwers.wall_09",                 14400       );
-    bulwers.wall_10         = cfg->lookupValue ("core.bulwers.wall_10",                 23300       );
-    bulwers.wall_11         = cfg->lookupValue ("core.bulwers.wall_11",                 37700       );
-    bulwers.wall_12         = cfg->lookupValue ("core.bulwers.wall_12",                 61600       );
-    bulwers.wall_13         = cfg->lookupValue ("core.bulwers.wall_13",                 98700       );
-    bulwers.wall_14         = cfg->lookupValue ("core.bulwers.wall_14",                 159700      );
-    bulwers.wall_15         = cfg->lookupValue ("core.bulwers.wall_15",                 258400      );
-    bulwers.flueamplitude   = cfg->lookupValue ("core.bulwers.flueamplitude",           20          );
-    bulwers.flueimpact      = cfg->lookupValue ("core.bulwers.flueimpact",              100         );
-    bulwers.fluestepdelay   = cfg->lookupValue ("core.bulwers.fluestepdelay",           300         );
-    bulwers.remembered_nrg  = cfg->lookupValue ("core.bulwers.remembered_energy",       0           );
-    bulwers.remembered_time = cfg->lookupValue ("core.bulwers.remembered_time",         0           );
-    bulwers.max_mem_lag     = cfg->lookupValue ("core.bulwers.max_memory_lag",          10          );
-    bulwers.rest_time_std   = cfg->lookupValue ("core.bulwers.rest_time_standard",      9           );
-    bulwers.rest_time_wkend = cfg->lookupValue ("core.bulwers.rest_time_weekend",       12          );
-    bulwers.nrg_boost       = cfg->lookupValue ("core.bulwers.energyboost",             20          );
-    bulwers.nrg_std         = cfg->lookupValue ("core.bulwers.energystd",               16          );
-    bulwers.nrg_low         = cfg->lookupValue ("core.bulwers.energylow",               10          );
-    bulwers.timelow_1       = cfg->lookupValue ("core.bulwers.timelow_1",               7           );
-    bulwers.timelow_2       = cfg->lookupValue ("core.bulwers.timelow_2",               6           );
-    bulwers.timelow_3       = cfg->lookupValue ("core.bulwers.timelow_3",               5           );
-    bulwers.timehigh_1      = cfg->lookupValue ("core.bulwers.timehigh_1",              21          );
-    bulwers.timehigh_2      = cfg->lookupValue ("core.bulwers.timehigh_2",              22          );
-    bulwers.timehigh_3      = cfg->lookupValue ("core.bulwers.timehigh_3",              23          );
-    bulwers.timelow_1w      = cfg->lookupValue ("core.bulwers.timelow_1",               10          );
-    bulwers.timelow_2w      = cfg->lookupValue ("core.bulwers.timelow_2",               7           );
-    bulwers.timelow_3w      = cfg->lookupValue ("core.bulwers.timelow_3",               5           );
-    bulwers.timehigh_1w     = cfg->lookupValue ("core.bulwers.timehigh_1",              23          );
-    bulwers.timehigh_2w     = cfg->lookupValue ("core.bulwers.timehigh_2",              1           );
-    bulwers.timehigh_3w     = cfg->lookupValue ("core.bulwers.timehigh_3",              3           );
-    bulwers.wkup_time       = cfg->lookupValue ("core.bulwers.wkup_time",               7           );
-    bulwers.wkup_timew      = cfg->lookupValue ("core.bulwers.wkup_time_weekend",       10          );
-    bulwers.wake_up_delay   = cfg->lookupValue ("core.bulwers.wkup_delay",              120         );
-    int counter             = cfg->lookupValue ("core.bulwers.envs_number",             0           );
+    bulwers.wall_01         = cfg->lookupValue (".core.bulwers.wall_01",                 300         );
+    bulwers.wall_02         = cfg->lookupValue (".core.bulwers.wall_02",                 500         );
+    bulwers.wall_03         = cfg->lookupValue (".core.bulwers.wall_03",                 800         );
+    bulwers.wall_04         = cfg->lookupValue (".core.bulwers.wall_04",                 1300        );
+    bulwers.wall_05         = cfg->lookupValue (".core.bulwers.wall_05",                 2100        );
+    bulwers.wall_06         = cfg->lookupValue (".core.bulwers.wall_06",                 3400        );
+    bulwers.wall_07         = cfg->lookupValue (".core.bulwers.wall_07",                 5500        );
+    bulwers.wall_08         = cfg->lookupValue (".core.bulwers.wall_08",                 8900        );
+    bulwers.wall_09         = cfg->lookupValue (".core.bulwers.wall_09",                 14400       );
+    bulwers.wall_10         = cfg->lookupValue (".core.bulwers.wall_10",                 23300       );
+    bulwers.wall_11         = cfg->lookupValue (".core.bulwers.wall_11",                 37700       );
+    bulwers.wall_12         = cfg->lookupValue (".core.bulwers.wall_12",                 61600       );
+    bulwers.wall_13         = cfg->lookupValue (".core.bulwers.wall_13",                 98700       );
+    bulwers.wall_14         = cfg->lookupValue (".core.bulwers.wall_14",                 159700      );
+    bulwers.wall_15         = cfg->lookupValue (".core.bulwers.wall_15",                 258400      );
+    bulwers.flueamplitude   = cfg->lookupValue (".core.bulwers.flueamplitude",           20          );
+    bulwers.flueimpact      = cfg->lookupValue (".core.bulwers.flueimpact",              100         );
+    bulwers.fluestepdelay   = cfg->lookupValue (".core.bulwers.fluestepdelay",           300         );
+    bulwers.remembered_nrg  = cfg->lookupValue (".core.bulwers.remembered_energy",       0           );
+    bulwers.remembered_time = cfg->lookupValue (".core.bulwers.remembered_time",         0           );
+    bulwers.max_mem_lag     = cfg->lookupValue (".core.bulwers.max_memory_lag",          10          );
+    bulwers.rest_time_std   = cfg->lookupValue (".core.bulwers.rest_time_standard",      9           );
+    bulwers.rest_time_wkend = cfg->lookupValue (".core.bulwers.rest_time_weekend",       12          );
+    bulwers.nrg_boost       = cfg->lookupValue (".core.bulwers.energyboost",             20          );
+    bulwers.nrg_std         = cfg->lookupValue (".core.bulwers.energystd",               16          );
+    bulwers.nrg_low         = cfg->lookupValue (".core.bulwers.energylow",               10          );
+    bulwers.timelow_1       = cfg->lookupValue (".core.bulwers.timelow_1",               7           );
+    bulwers.timelow_2       = cfg->lookupValue (".core.bulwers.timelow_2",               6           );
+    bulwers.timelow_3       = cfg->lookupValue (".core.bulwers.timelow_3",               5           );
+    bulwers.timehigh_1      = cfg->lookupValue (".core.bulwers.timehigh_1",              21          );
+    bulwers.timehigh_2      = cfg->lookupValue (".core.bulwers.timehigh_2",              22          );
+    bulwers.timehigh_3      = cfg->lookupValue (".core.bulwers.timehigh_3",              23          );
+    bulwers.timelow_1w      = cfg->lookupValue (".core.bulwers.timelow_1",               10          );
+    bulwers.timelow_2w      = cfg->lookupValue (".core.bulwers.timelow_2",               7           );
+    bulwers.timelow_3w      = cfg->lookupValue (".core.bulwers.timelow_3",               5           );
+    bulwers.timehigh_1w     = cfg->lookupValue (".core.bulwers.timehigh_1",              23          );
+    bulwers.timehigh_2w     = cfg->lookupValue (".core.bulwers.timehigh_2",              1           );
+    bulwers.timehigh_3w     = cfg->lookupValue (".core.bulwers.timehigh_3",              3           );
+    bulwers.wkup_time       = cfg->lookupValue (".core.bulwers.wkup_time",               7           );
+    bulwers.wkup_timew      = cfg->lookupValue (".core.bulwers.wkup_time_weekend",       10          );
+    bulwers.wake_up_delay   = cfg->lookupValue (".core.bulwers.wkup_delay",              120         );
+    int counter             = cfg->lookupValue (".core.bulwers.envs_number",             0           );
     for (int i = 0; i < counter; i++)
     {
         stringstream ss;
         ss << i;
         environment_data* tmpenv = new environment_data;
         bulwers.envs.push_back(*tmpenv);
-        bulwers.envs[i].Rperc = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".Rperc")[0],0 ));
-        bulwers.envs[i].Yperc = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".Yperc")[0],0 ));
-        bulwers.envs[i].Gperc = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".Gperc")[0],0 ));
-        bulwers.envs[i].Bperc = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".Bperc")[0],0 ));
-        bulwers.envs[i].Pperc = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".Pperc")[0],0 ));
-        bulwers.envs[i].Hperc = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".Hperc")[0],0 ));
+        bulwers.envs[i].Rperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Rperc")[0],0 ));
+        bulwers.envs[i].Yperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Yperc")[0],0 ));
+        bulwers.envs[i].Gperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Gperc")[0],0 ));
+        bulwers.envs[i].Bperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Bperc")[0],0 ));
+        bulwers.envs[i].Pperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Pperc")[0],0 ));
+        bulwers.envs[i].Hperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Hperc")[0],0 ));
         bulwers.envs[i].spenttime = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".spenttime")[0],0 ));
         bulwers.envs[i].timer = 0;
         delete (tmpenv);
     }
-    bulwers.env_min_compability         = cfg->lookupValue ("core.bulwers.env_min_compability",         60.0        );
-    bulwers.env_update_impact           = cfg->lookupValue ("core.bulwers.env_update_impact",           5.0         );
-    bulwers.env_max_exotic_spenttime    = cfg->lookupValue ("core.bulwers.env_max_exotic_spenttime",    10.0        );
-    bulwers.env_saveinterval            = cfg->lookupValue ("core.bulwers.env_number",                  50          );
+    bulwers.env_min_compability         = cfg->lookupValue (".core.bulwers.env_min_compability",         60.0        );
+    bulwers.env_update_impact           = cfg->lookupValue (".core.bulwers.env_update_impact",           5.0         );
+    bulwers.env_max_exotic_spenttime    = cfg->lookupValue (".core.bulwers.env_max_exotic_spenttime",    10.0        );
+    bulwers.env_saveinterval            = cfg->lookupValue (".core.bulwers.env_number",                  50          );
 
     //friendship_sector
 
-    fship.calm_perc_high    = cfg->lookupValue ("core.friendship.calm_percentage_high", 5           );
-    fship.calm_perc_low     = cfg->lookupValue ("core.friendship.calm_percentage_low",  10          );
-    fship.calm_timer        = cfg->lookupValue ("core.friendship.calm_timer",           60          );
-    fship.func_calm_high    = cfg->lookupValue ("core.friendship.func_calm_high",       1.8         );
-    fship.func_calm_low     = cfg->lookupValue ("core.friendship.func_calm_low",        1.8         );
-    fship.func_mouse_high   = cfg->lookupValue ("core.friendship.func_mouse_high",      1.8         );
-    fship.func_mouse_low    = cfg->lookupValue ("core.friendship.func_mouse_low",       1.8         );
-    fship.func_mouse_hit    = cfg->lookupValue ("core.friendship.func_mouse_hit",       1.8         );
-    fship.func_scale        = cfg->lookupValue ("core.friendship.func_scale",           20          );
-    fship.max_below         = cfg->lookupValue ("core.friendship.max_below_0",          5000        );
-    fship.max_over          = cfg->lookupValue ("core.friendship.max_over_0",           5000        );
-    fship.mouse_bad         = cfg->lookupValue ("core.friendship.mouse_bad",            5           );
-    fship.mouse_good        = cfg->lookupValue ("core.friendship.mouse_good",           1           );
-    fship.stable            = cfg->lookupValue ("core.friendship.stable",               200         );
-    fship.value             = cfg->lookupValue ("core.friendship.value",                0           );
+    fship.calm_perc_high    = cfg->lookupValue (".core.friendship.calm_percentage_high", 5           );
+    fship.calm_perc_low     = cfg->lookupValue (".core.friendship.calm_percentage_low",  10          );
+    fship.calm_timer        = cfg->lookupValue (".core.friendship.calm_timer",           60          );
+    fship.func_calm_high    = cfg->lookupValue (".core.friendship.func_calm_high",       1.8         );
+    fship.func_calm_low     = cfg->lookupValue (".core.friendship.func_calm_low",        1.8         );
+    fship.func_mouse_high   = cfg->lookupValue (".core.friendship.func_mouse_high",      1.8         );
+    fship.func_mouse_low    = cfg->lookupValue (".core.friendship.func_mouse_low",       1.8         );
+    fship.func_mouse_hit    = cfg->lookupValue (".core.friendship.func_mouse_hit",       1.8         );
+    fship.func_scale        = cfg->lookupValue (".core.friendship.func_scale",           20          );
+    fship.max_below         = cfg->lookupValue (".core.friendship.max_below_0",          5000        );
+    fship.max_over          = cfg->lookupValue (".core.friendship.max_over_0",           5000        );
+    fship.mouse_bad         = cfg->lookupValue (".core.friendship.mouse_bad",            5           );
+    fship.mouse_good        = cfg->lookupValue (".core.friendship.mouse_good",           1           );
+    fship.stable            = cfg->lookupValue (".core.friendship.stable",               200         );
+    fship.value             = cfg->lookupValue (".core.friendship.value",                0           );
 
     //basic_sector
 
-    cdbg_enabled            = cfg->lookupValue("debug.cdebug.on",                       true        );
-    hdbg_enabled            = cfg->lookupValue("debug.HDBG_enabled",                    false       );
+    cdbg_enabled            = cfg->lookupValue ( ".debug.cdebug.on",                       true        );
+    hdbg_enabled            = cfg->lookupValue ( ".debug.HDBG_enabled",                    false       );
 
     //autocalc_sector
 
-    autocalc.enabled                            = cfg->lookupValue("core.autocalc.enabled",                         true        );
-    autocalc.save_interval                      = cfg->lookupValue("core.autocalc.interval",                        300         );
-    autocalc.start_delay                        = cfg->lookupValue("core.autocalc.delay",                           120         );
-    autocalc.impact                             = cfg->lookupValue("core.autocalc.impact",                          1           );
-    autocalc.cpu_enabled                        = cfg->lookupValue("core.autocalc.cpu.enabled",                     true        );
-    autocalc.auto_cpu                           = cfg->lookupValue("core.autocalc.cpu.auto_angle",                  true        );
-    autocalc.cpu_swalll                         = cfg->lookupValue("core.autocalc.cpu.stable_wall_low",             50          );
-    autocalc.cpu_swallh                         = cfg->lookupValue("core.autocalc.cpu.stable_wall_high",            50          );
-    autocalc.cpu_mult_low                       = cfg->lookupValue("core.autocalc.cpu.multiple_low",                2           );
-    autocalc.cpu_mult_low_converter             = cfg->lookupValue("core.autocalc.cpu.low_converter",               1           );
-    autocalc.cpu_mult_high                      = cfg->lookupValue("core.autocalc.cpu.multiple_high",               2           );
-    autocalc.cpu_mult_high_converter            = cfg->lookupValue("core.autocalc.cpu.high_converter",              1           );
-    autocalc.memory_enabled                     = cfg->lookupValue("core.autocalc.memory.enabled",                  true        );
-    autocalc.auto_memory                        = cfg->lookupValue("core.autocalc.memory.auto_angle",               true        );
-    autocalc.memory_swalll                      = cfg->lookupValue("core.autocalc.memory.stable_wall_low",          50          );
-    autocalc.memory_swallh                      = cfg->lookupValue("core.autocalc.memory.stable_wall_high",         50          );
-    autocalc.memory_mult_low                    = cfg->lookupValue("core.autocalc.memory.multiple_low",             2           );
-    autocalc.memory_mult_low_converter          = cfg->lookupValue("core.autocalc.memory.low_converter",            1           );
-    autocalc.memory_mult_high                   = cfg->lookupValue("core.autocalc.memory.multiple_high",            2           );
-    autocalc.memory_mult_high_converter         = cfg->lookupValue("core.autocalc.memory.high_converter",           1           );
-    autocalc.battery_enabled                    = cfg->lookupValue("core.autocalc.battery.enabled",                 true        );
-    autocalc.auto_battery                       = cfg->lookupValue("core.autocalc.battery.auto_angle",              true        );
-    autocalc.battery_swalll                     = cfg->lookupValue("core.autocalc.battery.stable_wall_low",         50          );
-    autocalc.battery_swallh                     = cfg->lookupValue("core.autocalc.battery.stable_wall_high",        50          );
-    autocalc.battery_mult_low                   = cfg->lookupValue("core.autocalc.battery.multiple_low",            2           );
-    autocalc.battery_mult_low_converter         = cfg->lookupValue("core.autocalc.battery.low_converter",           1           );
-    autocalc.battery_mult_high                  = cfg->lookupValue("core.autocalc.battery.multiple_high",           2           );
-    autocalc.battery_mult_high_converter        = cfg->lookupValue("core.autocalc.battery.high_converter",          1           );
-    autocalc.temperature_enabled                = cfg->lookupValue("core.autocalc.temperature.enabled",             true        );
-    autocalc.auto_temperature                   = cfg->lookupValue("core.autocalc.temperature.auto_angle",          true        );
-    autocalc.temperature_swalll                 = cfg->lookupValue("core.autocalc.temperature.stable_wall_low",     50          );
-    autocalc.temperature_swallh                 = cfg->lookupValue("core.autocalc.temperature.stable_wall_high",    50          );
-    autocalc.temperature_mult_low               = cfg->lookupValue("core.autocalc.temperature.multiple_low",        2           );
-    autocalc.temperature_mult_low_converter     = cfg->lookupValue("core.autocalc.temperature.low_converter",       1           );
-    autocalc.temperature_mult_high              = cfg->lookupValue("core.autocalc.temperature.multiple_high",       2           );
-    autocalc.temperature_mult_high_converter    = cfg->lookupValue("core.autocalc.temperature.high_converter",      1           );
+    autocalc.enabled                            = cfg->lookupValue ( ".core.autocalc.enabled",                         true        );
+    autocalc.save_interval                      = cfg->lookupValue ( ".core.autocalc.interval",                        300         );
+    autocalc.start_delay                        = cfg->lookupValue ( ".core.autocalc.delay",                           120         );
+    autocalc.impact                             = cfg->lookupValue ( ".core.autocalc.impact",                          1           );
+    autocalc.cpu_enabled                        = cfg->lookupValue ( ".core.autocalc.cpu.enabled",                     true        );
+    autocalc.auto_cpu                           = cfg->lookupValue ( ".core.autocalc.cpu.auto_angle",                  true        );
+    autocalc.cpu_swalll                         = cfg->lookupValue ( ".core.autocalc.cpu.stable_wall_low",             50          );
+    autocalc.cpu_swallh                         = cfg->lookupValue ( ".core.autocalc.cpu.stable_wall_high",            50          );
+    autocalc.cpu_mult_low                       = cfg->lookupValue ( ".core.autocalc.cpu.multiple_low",                2           );
+    autocalc.cpu_mult_low_converter             = cfg->lookupValue ( ".core.autocalc.cpu.low_converter",               1           );
+    autocalc.cpu_mult_high                      = cfg->lookupValue ( ".core.autocalc.cpu.multiple_high",               2           );
+    autocalc.cpu_mult_high_converter            = cfg->lookupValue ( ".core.autocalc.cpu.high_converter",              1           );
+    autocalc.memory_enabled                     = cfg->lookupValue ( ".core.autocalc.memory.enabled",                  true        );
+    autocalc.auto_memory                        = cfg->lookupValue ( ".core.autocalc.memory.auto_angle",               true        );
+    autocalc.memory_swalll                      = cfg->lookupValue ( ".core.autocalc.memory.stable_wall_low",          50          );
+    autocalc.memory_swallh                      = cfg->lookupValue ( ".core.autocalc.memory.stable_wall_high",         50          );
+    autocalc.memory_mult_low                    = cfg->lookupValue ( ".core.autocalc.memory.multiple_low",             2           );
+    autocalc.memory_mult_low_converter          = cfg->lookupValue ( ".core.autocalc.memory.low_converter",            1           );
+    autocalc.memory_mult_high                   = cfg->lookupValue ( ".core.autocalc.memory.multiple_high",            2           );
+    autocalc.memory_mult_high_converter         = cfg->lookupValue ( ".core.autocalc.memory.high_converter",           1           );
+    autocalc.battery_enabled                    = cfg->lookupValue ( ".core.autocalc.battery.enabled",                 true        );
+    autocalc.auto_battery                       = cfg->lookupValue ( ".core.autocalc.battery.auto_angle",              true        );
+    autocalc.battery_swalll                     = cfg->lookupValue ( ".core.autocalc.battery.stable_wall_low",         50          );
+    autocalc.battery_swallh                     = cfg->lookupValue ( ".core.autocalc.battery.stable_wall_high",        50          );
+    autocalc.battery_mult_low                   = cfg->lookupValue ( ".core.autocalc.battery.multiple_low",            2           );
+    autocalc.battery_mult_low_converter         = cfg->lookupValue ( ".core.autocalc.battery.low_converter",           1           );
+    autocalc.battery_mult_high                  = cfg->lookupValue ( ".core.autocalc.battery.multiple_high",           2           );
+    autocalc.battery_mult_high_converter        = cfg->lookupValue ( ".core.autocalc.battery.high_converter",          1           );
+    autocalc.temperature_enabled                = cfg->lookupValue ( ".core.autocalc.temperature.enabled",             true        );
+    autocalc.auto_temperature                   = cfg->lookupValue ( ".core.autocalc.temperature.auto_angle",          true        );
+    autocalc.temperature_swalll                 = cfg->lookupValue ( ".core.autocalc.temperature.stable_wall_low",     50          );
+    autocalc.temperature_swallh                 = cfg->lookupValue ( ".core.autocalc.temperature.stable_wall_high",    50          );
+    autocalc.temperature_mult_low               = cfg->lookupValue ( ".core.autocalc.temperature.multiple_low",        2           );
+    autocalc.temperature_mult_low_converter     = cfg->lookupValue ( ".core.autocalc.temperature.low_converter",       1           );
+    autocalc.temperature_mult_high              = cfg->lookupValue ( ".core.autocalc.temperature.multiple_high",       2           );
+    autocalc.temperature_mult_high_converter    = cfg->lookupValue ( ".core.autocalc.temperature.high_converter",      1           );
     if (!autocalc.enabled)
     {
         autocalc.cpu_enabled = false;
@@ -2319,57 +2319,57 @@ void Core::load_config ()
 
     //eMu_sector
 
-    eMu.cpu                 = cfg->lookupValue ("core.eMu_zone.cpu",                    false       );
-    eMu.cpu_val             = cfg->lookupValue ("core.eMu_zone.cpu_val",                0           );
-    eMu.mem                 = cfg->lookupValue ("core.eMu_zone.mem",                    false       );
-    eMu.mem_val             = cfg->lookupValue ("core.eMu_zone.mem_val",                0           );
-    eMu.temp                = cfg->lookupValue ("core.eMu_zone.temp",                   false       );
-    eMu.temp_val            = cfg->lookupValue ("core.eMu_zone.temp_val",               0           );
-    eMu.batt                = cfg->lookupValue ("core.eMu_zone.batt",                   false       );
-    eMu.batt_val            = cfg->lookupValue ("core.eMu_zone.batt_val",               0           );
-    eMu.batt_s              = cfg->lookupValue ("core.eMu_zone.batt_s",                 false       );
-    eMu.batt_val            = cfg->lookupValue ("core.eMu_zone.batt_s_val",             0           );
-    eMu.time                = cfg->lookupValue ("core.eMu_zone.time",                   false       );
-    eMu.time_val            = cfg->lookupValue ("core.eMu_zone.time_val",               0           );
-    eMu.energy              = cfg->lookupValue ("core.eMu_zone.energy",                 false       );
-    eMu.energy_val          = cfg->lookupValue ("core.eMu_zone.energy_val",             0           );
-    eMu.bulwers             = cfg->lookupValue ("core.eMu_zone.bulwers",                false       );
-    eMu.bulwers_val         = cfg->lookupValue ("core.eMu_zone.bulwers_val",            0           );
+    eMu.cpu                 = cfg->lookupValue (".core.eMu_zone.cpu",                    false       );
+    eMu.cpu_val             = cfg->lookupValue (".core.eMu_zone.cpu_val",                0           );
+    eMu.mem                 = cfg->lookupValue (".core.eMu_zone.mem",                    false       );
+    eMu.mem_val             = cfg->lookupValue (".core.eMu_zone.mem_val",                0           );
+    eMu.temp                = cfg->lookupValue (".core.eMu_zone.temp",                   false       );
+    eMu.temp_val            = cfg->lookupValue (".core.eMu_zone.temp_val",               0           );
+    eMu.batt                = cfg->lookupValue (".core.eMu_zone.batt",                   false       );
+    eMu.batt_val            = cfg->lookupValue (".core.eMu_zone.batt_val",               0           );
+    eMu.batt_s              = cfg->lookupValue (".core.eMu_zone.batt_s",                 false       );
+    eMu.batt_val            = cfg->lookupValue (".core.eMu_zone.batt_s_val",             0           );
+    eMu.time                = cfg->lookupValue (".core.eMu_zone.time",                   false       );
+    eMu.time_val            = cfg->lookupValue (".core.eMu_zone.time_val",               0           );
+    eMu.energy              = cfg->lookupValue (".core.eMu_zone.energy",                 false       );
+    eMu.energy_val          = cfg->lookupValue (".core.eMu_zone.energy_val",             0           );
+    eMu.bulwers             = cfg->lookupValue (".core.eMu_zone.bulwers",                false       );
+    eMu.bulwers_val         = cfg->lookupValue (".core.eMu_zone.bulwers_val",            0           );
 
     //mousea_actions_sector
 
-    mousea.buff_size        = cfg->lookupValue ("core.mouse_actions.buff_size",         120         );
-    mousea.scale            = cfg->lookupValue ("core.mouse_actions.scale",             8000        );
-    mousea.wall             = cfg->lookupValue ("core.mouse_actions.wall",              500         );
-    mousea.force_wall       = cfg->lookupValue ("core.mouse_actions.force_wall",        3000        );
-    mousea.opt_speed        = cfg->lookupValue ("core.mouse_actions.opt_speed",         250         );
-    mousea.impact           = cfg->lookupValue ("core.mouse_actions.impact",            10          );
-    mousea.heavycalm        = cfg->lookupValue ("core.mouse_actions.heavycalm",         100         );
-    mousea.max_delay        = cfg->lookupValue ("core.mouse_actions.max_delay",         400         );
-    mousea.max_hpp_bul      = cfg->lookupValue ("core.mouse_actions.max_hpp_bul",       5           );
+    mousea.buff_size        = cfg->lookupValue (".core.mouse_actions.buff_size",         120         );
+    mousea.scale            = cfg->lookupValue (".core.mouse_actions.scale",             8000        );
+    mousea.wall             = cfg->lookupValue (".core.mouse_actions.wall",              500         );
+    mousea.force_wall       = cfg->lookupValue (".core.mouse_actions.force_wall",        3000        );
+    mousea.opt_speed        = cfg->lookupValue (".core.mouse_actions.opt_speed",         250         );
+    mousea.impact           = cfg->lookupValue (".core.mouse_actions.impact",            10          );
+    mousea.heavycalm        = cfg->lookupValue (".core.mouse_actions.heavycalm",         100         );
+    mousea.max_delay        = cfg->lookupValue (".core.mouse_actions.max_delay",         400         );
+    mousea.max_hpp_bul      = cfg->lookupValue (".core.mouse_actions.max_hpp_bul",       5           );
 
     // hardware_section
 
-    HRDWR.battery_capacity  = cfg->lookupValue ( "core.hardware.batt_capacity",         4700        );
-    HRDWR.special_batname   = cfg->lookupValue ( "core.hardware.use_batname",           false       );
-    HRDWR.special_thername  = cfg->lookupValue ( "core.hardware.use_thername",          false       );
-    HRDWR.cfg_battname      = cfg->lookupValue ( "core.hardware.battname",              "BAT0"      );
-    HRDWR.cfg_thername      = cfg->lookupValue ( "core.hardware.thername",              "thermal_zone0"        );
-    HRDWR.backlight_path    = cfg->lookupValue ( "core.rootcontrol.backlight_device",   "intel_backlight"      );
+    HRDWR.battery_capacity  = cfg->lookupValue ( ".core.hardware.batt_capacity",         4700        );
+    HRDWR.special_batname   = cfg->lookupValue ( ".core.hardware.use_batname",           false       );
+    HRDWR.special_thername  = cfg->lookupValue ( ".core.hardware.use_thername",          false       );
+    HRDWR.cfg_battname      = cfg->lookupValue ( ".core.hardware.battname",              "BAT0"      );
+    HRDWR.cfg_thername      = cfg->lookupValue ( ".core.hardware.thername",              "thermal_zone0"        );
+    HRDWR.backlight_path    = cfg->lookupValue ( ".core.rootcontrol.backlight_device",   "intel_backlight"      );
 
     //rootcontrol
 
-    rtctrl.screenctrl       = cfg->lookupValue ( "core.rootcontrol.screen_management",  true        );
-    rtctrl.batt_min_backl   = cfg->lookupValue ( "core.rootcontrol.batt_min_backl",     20          );
-    rtctrl.batt_start_perc  = cfg->lookupValue ( "core.rootcontrol.batt_start_perc",    25          );
-    rtctrl.batt_suspend_perc= cfg->lookupValue ( "core.rootcontrol.batt_suspend_perc",  5           );
-    rtctrl.roottype         = cfg->lookupValue ( "core.rootcontrol.roottype",           false       );
-    rtctrl.suspendtohdd     = cfg->lookupValue ( "core.rootcontrol.suspendtohdd",       false       );
-    rtctrl.temp_halt_enabled= cfg->lookupValue ( "core.rootcontrol.temp_halt_enabled",  true        );
-    rtctrl.temp_halt_start  = cfg->lookupValue ( "core.rootcontrol.temp_halt_start",    85          );
-    rtctrl.scrnsaver_disabling  = cfg->lookupValue ( "core.rootcontrol.screensaver_disabling",  true        );
-    rtctrl.customshell      = cfg->lookupValue ( "core.rootcontrol.custom_shell",    false          );
-    rtctrl.shellname        = cfg->lookupValue ( "core.rootcontrol.shell_name",      "sh -c "       );
+    rtctrl.screenctrl       = cfg->lookupValue ( ".core.rootcontrol.screen_management",  true        );
+    rtctrl.batt_min_backl   = cfg->lookupValue ( ".core.rootcontrol.batt_min_backl",     20          );
+    rtctrl.batt_start_perc  = cfg->lookupValue ( ".core.rootcontrol.batt_start_perc",    25          );
+    rtctrl.batt_suspend_perc= cfg->lookupValue ( ".core.rootcontrol.batt_suspend_perc",  5           );
+    rtctrl.roottype         = cfg->lookupValue ( ".core.rootcontrol.roottype",           false       );
+    rtctrl.suspendtohdd     = cfg->lookupValue ( ".core.rootcontrol.suspendtohdd",       false       );
+    rtctrl.temp_halt_enabled= cfg->lookupValue ( ".core.rootcontrol.temp_halt_enabled",  true        );
+    rtctrl.temp_halt_start  = cfg->lookupValue ( ".core.rootcontrol.temp_halt_start",    85          );
+    rtctrl.scrnsaver_disabling  = cfg->lookupValue ( ".core.rootcontrol.screensaver_disabling",  true        );
+    rtctrl.customshell      = cfg->lookupValue ( ".core.rootcontrol.custom_shell",    false          );
+    rtctrl.shellname        = cfg->lookupValue ( ".core.rootcontrol.shell_name",      "sh -c "       );
 
 }
 
@@ -2652,31 +2652,7 @@ void rootcontrol::shelldetect()
         info << "shell set to: " << shellname << "\n";
         return;
     }
-    QProcess testshell;
-    testshell.start("sh -c \"echo aaa > /dev/null\"");
-    if (testshell.pid() != 0)
-    {
-        shellname = "sh -c ";
-        testshell.kill();
-    }
-    testshell.start("bash -c \"echo aaa > /dev/null\"");
-    if (testshell.pid() != 0)
-    {
-        shellname = "bash -c ";
-        testshell.kill();
-    }
-    testshell.start("tcsh -c \"echo aaa > /dev/null\"");
-    if (testshell.pid() != 0)
-    {
-        shellname = "tcsh -c ";
-        testshell.kill();
-    }
-    testshell.start("zsh -c \"echo aaa > /dev/null\"");
-    if (testshell.pid() != 0)
-    {
-        shellname = "zsh -c ";
-        testshell.kill();
-    }
+    shellname = getenv ( "SHELL" );
     info << "shell set to: " << shellname << "\n";
 }
 
@@ -2860,15 +2836,15 @@ bool bul::check_env(bool enabled, Configuration * cfg)
             {
                 stringstream ss;
                 ss << i;
-                cfg->setValue ( &("core.environment.env"+ss.str()+".Rperc")[0], (int)envs[i].Rperc );
-                cfg->setValue ( &("core.environment.env"+ss.str()+".Yperc")[0], (int)envs[i].Yperc );
-                cfg->setValue ( &("core.environment.env"+ss.str()+".Gperc")[0], (int)envs[i].Gperc );
-                cfg->setValue ( &("core.environment.env"+ss.str()+".Bperc")[0], (int)envs[i].Bperc );
-                cfg->setValue ( &("core.environment.env"+ss.str()+".Pperc")[0], (int)envs[i].Pperc );
-                cfg->setValue ( &("core.environment.env"+ss.str()+".Hperc")[0], (int)envs[i].Hperc );
-                cfg->setValue ( &("core.environment.env"+ss.str()+".spenttime")[0], (int)envs[i].spenttime );
+                cfg->setValue ( &(".core.environment.env"+ss.str()+".Rperc")[0], (int)envs[i].Rperc );
+                cfg->setValue ( &(".core.environment.env"+ss.str()+".Yperc")[0], (int)envs[i].Yperc );
+                cfg->setValue ( &(".core.environment.env"+ss.str()+".Gperc")[0], (int)envs[i].Gperc );
+                cfg->setValue ( &(".core.environment.env"+ss.str()+".Bperc")[0], (int)envs[i].Bperc );
+                cfg->setValue ( &(".core.environment.env"+ss.str()+".Pperc")[0], (int)envs[i].Pperc );
+                cfg->setValue ( &(".core.environment.env"+ss.str()+".Hperc")[0], (int)envs[i].Hperc );
+                cfg->setValue ( &(".core.environment.env"+ss.str()+".spenttime")[0], (int)envs[i].spenttime );
             }
-            cfg->setValue ( "core.bulwers.envs_number", (int)envs.size() );
+            cfg->setValue ( ".core.bulwers.envs_number", (int)envs.size() );
             cfg->save();
         }
         return retstat;
