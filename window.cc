@@ -23,20 +23,20 @@
 
 using namespace std;
 
-eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint )
+eyes_window::eyes_window ( QWidget * parent ) : QWidget ( parent, Qt::WindowStaysOnTopHint | Qt::FramelessWindowHint )
 {
     info << "(window) preparing...\n";
     Configuration * cfg = Configuration::getInstance ();
-    double size_multiplier = cfg->lookupValue ( "ui.window.size_percentage", 100 )/100.0;
-    eyes_w = cfg->lookupValue ( "ui.window.reference_width", 320 ) * size_multiplier;
-    eyes_h = cfg->lookupValue ( "ui.window.reference_height", 80 ) * size_multiplier;
-    isicon = cfg->lookupValue ( "ui.window.tray_icon", true );
+    double size_multiplier = cfg->lookupValue ( ".ui.window.size_percentage", 100 )/100.0;
+    eyes_w = cfg->lookupValue ( ".ui.window.reference_width", 320 ) * size_multiplier;
+    eyes_h = cfg->lookupValue ( ".ui.window.reference_height", 80 ) * size_multiplier;
+    isicon = cfg->lookupValue ( ".ui.window.tray_icon", true );
     resize ( eyes_w, eyes_h );
     setWindowTitle ( "!eyesy!" );
     setAttribute ( Qt::WA_TranslucentBackground, true );
     setAttribute ( Qt::WA_MouseTracking, true );
     //setWindowFlags ( Qt::SplashScreen );
-    eyes = new eyes_view ( this, color, size_multiplier );
+    eyes = new eyes_view ( this, size_multiplier );
     info << "(window) loading icon " << (eyes->theme + QString ("icon") + eyes->get_color_suffix () + ".png" ).toStdString () << ".\n";
     QPixmap tmp;
     tmp.load ( eyes->theme + QString ("icon") + eyes->get_color_suffix () + ".png" );
@@ -44,7 +44,7 @@ eyes_window::eyes_window ( QString color, QWidget * parent ) : QWidget ( parent,
     setWindowIcon ( *tico );
     if ( tmp.isNull () )
     {
-        error << "(window) file not found. Continuing whiwaut tray icon.\n";
+        error << "(window) file not found. Continuing without tray icon.\n";
         isicon = false;
     }
     if ( isicon )
