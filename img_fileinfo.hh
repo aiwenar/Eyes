@@ -1,13 +1,11 @@
 #pragma once
 
-struct _img_loadinfo
+const static struct _img_loadinfo
 {
   const char * file;
   const unsigned char numnames;
-  const char * names[];
-};
-
-static const _img_loadinfo files[] = {
+  const char * names[2];
+} files[] = {
     { "cusual_01_a", 1, { "cusual_01_a" } },
     { "cusual_01_o", 1, { "cusual_01_o" } },
     { "cusual_01_s", 1, { "cusual_01_s" } },
@@ -285,11 +283,8 @@ static const _img_loadinfo files[] = {
     { "tired_01", 1, { "tired_01" } },
     { "tired_02", 1, { "tired_02" } },
     { "tired_03", 1, { "tired_03" } },
-    { "spec", 1, { "spec" } },
-
-};
-
-static const _img_loadinfo eyefiles[] = {
+    { "spec", 1, { "spec" } }
+}, eyefiles[] = {
   { "eye_01", 2, { "eye_01_L", "eye_01_R" } },
   { "eye_02", 2, { "eye_02_L", "eye_02_R" } },
   { "eye_03", 2, { "eye_03_L", "eye_03_R" } },
@@ -300,9 +295,7 @@ static const _img_loadinfo eyefiles[] = {
   { "eye_08", 2, { "eye_08_L", "eye_08_R" } },
   { "eye_09", 2, { "eye_09_L", "eye_09_R" } },
   { "eye_10", 2, { "eye_10_L", "eye_10_R" } }
-};
-
-static const _img_loadinfo eyefiles_dual[] = {
+}, eyefiles_dual[] = {
     { "eye_01_R", 1, { "eye_01_R" } },
     { "eye_02_R", 1, { "eye_02_R" } },
     { "eye_03_R", 1, { "eye_03_R" } },
