@@ -5,3 +5,4 @@ eyes
 eyes.pro.*
 moc*
 config.cfg
+imagetmp/
