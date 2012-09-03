@@ -22,7 +22,7 @@ SOURCES += \
     eyes_menu.cc \
     camera.cpp \
     hungarian.cpp \
-    connection.cc
+    connection.cc \
 
 HEADERS += \ 
   defines.hxx\
@@ -39,7 +39,7 @@ HEADERS += \
     eyes_menu.hh \
     camera.hxx \
     hungarian.h \
-    connection.hxx
+    connection.hxx \
 
 OTHER_FILES += \ 
   README.markdown\

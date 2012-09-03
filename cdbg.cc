@@ -2157,8 +2157,6 @@ void cdbg::on_timer_tick ()
     chck_s ();
     cout << "closs" << " " << (unsigned short)cpu.safezone;
     chck_s ();
-    cout << "clnum" << " " << (unsigned short)cpu.lin_num;
-    chck_s ();
     cout << "cfreq" << " " << cpu.degree;
     chck_s ();
     cout << "mload" << " " << (unsigned short)memory.load << " %";
@@ -2167,8 +2165,6 @@ void cdbg::on_timer_tick ()
     chck_s ();
     cout << "mloss" << " " << (unsigned short)memory.safezone;
     chck_s ();
-    cout << "mlnum" << " " << (unsigned short)memory.lin_num;
-    chck_s ();
     cout << "mfreq" << " " << memory.degree;
     chck_s ();
     cout << "bload" << " " << (unsigned short)battery.load << " %";
@@ -2176,8 +2172,6 @@ void cdbg::on_timer_tick ()
     cout << "bstbl" << " " << (unsigned short)battery.stable << " %";
     chck_s ();
     cout << "bloss" << " " << (unsigned short)battery.safezone;
-    chck_s ();
-    cout << "blnum" << " " << (unsigned short)battery.lin_num;
     chck_s ();
     cout << "bstat" << " " << battery_state;
     chck_s ();
@@ -2194,8 +2188,6 @@ void cdbg::on_timer_tick ()
     cout << "tstbl" << " " << (unsigned short)temperature.stable << "ºC";
     chck_s ();
     cout << "tloss" << " " << (unsigned short)temperature.safezone;
-    chck_s ();
-    cout << "tlnum" << " " << (unsigned short)temperature.lin_num;
     chck_s ();
     cout << "tfreq" << " " << temperature.degree;
     chck_s ();

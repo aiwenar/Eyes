@@ -127,7 +127,6 @@ public:
                                 EQsize,
                                 max_mod_pos,
                                 max_mod_neg,
-                                lin_num,
                                 current_probe,
                                 current_probe_small,
                                 safezone,

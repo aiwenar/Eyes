@@ -31,7 +31,6 @@
 #include "core.hxx"
 #include "eyes.hxx"
 #include "camera.hxx"
-#include "connection.hxx"
 #include "debug.hxx"
 #include "cdbg.hxx"
 #include "hardware.hxx"
@@ -1621,8 +1620,9 @@ void Core::load_config ()
 {
     Configuration * cfg = Configuration::getInstance ();
 
+    eyes->con->index = new varIndex;
+
     cpu.degree              = cfg->lookupValue ( "core.cpu.degree",                     2.0         );
-    cpu.lin_num             = cfg->lookupValue ( "core.cpu.linear_modifier",            0           );
     cpu.stable              = cfg->lookupValue ( "core.cpu.stable",                     25          );
     cpu.max_mod_neg         = cfg->lookupValue ( "core.cpu.max_mod_neg",                60          );
     cpu.max_mod_pos         = cfg->lookupValue ( "core.cpu.max_mod_pos",                50          );
@@ -1637,10 +1637,16 @@ void Core::load_config ()
         cpu.EQ.push_back (cfg->lookupValue ( &("core.cpu.EQ"+ss.str())[0], (int)cpu.stable ));
     }
 
+    eyes->con->index->registerVariable(&cpu.degree, varIndex::Tdouble, QString ("CPU:DEGREE"), false);
+    eyes->con->index->registerVariable(&cpu.stable, varIndex::Tdouble, QString ("CPU:STABLE"), false);
+    eyes->con->index->registerVariable((long long*)&cpu.max_mod_neg, varIndex::Tuint, QString ("CPU:MAXNEG"), false);
+    eyes->con->index->registerVariable((long long*)&cpu.max_mod_pos, varIndex::Tuint, QString ("CPU:MAXPOS"), false);
+    eyes->con->index->registerVariable((long long*)&cpu.safezone, varIndex::Tuint, QString ("CPU:SAFE"), false);
+    eyes->con->index->registerVariable(&cpu.buffered, varIndex::Tbool, QString ("CPU:BUFFERED"), true);
+
     //mem_section
 
     memory.degree           = cfg->lookupValue ( "core.memory.degree",                  3.0         );
-    memory.lin_num          = cfg->lookupValue ( "core.memory.linear_modifier",         2           );
     memory.stable           = cfg->lookupValue ( "core.memory.stable",                  25          );
     memory.max_mod_neg      = cfg->lookupValue ( "core.memory.max_mod_neg",             100         );
     memory.max_mod_pos      = cfg->lookupValue ( "core.memory.max_mod_pos",             50          );
@@ -1655,10 +1661,16 @@ void Core::load_config ()
         memory.EQ.push_back (cfg->lookupValue ( &("core.memory.EQ"+ss.str())[0], (int)memory.stable ));
     }
 
+    eyes->con->index->registerVariable(&memory.degree, varIndex::Tdouble, QString ("MEM:DEGREE"), false);
+    eyes->con->index->registerVariable(&memory.stable, varIndex::Tdouble, QString ("MEM:STABLE"), false);
+    eyes->con->index->registerVariable((long long*)&memory.max_mod_neg, varIndex::Tuint, QString ("MEM:MAXNEG"), false);
+    eyes->con->index->registerVariable((long long*)&memory.max_mod_pos, varIndex::Tuint, QString ("MEM:MAXPOS"), false);
+    eyes->con->index->registerVariable((long long*)&memory.safezone, varIndex::Tuint, QString ("MEM:SAFE"), false);
+    eyes->con->index->registerVariable(&memory.buffered, varIndex::Tbool, QString ("MEM:BUFFERED"), true);
+
     //temperature_section
 
     temperature.degree      = cfg->lookupValue ( "core.temperature.degree",             1.5         );
-    temperature.lin_num     = cfg->lookupValue ( "core.temperature.linear_modifier",    2           );
     temperature.stable      = cfg->lookupValue ( "core.temperature.stable",             54          );
     temperature.max_mod_neg = cfg->lookupValue ( "core.temperature.max_mod_neg",        200         );
     temperature.max_mod_pos = cfg->lookupValue ( "core.temperature.max_mod_pos",        100         );
@@ -1675,10 +1687,16 @@ void Core::load_config ()
         temperature.EQ.push_back (cfg->lookupValue ( &("core.temperature.EQ"+ss.str())[0], (int)temperature.stable ));
     }
 
+    eyes->con->index->registerVariable(&temperature.degree, varIndex::Tdouble, QString ("TEMP:DEGREE"), false);
+    eyes->con->index->registerVariable(&temperature.stable, varIndex::Tdouble, QString ("TEMP:STABLE"), false);
+    eyes->con->index->registerVariable((long long*)&temperature.max_mod_neg, varIndex::Tuint, QString ("TEMP:MAXNEG"), false);
+    eyes->con->index->registerVariable((long long*)&temperature.max_mod_pos, varIndex::Tuint, QString ("TEMP:MAXPOS"), false);
+    eyes->con->index->registerVariable((long long*)&temperature.safezone, varIndex::Tuint, QString ("TEMP:SAFE"), false);
+    eyes->con->index->registerVariable(&temperature.buffered, varIndex::Tbool, QString ("TEMP:BUFFERED"), true);
+
     //battery_section
 
     battery.degree          = cfg->lookupValue ( "core.battery.degree",                 1.5         );
-    battery.lin_num         = cfg->lookupValue ( "core.battery.linear_modifier",        0           );
     battery.stable          = cfg->lookupValue ( "core.battery.stable",                 25          );
     battery.max_mod_neg     = cfg->lookupValue ( "core.battery.max_mod_neg",            100         );
     battery.max_mod_pos     = cfg->lookupValue ( "core.battery.max_mod_pos",            60          );
@@ -1692,6 +1710,13 @@ void Core::load_config ()
         ss << i;
         battery.EQ.push_back (cfg->lookupValue ( &("core.battery.EQ"+ss.str())[0], (int)battery.stable ));
     }
+
+    eyes->con->index->registerVariable(&battery.degree, varIndex::Tdouble, QString ("BAT:DEGREE"), false);
+    eyes->con->index->registerVariable(&battery.stable, varIndex::Tdouble, QString ("BAT:STABLE"), false);
+    eyes->con->index->registerVariable((long long*)&battery.max_mod_neg, varIndex::Tuint, QString ("BAT:MAXNEG"), false);
+    eyes->con->index->registerVariable((long long*)&battery.max_mod_pos, varIndex::Tuint, QString ("BAT:MAXPOS"), false);
+    eyes->con->index->registerVariable((long long*)&battery.safezone, varIndex::Tuint, QString ("BAT:SAFE"), false);
+    eyes->con->index->registerVariable(&battery.buffered, varIndex::Tbool, QString ("BAT:BUFFERED"), true);
 
     //times_sector
 
@@ -1784,6 +1809,11 @@ void Core::load_config ()
     bulwers.quickcalm                   = cfg->lookupValue ("core.bulwers.quickcalm_perc",              0.1         );
     bulwers.quickcalm_bulwers           = cfg->lookupValue ("core.bulwers.quickcalm_min_bulwers",       5           );
 
+    eyes->con->index->registerVariable((long long*)&bulwers.step, varIndex::Tuint, QString ("BUL:STEP"), false);
+    eyes->con->index->registerVariable(&bulwers.quickcalm, varIndex::Tdouble, QString ("BUL:CALM"), false);
+    eyes->con->index->registerVariable((long long*)&bulwers.quickcalm_bulwers, varIndex::Tushort, QString ("BUL:CALMBUL"), false);
+    eyes->con->index->registerVariable((long long*)&bulwers.current_wkup_delay, varIndex::Tushort, QString ("BUL:WKUP"), false);
+
     //friendship_sector
 
     fship.calm_perc_high        = cfg->lookupValue ("core.friendship.calm_percentage_high", 5           );
@@ -1803,6 +1833,23 @@ void Core::load_config ()
     fship.stable                = cfg->lookupValue ("core.friendship.stable",               200         );
     fship.value                 = cfg->lookupValue ("core.friendship.value",                0           );
     fship.funboost              = cfg->lookupValue ("core.friendship.funboost",             0.5         );
+
+    eyes->con->index->registerVariable((long long*)&fship.calm_perc_high, varIndex::Tuint, QString ("FSHIP:CALMH"), false);
+    eyes->con->index->registerVariable((long long*)&fship.calm_perc_low, varIndex::Tuint, QString ("FSHIP:CALML"), false);
+    eyes->con->index->registerVariable((long long*)&fship.calm_timer, varIndex::Tuint, QString ("FSHIP:CALMTIME"), false);
+    eyes->con->index->registerVariable(&fship.func_calm_high, varIndex::Tdouble, QString ("FSHIP:FCALMH"), false);
+    eyes->con->index->registerVariable(&fship.func_calm_low, varIndex::Tdouble, QString ("FSHIP:FCALML"), false);
+    eyes->con->index->registerVariable(&fship.func_mouse_high, varIndex::Tdouble, QString ("FSHIP:FMOUSEH"), false);
+    eyes->con->index->registerVariable(&fship.func_mouse_low, varIndex::Tdouble, QString ("FSHIP:FMOUSEL"), false);
+    eyes->con->index->registerVariable(&fship.func_mouse_hit, varIndex::Tdouble, QString ("FSHIP:FMOUSEHIT"), false);
+    eyes->con->index->registerVariable(&fship.func_scale, varIndex::Tdouble, QString ("FSHIP:FSCALE"), false);
+    eyes->con->index->registerVariable((long long*)&fship.max_below, varIndex::Tuint, QString ("FSHIP:MAXBELOW"), false);
+    eyes->con->index->registerVariable((long long*)&fship.max_over, varIndex::Tuint, QString ("FSHIP:MAXOVER"), false);
+    eyes->con->index->registerVariable((long long*)&fship.max_bul_reduction, varIndex::Tuint, QString ("FSHIP:MAXRED"), false);
+    eyes->con->index->registerVariable(&fship.stable, varIndex::Tdouble, QString ("FSHIP:STABLE"), false);
+    eyes->con->index->registerVariable(&fship.value, varIndex::Tlongdouble, QString ("FSHIP:VAL"), false);
+    eyes->con->index->registerVariable(&fship.funboost, varIndex::Tdouble, QString ("FSHIP:FUNBOOST"), false);
+
 
     //basic_sector
 
@@ -1869,13 +1916,30 @@ void Core::load_config ()
     eMu.batt                = cfg->lookupValue ("core.eMu_zone.batt",                   false       );
     eMu.batt_val            = cfg->lookupValue ("core.eMu_zone.batt_val",               0           );
     eMu.batt_s              = cfg->lookupValue ("core.eMu_zone.batt_s",                 false       );
-    eMu.batt_val            = cfg->lookupValue ("core.eMu_zone.batt_s_val",             0           );
+    eMu.batt_s_val          = cfg->lookupValue ("core.eMu_zone.batt_s_val",             0           );
     eMu.time                = cfg->lookupValue ("core.eMu_zone.time",                   false       );
     eMu.time_val            = cfg->lookupValue ("core.eMu_zone.time_val",               0           );
     eMu.energy              = cfg->lookupValue ("core.eMu_zone.energy",                 false       );
     eMu.energy_val          = cfg->lookupValue ("core.eMu_zone.energy_val",             0           );
     eMu.bulwers             = cfg->lookupValue ("core.eMu_zone.bulwers",                false       );
     eMu.bulwers_val         = cfg->lookupValue ("core.eMu_zone.bulwers_val",            0           );
+
+    eyes->con->index->registerVariable(&eMu.cpu, varIndex::Tbool, QString ("3MU:CPU"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.cpu_val, varIndex::Tushort, QString ("3MU:CPUV"), false);
+    eyes->con->index->registerVariable(&eMu.mem, varIndex::Tbool, QString ("3MU:MEM"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.mem_val, varIndex::Tushort, QString ("3MU:MEMV"), false);
+    eyes->con->index->registerVariable(&eMu.temp, varIndex::Tbool, QString ("3MU:TEMP"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.temp_val, varIndex::Tushort, QString ("3MU:TEMPV"), false);
+    eyes->con->index->registerVariable(&eMu.batt, varIndex::Tbool, QString ("3MU:BAT"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.batt_val, varIndex::Tushort, QString ("3MU:BATV"), false);
+    eyes->con->index->registerVariable(&eMu.batt_s, varIndex::Tbool, QString ("3MU:BATS"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.batt_s_val, varIndex::Tushort, QString ("3MU:BATSV"), false);
+    eyes->con->index->registerVariable(&eMu.time, varIndex::Tbool, QString ("3MU:TIME"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.time_val, varIndex::Tushort, QString ("3MU:TIMEV"), false);
+    eyes->con->index->registerVariable(&eMu.energy, varIndex::Tbool, QString ("3MU:NRG"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.energy_val, varIndex::Tushort, QString ("3MU:NRGV"), false);
+    eyes->con->index->registerVariable(&eMu.bulwers, varIndex::Tbool, QString ("3MU:FACE"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.bulwers_val, varIndex::Tushort, QString ("3MU:FACEV"), false);
 
     //mousea_actions_sector
 
@@ -2000,8 +2064,6 @@ void Core::run ()
     info << "(core) end of core preparing\n";
     timer->start ( 1000 );
     _cdbg = new cdbg ( this );
-    connection_gate * connection = new connection_gate();
-    connection->serverStart();
 
     struct sigaction sa;
     sa.sa_handler = handler;

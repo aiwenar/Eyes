@@ -588,6 +588,8 @@ vector<IplImage*> camcapture::cropImages(IplImage *input, vector<CvRect> region)
 
 int camcapture::searchFace(IplImage *input, Ptr<FaceRecognizer> inputModel, double precision)
 {
+    if (ccap.faceRecognitionFirstRun)
+        return -1;
     Mat converted(input);
     int predictedLabel = -1;
     inputModel->predict(converted, predictedLabel, precision);
@@ -933,7 +935,7 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
 
         if ((prevrecords[1][i][prevrecords[1][i].size()-1] == -1 && prevrecords[1][i].size() < maxRecognitionBufferSize) || avgRecognitions[i] == -1)
         {
-            if ((prevrecords[1][i][prevrecords[1][i].size()-1] == -1 && prevrecords[1][i].size() < maxRecognitionBufferSize))
+            if (prevrecords[1][i][prevrecords[1][i].size()-1] == -1 && prevrecords[1][i].size() < maxRecognitionBufferSize + newFaceOverdetectSkipSamples && prevrecords[1][i].size() > newFaceOverdetectSkipSamples)
                 overdetect = true;
             bool present = false;
             for (int j = 0; j < newFacesImgs.size(); j++)
@@ -997,7 +999,7 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
 
     for (int i = 0; i < newFacesImgs.size(); i++)
     {
-        if (newFacesImgs[i].ND.size() == maxRecognitionBufferSize)
+        if (newFacesImgs[i].ND.size() == maxRecognitionBufferSize + newFaceOverdetectSkipSamples)
         {
             cerr << "Detected new face:\n";
             stringstream ss, ss2, ss3;
@@ -1013,12 +1015,12 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
             ss2 << facesBankQuantities.size();
             HRDWR.set_file(ccap.facesBankPath + "size", ss2.str());
             cerr << "sizeof new face set to " << ss3.str() << ", new dir name: " << ss.str() << ". Bank size changed to: " << ss2.str() << "\n";
-            for (int j = 0; j < maxRecognitionBufferSize; j++)
+            for (int j = newFaceOverdetectSkipSamples; j < maxRecognitionBufferSize + newFaceOverdetectSkipSamples; j++)
             {
                 facesBank.push_back(Mat (&newFacesImgs[i].ND[j]));
                 facesBankIndex.push_back(facesBankQuantities.size()-1);
                 stringstream ss, ss2;
-                ss << j;
+                ss << (j-newFaceOverdetectSkipSamples);
                 ss2 << (facesBankQuantities.size()-1);
                 const string path = string (ccap.facesBankPath + ss2.str() + "/" + ss.str() + ".jpg");
                 imwrite(path, norm_0_255(Mat (&newFacesImgs[i].ND[j]).reshape(1, Mat (&newFacesImgs[i].ND[j]).rows)));
@@ -1030,6 +1032,8 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
 
     if (toreload)
     {
+        cerr << "Reloading...";
+        faceRecognitionFirstRun = false;
         facesModel = createEigenFaceRecognizer(0, ccap.faceRecognizerTreshold);
         facesModel->train(facesBank, facesBankIndex);
         return true;
@@ -1928,6 +1932,7 @@ camthread::camthread( eyes_view * neyes )
     ccap.faceRecognisePrecision     = cfg->lookupValue ( "cam.system.face_recognition_precision",     0.0 );
     ccap.faceRecognizerTreshold     = cfg->lookupValue ( "cam.system.face_recognition_treshold",   3500.0 );
     ccap.faceImageDropDelay         = cfg->lookupValue ( "cam.system.face_recognise_drop_delay",       15 );
+    ccap.newFaceOverdetectSkipSamples  = cfg->lookupValue ( "cam.system.face_recognise_new_face_record_delay",       2 );
     ccap.maxRecognitionBufferSize   = cfg->lookupValue ( "cam.system.max_recognition_buffer_size",     10 );
     ccap.maxFacesPerImg             = cfg->lookupValue ( "cam.system.faces_per_frame_matrix_size",     10 );
     ccap.faceTrackMaxDist           = cfg->lookupValue ( "cam.system.face_track_max_match_dist",     10.0 );
@@ -1964,14 +1969,21 @@ camthread::camthread( eyes_view * neyes )
                  temp = HRDWR.get_file(&(ccap.facesBankPath + ss.str() + "/" + "size")[0] );
                  if (temp != "")
                  {
+                     ccap.facesBankQuantities[i]=atoi(&temp[0]);
                      for (int j = 0; j < atoi(&temp[0]);j++)
                      {
                          stringstream ss2;
                          ss2 << j;
                          ccap.facesBank.push_back(cv::imread(ccap.facesBankPath + ss.str() + "/" + ss2.str()+".jpg", 0));
-                         ccap.facesBankIndex.push_back(i);
+                         if (ccap.facesBank[ccap.facesBank.size()-1].empty())
+                         {
+                             cerr << "Empty image loaded... removing from data set\n";
+                             ccap.facesBank.erase(ccap.facesBank.begin() + ccap.facesBank.size() - 1);
+                             ccap.facesBankQuantities[i]--;
+                         }
+                         else
+                            ccap.facesBankIndex.push_back(i);
                      }
-                     ccap.facesBankQuantities[i]=atoi(&temp[0]);
                  }
                  else
                  {
@@ -1980,7 +1992,13 @@ camthread::camthread( eyes_view * neyes )
                      HRDWR.set_file(ccap.facesBankPath + ss.str() + "/" + "size", string ("0"));
                  }
              }
-             ccap.facesModel->train(ccap.facesBank, ccap.facesBankIndex);
+             if (ccap.facesBank.size() > 0)
+             {
+                 ccap.faceRecognitionFirstRun = false;
+                 ccap.facesModel->train(ccap.facesBank, ccap.facesBankIndex);
+             }
+             else
+                 ccap.faceRecognitionFirstRun = true;
         }
         else
         {
@@ -1988,6 +2006,7 @@ camthread::camthread( eyes_view * neyes )
             HRDWR.set_file(ccap.facesBankPath + "size", string ("0"));
             faces = 0;
             ccap.facesBank.clear();
+            ccap.faceRecognitionFirstRun = true;
         }
 
         cerr << "After data reading:\n" <<

@@ -201,6 +201,7 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor, double size_m ) : QWidg
     open_images ( color );
     set_layer ( SLEEPY, "tired_03" );
     toggle_layer ( SLEEPY, true );
+    con = new connectionGate();
     core->load_config ();
     area = new QPixmap ( eyes_w, eyes_h );
     QApplication a();
@@ -210,6 +211,7 @@ eyes_view::eyes_view ( QWidget * parent, QString ncolor, double size_m ) : QWidg
     looker->run ();
     camt->start(QThread::IdlePriority);
     core->run ();
+    con->startServer();
 }
 
 eyes_view::~eyes_view ()

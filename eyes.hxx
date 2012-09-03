@@ -51,6 +51,7 @@ extern const char *verstr;
 #include "animation.hxx"
 #include "configuration.hxx"
 #include "camera.hxx"
+#include "connection.hxx"
 
 \
 #define NUM_LAYERS  3
@@ -74,6 +75,7 @@ class eyes_clapper;
 class eyes_looker;
 class Core;
 class camthread;
+class connectionGate;
 
 QString get_face_suffix ( QString face );
 
@@ -97,6 +99,7 @@ public:
     };
     QString             theme;
     double              size_multiplier;
+    connectionGate    * con;
 
     /**
      * Construct eyes_view with color \p color.
