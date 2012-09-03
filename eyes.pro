@@ -14,14 +14,14 @@ SOURCES += \
   looker.cc\
   window.cc\
   core.cpp\
-  configurator.cc \
   configuration.cc \
-    memory.cc \
-    hardware.cc \
-    cdbg.cc \
-    ostream.cc \
-    eyes_menu.cc \
-    camera.cpp
+  memory.cc \
+  hardware.cc \
+  cdbg.cc \
+  ostream.cc \
+  eyes_menu.cc \
+  camera.cpp \
+  tm.cc
 
 HEADERS += \ 
   defines.hxx\
@@ -30,19 +30,23 @@ HEADERS += \
   debug.hxx\
   eyes.hxx\
   core.hxx\
-  configurator.hxx \
   configuration.hxx \
   memory.hxx \
   cdbg.hxx \
   hardware.hxx \
   ostream.hh \
-    eyes_menu.hh \
-    camera.hxx
+  eyes_menu.hh \
+  camera.hxx \
+  tm.hh \
+  img_fileinfo.hh
 
 OTHER_FILES += \ 
   README.markdown\
   color.cfg\
-  .gitignore
+  .gitignore \
+  scripts/checklibs \
+  scripts/libcfg \
+    themes/default/theme.cfg
 
 system(./scripts/checklibs)
 
@@ -51,13 +55,13 @@ QMAKE_CXXFLAGS += -std=c++0x
 INCLUDEPATH += \
   $$system(./scripts/libcfg --cflags glib-2.0) \
   $$system(./scripts/libcfg --cflags libgtop-2.0) \
-  $$system(./scripts/libcfg --cflags libconfig++) \
+  $$system(./scripts/libcfg --cflags stackonfigure) \
   $$system(./scripts/libcfg --cflags opencv)
 
 LIBS += \
   $$system(./scripts/libcfg --libs glib-2.0) \
   $$system(./scripts/libcfg --libs libgtop-2.0) \
-  $$system(./scripts/libcfg --libs libconfig++) \
+  $$system(./scripts/libcfg --libs stackonfigure) \
   $$system(./scripts/libcfg --libs opencv) \
   -lrt
 
