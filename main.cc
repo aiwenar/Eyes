@@ -33,9 +33,8 @@ static const char help [] = {
   "Arguments:\n"
   "\t--help\t\t-h\t\tPrint this text and exit.\n"
   "\t--version\t-v\t\tPrint version and exit.\n"
-  "\t--color=COLOR\t-c COLOR\tSet eyes color to COLOR.\n"
+//  "\t--color=COLOR\t-c COLOR\tSet eyes color to COLOR.\n"
   "\t\t\t-C\t\tCore only mode.\n"
-  "\nSee --help colors for colors.\n"
 };
 
 static const char about [] = {
@@ -43,10 +42,6 @@ static const char about [] = {
   "This program comes with ABSOLUTELY NO WARRANTY.\n"
   "This is free software, and you are welcome to redistribute it\n"
   "under certain conditions.\n"
-};
-
-static const char help_colors [] = {
-    "Avalible colors are:\n"
 };
 
 int eye_swL,
@@ -82,38 +77,11 @@ int main ( int argc, char ** argv )
   QApplication app ( argc, argv );
 
   QStringList arg = app.arguments ();
-  QString color = "";
 
   for ( int i = 0 ; i < arg.size () ; i++ )
   {
     if ( arg.at ( i ) == "-h" or arg.at ( i ) == "--help" )
       {
-        if ( arg.size () > 2 )
-        {
-          if ( arg.at ( i+1 ) == "colors" )
-          {
-            cout << help_colors;
-            /* Config cfg;
-            try
-            {
-              cfg.readFile ( "colors.cfg" );
-            }
-            catch ( libconfig::ParseException e )
-            {
-              cout << e.what () << '\n' << e.getError () << '\n';
-            }
-            std::string color;
-            int count;
-            cfg.lookupValue ( "colors.count", count );
-            cout << count << '\n';
-            for ( int j=0 ; j<count ; j++ )
-            {
-              cfg.lookupValue ( ( QString ( "colors.list." ) + j ).toStdString (), color );
-              cout << "\t" << color << "\n";
-            } */
-            exit ( 0 );
-          }
-        }
         cout << help;
         exit ( 0 );
       }
@@ -127,14 +95,14 @@ int main ( int argc, char ** argv )
       cout << about;
       exit ( 0 );
     }
-    else if ( arg.at ( i ).split ( "=" )[0] == "--color" )
+    /*else if ( arg.at ( i ).split ( "=" )[0] == "--color" )
       color = arg.at ( i ).split ( "=" )[1];
     else if ( arg.at ( i ) == "-c" )
-      color = arg.at ( ++i );
+      color = arg.at ( ++i );*/
   }
 
   info << "(main) starting eyes...\n";
-  eyes_window win ( color );
+  eyes_window win;
   win.show ();
 
   return app.exec ();
