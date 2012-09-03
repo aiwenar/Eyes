@@ -39,7 +39,7 @@ public:
      * Construct window and initialize subsystems with eyes color \p color.
      * @param color color of the eyes.
      */
-    explicit eyes_window    ( QString color, QWidget * parent = 0 );
+    explicit eyes_window    ( QWidget * parent = 0 );
 
     QIcon             * tico;
 signals:
