@@ -31,16 +31,16 @@ eyes_looker::eyes_looker ( eyes_view * neyes )
     timer->setInterval ( ( qrand () % 30 + 1 )*200 );
     info << "(looker) loading config...\n";
     Configuration * cfg = Configuration::getInstance ();
-    min_dx = cfg->lookupValue ( "ui.looker.delta_x.min",    0   )*eyes->size_multiplier;
-    max_dx = cfg->lookupValue ( "ui.looker.delta_x.max",    14  )*eyes->size_multiplier;
-    min_dy = cfg->lookupValue ( "ui.looker.delta_y.min",    0   )*eyes->size_multiplier;
-    max_dy = cfg->lookupValue ( "ui.looker.delta_y.max",    10  )*eyes->size_multiplier;
-    bmin_x = cfg->lookupValue ( "ui.looker.bounds_x.min",   40  )*eyes->size_multiplier;
-    bmax_x = cfg->lookupValue ( "ui.looker.bounds_x.max",   54  )*eyes->size_multiplier;
-    bmin_y = cfg->lookupValue ( "ui.looker.bounds_y.min",   4   )*eyes->size_multiplier;
-    bmax_y = cfg->lookupValue ( "ui.looker.bounds_y.max",   14  )*eyes->size_multiplier;
-    min_dl = cfg->lookupValue ( "ui.looker.delay.min",      1   )*eyes->size_multiplier;
-    max_dl = cfg->lookupValue ( "ui.looker.delay.max",      30  )*eyes->size_multiplier;
+    min_dx = cfg->lookupValue ( ".ui.looker.delta_x.min",    0   )*eyes->size_multiplier;
+    max_dx = cfg->lookupValue ( ".ui.looker.delta_x.max",    14  )*eyes->size_multiplier;
+    min_dy = cfg->lookupValue ( ".ui.looker.delta_y.min",    0   )*eyes->size_multiplier;
+    max_dy = cfg->lookupValue ( ".ui.looker.delta_y.max",    10  )*eyes->size_multiplier;
+    bmin_x = cfg->lookupValue ( ".ui.looker.bounds_x.min",   40  )*eyes->size_multiplier;
+    bmax_x = cfg->lookupValue ( ".ui.looker.bounds_x.max",   54  )*eyes->size_multiplier;
+    bmin_y = cfg->lookupValue ( ".ui.looker.bounds_y.min",   4   )*eyes->size_multiplier;
+    bmax_y = cfg->lookupValue ( ".ui.looker.bounds_y.max",   14  )*eyes->size_multiplier;
+    min_dl = cfg->lookupValue ( ".ui.looker.delay.min",      1   )*eyes->size_multiplier;
+    max_dl = cfg->lookupValue ( ".ui.looker.delay.max",      30  )*eyes->size_multiplier;
     info << "(looker) ready!\n";
 }
 
@@ -71,22 +71,14 @@ void eyes_looker::interrupt ( int x, int y )
 
 void eyes_looker::look_at ( int dx, int dy )
 {
-  static int px1;
-  static int px2;
-  static int py1;
-  static int py2;
-  static double mpx1;
-  static double mpx2;
-  static double mpy1;
-  static double mpy2;
-  px1 = eyes->get_eyes_x1 ();
-  px2 = eyes->get_eyes_x2 ();
-  py1 = eyes->get_eyes_y1 ();
-  py2 = eyes->get_eyes_y2 ();
-  mpx1 = eyes->get_mirror_x1 ();
-  mpx2 = eyes->get_mirror_x2 ();
-  mpy1 = eyes->get_mirror_y1 ();
-  mpy2 = eyes->get_mirror_y2 ();
+  int px1 = eyes->get_eyes_x1 ();
+  int px2 = eyes->get_eyes_x2 ();
+  int py1 = eyes->get_eyes_y1 ();
+  int py2 = eyes->get_eyes_y2 ();
+  double mpx1 = eyes->get_mirror_x1 ();
+  double mpx2 = eyes->get_mirror_x2 ();
+  double mpy1 = eyes->get_mirror_y1 ();
+  double mpy2 = eyes->get_mirror_y2 ();
   if ( px1+dx < bmin_x or px1+dx > bmax_x )
       dx = 0;
   if ( py1+dy < bmin_y or py1+dy > bmax_y )
