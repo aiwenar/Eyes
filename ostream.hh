@@ -17,6 +17,7 @@ public:
   OStream&  operator<<  ( const char c );
   OStream&  operator<<  ( const int i );
   OStream&  operator<<  ( const double d );
+  OStream&  operator<<  ( const bool b );
   OStream&  operator<<  ( const msg m );
   OStream&  operator<<  ( const std::string& s );
   OStream&  operator<<  ( const QString& s );

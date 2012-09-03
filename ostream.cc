@@ -6,7 +6,7 @@
 OStream::OStream ( const char * path )
 {
   enabled = true;
-  enabled = Configuration::getInstance ()->lookupValue ( (QString("debug.")+path).toStdString().c_str(), true );
+  enabled = Configuration::getInstance ()->lookupValue ( (QString(".debug.")+path).toStdString().c_str(), true );
 }
 
 OStream& OStream::operator << ( const double d )
@@ -34,6 +34,13 @@ OStream& OStream::operator << ( const int i )
 {
   if ( not enabled ) return *this;
   std::clog << i;
+  return *this;
+}
+
+OStream& OStream::operator << ( const bool b )
+{
+  if ( not enabled ) return *this;
+  std::clog << ( b ? "true" : "false" );
   return *this;
 }
 
