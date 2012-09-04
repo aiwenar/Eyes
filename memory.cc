@@ -17,6 +17,36 @@
 
 #include "memory.hxx"
 
-memory::memory()
+#include <stdio.h>
+#include <endian.h>
+#include <stdexcept>
+
+const unsigned short memory::version;
+
+void memory::save ( const char * file, memory * mem )
 {
+  FILE * memf = fopen ( file, "w" );
+
+  fwrite ( "EYES MEMORY", 11 , 1, memf );
+
+  unsigned short ver = htole16 ( version );
+  fwrite ( &ver, 2, 1, memf );
+
+  fclose ( memf );
+}
+
+memory * memory::load ( const char * file )
+{
+  FILE * mem = fopen ( file, "r" );
+
+  fseek ( mem, 12, SEEK_SET );
+
+  unsigned short ver;
+  fread ( &ver, 2, 1, mem );
+  ver = le16toh ( ver );
+
+  if ( ver > version )
+    throw std::runtime_error ( "memory file format newer than supported." );
+
+  fclose ( mem );
 }

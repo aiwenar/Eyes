@@ -53,6 +53,12 @@ extern const char *verstr;
 #include <libconfig.h++>
 #include <ostream>
 
+#include "defines.hxx"
+#include "animation.hxx"
+#include "configuration.hxx"
+#include "camera.hxx"
+#include "connection.hxx"
+
 #define NUM_LAYERS  3
 
 extern int  eye_swL,
@@ -74,6 +80,7 @@ class eyes_clapper;
 class eyes_looker;
 class Core;
 class camthread;
+class connectionGate;
 
 QString get_face_suffix ( QString face );
 
@@ -97,6 +104,7 @@ public:
     };
     QString             theme;
     double              size_multiplier;
+    connectionGate    * con;
 
     /**
      * Construct eyes_view with color \p color.
@@ -282,6 +290,7 @@ class Core : public QObject
 public:
                     Core            ( eyes_view * );
                     Core            ();
+                    ~Core           ();
     void            bulwers_update  (),
                     bulwers_init    (),
                     load_config     (),

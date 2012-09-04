@@ -53,7 +53,8 @@ public:
                             proc_bat_state      (string path),
                             sys_temp            (string path),
                             sys_bat_uni         (string path),
-                            sys_bat_state       (string path);
+                            sys_bat_state       (string path),
+                            sensors_temp        (string path);
     char                    final_temp_solution,
                             final_now_solution,
                             final_full_solution,
@@ -69,6 +70,125 @@ public:
                             backlight_fpath,
                             backlight_npath,
                             get_file            (char* path);
+    vector <string>         cores_paths;
+    double                  equalize(double min, double max, double input, double degree);
+};
+
+
+struct sdate
+{
+    unsigned short              day,
+                                month,
+                                day_num;
+    unsigned int                hour,
+                                year;
+};
+
+struct a_calc_data
+{
+    vector<long double>         freq,
+                                virtualEQ,
+                                curve;
+    long double                 impact,
+                                current,
+                                mult_low,
+                                mult_low_converter,
+                                mult_high,
+                                mult_high_converter,
+                                common,
+                                exoticlow,
+                                exotichigh,
+                                curve_correct,
+                                freq_angle_low,
+                                freq_angle_high;
+    int                         curstep,
+                                perc,
+                                curmid,
+                                stablepointlow,
+                                stablepointhigh;
+    unsigned short              swalll,
+                                swallh;
+    bool                        enabled,
+                                auto_degree,
+                                simple,
+                                forcesave;
+    string                      name;
+};
+
+class hardwareData {
+public:
+    short                       mod,
+                                mod_prev;
+    vector <double>             probes,
+                                sector_small;
+    double                      load,
+                                stable;
+    unsigned int                buff_size,
+                                EQsize,
+                                max_mod_pos,
+                                max_mod_neg,
+                                current_probe,
+                                current_probe_small,
+                                safezone,
+                                calculate();
+    int                         convert(unsigned short val);
+    vector <int>                EQ;
+    double                      degree,
+                                mod_correction_pos,
+                                mod_correction_neg;
+    void                        get_load (double),
+                                init (QString adress);
+    bool                        buffered,
+                                ready(),
+                                autocalc(),
+                                ac_save( Configuration * cfg ),
+                                ac_init( string name );
+    a_calc_data                 ac;
+};
+
+class percental : public hardwareData
+{
+public:
+    double                      load;
+    unsigned int                calculate();
+    int                         convert(unsigned short val);
+    void                        get_load (double),
+                                init (QString adress);
+    bool                        ready(),
+                                autocalc(),
+                                ac_save( Configuration * cfg ),
+                                ac_init( string name );
+};
+
+class unital : public hardwareData
+{
+public:
+    unsigned int                value,
+                                EQbegin,
+                                EQend,
+                                calculate();
+    int                         convert(unsigned short val);
+    void                        get_load (unsigned short),
+                                init (QString adress);
+    bool                        ready(),
+                                autocalc( Configuration * cfg ),
+                                ac_save( Configuration * cfg ),
+                                ac_init( string name);
+};
+
+class timal
+{
+public:
+    short                       mod;
+    unsigned int                value,
+                                start,
+                                steps,
+                                lin_num,
+                                wide,
+                                end,
+                                calculate();
+    char                        frequency;
+    void                        init (QString adress);
 };
 
 extern          hardware        HRDWR;

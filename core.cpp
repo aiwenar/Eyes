@@ -60,6 +60,7 @@ eMu_zone        eMu;
 data_source     d_src;
 friendship      fship;
 rootcontrol     rtctrl;
+disease         flue;
 extern camcapture ccap;
 
 void eyes_view::anims_send ( QString fac, QString nstart, QString nend, unsigned short nfrom, unsigned short nto )
@@ -140,16 +141,50 @@ void bul::update()
 {
 
     total_mod =
-            cpu.mod         +
-            memory.mod      +
             times.mod       +
-            energy.mod      +
-            temperature.mod -
-            battery.mod     -
+            energy.mod      -
             mod_bat_plug    -
-            fship.value/100 -
             mousea.mod      ;
+    if (cpu.ready())
+        total_mod += cpu.mod;
+    if (memory.ready())
+        total_mod += memory.mod;
+    if (temperature.ready())
+        total_mod += temperature.mod;
+    if (battery.ready())
+        total_mod -= battery.mod;
 
+    if(flue.active && total_mod > 0)
+        total_mod+=(double)(total_mod)*flue.last_date.progress*flue.max_bul_booster/100.0;
+
+    if (!flue.active)
+    {
+        //cerr << "orginal mod: " << total_mod << "\n";
+        if (fship.value > 0)
+        {
+            if (total_mod > 0)
+            {
+                total_mod = (total_mod-((fship.max_bul_reduction*(100*fship.value/fship.max_over))/100)*(100*fship.value/fship.max_over))/100;
+                if (total_mod < 0)
+                    total_mod = 0;
+            }
+            else
+                total_mod *= (double)(100*fship.value/fship.max_over)/100;
+        }
+        else
+        {
+            if (total_mod > 0)
+                total_mod *= (100*abs(fship.value)/fship.max_below)/100;
+            else
+            {
+                total_mod = (total_mod+((fship.max_bul_reduction*(100*fship.value/fship.max_below))/100)*(100*fship.value/fship.max_below))/100;
+                if (total_mod > 0)
+                    total_mod = 0;
+            }
+
+        }
+        //cerr << "modded mod: " << total_mod << "\n";
+    }
     //total_mod = 0;
     if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
         step += total_mod;
@@ -195,6 +230,12 @@ void bul::update()
     if (eMu.bulwers)
         value = eMu.bulwers_val;
 
+    if (value >= quickcalm_bulwers)
+        step-=(((double)step)*quickcalm)/100.0;
+
+    if (step > limiter)
+        step = limiter;
+
     if (once_plugged)
     {
         if (battery_state == 2 && prev_bat_plug != 2)
@@ -234,49 +275,189 @@ void bul::update()
     prev_bat_plug = battery_state;
 }
 
-void bul::flue_check()
+void bul::autosave(Configuration *cfg)
 {
-    if (!flue && core_step > temperature.buff_size*temperature.buff_size)
+    cfg->save();
+    force_autosave = false;
+}
+
+void disease::check(Configuration *cfg)
+{
+    if (temperature.ready())
     {
-        if ((double)temperature.value < fluelowval)
-            fluelowval=temperature.value;
-        if ((double)temperature.value > fluehighval)
-            fluehighval = temperature.value;
-        fluehighval-=(fluehighval-(double)temperature.stable)/(double)flueimpact;
-        fluelowval+=((double)temperature.stable-fluelowval)/(double)flueimpact;
-        if (fluehighval - fluelowval > (double)flueamplitude)
-            flue = true;
+        if ((double)temperature.value < lowval)
+            lowval=temperature.value;
+        if ((double)temperature.value > highval)
+            highval = temperature.value;
+        highval-=(highval-(double)temperature.stable)*(double)update_impact/100.0;
+        lowval+=((double)temperature.stable-lowval)*(double)update_impact/100.0;
+        cfg->setValue(".core.flue.temperature_highest", highval);
+        cfg->setValue(".core.flue.temperature_lowest", lowval);
+        if (highval - lowval > (double)amplitude)
+        {
+            active = true;
+            unsigned short init_day     = get_time().day_num;
+            unsigned short init_month   = get_time().month;
+            unsigned short init_year    = get_time().year;
+            last_date.lenght = rand () % 3 + 3;
+            last_date.minute_perc = 100.0/(double)(last_date.lenght*(24-bulwers.rest_time_std)*60);
+            last_date.invertion_step = last_date.minute_perc*invertion_perc;
+            last_date.progress = last_date.minute_perc;
+            cfg->setValue(".core.flue.last_date.day", init_day);
+            cfg->setValue(".core.flue.last_date.month", init_month);
+            cfg->setValue(".core.flue.last_date.year", init_year);
+            cfg->setValue(".core.flue.last_date.lenght", last_date.lenght);
+            cfg->setValue(".core.flue.last_date.perc_per_min",  last_date.minute_perc);
+            cfg->setValue(".core.flue.last_date.invertion_per_min",  last_date.invertion_step);
+            cfg->setValue(".core.flue.last_date.progress", last_date.progress);
+            cfg->setValue(".core.flue.active", true);
+            bulwers.force_autosave = true;
+            info << "flue log:\n" <<
+                    "\n  init_day: " << init_day <<
+                    "\n  init_month: " << init_month <<
+                    "\n  init_year: " << init_year <<
+                    "\n  leng: " << last_date.lenght <<
+                    "\n  minute step: " << last_date.minute_perc <<
+                    "\n  invertion step: " << last_date.invertion_step <<
+                    "\n\n";
+        }
     }
-    else
+}
+
+void disease::attack(Configuration *cfg)
+{
+    //cerr << "orginal progress: " << last_date.progress << "\n";
+
+    if (temperature.ready() && cpu.ready() && memory.ready() && battery.ready())
     {
-        if (fluetimer > 3*fluestepdelay)
+        last_date.progress+=bulwers.total_mod*bul_impact/100.0;
+        //cerr << "after_bulwers: " << last_date.progress << "\n";
+    }
+
+    last_date.progress+=ccap.fun.fun*fun_impact/100.0;
+    if (mousea.mod > 0)
+        last_date.progress+=mousea.mod*pet_impact/100.0;
+    else
+        last_date.progress-=mousea.mod*hit_impact/100.0;
+    //cerr << "after_mouse: " << last_date.progress << "\n";
+    //cerr << "bulwers multiplier: " << (double)(bulwers.total_mod)*last_date.progress*max_bul_booster/100.0 << "\n";
+    //cerr << "mult: " << last_date.progress*max_bul_booster/100.0 << "\n";
+
+    if (core_step % 60 == 0)
+    {
+        last_date.progress+=last_date.minute_perc;
+        if (expired(last_date))
         {
-            hot = 3;
-            shy = 3;
-            energy.value+=6;
-            if (value < 12)
-                value = 12;
+            last_date.minute_perc-=last_date.invertion_step;
+            cfg->setValue(".core.flue.last_date.perc_per_min",  last_date.minute_perc);
         }
-        else if (fluetimer > 2*fluestepdelay)
+        cfg->setValue(".core.flue.last_date.progress", last_date.progress);
+        bulwers.force_autosave = true;
+    }
+    visual_impact(last_date.progress);
+
+    if (last_date.progress < 0)
+        flue.active = false;
+}
+
+bool disease::expired(disease_time disease_data)
+{
+    int dtime = 0;
+    dtime+=(get_time().year - disease_data.year)*365;
+    dtime+=(get_time().month - disease_data.month)*30;
+    dtime+=(get_time().day_num - disease_data.day);
+    if (dtime > disease_data.lenght)
+        return true;
+    else
+        return false;
+}
+
+void disease::visual_impact(double progress)
+{
+    unsigned short lvl = 0;
+    if (progress > step_perc_1)
+        lvl = 1;
+    if (progress > step_perc_2)
+        lvl = 2;
+    if (progress > step_perc_3)
+        lvl = 3;
+    if (progress > step_perc_4)
+        lvl = 4;
+    if (progress > step_perc_5)
+        lvl = 5;
+
+    if (lvl == 0)
+        return;
+
+    switch (lvl)
+    {
+    case 1:
+        if (bulwers.tired < 1)
+            bulwers.tired = 1;
+        if (rand() % visual_impact_probability_1 == 0)
         {
-            hot = 2;
-            shy = 2;
-            fluetimer++;
-            energy.value+=2;
-            if (value < 8)
-                value = 8;
+            if (bulwers.outline < 8)
+            {
+                bulwers.outline = 1;
+            }
         }
-        else if (fluetimer > fluestepdelay)
+        break;
+    case 2:
+        if (bulwers.tired < 2)
+            bulwers.tired = 2;
+        if (rand() % visual_impact_probability_2 == 0)
         {
-            hot = 1;
-            shy = 1;
-            fluetimer++;
-            energy.value++;
-            if (value < 6)
-                value = 6;
+            if (bulwers.outline < 8)
+            {
+                bulwers.outline = 1;
+            }
         }
-        else
-            fluetimer++;
+        break;
+    case 3:
+        if (bulwers.tired < 2)
+            bulwers.tired = 2;
+        if (bulwers.shy < 1)
+            bulwers.shy = 1;
+        if (bulwers.hot < 1)
+            bulwers.hot = 1;
+        if (rand() % visual_impact_probability_3 == 0)
+        {
+            if (bulwers.outline < 10)
+            {
+                bulwers.outline = 2;
+            }
+        }
+        break;
+    case 4:
+        if (bulwers.tired < 3)
+            bulwers.tired = 3;
+        if (bulwers.shy < 2)
+            bulwers.shy = 2;
+        if (bulwers.hot < 2)
+            bulwers.hot = 2;
+        if (rand() % visual_impact_probability_4 == 0)
+        {
+            if (bulwers.outline < 12)
+            {
+                bulwers.outline = 3;
+            }
+        }
+        break;
+    case 5:
+        if (bulwers.tired < 3)
+            bulwers.tired = 3;
+        if (bulwers.shy < 3)
+            bulwers.shy = 3;
+        if (bulwers.hot < 3)
+            bulwers.hot = 3;
+        if (rand() % visual_impact_probability_5 == 0)
+        {
+            if (bulwers.outline < 13)
+            {
+                bulwers.outline = 3;
+            }
+        }
+        break;
     }
 }
 
@@ -380,7 +561,7 @@ void bul::critical_services( Configuration * cfg )
         eye = 6;
     }
 
-    if (value != 0 && outline != 20 && outline != 21)
+    if (value != 0 && outline != 20 && wake_up)
         outline = value + 3;
     if (outline != 20 && value == 0)
         outline = 0;
@@ -390,7 +571,7 @@ void bul::critical_services( Configuration * cfg )
     wkup_active = 0;
     if (get_time ().day != 7)
     {
-        if (times.value < timelow_1 || times.value > timehigh_1 || energy.value > energy.start + energy.wide - 5 || fluetimer > fluestepdelay)
+        if (times.value < timelow_1 || times.value > timehigh_1 || energy.value > energy.start + energy.wide - 5)
         {
             wkup_active = 1;
             tired = 1;
@@ -404,7 +585,7 @@ void bul::critical_services( Configuration * cfg )
                     outline = 1;
             }
         }
-        if (times.value < timelow_2 || times.value > timehigh_2 || energy.value > energy.start + energy.wide - 3 || fluetimer > 2*fluestepdelay)
+        if (times.value < timelow_2 || times.value > timehigh_2 || energy.value > energy.start + energy.wide - 3)
         {
             wkup_active = 1;
             tired = 2;
@@ -417,7 +598,7 @@ void bul::critical_services( Configuration * cfg )
                     outline = 2;
             }
         }
-        if (times.value < timelow_3 || times.value > timehigh_3 || energy.value > energy.start + energy.wide - 1 || fluetimer > 3*fluestepdelay )
+        if (times.value < timelow_3 || times.value > timehigh_3 || energy.value > energy.start + energy.wide - 1)
         {
             wkup_active = 1;
             tired = 3;
@@ -438,7 +619,7 @@ void bul::critical_services( Configuration * cfg )
     }
     else
     {
-        if (times.value < timelow_1w || times.value > timehigh_1w ||  energy.value > energy.start + energy.wide - 5*3600 || fluetimer > fluestepdelay)
+        if (times.value < timelow_1w || times.value > timehigh_1w ||  energy.value > energy.start + energy.wide - 5*3600)
         {
             wkup_active = 1;
             tired = 1;
@@ -451,7 +632,7 @@ void bul::critical_services( Configuration * cfg )
                     outline = 1;
             }
         }
-        if (times.value < timelow_2w || times.value > timehigh_2w ||  energy.value > energy.start + energy.wide - 4*3600 || fluetimer > 2*fluestepdelay)
+        if (times.value < timelow_2w || times.value > timehigh_2w ||  energy.value > energy.start + energy.wide - 4*3600)
         {
             wkup_active = 1;
             tired = 2;
@@ -464,7 +645,7 @@ void bul::critical_services( Configuration * cfg )
                     outline = 2;
             }
         }
-        if (times.value < timelow_3w || times.value > timehigh_3w ||  energy.value > energy.start + energy.wide - 3*3600 || fluetimer > 3*fluestepdelay)
+        if (times.value < timelow_3w || times.value > timehigh_3w ||  energy.value > energy.start + energy.wide - 3*3600)
         {
             wkup_active = 1;
             tired = 3;
@@ -516,6 +697,7 @@ void bul::critical_services( Configuration * cfg )
                 wkup_active = 2;
         }
     }
+    //cerr << outline << "\n";
     if (battery_state == 0)
     {
         outline = 20;
@@ -584,16 +766,76 @@ void bul::critical_services( Configuration * cfg )
     cfg->setValue(".core.bulwers.remembered_energy", (int)remembered_nrg);
     if (fship.to_save)
         cfg->setValue(".core.friendship.value", (int)fship.value);
+    if (wake_up)
+        cfg->setValue(".core.bulwers.saved_step", (int)step);
 
     rtctrl.action("battery");
     rtctrl.action("temperature");
-    if (!ccap.sleep && rtctrl.scrnsaver_disabling)
+    if (rtctrl.scrnsaver_management && ccap.enabled)
     {
-        cerr << "GO " << ccap.sleep << "\n";
-        rtctrl.shell("xscreensaver-command -deactivate > /dev/null");
-        rtctrl.shell("gnome-screensaver-command -d > /dev/null");
-        rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:false > /dev/null");
-        rtctrl.shell("killall ScreenSaverEngine > /dev/null");
+        int screensaverstate = ccap.screensaver_management();
+
+        cerr << "Return statement of menagement: " << screensaverstate << "\noverdetect is: " << ccap.overdetect << "\n";
+
+        if (screensaverstate == -1 && ccap.deactivate_screensaver)
+        {
+            if (rtctrl.scrnsav_X)
+                rtctrl.shell("xscreensaver-command -deactivate > /dev/null");
+            if (rtctrl.scrnsav_gnome)
+            {
+                rtctrl.shell("gnome-screensaver-command -d > /dev/null");
+                rtctrl.shell("gnome-screensaver-command -p > /dev/null 2>/dev/null");
+            }
+            if (rtctrl.scrnsav_kde)
+                rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:false > /dev/null");
+            if (rtctrl.scrnsav_mac)
+                rtctrl.shell("killall ScreenSaverEngine > /dev/null 2>/dev/null");
+            if (rtctrl.scrnsav_custom)
+                rtctrl.shell(rtctrl.scrnsav_custom_off + " >/dev/null 2>/dev/null");
+
+            rtctrl.shell("xset dpms force on > /dev/null");
+        }
+        if (screensaverstate == 1)
+        {
+            if (ccap.activate_screensaver)
+            {
+                if (rtctrl.scrnsav_X)
+                    rtctrl.shell("xscreensaver-command -activate > /dev/null");
+                if (rtctrl.scrnsav_gnome)
+                    rtctrl.shell("gnome-screensaver-command -a > /dev/null");
+                if (rtctrl.scrnsav_kde)
+                    rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:true > /dev/null");
+                if (rtctrl.scrnsav_mac);
+                    rtctrl.shell("open /System/Library/Frameworks/ScreenSaver.framework/Resources/ScreenSaverEngine.app > /dev/null 2>/dev/null");
+                    //defaults -currentHost write com.apple.screensaver idleTime 180
+                if (rtctrl.scrnsav_custom)
+                    rtctrl.shell(rtctrl.scrnsav_custom_on + " >/dev/null 2>/dev/null");
+            }
+
+            if (ccap.turnoff_screen)
+            {
+                rtctrl.shell("xset dpms force off > /dev/null 2>/dev/null");
+            }
+        }
+    }
+
+    if (temperature.ready())
+    {
+        bulwers.hot = 0;
+        bulwers.shy = 0;
+        if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_3*(temperature.EQend-temperature.EQbegin)/100)
+        {
+            bulwers.hot=3;
+            bulwers.shy = 1;
+        }
+        else if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_2*(temperature.EQend-temperature.EQbegin)/100)
+        {
+            bulwers.hot=2;
+        }
+        else if (temperature.value > temperature.EQbegin + bulwers.sweat_perc_1*(temperature.EQend-temperature.EQbegin)/100)
+        {
+            bulwers.hot=1;
+        }
     }
 }
 
@@ -613,6 +855,8 @@ void Core::bulwers_init ()
             cpu.sector_small.push_back (cpu.stable);
         }
     }
+    cpu.mod_correction_neg = cpu.max_mod_neg/pow((double)(100.0-cpu.stable-cpu.safezone), cpu.degree);
+    cpu.mod_correction_pos = cpu.max_mod_pos/pow((double)(cpu.stable-cpu.safezone), cpu.degree);
 
     if (memory.buffered)
     {
@@ -628,6 +872,8 @@ void Core::bulwers_init ()
             memory.sector_small.push_back (memory.stable);
         }
     }
+    memory.mod_correction_neg = memory.max_mod_neg/pow((double)(100.0-memory.stable-memory.safezone), memory.degree);
+    memory.mod_correction_pos = memory.max_mod_pos/pow((double)(memory.stable-memory.safezone), memory.degree);
 
     if (battery.buffered)
     {
@@ -643,6 +889,8 @@ void Core::bulwers_init ()
             battery.sector_small.push_back (battery.stable);
         }
     }
+    battery.mod_correction_pos = battery.max_mod_pos/pow((double)(100.0-battery.stable-battery.safezone), battery.degree);
+    battery.mod_correction_neg = battery.max_mod_neg/pow((double)(battery.stable-battery.safezone), battery.degree);
 
     if (temperature.buffered)
     {
@@ -658,6 +906,8 @@ void Core::bulwers_init ()
             temperature.sector_small.push_back (temperature.stable);
         }
     }
+    temperature.mod_correction_pos = temperature.max_mod_pos/pow((double)(100.0-temperature.stable-temperature.safezone), temperature.degree);
+    temperature.mod_correction_neg = temperature.max_mod_neg/pow((double)(temperature.stable-temperature.safezone), temperature.degree);
 
     mousea.cur                          = 0    ;
     mousea.result                       = 0    ;
@@ -671,507 +921,491 @@ void Core::bulwers_init ()
         mousea.buffer.push_back (0);
     }
 
-    energy.value                        = 0    ;
-    energy.start                       *= 3600 ;
-    energy.wide                        *= 3600 ;
-    once_plugged                        = false;
-    mod_bat_plug                        = 0    ;
-    bulwers.step                        = 0    ;
-    bulwers.wake_up                     = false;
-    bulwers.no_update                   = false;
-    bulwers.wkup_active                 = 0    ;
-    bulwers.wkup_reason                 = 0    ;
+    energy.value                        = 0     ;
+    energy.start                       *= 3600  ;
+    energy.wide                        *= 3600  ;
+    once_plugged                        = false ;
+    mod_bat_plug                        = 0     ;
+    bulwers.wake_up                     = false ;
+    bulwers.no_update                   = false ;
+    bulwers.wkup_active                 = 0     ;
+    bulwers.wkup_reason                 = 0     ;
     bulwers.current_wkup_delay          = bulwers.wake_up_delay;
-    bulwers.flue                        = false;
-    bulwers.fluetimer                   = 0    ;
-    bulwers.fluehighval                 = temperature.stable;
-    bulwers.fluelowval                  = temperature.stable;
     if (bulwers.remembered_time == 0)
         bulwers.remembered_time         = get_time().day_num*60*24 + get_time().hour/60;
-    bulwers.lastnap_atime = 0;
-    bulwers.lastnap_remembered_time = 0;
-    bulwers.lastnap_rest = 0;
-    bulwers.lastnap_saved = 0;
-    bulwers.lastnap_dtime = 0;
-    bulwers.dtime = 0;
+    bulwers.lastnap_atime               = 0     ;
+    bulwers.lastnap_remembered_time     = 0     ;
+    bulwers.lastnap_rest                = 0     ;
+    bulwers.lastnap_saved               = 0     ;
+    bulwers.lastnap_dtime               = 0     ;
+    bulwers.dtime                       = 0     ;
+    bulwers.force_autosave              = false ;
     rtctrl.shelldetect();
 
-}
-
-void percental::get_load( double function )
-{
-    if (buffered)
-    {
-        current_probe_small ++;
-
-        if (current_probe_small == buff_size)
-            current_probe_small = 0;
-
-        sector_small[current_probe_small] = function;
-        if (sector_small[current_probe_small] > 100)
-            sector_small[current_probe_small] = stable;
-        if (sector_small[current_probe_small] == 100)
-            sector_small[current_probe_small] = 99;
-
-        for (unsigned short i = 0; i< buff_size;i++)
-        {
-            probes[current_probe] += sector_small[i];
-        }
-        probes [current_probe] /= buff_size + 1;
-
-        if (core_step % 10 == 0)
-        {
-           current_probe ++;
-
-           for (unsigned short i = 0; i<buff_size;i++)
-           {
-               load += probes [i];
-           }
-
-           load /= buff_size + 1;
-
-           if (current_probe == buff_size)
-               current_probe = 0;
-        }
-
-
-    }
-    else
-        load = function;
-}
-
-void unital::get_load( unsigned short function )
-{
-    if (buffered)
-    {
-        current_probe_small ++;
-
-        if (current_probe_small == buff_size)
-            current_probe_small = 0;
-
-        sector_small[current_probe_small] = function;
-
-        if (sector_small[current_probe_small] > 100)
-            sector_small[current_probe_small] = stable;
-        if (sector_small[current_probe_small] == 100)
-            sector_small[current_probe_small] = 99;
-
-        for (unsigned short i = 0; i< buff_size;i++)
-        {
-            probes[current_probe] += sector_small[i];
-        }
-
-        probes [current_probe] /= buff_size + 1;
-
-        if (core_step % 10 == 0)
-        {
-            current_probe ++;
-
-            for (unsigned short i = 0; i<buff_size;i++)
-            {
-                value += probes [i];
-            }
-            value /= buff_size + 1;
-
-            if (current_probe == buff_size)
-                current_probe = 0;
-        }
-    }
-    else
-        value = function;
 }
 
 void eyes_view::graphics_prepare()
 {
     if (images_ready)
     {
-    if (bulwers.eye == 1)
-        send_eyes ( "eye_01" );
-    if (bulwers.eye == 2)
-        send_eyes ( "eye_02" );
-    if (bulwers.eye == 3)
-        send_eyes ( "eye_03" );
-    if (bulwers.eye == 4)
-        send_eyes ( "eye_04" );
-    if (bulwers.eye == 5)
-        send_eyes ( "eye_05" );
-    if (bulwers.eye == 6)
-        send_eyes ( "eye_06" );
-    if (bulwers.eye == 7)
-        send_eyes ( "eye_07" );
-    if (bulwers.eye == 8)
-        send_eyes ( "eye_08" );
-    if (bulwers.eye == 9)
-        send_eyes ( "eye_09" );
-    if (bulwers.eye == 10)
-        send_eyes ( "eye_10" );
+        if (bulwers.eye == 1)
+            send_eyes ( "eye_01" );
+        if (bulwers.eye == 2)
+            send_eyes ( "eye_02" );
+        if (bulwers.eye == 3)
+            send_eyes ( "eye_03" );
+        if (bulwers.eye == 4)
+            send_eyes ( "eye_04" );
+        if (bulwers.eye == 5)
+            send_eyes ( "eye_05" );
+        if (bulwers.eye == 6)
+            send_eyes ( "eye_06" );
+        if (bulwers.eye == 7)
+            send_eyes ( "eye_07" );
+        if (bulwers.eye == 8)
+            send_eyes ( "eye_08" );
+        if (bulwers.eye == 9)
+            send_eyes ( "eye_09" );
+        if (bulwers.eye == 10)
+            send_eyes ( "eye_10" );
 
 
 
-    if (bulwers.outline == 0)
-    {
-        int tmp = rand () % 4;
-        if (tmp == 0)
-            face_send = "cusual_01";
-        if (tmp == 1)
-            face_send = "bul_01";
-        if (tmp == 2)
-            face_send = "bul_02";
-        if (tmp == 3)
-            face_send = "bul_03";
-    }
-    else
-    {
-        if (bulwers.outline == 1)
+        if (bulwers.outline == 0)
         {
             int tmp = rand () % 4;
-            if (tmp == 0)
-                face_send = "slp_01";
-            if (tmp == 1)
-                face_send = "slp_02";
-            if (tmp == 2)
-                face_send = "slp_03";
-            if (tmp == 3)
-                face_send = "slp_04";
-        }
-        if (bulwers.outline == 2)
-        {
-            int tmp = rand () % 2;
-            if (tmp == 0)
-                face_send = "slp_04";
-            if (tmp == 1)
-                face_send = "slp_05";
-        }
-        if (bulwers.outline == 3)
-        {
-            int tmp = rand () % 2;
-            if (tmp == 0)
-                face_send = "slp_05";
-            if (tmp == 1)
-                face_send = "slp_06";
-        }
-
-        if (bulwers.outline == 4)
-        {
-            int tmp = rand () % 3;
             if (tmp == 0)
                 face_send = "cusual_01";
             if (tmp == 1)
                 face_send = "bul_01";
             if (tmp == 2)
                 face_send = "bul_02";
-        }
-        if (bulwers.outline == 5)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_01";
-            if (tmp == 1)
-                face_send = "bul_02";
-            if (tmp == 2)
+            if (tmp == 3)
                 face_send = "bul_03";
         }
-        if (bulwers.outline == 6)
+        else
         {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_02";
-            if (tmp == 1)
-                face_send = "bul_03";
-            if (tmp == 2)
-                face_send = "bul_04";
-        }
-        if (bulwers.outline == 7)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_03";
-            if (tmp == 1)
-                face_send = "bul_04";
-            if (tmp == 2)
-                face_send = "bul_05";
-        }
-        if (bulwers.outline == 8)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_04";
-            if (tmp == 1)
-                face_send = "bul_05";
-            if (tmp == 2)
-                face_send = "bul_06";
-        }
-        if (bulwers.outline == 9)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_05";
-            if (tmp == 1)
-                face_send = "bul_06";
-            if (tmp == 2)
-                face_send = "bul_07";
-        }
-        if (bulwers.outline == 10)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_06";
-            if (tmp == 1)
-                face_send = "bul_07";
-            if (tmp == 2)
-                face_send = "bul_08";
-        }
-        if (bulwers.outline == 11)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_07";
-            if (tmp == 1)
-                face_send = "bul_08";
-            if (tmp == 2)
-                face_send = "bul_09";
-        }
-        if (bulwers.outline == 12)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_08";
-            if (tmp == 1)
-                face_send = "bul_09";
-            if (tmp == 2)
-                face_send = "bul_10";
-        }
-        if (bulwers.outline == 13)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_09";
-            if (tmp == 1)
-                face_send = "bul_10";
-            if (tmp == 2)
-                face_send = "bul_11";
-        }
-        if (bulwers.outline == 14)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_10";
-            if (tmp == 1)
-                face_send = "bul_11";
-            if (tmp == 2)
-                face_send = "bul_12";
-        }
-        if (bulwers.outline == 15)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_11";
-            if (tmp == 1)
-                face_send = "bul_12";
-            if (tmp == 2)
-                face_send = "bul_13";
-        }
-        if (bulwers.outline == 16)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_12";
-            if (tmp == 1)
-                face_send = "bul_13";
-            if (tmp == 2)
-                face_send = "bul_14";
-        }
-        if (bulwers.outline == 17)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_13";
-            if (tmp == 1)
-                face_send = "bul_14";
-            if (tmp == 2)
-                face_send = "bul_15";
-        }
-        if (bulwers.outline == 18)
-        {
-            int tmp = rand () % 3;
-            if (tmp == 0)
-                face_send = "bul_14";
-            if (tmp == 1)
-                face_send = "bul_15";
-            if (tmp == 2)
-                face_send = "bul_16";
-        }
-        if (bulwers.outline == 19)
-        {
-            int tmp = rand () % 2;
-            if (tmp == 0)
-                face_send = "bul_15";
-            if (tmp == 1)
-                face_send = "bul_16";
-        }
-    }
+            if (bulwers.outline == 1)
+            {
+                int tmp = rand () % 4;
+                if (tmp == 0)
+                    face_send = "slp_01";
+                if (tmp == 1)
+                    face_send = "slp_02";
+                if (tmp == 2)
+                    face_send = "slp_03";
+                if (tmp == 3)
+                    face_send = "slp_04";
+            }
+            if (bulwers.outline == 2)
+            {
+                int tmp = rand () % 2;
+                if (tmp == 0)
+                    face_send = "slp_04";
+                if (tmp == 1)
+                    face_send = "slp_05";
+            }
+            if (bulwers.outline == 3)
+            {
+                int tmp = rand () % 2;
+                if (tmp == 0)
+                    face_send = "slp_05";
+                if (tmp == 1)
+                    face_send = "slp_06";
+            }
 
-    if (bulwers.tired == 0)
-        toggle_layer(SLEEPY, false);
-    else if (bulwers.tired == 1)
-    {
-        toggle_layer(SLEEPY, true);
-        set_layer(SLEEPY, "tired_01");
-    }
-    else if (bulwers.tired == 2)
-    {
-        toggle_layer(SLEEPY, true);
-        set_layer(SLEEPY, "tired_02");
-    }
-    else if (bulwers.tired == 3)
-    {
-        toggle_layer(SLEEPY, true);
-        set_layer(SLEEPY, "tired_03");
-    }
+            if (bulwers.outline == 4)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "cusual_01";
+                if (tmp == 1)
+                    face_send = "bul_01";
+                if (tmp == 2)
+                    face_send = "bul_02";
+            }
+            if (bulwers.outline == 5)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_01";
+                if (tmp == 1)
+                    face_send = "bul_02";
+                if (tmp == 2)
+                    face_send = "bul_03";
+            }
+            if (bulwers.outline == 6)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_02";
+                if (tmp == 1)
+                    face_send = "bul_03";
+                if (tmp == 2)
+                    face_send = "bul_04";
+            }
+            if (bulwers.outline == 7)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_03";
+                if (tmp == 1)
+                    face_send = "bul_04";
+                if (tmp == 2)
+                    face_send = "bul_05";
+            }
+            if (bulwers.outline == 8)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_04";
+                if (tmp == 1)
+                    face_send = "bul_05";
+                if (tmp == 2)
+                    face_send = "bul_06";
+            }
+            if (bulwers.outline == 9)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_05";
+                if (tmp == 1)
+                    face_send = "bul_06";
+                if (tmp == 2)
+                    face_send = "bul_07";
+            }
+            if (bulwers.outline == 10)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_06";
+                if (tmp == 1)
+                    face_send = "bul_07";
+                if (tmp == 2)
+                    face_send = "bul_08";
+            }
+            if (bulwers.outline == 11)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_07";
+                if (tmp == 1)
+                    face_send = "bul_08";
+                if (tmp == 2)
+                    face_send = "bul_09";
+            }
+            if (bulwers.outline == 12)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_08";
+                if (tmp == 1)
+                    face_send = "bul_09";
+                if (tmp == 2)
+                    face_send = "bul_10";
+            }
+            if (bulwers.outline == 13)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_09";
+                if (tmp == 1)
+                    face_send = "bul_10";
+                if (tmp == 2)
+                    face_send = "bul_11";
+            }
+            if (bulwers.outline == 14)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_10";
+                if (tmp == 1)
+                    face_send = "bul_11";
+                if (tmp == 2)
+                    face_send = "bul_12";
+            }
+            if (bulwers.outline == 15)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_11";
+                if (tmp == 1)
+                    face_send = "bul_12";
+                if (tmp == 2)
+                    face_send = "bul_13";
+            }
+            if (bulwers.outline == 16)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_12";
+                if (tmp == 1)
+                    face_send = "bul_13";
+                if (tmp == 2)
+                    face_send = "bul_14";
+            }
+            if (bulwers.outline == 17)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_13";
+                if (tmp == 1)
+                    face_send = "bul_14";
+                if (tmp == 2)
+                    face_send = "bul_15";
+            }
+            if (bulwers.outline == 18)
+            {
+                int tmp = rand () % 3;
+                if (tmp == 0)
+                    face_send = "bul_14";
+                if (tmp == 1)
+                    face_send = "bul_15";
+                if (tmp == 2)
+                    face_send = "bul_16";
+            }
+            if (bulwers.outline == 19)
+            {
+                int tmp = rand () % 2;
+                if (tmp == 0)
+                    face_send = "bul_15";
+                if (tmp == 1)
+                    face_send = "bul_16";
+            }
+        }
+        bool fun_evoked=false;
+        if (bulwers.hpp > 0 && bulwers.outline+4 < bulwers.max_fun_hpp_bul)
+        {
+            int tmp = rand () % bulwers.smile_probability;
+            if (tmp == 0)
+            {
+                fun_evoked=true;
+                if (bulwers.hpp == 1)
+                {
+                    int tmp = rand () % 2;
+                    if (tmp == 0)
+                    {
+                        face_send = "hpp_01";
+                    }
+                    if (tmp == 1)
+                    {
+                        face_send = "hpp_02";
+                    }
+                }
+                if (bulwers.hpp == 2)
+                {
+                    int tmp = rand () % 2;
+                    if (tmp == 0)
+                    {
+                        face_send = "hpp_02";
+                    }
+                    if (tmp == 1)
+                    {
+                        face_send = "hpp_03";
+                    }
+                }
+            }
+        }
+
+        if (bulwers.tired == 0)
+            toggle_layer(SLEEPY, false);
+        else
+        {
+            stringstream ss;
+            ss << bulwers.tired;
+            toggle_layer(SLEEPY, true);
+            set_layer(SLEEPY, &("tired_0" + ss.str())[0]);
+        }
+
+        if (bulwers.shy == 0)
+            toggle_layer(SHY, false);
+        else
+        {
+            stringstream ss;
+            ss << bulwers.shy;
+            toggle_layer(SHY, true);
+            set_layer(SHY, &("shy_0" + ss.str())[0]);
+        }
+
+        if (bulwers.hot == 0)
+            toggle_layer(HOT, false);
+        else
+        {
+            stringstream ss;
+            ss << bulwers.hot;
+            toggle_layer(HOT, true);
+            set_layer(HOT, &("sweat_0" + ss.str())[0]);
+        }
 
 
-    int anim_num_1 = 0;
-    int anim_num_2 = 0;
 
-           if (s_anim.face_prev == "bul_16" ||
-               s_anim.face_prev == "sh_01"  ||
-               s_anim.face_prev == "slp_10" ||
-               s_anim.face_prev == "cusual_01" ||
-               s_anim.face_prev == "bul_01" ||
-               s_anim.face_prev == "bul_02" ||
-               s_anim.face_prev == "bul_03" ||
-               s_anim.face_prev == "bul_04" ||
-               s_anim.face_prev == "bul_05" ||
-               s_anim.face_prev == "bul_06" ||
-               s_anim.face_prev == "bul_07" ||
-               s_anim.face_prev == "bul_08" ||
-               s_anim.face_prev == "bul_09" ||
-               s_anim.face_prev == "bul_10" ||
-               s_anim.face_prev == "bul_11" ||
-               s_anim.face_prev == "bul_12" ||
-               s_anim.face_prev == "bul_13" ||
-               s_anim.face_prev == "bul_14" ||
-               s_anim.face_prev == "bul_15" ||
-               s_anim.face_prev == "slp_01" ||
-               s_anim.face_prev == "slp_02" ||
-               s_anim.face_prev == "slp_03" ||
-               s_anim.face_prev == "slp_04" ||
-               s_anim.face_prev == "slp_05" ||
-               s_anim.face_prev == "slp_06" )
+        int anim_num_1 = 0;
+        int anim_num_2 = 0;
+
+       if (s_anim.face_prev == "bul_16" ||
+           s_anim.face_prev == "sh_01"  ||
+           s_anim.face_prev == "slp_10" ||
+           s_anim.face_prev == "cusual_01" ||
+           s_anim.face_prev == "bul_01" ||
+           s_anim.face_prev == "bul_02" ||
+           s_anim.face_prev == "bul_03" ||
+           s_anim.face_prev == "bul_04" ||
+           s_anim.face_prev == "bul_05" ||
+           s_anim.face_prev == "bul_06" ||
+           s_anim.face_prev == "bul_07" ||
+           s_anim.face_prev == "bul_08" ||
+           s_anim.face_prev == "bul_09" ||
+           s_anim.face_prev == "bul_10" ||
+           s_anim.face_prev == "bul_11" ||
+           s_anim.face_prev == "bul_12" ||
+           s_anim.face_prev == "bul_13" ||
+           s_anim.face_prev == "bul_14" ||
+           s_anim.face_prev == "bul_15" ||
+           s_anim.face_prev == "slp_01" ||
+           s_anim.face_prev == "slp_02" ||
+           s_anim.face_prev == "slp_03" ||
+           s_anim.face_prev == "slp_04" ||
+           s_anim.face_prev == "slp_05" ||
+           s_anim.face_prev == "slp_06" )
+           anim_num_1 = 0;
+
+
+           anim_num_2 = 0;
+
+       if (face_send == "bul_16" ||
+           face_send == "slp_10" )
+           anim_num_2 = 0;
+       if (face_send == "hpp_01")
+           anim_num_2 = 0;
+       if (face_send == "bul_09" ||
+           face_send == "bul_10" ||
+           face_send == "bul_11" ||
+           face_send == "bul_12" ||
+           face_send == "bul_13" ||
+           face_send == "bul_14" ||
+           face_send == "bul_15" ||
+           face_send == "hpp_02" )
+           anim_num_2 = 5;
+       if (face_send == "cusual_01" ||
+           face_send == "bul_01" ||
+           face_send == "bul_02" ||
+           face_send == "bul_03" ||
+           face_send == "bul_04" ||
+           face_send == "slp_01" ||
+           face_send == "slp_02" ||
+           face_send == "slp_03" ||
+           face_send == "slp_04" ||
+           face_send == "slp_05" ||
+           face_send == "hpp_03" )
+           anim_num_2 = 4;
+       if (face_send == "bul_05" ||
+           face_send == "bul_06" ||
+           face_send == "bul_07" ||
+           face_send == "bul_08" ||
+           face_send == "slp_06" ||
+           face_send == "hpp_04" )
+           anim_num_2 = 3;
+
+
+
+
+       if (face_send == "")
+           face_send = "slp_10";
+       if (s_anim.face_prev == "")
+           s_anim.face_prev = "slp_10";
+
+
+        //info << "core pics settings begin\n";
+
+       anims_send (face_send, s_anim.face_prev + "_close", face_send + "_open", anim_num_1, anim_num_2);
+
+       if (bulwers.outline == 20 && bulwers.prev_outline != 20)
+       {
+           face_send = "sh_01";
+           anims_send (face_send, s_anim.face_prev + "_close", "sh_02_open", anim_num_1, 7);
+           interrupt();
+       }
+
+       if (bulwers.outline != 20 && bulwers.prev_outline == 20)
+       {
+           face_send = "cusual_01";
+           anims_send (face_send, "sh_01_close", "cusual_01_open", 0, 4);
+       }
+       if (bulwers.outline == 20 && bulwers.prev_outline == 20)
+       {
+           face_send = "sh_01";
+           anims_send (face_send, "sh_02_close", "sh_01_open", 0, 0);
+       }
+
+       if (bulwers.outline == 21)
+       {
+           face_send = "slp_10";
+           anims_send ("slp_10", s_anim.face_prev + "_close", "slp_10_open", anim_num_1, 0);
+       }
+
+       //cerr << bulwers.outline << " " << face_send.toStdString() << " " << s_anim.face_prev.toStdString() << " " << mousea.hpp_active << "\n";
+
+       if (s_anim.face_prev == "hpp_07")
+       {
+           if (!mousea.hpp_active)
+           {
+               //cerr << "hpp07 N\n";
                anim_num_1 = 0;
-
-
-               anim_num_2 = 0;
-
-           if (face_send == "bul_16" ||
-               face_send == "slp_10" )
-               anim_num_2 = 0;
-           if (face_send == "bul_09" ||
-               face_send == "bul_10" ||
-               face_send == "bul_11" ||
-               face_send == "bul_12" ||
-               face_send == "bul_13" ||
-               face_send == "bul_14" ||
-               face_send == "bul_15" )
-               anim_num_2 = 5;
-           if (face_send == "cusual_01" ||
-               face_send == "bul_01" ||
-               face_send == "bul_02" ||
-               face_send == "bul_03" ||
-               face_send == "bul_04" ||
-               face_send == "slp_01" ||
-               face_send == "slp_02" ||
-               face_send == "slp_03" ||
-               face_send == "slp_04" ||
-               face_send == "slp_05" )
-               anim_num_2 = 4;
-           if (face_send == "bul_05" ||
-               face_send == "bul_06" ||
-               face_send == "bul_07" ||
-               face_send == "bul_08" ||
-               face_send == "slp_06" )
-               anim_num_2 = 3;
-
-
-
-
-           if (face_send == "")
-               face_send = "slp_10";
-           if (s_anim.face_prev == "")
-               s_anim.face_prev = "slp_10";
-
-
-            //info << "core pics settings begin\n";
-
-           anims_send (face_send, s_anim.face_prev + "_close", face_send + "_open", anim_num_1, anim_num_2);
-
-           if (bulwers.outline == 20 && bulwers.prev_outline != 20)
-           {
-               face_send = "sh_01";
-               anims_send (face_send, s_anim.face_prev + "_close", "sh_02_open", anim_num_1, 7);
-               interrupt();
-           }
-
-           if (bulwers.outline != 20 && bulwers.prev_outline == 20)
-           {
-               face_send = "cusual_01";
-               anims_send (face_send, "sh_01_close", "cusual_01_open", 0, 4);
-           }
-           if (bulwers.outline == 20 && bulwers.prev_outline == 20)
-           {
-               face_send = "sh_01";
-               anims_send (face_send, "sh_02_close", "sh_01_open", 0, 0);
-           }
-
-           if (bulwers.outline == 21)
-           {
-               face_send = "slp_10";
-               anims_send ("slp_10", s_anim.face_prev + "_close", "slp_10_open", anim_num_1, 0);
-           }
-
-           //cerr << bulwers.outline << " " << face_send.toStdString() << " " << s_anim.face_prev.toStdString() << " " << mousea.hpp_active << "\n";
-
-           if (s_anim.face_prev == "hpp_07")
-           {
-               if (!mousea.hpp_active)
+               if (bulwers.outline <= 4)
                {
-                   //cerr << "hpp07 N\n";
-                   anim_num_1 = 0;
-                   if (bulwers.outline <= 4)
-                   {
-                       anims_send (face_send, "hpp_continue", "hpp_01_open", anim_num_1, 6);
-                   }
-                   else if (bulwers.outline <= 6)
-                   {
-                       anims_send (face_send, "hpp_continue", "hpp_02_open", anim_num_1, 5);
-                   }
-                   else if (bulwers.outline <= 8)
-                   {
-                       anims_send (face_send, "hpp_continue", "hpp_03_open", anim_num_1, 4);
-                   }
-                   else
-                   {
-                       anims_send (face_send, "hpp_continue", "hpp_04_open", anim_num_1, 3);
-                   }
-                   interrupt();
+                   anims_send (face_send, "hpp_continue", "hpp_01_open", anim_num_1, 6);
+               }
+               else if (bulwers.outline <= 6)
+               {
+                   anims_send (face_send, "hpp_continue", "hpp_02_open", anim_num_1, 5);
+               }
+               else if (bulwers.outline <= 8)
+               {
+                   anims_send (face_send, "hpp_continue", "hpp_03_open", anim_num_1, 4);
                }
                else
                {
-                   anims_send ("hpp_07", "hpp_continue", "hpp_continue", 0, 0);
-                   mousea.hpp_active = false;
+                   anims_send (face_send, "hpp_continue", "hpp_04_open", anim_num_1, 3);
                }
-           }
-           else if (mousea.hpp_active && bulwers.outline <= mousea.max_hpp_bul+3)
-           {
-               hpp_evoke();
-               mousea.hpp_active = false;
-           }
-           if (mousea.hit_active)
-           {
-               mousea.hit_active = 0;
                interrupt();
            }
+           else
+           {
+               anims_send ("hpp_07", "hpp_continue", "hpp_continue", 0, 0);
+               mousea.hpp_active = false;
+           }
        }
+       else if (mousea.hpp_active && bulwers.outline <= mousea.max_hpp_bul+3)
+       {
+           hpp_evoke();
+           mousea.hpp_active = false;
+       }
+       if (mousea.hit_active)
+       {
+           mousea.hit_active = 0;
+           interrupt();
+       }
+
+       if (fun_evoked)
+       {
+           if (bulwers.outline <= 4)
+           {
+               anims_send (face_send, "hpp_01_close", face_send +"_open", anim_num_1, anim_num_2);
+           }
+           else if (bulwers.outline <= 6)
+           {
+               anims_send (face_send, "hpp_02_close", face_send +"_open", anim_num_1, anim_num_2);
+           }
+           else if (bulwers.outline <= 8)
+           {
+               anims_send (face_send, "hpp_03_close", face_send +"_open", anim_num_1, anim_num_2);
+           }
+           else
+           {
+               anims_send (face_send, "hpp_04_close", face_send +"_open", anim_num_1, anim_num_2);
+           }
+       }
+    }
 }
 
 void friendship::save(Configuration *cfg)
@@ -1224,6 +1458,7 @@ void friendship::mouseimpact(unsigned int impact)
     {
         for (int i = 0; i < impact; i++)
         {
+            bulwers.step += pow((double)mouse_bad, func_mouse_hit);
             value-=pow((double)mouse_bad, func_mouse_hit);
             if (value < -(int)max_below)
                 value = -(int)max_below;
@@ -1234,33 +1469,22 @@ void friendship::mouseimpact(unsigned int impact)
 void Core::bulwers_update ()
 {
     if (eMu.cpu)
-    {
         cpu.get_load(eMu.cpu_val);
-    }
     else
-    {
         cpu.get_load(HRDWR.C_LOAD());
-    }
+
     if (eMu.mem)
-    {
         memory.get_load(eMu.mem_val);
-    }
     else
-    {
         memory.get_load(HRDWR.M_LOAD ());
-    }
+
     if (eMu.temp)
-    {
         temperature.get_load(eMu.temp_val);
-    }
     else
-    {
         temperature.get_load(HRDWR.temperatura());
-    }
+
     if (eMu.batt)
-    {
         battery.get_load(eMu.batt_val);
-    }
     else
     {
         if (battery_state != 1 && battery_state != 3 && battery_state != 0)
@@ -1270,36 +1494,27 @@ void Core::bulwers_update ()
         else
             battery.load = 100;
     }
+
     if (eMu.time)
-    {
         times.value = eMu.time_val;
-    }
     else
-    {
         times.value = get_time ().hour/3600;
-    }
+
     if (eMu.energy)
-    {
         energy.value = eMu.energy_val;
-    }
     else
-    {
         energy.value ++;
-    }
+
     if (eMu.batt_s)
-    {
         battery_state = eMu.batt_s_val;
-    }
     else
-    {
         battery_state = HRDWR.bat_plugged ();
-    }
 
 
     cpu.mod = cpu.convert(cpu.calculate());
     memory.mod = memory.convert(memory.calculate());
     battery.mod = battery.convert(battery.calculate());
-    temperature.mod = temperature.convert(HRDWR.temperatura());
+    temperature.mod = temperature.convert(temperature.calculate());
     times.mod = times.calculate();
     energy.mod = energy.calculate();
     mousea.mod = mousea.impact*mousea.convert()/100;
@@ -1307,14 +1522,20 @@ void Core::bulwers_update ()
     if (!bulwers.no_update)
     {
         bulwers.update();
-        bulwers.flue_check();
         bulwers.critical_services( Configuration::getInstance () );
+        if (!flue.active)
+            flue.check( Configuration::getInstance () );
+        else
+            flue.attack( Configuration::getInstance () );
+        if ((core_step+1) % bulwers.autosave_interval == 0 || bulwers.force_autosave )
+            bulwers.autosave( Configuration::getInstance() );
     }
     bulwers.no_update = false;
 
     if (autocalc.enabled)
         autocalc_reload ( Configuration::getInstance () );
     bulwers.check_env(ccap.env.checked, Configuration::getInstance ());
+    bulwers.fun_check();
 }
 
 Core::Core ( eyes_view * neyes )
@@ -1323,6 +1544,11 @@ Core::Core ( eyes_view * neyes )
     connect ( timer, SIGNAL ( timeout () ), this, SLOT ( on_timer_tick () ) );
     connect ( neyes, SIGNAL ( mousemoved (int,int) ), this, SLOT ( handle_mouse(int,int) ) );
     eyes = neyes;
+}
+
+Core::~Core ()
+{
+  raise ( SIGQUIT );
 }
 
 Core::Core ()
@@ -1334,76 +1560,16 @@ Core::Core ()
 
 void Core::autocalc_init ()
 {
-    autocalc.cpu_simple = false;
-    autocalc.mem_simple = false;
-    autocalc.bat_simple = false;
-    autocalc.temp_simple = false;
+    cpu.ac.simple = false;
+    memory.ac.simple = false;
+    battery.ac.simple = false;
+    temperature.ac.simple = false;
     autocalc.save_next = autocalc.save_interval;
 
-    if (autocalc.cpu_enabled)
-    {
-        autocalc.c_cpu = cpu.stable;
-        if (cpu.EQsize > 1)
-            for (uint i = 0; i<=cpu.EQsize; i++)
-            {
-                autocalc.cpu_freq.push_back(0);
-                autocalc.cpu_curve.push_back(0);
-                autocalc.cpu_virtualEQ.push_back((long double)cpu.EQ[i]);
-            }
-        else
-        {
-            autocalc.cpu_enabled = false;
-            warning << "cpu EQ smaller than 3 brands - disabling cpu autocalc\n";
-        }
-    }
-    if (autocalc.memory_enabled)
-    {
-        autocalc.c_mem = memory.stable;
-        if (memory.EQsize > 1)
-            for (uint i = 0; i<=memory.EQsize; i++)
-            {
-                autocalc.memory_freq.push_back(0);
-                autocalc.memory_curve.push_back(0);
-                autocalc.memory_virtualEQ.push_back((long double)memory.EQ[i]);
-            }
-        else
-        {
-            autocalc.memory_enabled = false;
-            warning << "memory EQ smaller than 3 brands - disabling memory autocalc\n";
-        }
-    }
-    if (autocalc.battery_enabled)
-    {
-        autocalc.c_battery = battery.stable;
-        if (battery.EQsize > 1)
-            for (int i = 0; i<=battery.EQsize; i++)
-            {
-                autocalc.battery_freq.push_back(0);
-                autocalc.battery_curve.push_back(0);
-                autocalc.battery_virtualEQ.push_back((long double)battery.EQ[i]);
-            }
-        else
-        {
-            autocalc.battery_enabled = false;
-            warning << "battery EQ smaller than 3 brands - disabling battery autocalc\n";
-        }
-    }
-    if (autocalc.temperature_enabled)
-    {
-        autocalc.c_temp = temperature.stable;
-        if (temperature.EQsize > 1)
-            for (int i = 0; i<=temperature.EQsize; i++)
-            {
-                autocalc.temperature_freq.push_back(0);
-                autocalc.temperature_curve.push_back(0);
-                autocalc.temperature_virtualEQ.push_back((long double)temperature.EQ[i]);
-            }
-        else
-        {
-            autocalc.temperature_enabled = false;
-            warning << "temperature EQ smaller than 3 brands - disabling temperature autocalc\n";
-        }
-    }
+    cpu.ac_init("cpu");
+    memory.ac_init("memory");
+    battery.ac_init("battery");
+    temperature.ac_init("temperature");
 }
 
 void Core::autocalc_reload ( Configuration * cfg )
@@ -1417,690 +1583,55 @@ void Core::autocalc_reload ( Configuration * cfg )
 
     //frequency tracking
 
-    if (autocalc.cpu_enabled)
+    if (cpu.ac.enabled)
+        cpu.autocalc();
+    if (memory.ac.enabled)
+        memory.autocalc();
+    if (battery.ac.enabled)
+        battery.autocalc();
+    if (temperature.ac.enabled)
+        temperature.autocalc( cfg );
+
+
+    if (cpu.ac.enabled && !cpu.ac.simple && (autocalc.save_next == 0 || cpu.ac.forcesave))
     {
-        autocalc.cpu_curstep = 0;
-        autocalc.cpu_perc = 0;
-        autocalc.cpu_common = 0.0;
-        autocalc.cpu_exoticlow = 100.0;
-        autocalc.cpu_exotichigh = 100.0;
-        autocalc.cpu_curmid = 0;
-        autocalc.cpu_stablepointlow = 0;
-        autocalc.cpu_stablepointhigh = 0;
-
-        for (int i = 0; i<=cpu.EQsize; i++)
-        {
-            if (cpu.load >= (100/cpu.EQsize)*i)
-                autocalc.cpu_curstep = i;
-            else
-                break;
-        }
-        if (autocalc.cpu_curstep == cpu.EQsize)
-            autocalc.cpu_freq[cpu.EQsize]++;
-        else
-        {
-            autocalc.cpu_perc = 100*(cpu.load-(100/cpu.EQsize)*autocalc.cpu_curstep)/(100/cpu.EQsize);
-            autocalc.cpu_freq[autocalc.cpu_curstep]+=((long double)autocalc.cpu_perc)/100.0;
-            autocalc.cpu_freq[autocalc.cpu_curstep]+=(long double)(100-autocalc.cpu_perc)/100.0;
-        }
-        for (int i = 0; i<=cpu.EQsize; i++)
-        {
-            if (autocalc.cpu_freq[i] > autocalc.cpu_common)
-            {
-                autocalc.cpu_common =autocalc.cpu_freq[i];
-                autocalc.cpu_curmid = i;
-            }
-        }
-        if (autocalc.cpu_curmid == 0)
-            autocalc.cpu_curmid = 1;
-        else if (autocalc.cpu_curmid == cpu.EQsize)
-            autocalc.cpu_curmid = cpu.EQsize-1;
-
-        for (int i = 0; i<autocalc.cpu_curmid; i++)
-        {
-            if (autocalc.cpu_freq[i] < autocalc.cpu_exoticlow )
-                autocalc.cpu_exoticlow = autocalc.cpu_freq[i];
-        }
-        for (int i = autocalc.cpu_curmid+1; i<=cpu.EQsize; i++)
-        {
-            if (autocalc.cpu_freq[i] < autocalc.cpu_exotichigh )
-                autocalc.cpu_exotichigh = autocalc.cpu_freq[i];
-        }
-        bool correct = false;
-        while(!correct)
-        {
-            correct = true;
-            for (int i = 0; i<autocalc.cpu_curmid; i++)
-            {
-                if (autocalc.cpu_freq[i] > autocalc.cpu_freq[i+1])
-                {
-                    swap(autocalc.cpu_freq[i], autocalc.cpu_freq[i+1]);
-                    correct = false;
-                }
-            }
-        }
-        correct = false;
-        while(!correct)
-        {
-            correct = true;
-            for (int i = autocalc.cpu_curmid; i<cpu.EQsize; i++)
-            {
-                if (autocalc.cpu_freq[i] < autocalc.cpu_freq[i+1])
-                {
-                    swap(autocalc.cpu_freq[i], autocalc.cpu_freq[i+1]);
-                    correct = false;
-                }
-            }
-        }
-        for (int i = 0; i<autocalc.cpu_curmid; i++)
-        {
-            if (autocalc.cpu_freq[i] < autocalc.cpu_exoticlow+(long double)(autocalc.cpu_swalll*(autocalc.cpu_common-autocalc.cpu_exoticlow))/100 )
-                autocalc.cpu_stablepointlow = i;
-        }
-        for (int i = autocalc.cpu_curmid+1; i<=cpu.EQsize; i++)
-        {
-            if (autocalc.cpu_freq[i] > autocalc.cpu_exotichigh+(long double)(autocalc.cpu_swallh*(autocalc.cpu_common-autocalc.cpu_exotichigh))/100 )
-                autocalc.cpu_stablepointhigh = i;
-        }
-        if (autocalc.cpu_stablepointhigh == 0)
-            autocalc.cpu_stablepointhigh = autocalc.cpu_curmid+1;
-        if (autocalc.auto_cpu)
-        {
-            autocalc.cpu_freq_angle_low = 1;
-            autocalc.cpu_freq_angle_high = 1;
-            for (int i = 0; i<autocalc.cpu_curmid; i++)
-            {
-                if (autocalc.cpu_freq[i+1]-autocalc.cpu_freq[i] > autocalc.cpu_freq_angle_low)
-                    autocalc.cpu_freq_angle_low = autocalc.cpu_freq[i+1]-autocalc.cpu_freq[i];
-            }
-            autocalc.cpu_freq_angle_low*=(100.0/(autocalc.cpu_common));
-            autocalc.cpu_mult_low = (autocalc.cpu_mult_low_converter/autocalc.cpu_freq_angle_low)*100;
-            if (autocalc.cpu_mult_low > 6)
-                autocalc.cpu_mult_low = 6;
-            for (int i = autocalc.cpu_curmid; i<cpu.EQsize; i++)
-            {
-                if (autocalc.cpu_freq[i]-autocalc.cpu_freq[i+1] > autocalc.cpu_freq_angle_high)
-                    autocalc.cpu_freq_angle_high = autocalc.cpu_freq[i]-autocalc.cpu_freq[i+1];
-            }
-            autocalc.cpu_freq_angle_high*=(100.0/(autocalc.cpu_common));
-            autocalc.cpu_mult_high = (autocalc.cpu_mult_high_converter/autocalc.cpu_freq_angle_high)*100;
-            if (autocalc.cpu_mult_high > 6)
-                autocalc.cpu_mult_high = 6;
-        }
-
-        for (int i = autocalc.cpu_stablepointlow; i >= 0 ; i--)
-        {
-            autocalc.cpu_curve[i] = pow((long double)(autocalc.cpu_stablepointlow-i), autocalc.cpu_mult_low);
-        }
-        if (autocalc.cpu_curve[0] != 0)
-            autocalc.cpu_curve_correct = (long double)cpu.stable/autocalc.cpu_curve[0];
-        else
-            autocalc.cpu_curve_correct = 1;
-        for (int i = 0; i <= autocalc.cpu_stablepointlow ; i++)
-        {
-            autocalc.cpu_curve[i] *= autocalc.cpu_curve_correct;
-            if (autocalc.cpu_curve[i] > (long double)cpu.stable)
-                autocalc.cpu_curve[i] = (long double)cpu.stable;
-            autocalc.cpu_curve[i] = (long double)cpu.stable - autocalc.cpu_curve[i];
-        }
-        for (int i = autocalc.cpu_stablepointlow; i <= autocalc.cpu_stablepointhigh ; i++)
-        {
-            autocalc.cpu_curve[i] = (long double)cpu.stable;
-        }
-        for (int i = 0; i <= cpu.EQsize-autocalc.cpu_stablepointhigh; i++)
-        {
-            autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] = pow((long double)i, autocalc.cpu_mult_high);
-        }
-        if (autocalc.cpu_curve[cpu.EQsize] != 0)
-            autocalc.cpu_curve_correct = (long double)(100.0-cpu.stable)/autocalc.cpu_curve[cpu.EQsize];
-        else
-            autocalc.battery_curve_correct = 1;
-        for (int i = 0; i <= cpu.EQsize-autocalc.cpu_stablepointhigh; i++)
-        {
-            autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] *= autocalc.cpu_curve_correct;
-            if (autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] > 100.0-(long double)cpu.stable)
-                autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] = 100.0-(long double)cpu.stable;
-            autocalc.cpu_curve[i+autocalc.cpu_stablepointhigh] += (long double)cpu.stable;
-        }
-        for (int i = 0; i <= cpu.EQsize; i++)
-        {
-            autocalc.cpu_virtualEQ[i] = (autocalc.cpu_virtualEQ[i]*(100.0-autocalc.impact)+autocalc.cpu_curve[i]*autocalc.impact)/100.0;
-        }
-
+        info << "Dropping stable values (cpu)\n";
+        cpu.ac_save(cfg);
+        bulwers.force_autosave = true;
     }
-
-    if (autocalc.memory_enabled)
+    if (memory.ac.enabled && !memory.ac.simple && (autocalc.save_next == 0 || memory.ac.forcesave))
     {
-        autocalc.memory_curstep = 0;
-        autocalc.memory_perc = 0;
-        autocalc.memory_common = 0.0;
-        autocalc.memory_exoticlow = 100.0;
-        autocalc.memory_exotichigh = 100.0;
-        autocalc.memory_curmid = 0;
-        autocalc.memory_stablepointlow = 0;
-        autocalc.memory_stablepointhigh = 0;
-
-        for (int i = 0; i<=memory.EQsize; i++)
-        {
-            if (memory.load >= (100/memory.EQsize)*i)
-                autocalc.memory_curstep = i;
-            else
-                break;
-        }
-        if (autocalc.memory_curstep == memory.EQsize)
-            autocalc.memory_freq[memory.EQsize]++;
-        else
-        {
-            autocalc.memory_perc = 100*(memory.load-(100/memory.EQsize)*autocalc.memory_curstep)/(100/memory.EQsize);
-            autocalc.memory_freq[autocalc.memory_curstep]+=((long double)autocalc.memory_perc)/100.0;
-            autocalc.memory_freq[autocalc.memory_curstep]+=(long double)(100-autocalc.memory_perc)/100.0;
-        }
-        for (int i = 0; i<=memory.EQsize; i++)
-        {
-            if (autocalc.memory_freq[i] > autocalc.memory_common)
-            {
-                autocalc.memory_common =autocalc.memory_freq[i];
-                autocalc.memory_curmid = i;
-            }
-        }
-        if (autocalc.memory_curmid == 0)
-            autocalc.memory_curmid = 1;
-        else if (autocalc.memory_curmid == memory.EQsize)
-            autocalc.memory_curmid = memory.EQsize-1;
-
-        for (int i = 0; i<autocalc.memory_curmid; i++)
-        {
-            if (autocalc.memory_freq[i] < autocalc.memory_exoticlow )
-                autocalc.memory_exoticlow = autocalc.memory_freq[i];
-        }
-        for (int i = autocalc.memory_curmid+1; i<=memory.EQsize; i++)
-        {
-            if (autocalc.memory_freq[i] < autocalc.memory_exotichigh )
-                autocalc.memory_exotichigh = autocalc.memory_freq[i];
-        }
-        bool correct = false;
-        while(!correct)
-        {
-            correct = true;
-            for (int i = 0; i<autocalc.memory_curmid; i++)
-            {
-                if (autocalc.memory_freq[i] > autocalc.memory_freq[i+1])
-                {
-                    swap(autocalc.memory_freq[i], autocalc.memory_freq[i+1]);
-                    correct = false;
-                }
-            }
-        }
-        correct = false;
-        while(!correct)
-        {
-            correct = true;
-            for (int i = autocalc.memory_curmid; i<memory.EQsize; i++)
-            {
-                if (autocalc.memory_freq[i] < autocalc.memory_freq[i+1])
-                {
-                    swap(autocalc.memory_freq[i], autocalc.memory_freq[i+1]);
-                    correct = false;
-                }
-            }
-        }
-        for (int i = 0; i<autocalc.memory_curmid; i++)
-        {
-            if (autocalc.memory_freq[i] < autocalc.memory_exoticlow+(long double)(autocalc.memory_swalll*(autocalc.memory_common-autocalc.memory_exoticlow))/100 )
-                autocalc.memory_stablepointlow = i;
-        }
-        for (int i = autocalc.memory_curmid+1; i<=memory.EQsize; i++)
-        {
-            if (autocalc.memory_freq[i] > autocalc.memory_exotichigh+(long double)(autocalc.memory_swallh*(autocalc.memory_common-autocalc.memory_exotichigh))/100 )
-                autocalc.memory_stablepointhigh = i;
-        }
-        if (autocalc.memory_stablepointhigh == 0)
-            autocalc.memory_stablepointhigh = autocalc.memory_curmid+1;
-        if (autocalc.auto_memory)
-        {
-            autocalc.memory_freq_angle_low = 1;
-            autocalc.memory_freq_angle_high = 1;
-            for (int i = 0; i<autocalc.memory_curmid; i++)
-            {
-                if (autocalc.memory_freq[i+1]-autocalc.memory_freq[i] > autocalc.memory_freq_angle_low)
-                    autocalc.memory_freq_angle_low = autocalc.memory_freq[i+1]-autocalc.memory_freq[i];
-            }
-            autocalc.memory_freq_angle_low*=(100.0/(autocalc.memory_common));
-            autocalc.memory_mult_low = (autocalc.memory_mult_low_converter/autocalc.memory_freq_angle_low)*100;
-            if (autocalc.memory_mult_low > 6)
-                autocalc.memory_mult_low = 6;
-            for (int i = autocalc.memory_curmid; i<memory.EQsize; i++)
-            {
-                if (autocalc.memory_freq[i]-autocalc.memory_freq[i+1] > autocalc.memory_freq_angle_high)
-                    autocalc.memory_freq_angle_high = autocalc.memory_freq[i]-autocalc.memory_freq[i+1];
-            }
-            autocalc.memory_freq_angle_high*=(100.0/(autocalc.memory_common));
-            autocalc.memory_mult_high = (autocalc.memory_mult_high_converter/autocalc.memory_freq_angle_high)*100;
-            if (autocalc.memory_mult_high > 6)
-                autocalc.memory_mult_high = 6;
-        }
-
-        for (int i = autocalc.memory_stablepointlow; i >= 0 ; i--)
-        {
-            autocalc.memory_curve[i] = pow((long double)(autocalc.memory_stablepointlow-i), autocalc.memory_mult_low);
-        }
-        if (autocalc.memory_curve[0] != 0)
-            autocalc.memory_curve_correct = (long double)memory.stable/autocalc.memory_curve[0];
-        else
-            autocalc.memory_curve_correct = 1;
-        for (int i = 0; i <= autocalc.memory_stablepointlow ; i++)
-        {
-            autocalc.memory_curve[i] *= autocalc.memory_curve_correct;
-            if (autocalc.memory_curve[i] > (long double)memory.stable)
-                autocalc.memory_curve[i] = (long double)memory.stable;
-            autocalc.memory_curve[i] = (long double)memory.stable - autocalc.memory_curve[i];
-        }
-        for (int i = autocalc.memory_stablepointlow; i <= autocalc.memory_stablepointhigh ; i++)
-        {
-            autocalc.memory_curve[i] = (long double)memory.stable;
-        }
-        for (int i = 0; i <= memory.EQsize-autocalc.memory_stablepointhigh; i++)
-        {
-            autocalc.memory_curve[i+autocalc.memory_stablepointhigh] = pow((long double)i, autocalc.memory_mult_high);
-        }
-        if (autocalc.memory_curve[memory.EQsize] != 0)
-            autocalc.memory_curve_correct = (long double)(100.0-memory.stable)/autocalc.memory_curve[memory.EQsize];
-        else
-            autocalc.memory_curve_correct = 1;
-        for (int i = 0; i <= memory.EQsize-autocalc.memory_stablepointhigh; i++)
-        {
-            autocalc.memory_curve[i+autocalc.memory_stablepointhigh] *= autocalc.memory_curve_correct;
-            if (autocalc.memory_curve[i+autocalc.memory_stablepointhigh] > 100.0-(long double)memory.stable)
-                autocalc.memory_curve[i+autocalc.memory_stablepointhigh] = 100.0-(long double)memory.stable;
-            autocalc.memory_curve[i+autocalc.memory_stablepointhigh] += (long double)memory.stable;
-        }
-        for (int i = 0; i <= memory.EQsize; i++)
-        {
-            autocalc.memory_virtualEQ[i] = (autocalc.memory_virtualEQ[i]*(100.0-autocalc.impact)+autocalc.memory_curve[i]*autocalc.impact)/100.0;
-        }
-
+        info << "Dropping stable values (memory)\n";
+        memory.ac_save(cfg);
+        bulwers.force_autosave = true;
     }
-
-    if (autocalc.battery_enabled)
+    if (battery.ac.enabled && !battery.ac.simple && (autocalc.save_next == 0 || battery.ac.forcesave))
     {
-        autocalc.battery_curstep = 0;
-        autocalc.battery_perc = 0;
-        autocalc.battery_common = 0.0;
-        autocalc.battery_exoticlow = 100.0;
-        autocalc.battery_exotichigh = 100.0;
-        autocalc.battery_curmid = 0;
-        autocalc.battery_stablepointlow = 0;
-        autocalc.battery_stablepointhigh = 0;
-
-        for (int i = 0; i<=battery.EQsize; i++)
-        {
-            if (battery.load >= (100/battery.EQsize)*i)
-                autocalc.battery_curstep = i;
-            else
-                break;
-        }
-        if (autocalc.battery_curstep == battery.EQsize)
-            autocalc.battery_freq[battery.EQsize]++;
-        else
-        {
-            autocalc.battery_perc = 100*(battery.load-(100/battery.EQsize)*autocalc.battery_curstep)/(100/battery.EQsize);
-            autocalc.battery_freq[autocalc.battery_curstep]+=((long double)autocalc.battery_perc)/100.0;
-            autocalc.battery_freq[autocalc.battery_curstep]+=(long double)(100-autocalc.battery_perc)/100.0;
-        }
-        for (int i = 0; i<=battery.EQsize; i++)
-        {
-            if (autocalc.battery_freq[i] > autocalc.battery_common)
-            {
-                autocalc.battery_common =autocalc.battery_freq[i];
-                autocalc.battery_curmid = i;
-            }
-        }
-        if (autocalc.battery_curmid == 0)
-            autocalc.battery_curmid = 1;
-        else if (autocalc.battery_curmid == battery.EQsize)
-            autocalc.battery_curmid = battery.EQsize-1;
-
-        for (int i = 0; i<autocalc.battery_curmid; i++)
-        {
-            if (autocalc.battery_freq[i] < autocalc.battery_exoticlow )
-                autocalc.battery_exoticlow = autocalc.battery_freq[i];
-        }
-        for (int i = autocalc.battery_curmid+1; i<=battery.EQsize; i++)
-        {
-            if (autocalc.battery_freq[i] < autocalc.battery_exotichigh )
-                autocalc.battery_exotichigh = autocalc.battery_freq[i];
-        }
-        bool correct = false;
-        while(!correct)
-        {
-            correct = true;
-            for (int i = 0; i<autocalc.battery_curmid; i++)
-            {
-                if (autocalc.battery_freq[i] > autocalc.battery_freq[i+1])
-                {
-                    swap(autocalc.battery_freq[i], autocalc.battery_freq[i+1]);
-                    correct = false;
-                }
-            }
-        }
-        correct = false;
-        while(!correct)
-        {
-            correct = true;
-            for (int i = autocalc.battery_curmid; i<battery.EQsize; i++)
-            {
-                if (autocalc.battery_freq[i] < autocalc.battery_freq[i+1])
-                {
-                    swap(autocalc.battery_freq[i], autocalc.battery_freq[i+1]);
-                    correct = false;
-                }
-            }
-        }
-        for (int i = 0; i<autocalc.battery_curmid; i++)
-        {
-            if (autocalc.battery_freq[i] < autocalc.battery_exoticlow+(long double)(autocalc.battery_swalll*(autocalc.battery_common-autocalc.battery_exoticlow))/100 )
-                autocalc.battery_stablepointlow = i;
-        }
-        for (int i = autocalc.battery_curmid+1; i<=battery.EQsize; i++)
-        {
-            if (autocalc.battery_freq[i] > autocalc.battery_exotichigh+(long double)(autocalc.battery_swallh*(autocalc.battery_common-autocalc.battery_exotichigh))/100 )
-                autocalc.battery_stablepointhigh = i;
-        }
-        if (autocalc.battery_stablepointhigh == 0)
-            autocalc.battery_stablepointhigh = autocalc.battery_curmid+1;
-        if (autocalc.auto_battery)
-        {
-            autocalc.battery_freq_angle_low = 1;
-            autocalc.battery_freq_angle_high = 1;
-            for (int i = 0; i<autocalc.battery_curmid; i++)
-            {
-                if (autocalc.battery_freq[i+1]-autocalc.battery_freq[i] > autocalc.battery_freq_angle_low)
-                    autocalc.battery_freq_angle_low = autocalc.battery_freq[i+1]-autocalc.battery_freq[i];
-            }
-            autocalc.battery_freq_angle_low*=(100.0/(autocalc.battery_common));
-            autocalc.battery_mult_low = (autocalc.battery_mult_low_converter/autocalc.battery_freq_angle_low)*100;
-            if (autocalc.battery_mult_low > 6)
-                autocalc.battery_mult_low = 6;
-            for (int i = autocalc.battery_curmid; i<battery.EQsize; i++)
-            {
-                if (autocalc.battery_freq[i]-autocalc.battery_freq[i+1] > autocalc.battery_freq_angle_high)
-                    autocalc.battery_freq_angle_high = autocalc.battery_freq[i]-autocalc.battery_freq[i+1];
-            }
-            autocalc.battery_freq_angle_high*=(100.0/(autocalc.battery_common));
-            autocalc.battery_mult_high = (autocalc.battery_mult_high_converter/autocalc.battery_freq_angle_high)*100;
-            if (autocalc.battery_mult_high > 6)
-                autocalc.battery_mult_high = 6;
-        }
-
-        for (int i = autocalc.battery_stablepointlow; i >= 0 ; i--)
-        {
-            autocalc.battery_curve[i] = pow((long double)(autocalc.battery_stablepointlow-i), autocalc.battery_mult_low);
-        }
-        if (autocalc.battery_curve[0] != 0)
-            autocalc.battery_curve_correct = (long double)battery.stable/autocalc.battery_curve[0];
-        else
-            autocalc.battery_curve_correct = 1;
-        for (int i = 0; i <= autocalc.battery_stablepointlow ; i++)
-        {
-            autocalc.battery_curve[i] *= autocalc.battery_curve_correct;
-            if (autocalc.battery_curve[i] > (long double)battery.stable)
-                autocalc.battery_curve[i] = (long double)battery.stable;
-            autocalc.battery_curve[i] = (long double)battery.stable - autocalc.battery_curve[i];
-        }
-        for (int i = autocalc.battery_stablepointlow; i <= autocalc.battery_stablepointhigh ; i++)
-        {
-            autocalc.battery_curve[i] = (long double)battery.stable;
-        }
-        for (int i = 0; i <= battery.EQsize-autocalc.battery_stablepointhigh; i++)
-        {
-            autocalc.battery_curve[i+autocalc.battery_stablepointhigh] = pow((long double)i, autocalc.battery_mult_high);
-        }
-        if (autocalc.battery_curve[battery.EQsize] != 0)
-            autocalc.battery_curve_correct = (long double)(100.0-battery.stable)/autocalc.battery_curve[battery.EQsize];
-        else
-            autocalc.battery_curve_correct = 1;
-        for (int i = 0; i <= battery.EQsize-autocalc.battery_stablepointhigh; i++)
-        {
-            autocalc.battery_curve[i+autocalc.battery_stablepointhigh] *= autocalc.battery_curve_correct;
-            if (autocalc.battery_curve[i+autocalc.battery_stablepointhigh] > 100.0-(long double)battery.stable)
-                autocalc.battery_curve[i+autocalc.battery_stablepointhigh] = 100.0-(long double)battery.stable;
-            autocalc.battery_curve[i+autocalc.battery_stablepointhigh] += (long double)battery.stable;
-        }
-        for (int i = 0; i <= battery.EQsize; i++)
-        {
-            autocalc.battery_virtualEQ[i] = (autocalc.battery_virtualEQ[i]*(100.0-autocalc.impact)+autocalc.battery_curve[i]*autocalc.impact)/100.0;
-        }
-
+        info << "Dropping stable values (battery)\n";
+        battery.ac_save(cfg);
+        bulwers.force_autosave = true;
     }
-
-    if (autocalc.temperature_enabled)
+    if (temperature.ac.enabled && !temperature.ac.simple && (autocalc.save_next == 0 || temperature.ac.forcesave))
     {
-        autocalc.temperature_curstep = 0;
-        autocalc.temperature_perc = 0;
-        autocalc.temperature_common = 0.0;
-        autocalc.temperature_exoticlow = 100.0;
-        autocalc.temperature_exotichigh = 100.0;
-        autocalc.temperature_curmid = 0;
-        autocalc.temperature_stablepointlow = 0;
-        autocalc.temperature_stablepointhigh = 0;
-
-        if (temperature.value < temperature.EQbegin)
-        {
-            autocalc.temperature_freq[0]++;
-            cfg->setValue(".core.temperature.EQbegin", (int)temperature.value-1);
-            autocalc.forcesave = true;
-            info << "autocalc caught new temperature: " << (int)temperature.value << " EQbegin switched to new value";
-            warning << "it's recomended to restart Eyes as quick as it's possible!";
-        }
-        for (int i = 0; i<=temperature.EQsize; i++)
-        {
-            if (temperature.value >= temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*i)
-                autocalc.temperature_curstep = i;
-            else
-                break;
-        }
-        if (autocalc.temperature_curstep == temperature.EQsize)
-        {
-            autocalc.temperature_freq[temperature.EQsize]++;
-            cfg->setValue(".core.temperature.EQend", (int)temperature.value+1);
-            autocalc.forcesave = true;
-            info << "autocalc caught new temperature: " << (int)temperature.value << " EQend switched to new value";
-            warning << "it's recomended to restart Eyes as quick as it's possible!";
-        }
-        else
-        {
-            autocalc.temperature_perc = 100*(temperature.value-(temperature.EQbegin + ((temperature.EQend-temperature.EQbegin)/temperature.EQsize)*autocalc.temperature_curstep))/((temperature.EQend-temperature.EQbegin)/temperature.EQsize);
-            autocalc.temperature_freq[autocalc.temperature_curstep]+=((long double)autocalc.temperature_perc)/100.0;
-            autocalc.temperature_freq[autocalc.temperature_curstep]+=(long double)(100-autocalc.temperature_perc)/100.0;
-        }
-        for (int i = 0; i<=temperature.EQsize; i++)
-        {
-            if (autocalc.temperature_freq[i] > autocalc.temperature_common)
-            {
-                autocalc.temperature_common =autocalc.temperature_freq[i];
-                autocalc.temperature_curmid = i;
-            }
-        }
-        if (autocalc.temperature_curmid == 0)
-            autocalc.temperature_curmid = 1;
-        else if (autocalc.temperature_curmid == temperature.EQsize)
-            autocalc.temperature_curmid = temperature.EQsize-1;
-
-        for (int i = 0; i<autocalc.temperature_curmid; i++)
-        {
-            if (autocalc.temperature_freq[i] < autocalc.temperature_exoticlow )
-                autocalc.temperature_exoticlow = autocalc.temperature_freq[i];
-        }
-        for (int i = autocalc.temperature_curmid+1; i<=temperature.EQsize; i++)
-        {
-            if (autocalc.temperature_freq[i] < autocalc.temperature_exotichigh )
-                autocalc.temperature_exotichigh = autocalc.temperature_freq[i];
-        }
-        bool correct = false;
-        while(!correct)
-        {
-            correct = true;
-            for (int i = 0; i<autocalc.temperature_curmid; i++)
-            {
-                if (autocalc.temperature_freq[i] > autocalc.temperature_freq[i+1])
-                {
-                    swap(autocalc.temperature_freq[i], autocalc.temperature_freq[i+1]);
-                    correct = false;
-                }
-            }
-        }
-        correct = false;
-        while(!correct)
-        {
-            correct = true;
-            for (int i = autocalc.temperature_curmid; i<temperature.EQsize; i++)
-            {
-                if (autocalc.temperature_freq[i] < autocalc.temperature_freq[i+1])
-                {
-                    swap(autocalc.temperature_freq[i], autocalc.temperature_freq[i+1]);
-                    correct = false;
-                }
-            }
-        }
-        for (int i = 0; i<autocalc.temperature_curmid; i++)
-        {
-            if (autocalc.temperature_freq[i] < autocalc.temperature_exoticlow+(long double)(autocalc.temperature_swalll*(autocalc.temperature_common-autocalc.temperature_exoticlow))/100 )
-                autocalc.temperature_stablepointlow = i;
-        }
-        for (int i = autocalc.temperature_curmid+1; i<=temperature.EQsize; i++)
-        {
-            if (autocalc.temperature_freq[i] > autocalc.temperature_exotichigh+(long double)(autocalc.temperature_swallh*(autocalc.temperature_common-autocalc.temperature_exotichigh))/100 )
-                autocalc.temperature_stablepointhigh = i;
-        }
-        if (autocalc.temperature_stablepointhigh == 0)
-            autocalc.temperature_stablepointhigh = autocalc.temperature_curmid+1;
-        if (autocalc.auto_temperature)
-        {
-            autocalc.temperature_freq_angle_low = 1;
-            autocalc.temperature_freq_angle_high = 1;
-            for (int i = 0; i<autocalc.temperature_curmid; i++)
-            {
-                if (autocalc.temperature_freq[i+1]-autocalc.temperature_freq[i] > autocalc.temperature_freq_angle_low)
-                    autocalc.temperature_freq_angle_low = autocalc.temperature_freq[i+1]-autocalc.temperature_freq[i];
-            }
-            autocalc.temperature_freq_angle_low*=(100.0/(autocalc.temperature_common));
-            autocalc.temperature_mult_low = (autocalc.temperature_mult_low_converter/autocalc.temperature_freq_angle_low)*100;
-            if (autocalc.temperature_mult_low > 6)
-                autocalc.temperature_mult_low = 6;
-            for (int i = autocalc.temperature_curmid; i<temperature.EQsize; i++)
-            {
-                if (autocalc.temperature_freq[i]-autocalc.temperature_freq[i+1] > autocalc.temperature_freq_angle_high)
-                    autocalc.temperature_freq_angle_high = autocalc.temperature_freq[i]-autocalc.temperature_freq[i+1];
-            }
-            autocalc.temperature_freq_angle_high*=(100.0/(autocalc.temperature_common));
-            autocalc.temperature_mult_high = (autocalc.temperature_mult_high_converter/autocalc.temperature_freq_angle_high)*100;
-            if (autocalc.temperature_mult_high > 6)
-                autocalc.temperature_mult_high = 6;
-        }
-
-        for (int i = autocalc.temperature_stablepointlow; i >= 0 ; i--)
-        {
-            autocalc.temperature_curve[i] = pow((long double)(autocalc.temperature_stablepointlow-i), autocalc.temperature_mult_low);
-        }
-        if (autocalc.temperature_curve[0] != 0)
-            autocalc.temperature_curve_correct = (long double)temperature.stable/autocalc.temperature_curve[0];
-        else
-            autocalc.temperature_curve_correct = 1;
-        for (int i = 0; i <= autocalc.temperature_stablepointlow ; i++)
-        {
-            autocalc.temperature_curve[i] *= autocalc.temperature_curve_correct;
-            if (autocalc.temperature_curve[i] > (long double)temperature.stable)
-                autocalc.temperature_curve[i] = (long double)temperature.stable;
-            autocalc.temperature_curve[i] = (long double)temperature.stable - autocalc.temperature_curve[i];
-        }
-        for (int i = autocalc.temperature_stablepointlow; i <= autocalc.temperature_stablepointhigh ; i++)
-        {
-            autocalc.temperature_curve[i] = (long double)temperature.stable;
-        }
-        for (int i = 0; i <= temperature.EQsize-autocalc.temperature_stablepointhigh; i++)
-        {
-            autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] = pow((long double)i, autocalc.temperature_mult_high);
-        }
-        if (autocalc.temperature_curve[temperature.EQsize] != 0)
-            autocalc.temperature_curve_correct = (long double)(100.0-temperature.stable)/autocalc.temperature_curve[temperature.EQsize];
-        else
-            autocalc.temperature_curve_correct = 1;
-        for (int i = 0; i <= temperature.EQsize-autocalc.temperature_stablepointhigh; i++)
-        {
-            autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] *= autocalc.temperature_curve_correct;
-            if (autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] > 100.0-(long double)temperature.stable)
-                autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] = 100.0-(long double)temperature.stable;
-            autocalc.temperature_curve[i+autocalc.temperature_stablepointhigh] += (long double)temperature.stable;
-        }
-        for (int i = 0; i <= temperature.EQsize; i++)
-        {
-            autocalc.temperature_virtualEQ[i] = (autocalc.temperature_virtualEQ[i]*(100.0-autocalc.impact)+autocalc.temperature_curve[i]*autocalc.impact)/100.0;
-        }
-
+        info << "Dropping stable values (temperature)\n";
+        temperature.ac_save(cfg);
+        bulwers.force_autosave = true;
     }
-
-    if (autocalc.save_next == 0 || autocalc.forcesave)
-    {
-        info << "Dropping stable values\n";
-        if (autocalc.cpu_enabled && !autocalc.cpu_simple)
-        {
-            for (unsigned short i = 0; i<=cpu.EQsize; i++)
-            {
-                stringstream ss;
-                ss << i;
-                cfg->setValue ( &(".core.cpu.EQ"+ss.str())[0], (int)autocalc.cpu_virtualEQ[i] );
-                cpu.EQ[i] = (int)autocalc.cpu_virtualEQ[i];
-                autocalc.cpu_freq[i]/=2.0;
-            }
-        }
-        if (autocalc.memory_enabled && !autocalc.mem_simple)
-        {
-            for (unsigned short i = 0; i<=memory.EQsize; i++)
-            {
-                stringstream ss;
-                ss << i;
-                cfg->setValue ( &(".core.memory.EQ"+ss.str())[0], (int)autocalc.memory_virtualEQ[i] );
-                memory.EQ[i] = (int)autocalc.memory_virtualEQ[i];
-                autocalc.memory_freq[i]/=2.0;
-            }
-        }
-        if (autocalc.battery_enabled && !autocalc.bat_simple)
-        {
-            for (unsigned short i = 0; i<=battery.EQsize; i++)
-            {
-                stringstream ss;
-                ss << i;
-                cfg->setValue ( &(".core.battery.EQ"+ss.str())[0], (int)autocalc.battery_virtualEQ[i] );
-                battery.EQ[i] = (int)autocalc.battery_virtualEQ[i];
-                autocalc.battery_freq[i]/=2.0;
-            }
-        }
-        if (autocalc.temperature_enabled && !autocalc.temp_simple)
-        {
-            for (unsigned short i = 0; i<=temperature.EQsize; i++)
-            {
-                stringstream ss;
-                ss << i;
-                cfg->setValue ( &(".core.temperature.EQ"+ss.str())[0], (int)autocalc.temperature_virtualEQ[i] );
-                temperature.EQ[i] = (int)autocalc.temperature_virtualEQ[i];
-                autocalc.temperature_freq[i]/=2.0;
-            }
-        }
-        cfg->save();
+    if (autocalc.save_next == 0)
         autocalc.save_next = autocalc.save_interval;
-        autocalc.forcesave = false;
-    }
 }
 
 void Core::load_config ()
 {
     Configuration * cfg = Configuration::getInstance ();
 
-    cpu.frequency           = cfg->lookupValue ( ".core.cpu.frequency",                  'f'         );
-    cpu.lin_num             = cfg->lookupValue ( ".core.cpu.linear_modifier",            0           );
+    eyes->con->index = new varIndex;
+
+    cpu.degree              = cfg->lookupValue ( ".core.cpu.degree",                     2.0         );
     cpu.stable              = cfg->lookupValue ( ".core.cpu.stable",                     25          );
-    cpu.steps               = cfg->lookupValue ( ".core.cpu.steps",                      10          );
-    cpu.loseless            = cfg->lookupValue ( ".core.cpu.adaptation",                 10          );
+    cpu.max_mod_neg         = cfg->lookupValue ( ".core.cpu.max_mod_neg",                60          );
+    cpu.max_mod_pos         = cfg->lookupValue ( ".core.cpu.max_mod_pos",                50          );
+    cpu.safezone            = cfg->lookupValue ( ".core.cpu.safezone",                   10          );
     cpu.buffered            = cfg->lookupValue ( ".core.cpu.buffered",                   true        );
     cpu.buff_size           = cfg->lookupValue ( ".core.cpu.buffer_size",                10          );
     cpu.EQsize              = cfg->lookupValue ( ".core.cpu.EQsize",                     30          );
@@ -2111,13 +1642,20 @@ void Core::load_config ()
         cpu.EQ.push_back (cfg->lookupValue ( &(".core.cpu.EQ"+ss.str())[0], (int)cpu.stable ));
     }
 
+    eyes->con->index->registerVariable(&cpu.degree, varIndex::Tdouble, QString ("CPU:DEGREE"), false);
+    eyes->con->index->registerVariable(&cpu.stable, varIndex::Tdouble, QString ("CPU:STABLE"), false);
+    eyes->con->index->registerVariable((long long*)&cpu.max_mod_neg, varIndex::Tuint, QString ("CPU:MAXNEG"), false);
+    eyes->con->index->registerVariable((long long*)&cpu.max_mod_pos, varIndex::Tuint, QString ("CPU:MAXPOS"), false);
+    eyes->con->index->registerVariable((long long*)&cpu.safezone, varIndex::Tuint, QString ("CPU:SAFE"), false);
+    eyes->con->index->registerVariable(&cpu.buffered, varIndex::Tbool, QString ("CPU:BUFFERED"), true);
+
     //mem_section
 
-    memory.frequency        = cfg->lookupValue ( ".core.memory.frequency",               'q'         );
-    memory.lin_num          = cfg->lookupValue ( ".core.memory.linear_modifier",         2           );
+    memory.degree           = cfg->lookupValue ( ".core.memory.degree",                  3.0         );
     memory.stable           = cfg->lookupValue ( ".core.memory.stable",                  25          );
-    memory.steps            = cfg->lookupValue ( ".core.memory.steps",                   8           );
-    memory.loseless         = cfg->lookupValue ( ".core.memory.adaptation",              10          );
+    memory.max_mod_neg      = cfg->lookupValue ( ".core.memory.max_mod_neg",             100         );
+    memory.max_mod_pos      = cfg->lookupValue ( ".core.memory.max_mod_pos",             50          );
+    memory.safezone         = cfg->lookupValue ( ".core.memory.safezone",                10          );
     memory.buffered         = cfg->lookupValue ( ".core.memory.buffered",                true        );
     memory.buff_size        = cfg->lookupValue ( ".core.memory.buffer_size",             10          );
     memory.EQsize           = cfg->lookupValue ( ".core.memory.EQsize",                  30          );
@@ -2128,16 +1666,22 @@ void Core::load_config ()
         memory.EQ.push_back (cfg->lookupValue ( &(".core.memory.EQ"+ss.str())[0], (int)memory.stable ));
     }
 
+    eyes->con->index->registerVariable(&memory.degree, varIndex::Tdouble, QString ("MEM:DEGREE"), false);
+    eyes->con->index->registerVariable(&memory.stable, varIndex::Tdouble, QString ("MEM:STABLE"), false);
+    eyes->con->index->registerVariable((long long*)&memory.max_mod_neg, varIndex::Tuint, QString ("MEM:MAXNEG"), false);
+    eyes->con->index->registerVariable((long long*)&memory.max_mod_pos, varIndex::Tuint, QString ("MEM:MAXPOS"), false);
+    eyes->con->index->registerVariable((long long*)&memory.safezone, varIndex::Tuint, QString ("MEM:SAFE"), false);
+    eyes->con->index->registerVariable(&memory.buffered, varIndex::Tbool, QString ("MEM:BUFFERED"), true);
+
     //temperature_section
 
-    temperature.frequency   = cfg->lookupValue ( ".core.temperature.frequency",          'q'         );
-    temperature.lin_num     = cfg->lookupValue ( ".core.temperature.linear_modifier",    2           );
-    temperature.stable      = cfg->lookupValue ( ".core.temperature.stable",             56          );
-    temperature.steps       = cfg->lookupValue ( ".core.temperature.steps",              12          );
-    temperature.loseless    = cfg->lookupValue ( ".core.temperature.adaptation",         2           );
+    temperature.degree      = cfg->lookupValue ( ".core.temperature.degree",             1.5         );
+    temperature.stable      = cfg->lookupValue ( ".core.temperature.stable",             54          );
+    temperature.max_mod_neg = cfg->lookupValue ( ".core.temperature.max_mod_neg",        200         );
+    temperature.max_mod_pos = cfg->lookupValue ( ".core.temperature.max_mod_pos",        100         );
+    temperature.safezone    = cfg->lookupValue ( ".core.temperature.safezone",           8           );
     temperature.buffered    = cfg->lookupValue ( ".core.temperature.buffered",           true        );
     temperature.buff_size   = cfg->lookupValue ( ".core.temperature.buffer_size",        10          );
-    temperature.unit        = cfg->lookupValue ( ".core.temperature.unit",               1           );
     temperature.EQbegin     = cfg->lookupValue ( ".core.temperature.EQbegin",            30          );
     temperature.EQend       = cfg->lookupValue ( ".core.temperature.EQend",              70          );
     temperature.EQsize      = cfg->lookupValue ( ".core.temperature.EQsize",             30          );
@@ -2148,13 +1692,20 @@ void Core::load_config ()
         temperature.EQ.push_back (cfg->lookupValue ( &(".core.temperature.EQ"+ss.str())[0], (int)temperature.stable ));
     }
 
+    eyes->con->index->registerVariable(&temperature.degree, varIndex::Tdouble, QString ("TEMP:DEGREE"), false);
+    eyes->con->index->registerVariable(&temperature.stable, varIndex::Tdouble, QString ("TEMP:STABLE"), false);
+    eyes->con->index->registerVariable((long long*)&temperature.max_mod_neg, varIndex::Tuint, QString ("TEMP:MAXNEG"), false);
+    eyes->con->index->registerVariable((long long*)&temperature.max_mod_pos, varIndex::Tuint, QString ("TEMP:MAXPOS"), false);
+    eyes->con->index->registerVariable((long long*)&temperature.safezone, varIndex::Tuint, QString ("TEMP:SAFE"), false);
+    eyes->con->index->registerVariable(&temperature.buffered, varIndex::Tbool, QString ("TEMP:BUFFERED"), true);
+
     //battery_section
 
-    battery.frequency       = cfg->lookupValue ( ".core.battery.frequency",              'l'         );
-    battery.lin_num         = cfg->lookupValue ( ".core.battery.linear_modifier",        0           );
+    battery.degree          = cfg->lookupValue ( ".core.battery.degree",                 1.5         );
     battery.stable          = cfg->lookupValue ( ".core.battery.stable",                 25          );
-    battery.steps           = cfg->lookupValue ( ".core.battery.steps",                  8           );
-    battery.loseless        = cfg->lookupValue ( ".core.battery.adaptation",             10          );
+    battery.max_mod_neg     = cfg->lookupValue ( ".core.battery.max_mod_neg",            100         );
+    battery.max_mod_pos     = cfg->lookupValue ( ".core.battery.max_mod_pos",            60          );
+    battery.safezone        = cfg->lookupValue ( ".core.battery.safezone",               10          );
     battery.buffered        = cfg->lookupValue ( ".core.battery.buffered",               false       );
     battery.buff_size       = cfg->lookupValue ( ".core.battery.buffer_size",            10          );
     battery.EQsize          = cfg->lookupValue ( ".core.battery.EQsize",                 30          );
@@ -2164,6 +1715,13 @@ void Core::load_config ()
         ss << i;
         battery.EQ.push_back (cfg->lookupValue ( &(".core.battery.EQ"+ss.str())[0], (int)battery.stable ));
     }
+
+    eyes->con->index->registerVariable(&battery.degree, varIndex::Tdouble, QString ("BAT:DEGREE"), false);
+    eyes->con->index->registerVariable(&battery.stable, varIndex::Tdouble, QString ("BAT:STABLE"), false);
+    eyes->con->index->registerVariable((long long*)&battery.max_mod_neg, varIndex::Tuint, QString ("BAT:MAXNEG"), false);
+    eyes->con->index->registerVariable((long long*)&battery.max_mod_pos, varIndex::Tuint, QString ("BAT:MAXPOS"), false);
+    eyes->con->index->registerVariable((long long*)&battery.safezone, varIndex::Tuint, QString ("BAT:SAFE"), false);
+    eyes->con->index->registerVariable(&battery.buffered, varIndex::Tbool, QString ("BAT:BUFFERED"), true);
 
     //times_sector
 
@@ -2185,6 +1743,7 @@ void Core::load_config ()
 
     //bulwers_sector
 
+    bulwers.step            = cfg->lookupValue (".core.bulwers.saved_step",              0           );
     bulwers.wall_01         = cfg->lookupValue (".core.bulwers.wall_01",                 300         );
     bulwers.wall_02         = cfg->lookupValue (".core.bulwers.wall_02",                 500         );
     bulwers.wall_03         = cfg->lookupValue (".core.bulwers.wall_03",                 800         );
@@ -2200,9 +1759,7 @@ void Core::load_config ()
     bulwers.wall_13         = cfg->lookupValue (".core.bulwers.wall_13",                 98700       );
     bulwers.wall_14         = cfg->lookupValue (".core.bulwers.wall_14",                 159700      );
     bulwers.wall_15         = cfg->lookupValue (".core.bulwers.wall_15",                 258400      );
-    bulwers.flueamplitude   = cfg->lookupValue (".core.bulwers.flueamplitude",           20          );
-    bulwers.flueimpact      = cfg->lookupValue (".core.bulwers.flueimpact",              100         );
-    bulwers.fluestepdelay   = cfg->lookupValue (".core.bulwers.fluestepdelay",           300         );
+    bulwers.limiter         = cfg->lookupValue (".core.bulwers.wall_15",                 500000      );
     bulwers.remembered_nrg  = cfg->lookupValue (".core.bulwers.remembered_energy",       0           );
     bulwers.remembered_time = cfg->lookupValue (".core.bulwers.remembered_time",         0           );
     bulwers.max_mem_lag     = cfg->lookupValue (".core.bulwers.max_memory_lag",          10          );
@@ -2239,82 +1796,118 @@ void Core::load_config ()
         bulwers.envs[i].Bperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Bperc")[0],0 ));
         bulwers.envs[i].Pperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Pperc")[0],0 ));
         bulwers.envs[i].Hperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Hperc")[0],0 ));
-        bulwers.envs[i].spenttime = (cfg->lookupValue ( &("core.environment.env"+ss.str()+".spenttime")[0],0 ));
+        bulwers.envs[i].spenttime = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".spenttime")[0],0 ));
         bulwers.envs[i].timer = 0;
         delete (tmpenv);
     }
     bulwers.env_min_compability         = cfg->lookupValue (".core.bulwers.env_min_compability",         60.0        );
     bulwers.env_update_impact           = cfg->lookupValue (".core.bulwers.env_update_impact",           5.0         );
     bulwers.env_max_exotic_spenttime    = cfg->lookupValue (".core.bulwers.env_max_exotic_spenttime",    10.0        );
-    bulwers.env_saveinterval            = cfg->lookupValue (".core.bulwers.env_number",                  50          );
+    bulwers.env_saveinterval            = cfg->lookupValue (".core.bulwers.env_saveinterval",            50          );
+    bulwers.sweat_perc_1                = cfg->lookupValue (".core.bulwers.sweat_perc_1",                50.0        );
+    bulwers.sweat_perc_2                = cfg->lookupValue (".core.bulwers.sweat_perc_2",                75.0        );
+    bulwers.sweat_perc_3                = cfg->lookupValue (".core.bulwers.sweat_perc_3",                90.0        );
+    bulwers.hpp_fun_perc_1              = cfg->lookupValue (".core.bulwers.hpp_fun_perc_1",              60.0        );
+    bulwers.hpp_fun_perc_2              = cfg->lookupValue (".core.bulwers.hpp_fun_perc_2",              150.0       );
+    bulwers.max_fun_hpp_bul             = cfg->lookupValue (".core.bulwers.max_hpp_fun_evoke_bul",       5           );
+    bulwers.autosave_interval           = cfg->lookupValue (".core.bulwers.autosave_interval",           300         );
+    bulwers.quickcalm                   = cfg->lookupValue (".core.bulwers.quickcalm_perc",              0.1         );
+    bulwers.quickcalm_bulwers           = cfg->lookupValue (".core.bulwers.quickcalm_min_bulwers",       5           );
+
+    eyes->con->index->registerVariable((long long*)&bulwers.step, varIndex::Tuint, QString ("BUL:STEP"), false);
+    eyes->con->index->registerVariable(&bulwers.quickcalm, varIndex::Tdouble, QString ("BUL:CALM"), false);
+    eyes->con->index->registerVariable((long long*)&bulwers.quickcalm_bulwers, varIndex::Tushort, QString ("BUL:CALMBUL"), false);
+    eyes->con->index->registerVariable((long long*)&bulwers.current_wkup_delay, varIndex::Tushort, QString ("BUL:WKUP"), false);
 
     //friendship_sector
 
-    fship.calm_perc_high    = cfg->lookupValue (".core.friendship.calm_percentage_high", 5           );
-    fship.calm_perc_low     = cfg->lookupValue (".core.friendship.calm_percentage_low",  10          );
-    fship.calm_timer        = cfg->lookupValue (".core.friendship.calm_timer",           60          );
-    fship.func_calm_high    = cfg->lookupValue (".core.friendship.func_calm_high",       1.8         );
-    fship.func_calm_low     = cfg->lookupValue (".core.friendship.func_calm_low",        1.8         );
-    fship.func_mouse_high   = cfg->lookupValue (".core.friendship.func_mouse_high",      1.8         );
-    fship.func_mouse_low    = cfg->lookupValue (".core.friendship.func_mouse_low",       1.8         );
-    fship.func_mouse_hit    = cfg->lookupValue (".core.friendship.func_mouse_hit",       1.8         );
-    fship.func_scale        = cfg->lookupValue (".core.friendship.func_scale",           20          );
-    fship.max_below         = cfg->lookupValue (".core.friendship.max_below_0",          5000        );
-    fship.max_over          = cfg->lookupValue (".core.friendship.max_over_0",           5000        );
-    fship.mouse_bad         = cfg->lookupValue (".core.friendship.mouse_bad",            5           );
-    fship.mouse_good        = cfg->lookupValue (".core.friendship.mouse_good",           1           );
-    fship.stable            = cfg->lookupValue (".core.friendship.stable",               200         );
-    fship.value             = cfg->lookupValue (".core.friendship.value",                0           );
+    fship.calm_perc_high        = cfg->lookupValue (".core.friendship.calm_percentage_high", 5           );
+    fship.calm_perc_low         = cfg->lookupValue (".core.friendship.calm_percentage_low",  10          );
+    fship.calm_timer            = cfg->lookupValue (".core.friendship.calm_timer",           60          );
+    fship.func_calm_high        = cfg->lookupValue (".core.friendship.func_calm_high",       1.8         );
+    fship.func_calm_low         = cfg->lookupValue (".core.friendship.func_calm_low",        1.8         );
+    fship.func_mouse_high       = cfg->lookupValue (".core.friendship.func_mouse_high",      1.8         );
+    fship.func_mouse_low        = cfg->lookupValue (".core.friendship.func_mouse_low",       1.8         );
+    fship.func_mouse_hit        = cfg->lookupValue (".core.friendship.func_mouse_hit",       1.8         );
+    fship.func_scale            = cfg->lookupValue (".core.friendship.func_scale",           20          );
+    fship.max_below             = cfg->lookupValue (".core.friendship.max_below_0",          5000        );
+    fship.max_over              = cfg->lookupValue (".core.friendship.max_over_0",           5000        );
+    fship.mouse_bad             = cfg->lookupValue (".core.friendship.mouse_bad",            5           );
+    fship.mouse_good            = cfg->lookupValue (".core.friendship.mouse_good",           1           );
+    fship.max_bul_reduction     = cfg->lookupValue (".core.friendship.max_bul_reduction",    60          );
+    fship.stable                = cfg->lookupValue (".core.friendship.stable",               200         );
+    fship.value                 = cfg->lookupValue (".core.friendship.value",                0           );
+    fship.funboost              = cfg->lookupValue (".core.friendship.funboost",             0.5         );
+
+    eyes->con->index->registerVariable((long long*)&fship.calm_perc_high, varIndex::Tuint, QString ("FSHIP:CALMH"), false);
+    eyes->con->index->registerVariable((long long*)&fship.calm_perc_low, varIndex::Tuint, QString ("FSHIP:CALML"), false);
+    eyes->con->index->registerVariable((long long*)&fship.calm_timer, varIndex::Tuint, QString ("FSHIP:CALMTIME"), false);
+    eyes->con->index->registerVariable(&fship.func_calm_high, varIndex::Tdouble, QString ("FSHIP:FCALMH"), false);
+    eyes->con->index->registerVariable(&fship.func_calm_low, varIndex::Tdouble, QString ("FSHIP:FCALML"), false);
+    eyes->con->index->registerVariable(&fship.func_mouse_high, varIndex::Tdouble, QString ("FSHIP:FMOUSEH"), false);
+    eyes->con->index->registerVariable(&fship.func_mouse_low, varIndex::Tdouble, QString ("FSHIP:FMOUSEL"), false);
+    eyes->con->index->registerVariable(&fship.func_mouse_hit, varIndex::Tdouble, QString ("FSHIP:FMOUSEHIT"), false);
+    eyes->con->index->registerVariable(&fship.func_scale, varIndex::Tdouble, QString ("FSHIP:FSCALE"), false);
+    eyes->con->index->registerVariable((long long*)&fship.max_below, varIndex::Tuint, QString ("FSHIP:MAXBELOW"), false);
+    eyes->con->index->registerVariable((long long*)&fship.max_over, varIndex::Tuint, QString ("FSHIP:MAXOVER"), false);
+    eyes->con->index->registerVariable((long long*)&fship.max_bul_reduction, varIndex::Tuint, QString ("FSHIP:MAXRED"), false);
+    eyes->con->index->registerVariable(&fship.stable, varIndex::Tdouble, QString ("FSHIP:STABLE"), false);
+    eyes->con->index->registerVariable(&fship.value, varIndex::Tlongdouble, QString ("FSHIP:VAL"), false);
+    eyes->con->index->registerVariable(&fship.funboost, varIndex::Tdouble, QString ("FSHIP:FUNBOOST"), false);
+
 
     //basic_sector
 
-    cdbg_enabled            = cfg->lookupValue ( ".debug.cdebug.on",                       true        );
-    hdbg_enabled            = cfg->lookupValue ( ".debug.HDBG_enabled",                    false       );
+    cdbg_enabled            = cfg->lookupValue(".debug.cdebug.on",                       true        );
+    hdbg_enabled            = cfg->lookupValue(".debug.HDBG_enabled",                    false       );
 
     //autocalc_sector
 
-    autocalc.enabled                            = cfg->lookupValue ( ".core.autocalc.enabled",                         true        );
-    autocalc.save_interval                      = cfg->lookupValue ( ".core.autocalc.interval",                        300         );
-    autocalc.start_delay                        = cfg->lookupValue ( ".core.autocalc.delay",                           120         );
-    autocalc.impact                             = cfg->lookupValue ( ".core.autocalc.impact",                          1           );
-    autocalc.cpu_enabled                        = cfg->lookupValue ( ".core.autocalc.cpu.enabled",                     true        );
-    autocalc.auto_cpu                           = cfg->lookupValue ( ".core.autocalc.cpu.auto_angle",                  true        );
-    autocalc.cpu_swalll                         = cfg->lookupValue ( ".core.autocalc.cpu.stable_wall_low",             50          );
-    autocalc.cpu_swallh                         = cfg->lookupValue ( ".core.autocalc.cpu.stable_wall_high",            50          );
-    autocalc.cpu_mult_low                       = cfg->lookupValue ( ".core.autocalc.cpu.multiple_low",                2           );
-    autocalc.cpu_mult_low_converter             = cfg->lookupValue ( ".core.autocalc.cpu.low_converter",               1           );
-    autocalc.cpu_mult_high                      = cfg->lookupValue ( ".core.autocalc.cpu.multiple_high",               2           );
-    autocalc.cpu_mult_high_converter            = cfg->lookupValue ( ".core.autocalc.cpu.high_converter",              1           );
-    autocalc.memory_enabled                     = cfg->lookupValue ( ".core.autocalc.memory.enabled",                  true        );
-    autocalc.auto_memory                        = cfg->lookupValue ( ".core.autocalc.memory.auto_angle",               true        );
-    autocalc.memory_swalll                      = cfg->lookupValue ( ".core.autocalc.memory.stable_wall_low",          50          );
-    autocalc.memory_swallh                      = cfg->lookupValue ( ".core.autocalc.memory.stable_wall_high",         50          );
-    autocalc.memory_mult_low                    = cfg->lookupValue ( ".core.autocalc.memory.multiple_low",             2           );
-    autocalc.memory_mult_low_converter          = cfg->lookupValue ( ".core.autocalc.memory.low_converter",            1           );
-    autocalc.memory_mult_high                   = cfg->lookupValue ( ".core.autocalc.memory.multiple_high",            2           );
-    autocalc.memory_mult_high_converter         = cfg->lookupValue ( ".core.autocalc.memory.high_converter",           1           );
-    autocalc.battery_enabled                    = cfg->lookupValue ( ".core.autocalc.battery.enabled",                 true        );
-    autocalc.auto_battery                       = cfg->lookupValue ( ".core.autocalc.battery.auto_angle",              true        );
-    autocalc.battery_swalll                     = cfg->lookupValue ( ".core.autocalc.battery.stable_wall_low",         50          );
-    autocalc.battery_swallh                     = cfg->lookupValue ( ".core.autocalc.battery.stable_wall_high",        50          );
-    autocalc.battery_mult_low                   = cfg->lookupValue ( ".core.autocalc.battery.multiple_low",            2           );
-    autocalc.battery_mult_low_converter         = cfg->lookupValue ( ".core.autocalc.battery.low_converter",           1           );
-    autocalc.battery_mult_high                  = cfg->lookupValue ( ".core.autocalc.battery.multiple_high",           2           );
-    autocalc.battery_mult_high_converter        = cfg->lookupValue ( ".core.autocalc.battery.high_converter",          1           );
-    autocalc.temperature_enabled                = cfg->lookupValue ( ".core.autocalc.temperature.enabled",             true        );
-    autocalc.auto_temperature                   = cfg->lookupValue ( ".core.autocalc.temperature.auto_angle",          true        );
-    autocalc.temperature_swalll                 = cfg->lookupValue ( ".core.autocalc.temperature.stable_wall_low",     50          );
-    autocalc.temperature_swallh                 = cfg->lookupValue ( ".core.autocalc.temperature.stable_wall_high",    50          );
-    autocalc.temperature_mult_low               = cfg->lookupValue ( ".core.autocalc.temperature.multiple_low",        2           );
-    autocalc.temperature_mult_low_converter     = cfg->lookupValue ( ".core.autocalc.temperature.low_converter",       1           );
-    autocalc.temperature_mult_high              = cfg->lookupValue ( ".core.autocalc.temperature.multiple_high",       2           );
-    autocalc.temperature_mult_high_converter    = cfg->lookupValue ( ".core.autocalc.temperature.high_converter",      1           );
+    autocalc.enabled                    = cfg->lookupValue(".core.autocalc.enabled",                         true        );
+    autocalc.save_interval              = cfg->lookupValue(".core.autocalc.interval",                        300         );
+    autocalc.start_delay                = cfg->lookupValue(".core.autocalc.delay",                           120         );
+    cpu.ac.impact                       = cfg->lookupValue(".core.autocalc.cpu.impact",                      0.1         );
+    cpu.ac.enabled                      = cfg->lookupValue(".core.autocalc.cpu.enabled",                     true        );
+    cpu.ac.auto_degree                  = cfg->lookupValue(".core.autocalc.cpu.auto_angle",                  true        );
+    cpu.ac.swalll                       = cfg->lookupValue(".core.autocalc.cpu.stable_wall_low",             50          );
+    cpu.ac.swallh                       = cfg->lookupValue(".core.autocalc.cpu.stable_wall_high",            50          );
+    cpu.ac.mult_low                     = cfg->lookupValue(".core.autocalc.cpu.multiple_low",                2           );
+    cpu.ac.mult_low_converter           = cfg->lookupValue(".core.autocalc.cpu.low_converter",               1           );
+    cpu.ac.mult_high                    = cfg->lookupValue(".core.autocalc.cpu.multiple_high",               2           );
+    cpu.ac.mult_high_converter          = cfg->lookupValue(".core.autocalc.cpu.high_converter",              1           );
+    memory.ac.impact                    = cfg->lookupValue(".core.autocalc.memory.impact",                   0.1         );
+    memory.ac.enabled                   = cfg->lookupValue(".core.autocalc.memory.enabled",                  true        );
+    memory.ac.auto_degree               = cfg->lookupValue(".core.autocalc.memory.auto_angle",               true        );
+    memory.ac.swalll                    = cfg->lookupValue(".core.autocalc.memory.stable_wall_low",          50          );
+    memory.ac.swallh                    = cfg->lookupValue(".core.autocalc.memory.stable_wall_high",         50          );
+    memory.ac.mult_low                  = cfg->lookupValue(".core.autocalc.memory.multiple_low",             2           );
+    memory.ac.mult_low_converter        = cfg->lookupValue(".core.autocalc.memory.low_converter",            1           );
+    memory.ac.mult_high                 = cfg->lookupValue(".core.autocalc.memory.multiple_high",            2           );
+    memory.ac.mult_high_converter       = cfg->lookupValue(".core.autocalc.memory.high_converter",           1           );
+    battery.ac.impact                   = cfg->lookupValue(".core.autocalc.battery.impact",                  0.1         );
+    battery.ac.enabled                  = cfg->lookupValue(".core.autocalc.battery.enabled",                 true        );
+    battery.ac.auto_degree              = cfg->lookupValue(".core.autocalc.battery.auto_angle",              true        );
+    battery.ac.swalll                   = cfg->lookupValue(".core.autocalc.battery.stable_wall_low",         50          );
+    battery.ac.swallh                   = cfg->lookupValue(".core.autocalc.battery.stable_wall_high",        50          );
+    battery.ac.mult_low                 = cfg->lookupValue(".core.autocalc.battery.multiple_low",            2           );
+    battery.ac.mult_low_converter       = cfg->lookupValue(".core.autocalc.battery.low_converter",           1           );
+    battery.ac.mult_high                = cfg->lookupValue(".core.autocalc.battery.multiple_high",           2           );
+    battery.ac.mult_high_converter      = cfg->lookupValue(".core.autocalc.battery.high_converter",          1           );
+    temperature.ac.impact               = cfg->lookupValue(".core.autocalc.temperature.impact",              0.1         );
+    temperature.ac.enabled              = cfg->lookupValue(".core.autocalc.temperature.enabled",             true        );
+    temperature.ac.auto_degree          = cfg->lookupValue(".core.autocalc.temperature.auto_angle",          true        );
+    temperature.ac.swalll               = cfg->lookupValue(".core.autocalc.temperature.stable_wall_low",     50          );
+    temperature.ac.swallh               = cfg->lookupValue(".core.autocalc.temperature.stable_wall_high",    50          );
+    temperature.ac.mult_low             = cfg->lookupValue(".core.autocalc.temperature.multiple_low",        2           );
+    temperature.ac.mult_low_converter   = cfg->lookupValue(".core.autocalc.temperature.low_converter",       1           );
+    temperature.ac.mult_high            = cfg->lookupValue(".core.autocalc.temperature.multiple_high",       2           );
+    temperature.ac.mult_high_converter  = cfg->lookupValue(".core.autocalc.temperature.high_converter",      1           );
     if (!autocalc.enabled)
     {
-        autocalc.cpu_enabled = false;
-        autocalc.memory_enabled = false;
-        autocalc.battery_enabled = false;
-        autocalc.temperature_enabled = false;
+        cpu.ac.enabled = false;
+        memory.ac.enabled = false;
+        battery.ac.enabled = false;
+        temperature.ac.enabled = false;
     }
 
     //eMu_sector
@@ -2328,13 +1921,30 @@ void Core::load_config ()
     eMu.batt                = cfg->lookupValue (".core.eMu_zone.batt",                   false       );
     eMu.batt_val            = cfg->lookupValue (".core.eMu_zone.batt_val",               0           );
     eMu.batt_s              = cfg->lookupValue (".core.eMu_zone.batt_s",                 false       );
-    eMu.batt_val            = cfg->lookupValue (".core.eMu_zone.batt_s_val",             0           );
+    eMu.batt_s_val          = cfg->lookupValue (".core.eMu_zone.batt_s_val",             0           );
     eMu.time                = cfg->lookupValue (".core.eMu_zone.time",                   false       );
     eMu.time_val            = cfg->lookupValue (".core.eMu_zone.time_val",               0           );
     eMu.energy              = cfg->lookupValue (".core.eMu_zone.energy",                 false       );
     eMu.energy_val          = cfg->lookupValue (".core.eMu_zone.energy_val",             0           );
     eMu.bulwers             = cfg->lookupValue (".core.eMu_zone.bulwers",                false       );
     eMu.bulwers_val         = cfg->lookupValue (".core.eMu_zone.bulwers_val",            0           );
+
+    eyes->con->index->registerVariable(&eMu.cpu, varIndex::Tbool, QString ("3MU:CPU"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.cpu_val, varIndex::Tushort, QString ("3MU:CPUV"), false);
+    eyes->con->index->registerVariable(&eMu.mem, varIndex::Tbool, QString ("3MU:MEM"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.mem_val, varIndex::Tushort, QString ("3MU:MEMV"), false);
+    eyes->con->index->registerVariable(&eMu.temp, varIndex::Tbool, QString ("3MU:TEMP"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.temp_val, varIndex::Tushort, QString ("3MU:TEMPV"), false);
+    eyes->con->index->registerVariable(&eMu.batt, varIndex::Tbool, QString ("3MU:BAT"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.batt_val, varIndex::Tushort, QString ("3MU:BATV"), false);
+    eyes->con->index->registerVariable(&eMu.batt_s, varIndex::Tbool, QString ("3MU:BATS"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.batt_s_val, varIndex::Tushort, QString ("3MU:BATSV"), false);
+    eyes->con->index->registerVariable(&eMu.time, varIndex::Tbool, QString ("3MU:TIME"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.time_val, varIndex::Tushort, QString ("3MU:TIMEV"), false);
+    eyes->con->index->registerVariable(&eMu.energy, varIndex::Tbool, QString ("3MU:NRG"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.energy_val, varIndex::Tushort, QString ("3MU:NRGV"), false);
+    eyes->con->index->registerVariable(&eMu.bulwers, varIndex::Tbool, QString ("3MU:FACE"), false);
+    eyes->con->index->registerVariable((long long*)&eMu.bulwers_val, varIndex::Tushort, QString ("3MU:FACEV"), false);
 
     //mousea_actions_sector
 
@@ -2367,10 +1977,47 @@ void Core::load_config ()
     rtctrl.suspendtohdd     = cfg->lookupValue ( ".core.rootcontrol.suspendtohdd",       false       );
     rtctrl.temp_halt_enabled= cfg->lookupValue ( ".core.rootcontrol.temp_halt_enabled",  true        );
     rtctrl.temp_halt_start  = cfg->lookupValue ( ".core.rootcontrol.temp_halt_start",    85          );
-    rtctrl.scrnsaver_disabling  = cfg->lookupValue ( ".core.rootcontrol.screensaver_disabling",  true        );
+    rtctrl.scrnsaver_management  = cfg->lookupValue ( ".core.rootcontrol.screensaver_management",  true        );
     rtctrl.customshell      = cfg->lookupValue ( ".core.rootcontrol.custom_shell",    false          );
     rtctrl.shellname        = cfg->lookupValue ( ".core.rootcontrol.shell_name",      "sh -c "       );
+    rtctrl.scrnsav_X        = cfg->lookupValue ( ".core.rootcontrol.manage_xscreensaver",          true        );
+    rtctrl.scrnsav_kde      = cfg->lookupValue ( ".core.rootcontrol.manage_kde_screensaver",       true        );
+    rtctrl.scrnsav_gnome    = cfg->lookupValue ( ".core.rootcontrol.manage_gnome_screensaver",     true        );
+    rtctrl.scrnsav_mac      = cfg->lookupValue ( ".core.rootcontrol.manage_mac_screensaver",       true        );
+    rtctrl.scrnsav_custom   = cfg->lookupValue ( ".core.rootcontrol.manage_custom_screensaver",   false        );
+    rtctrl.scrnsav_custom_on     = cfg->lookupValue ( ".core.rootcontrol.manage_custom_screensaver_on",   "xscreensaver-command -activate"        );
+    rtctrl.scrnsav_custom_off    = cfg->lookupValue ( ".core.rootcontrol.manage_custom_screensaver_off",  "xscreensaver-command -deactivate"      );
 
+    //flue
+
+    flue.active             = cfg->lookupValue (".core.flue.active",                     false       );
+    flue.last_date.day      = cfg->lookupValue (".core.flue.last_date.day",              0           );
+    flue.last_date.month    = cfg->lookupValue (".core.flue.last_date.month",            0           );
+    flue.last_date.year     = cfg->lookupValue (".core.flue.last_date.year",             0           );
+    flue.last_date.lenght   = cfg->lookupValue (".core.flue.last_date.lenght",           3           );
+    flue.last_date.minute_perc = cfg->lookupValue (".core.flue.last_date.perc_per_min",  0.034       );
+    flue.last_date.invertion_step = cfg->lookupValue (".core.flue.last_date.invertion_per_min",  0.005       );
+    flue.last_date.progress = cfg->lookupValue (".core.flue.last_date.progress",         0.0         );
+    flue.amplitude          = cfg->lookupValue (".core.flue.temperature_max_amplitude",  20          );
+    flue.highval            = cfg->lookupValue (".core.flue.temperature_highest",        (double)(temperature.stable+1));
+    flue.lowval             = cfg->lookupValue (".core.flue.temperature_lowest",         (double)(temperature.stable-1));
+    flue.update_impact      = cfg->lookupValue (".core.flue.update_impact",              0.2         );
+    flue.bul_impact         = cfg->lookupValue (".core.flue.bulwers_impact",             0.001       );
+    flue.fun_impact         = cfg->lookupValue (".core.flue.fun_impact",                 0.2         );
+    flue.pet_impact         = cfg->lookupValue (".core.flue.pet_impact",                 -0.5        );
+    flue.hit_impact         = cfg->lookupValue (".core.flue.hit_impact",                 100.0       );
+    flue.max_bul_booster    = cfg->lookupValue (".core.flue.max_bulwers_booster",        10.0        );
+    flue.invertion_perc     = cfg->lookupValue (".core.flue.invertion_perc",             0.01        );
+    flue.visual_impact_probability_1     = cfg->lookupValue (".core.flue.visual_impact_probability_1",             5        );
+    flue.visual_impact_probability_2     = cfg->lookupValue (".core.flue.visual_impact_probability_2",             4        );
+    flue.visual_impact_probability_3     = cfg->lookupValue (".core.flue.visual_impact_probability_3",             3        );
+    flue.visual_impact_probability_4     = cfg->lookupValue (".core.flue.visual_impact_probability_4",             2        );
+    flue.visual_impact_probability_5     = cfg->lookupValue (".core.flue.visual_impact_probability_5",             1        );
+    flue.step_perc_1        = cfg->lookupValue (".core.flue.step_perc.lvl_1",            50          );
+    flue.step_perc_2        = cfg->lookupValue (".core.flue.step_perc.lvl_2",            70          );
+    flue.step_perc_3        = cfg->lookupValue (".core.flue.step_perc.lvl_3",            80          );
+    flue.step_perc_4        = cfg->lookupValue (".core.flue.step_perc.lvl_4",            90          );
+    flue.step_perc_5        = cfg->lookupValue (".core.flue.step_perc.lvl_5",            100         );
 }
 
 void handler (int signal)
@@ -2412,12 +2059,12 @@ void Core::run ()
         autocalc_init ();
         info << "autocalc started\n";
     }
-    info << "(core) gui inited\n";
     s_anim.face_prev = "slp_10";
     info << "s_anim.face_prev set to " << s_anim.face_prev.toStdString() << "\n";
     info << "(core) wake up finished\n";
     if (!core_only_mode)
         eyes->anims_send ("cusual_01", "slp_10_close", "cusual_01_open", 0, 4);
+    info << "(core) gui inited\n";
     HRDWR.system_check();
     info << "(core) end of core preparing\n";
     timer->start ( 1000 );
@@ -2652,7 +2299,31 @@ void rootcontrol::shelldetect()
         info << "shell set to: " << shellname << "\n";
         return;
     }
-    shellname = getenv ( "SHELL" );
+    QProcess testshell;
+    testshell.start("sh -c \"echo aaa > /dev/null\"");
+    if (testshell.pid() != 0)
+    {
+        shellname = "sh -c ";
+        testshell.kill();
+    }
+    testshell.start("bash -c \"echo aaa > /dev/null\"");
+    if (testshell.pid() != 0)
+    {
+        shellname = "bash -c ";
+        testshell.kill();
+    }
+    testshell.start("tcsh -c \"echo aaa > /dev/null\"");
+    if (testshell.pid() != 0)
+    {
+        shellname = "tcsh -c ";
+        testshell.kill();
+    }
+    testshell.start("zsh -c \"echo aaa > /dev/null\"");
+    if (testshell.pid() != 0)
+    {
+        shellname = "zsh -c ";
+        testshell.kill();
+    }
     info << "shell set to: " << shellname << "\n";
 }
 
@@ -2845,8 +2516,24 @@ bool bul::check_env(bool enabled, Configuration * cfg)
                 cfg->setValue ( &(".core.environment.env"+ss.str()+".spenttime")[0], (int)envs[i].spenttime );
             }
             cfg->setValue ( ".core.bulwers.envs_number", (int)envs.size() );
-            cfg->save();
+            bulwers.force_autosave = true;
         }
         return retstat;
+    }
+}
+
+void bul::fun_check()
+{
+    if (!ccap.enabled)
+        return;
+    if (ccap.fun.fun > hpp_fun_perc_2)
+        hpp = 2;
+    else if (ccap.fun.fun > hpp_fun_perc_1)
+        hpp = 1;
+    else
+        hpp = 0;
+    if (hpp > 0)
+    {
+        fship.value+=fship.value*fship.funboost/100.0;
     }
 }

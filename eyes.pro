@@ -21,7 +21,9 @@ SOURCES += \
   ostream.cc \
   eyes_menu.cc \
   camera.cpp \
-  tm.cc
+  tm.cc \
+  hungarian.cpp \
+  connection.cc
 
 HEADERS += \ 
   defines.hxx\
@@ -38,7 +40,9 @@ HEADERS += \
   eyes_menu.hh \
   camera.hxx \
   tm.hh \
-  img_fileinfo.hh
+  img_fileinfo.hh \
+  hungarian.h \
+  connection.hxx
 
 OTHER_FILES += \ 
   README.markdown\
@@ -47,6 +51,8 @@ OTHER_FILES += \
   scripts/checklibs \
   scripts/libcfg \
     themes/default/theme.cfg
+
+QT += network
 
 system(./scripts/checklibs)
 
@@ -67,6 +73,10 @@ LIBS += \
 
 system ( echo "Eyes configured." )
 system ( echo "  type 'make' to build Eyes." )
+
+
+
+
 
 
 

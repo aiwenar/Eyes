@@ -15,14 +15,13 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-#ifndef MEMORY_HXX
-#define MEMORY_HXX
+#pragma once
 
 class memory
 {
 public:
-    memory  ();
-    ~memory ();
-};
+  static const unsigned short version = 1;
 
-#endif // MEMORY_HXX
+  static void     save  ( const char * file, memory * mem );
+  static memory * load  ( const char * file );
+};

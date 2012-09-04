@@ -31,82 +31,7 @@
 using namespace std;
 using namespace libconfig;
 
-struct sdate
-{
-    unsigned short              day,
-                                month,
-                                day_num;
-    unsigned int                hour,
-                                year;
-};
 
-class percental
-{
-public:
-    short                       mod,
-                                mod_prev;
-    vector <double>             probes,
-                                sector_small;
-    double                      load,
-                                stable;
-    unsigned int                buff_size,
-                                EQsize,
-                                steps,
-                                lin_num,
-                                current_probe,
-                                current_probe_small,
-                                loseless,
-                                calculate(),
-                                convert(unsigned short val);
-    vector <int>                EQ;
-    char                        frequency;
-    void                        get_load (double),
-                                init (QString adress);
-    bool                        buffered;
-};
-
-class unital
-{
-public:
-    short                       mod,
-                                mod_prev;
-    vector<unsigned short>      probes,
-                                sector_small;
-    unsigned int                value,
-                                stable,
-                                buff_size,
-                                EQsize,
-                                EQbegin,
-                                EQend,
-                                steps,
-                                unit,
-                                lin_num,
-                                current_probe,
-                                current_probe_small,
-                                loseless,
-                                calculate(),
-                                convert(unsigned short val);
-    vector <int>                EQ;
-    char                        frequency;
-    void                        get_load (unsigned short),
-                                init (QString adress);
-    bool                        buffered;
-};
-
-class timal
-{
-public:
-    short                       mod;
-    unsigned int                value,
-                                start,
-                                steps,
-                                lin_num,
-                                wide,
-                                end,
-                                calculate();
-    char                        frequency;
-    void                        init (QString adress);
-};
 
 struct environment_data
 {
@@ -126,8 +51,8 @@ public:
     char                        wkup_reason,
                                 wkup_active;
     bool                        wake_up,
-                                flue,
                                 no_update,
+                                force_autosave,
                                 check_env(bool enabled, Configuration * cfg );
     int                         total_mod,
                                 envindex;
@@ -147,7 +72,7 @@ public:
                                 wall_13,
                                 wall_14,
                                 wall_15,
-                                fluetimer,
+                                limiter,
                                 remembered_time,
                                 remembered_nrg,
                                 lastnap_remembered_time,
@@ -160,16 +85,17 @@ public:
                                 max_mem_lag,
                                 rest_time_std,
                                 rest_time_wkend,
-                                env_saveinterval;
+                                env_saveinterval,
+                                autosave_interval;
     unsigned short              outline,
                                 prev_outline,
                                 eye,
                                 tired,
                                 hot,
                                 shy,
-                                layer2,
-                                layer3,
-                                layer4,
+                                hpp,
+                                max_fun_hpp_bul,
+                                smile_probability,
                                 value,
                                 wake_up_delay,
                                 current_wkup_delay,
@@ -190,21 +116,67 @@ public:
                                 timehigh_1w,
                                 timehigh_2w,
                                 timehigh_3w,
-                                flueamplitude,
-                                flueimpact,
-                                fluestepdelay;
-    double                      fluelowval,
-                                fluehighval,
+                                quickcalm_bulwers;
+    double                      sweat_perc_1,
+                                sweat_perc_2,
+                                sweat_perc_3,
+                                hpp_fun_perc_1,
+                                hpp_fun_perc_2,
                                 env_min_compability,
                                 env_update_impact,
                                 env_max_exotic_spenttime,
-                                env_max_compability;
+                                env_max_compability,
+                                quickcalm;
     void                        update(),
-                                flue_check(),
                                 critical_services( Configuration * cfg ),
-                                wake_up_chk();
+                                wake_up_chk(),
+                                fun_check(),
+                                autosave ( Configuration * cfg );
     vector <environment_data>   envs;
     environment_data            curenv;
+};
+
+struct disease_time
+{
+    unsigned short              day,
+                                month,
+                                year,
+                                lenght;
+    double                      minute_perc,
+                                invertion_step,
+                                progress;
+};
+
+class disease
+{
+public:
+    bool                        active,
+                                expired(disease_time disease_data);
+    unsigned short              amplitude,
+                                step_perc_1,
+                                step_perc_2,
+                                step_perc_3,
+                                step_perc_4,
+                                step_perc_5,
+                                visual_impact_probability_1,
+                                visual_impact_probability_2,
+                                visual_impact_probability_3,
+                                visual_impact_probability_4,
+                                visual_impact_probability_5;
+    double                      lowval,
+                                highval,
+                                update_impact,
+                                fun_impact,
+                                pet_impact,
+                                hit_impact,
+                                bul_impact,
+                                max_bul_booster,
+                                invertion_perc;
+    void                        check( Configuration * cfg ),
+                                attack( Configuration * cfg ),
+                                visual_impact(double progress);
+    disease_time                last_date;
+    QTimer                      uptimer;
 };
 
 class friendship
@@ -217,7 +189,8 @@ public:
                                 calm_perc_low,
                                 calm_perc_high,
                                 max_below,
-                                max_over;
+                                max_over,
+                                max_bul_reduction;
     double                      func_calm_low,
                                 func_calm_high,
                                 func_mouse_low,
@@ -227,6 +200,7 @@ public:
                                 func_scale,
                                 mouse_good,
                                 mouse_bad,
+                                funboost,
                                 funccalc(double angle, unsigned int current);
     long double                 value;
     bool                        to_save;
@@ -235,116 +209,116 @@ public:
 class auto_calc
 {
 public:
-    vector<long double>         cpu_freq,
-                                cpu_virtualEQ,
-                                cpu_curve,
-                                memory_freq,
-                                memory_virtualEQ,
-                                memory_curve,
-                                battery_freq,
-                                battery_virtualEQ,
-                                battery_curve,
-                                temperature_freq,
-                                temperature_virtualEQ,
-                                temperature_curve,
-                                time_freq;
-    long double                 c_cpu,
-                                c_mem,
-                                c_battery,
-                                c_temp,
-                                c_time,
-                                impact,
-                                cpu_mult_low,
-                                cpu_mult_low_converter,
-                                cpu_mult_high,
-                                cpu_mult_high_converter,
-                                memory_mult_low,
-                                memory_mult_low_converter,
-                                memory_mult_high,
-                                memory_mult_high_converter,
-                                battery_mult_low,
-                                battery_mult_low_converter,
-                                battery_mult_high,
-                                battery_mult_high_converter,
-                                temperature_mult_low,
-                                temperature_mult_low_converter,
-                                temperature_mult_high,
-                                temperature_mult_high_converter,
-                                time_mult,
-                                cpu_common,
-                                cpu_exoticlow,
-                                cpu_exotichigh,
-                                cpu_curve_correct,
-                                cpu_freq_angle_low,
-                                cpu_freq_angle_high,
-                                memory_common,
-                                memory_exoticlow,
-                                memory_exotichigh,
-                                memory_curve_correct,
-                                memory_freq_angle_low,
-                                memory_freq_angle_high,
-                                battery_common,
-                                battery_exoticlow,
-                                battery_exotichigh,
-                                battery_curve_correct,
-                                battery_freq_angle_low,
-                                battery_freq_angle_high,
-                                temperature_common,
-                                temperature_exoticlow,
-                                temperature_exotichigh,
-                                temperature_curve_correct,
-                                temperature_freq_angle_low,
-                                temperature_freq_angle_high;
-    int                         cpu_curstep,
-                                cpu_perc,
-                                cpu_curmid,
-                                cpu_stablepointlow,
-                                cpu_stablepointhigh,
-                                memory_curstep,
-                                memory_perc,
-                                memory_curmid,
-                                memory_stablepointlow,
-                                memory_stablepointhigh,
-                                battery_curstep,
-                                battery_perc,
-                                battery_curmid,
-                                battery_stablepointlow,
-                                battery_stablepointhigh,
-                                temperature_curstep,
-                                temperature_perc,
-                                temperature_curmid,
-                                temperature_stablepointlow,
-                                temperature_stablepointhigh;
+    //vector<long double>         //cpu_freq,
+                                //cpu_virtualEQ,
+                                //cpu_curve,
+                                //memory_freq,
+                                //memory_virtualEQ,
+                                //memory_curve,
+                                //battery_freq,
+                                //battery_virtualEQ,
+                                //battery_curve,
+                                //temperature_freq,
+                                //temperature_virtualEQ,
+                                //temperature_curve,
+                                //time_freq;
+    //long double                 //c_cpu,
+                                //c_mem,
+                                //c_battery,
+                                //c_temp,
+                                //c_time,
+                                //impact;
+                                //cpu_mult_low,
+                                //cpu_mult_low_converter,
+                                //cpu_mult_high,
+                                //cpu_mult_high_converter,
+                                //memory_mult_low,
+                                //memory_mult_low_converter,
+                                //memory_mult_high,
+                                //memory_mult_high_converter,
+                                //battery_mult_low,
+                                //battery_mult_low_converter,
+                                //battery_mult_high,
+                                //battery_mult_high_converter,
+                                //temperature_mult_low,
+                                //temperature_mult_low_converter,
+                                //temperature_mult_high,
+                                //temperature_mult_high_converter,
+                                //time_mult,
+                                //cpu_common,
+                                //cpu_exoticlow,
+                                //cpu_exotichigh,
+                                //cpu_curve_correct,
+                                //cpu_freq_angle_low,
+                                //cpu_freq_angle_high,
+                                //memory_common,
+                                //memory_exoticlow,
+                                //memory_exotichigh,
+                                //memory_curve_correct,
+                                //memory_freq_angle_low,
+                                //memory_freq_angle_high,
+                                //battery_common,
+                                //battery_exoticlow,
+                                //battery_exotichigh,
+                                //battery_curve_correct,
+                                //battery_freq_angle_low,
+                                //battery_freq_angle_high,
+                                //temperature_common,
+                                //temperature_exoticlow,
+                                //temperature_exotichigh,
+                                //temperature_curve_correct,
+                                //temperature_freq_angle_low,
+                                //temperature_freq_angle_high;
+    //int                         //cpu_curstep,
+                                //cpu_perc,
+                                //cpu_curmid,
+                                //cpu_stablepointlow,
+                                //cpu_stablepointhigh,
+                                //memory_curstep,
+                                //memory_perc,
+                                //memory_curmid,
+                                //memory_stablepointlow,
+                                //memory_stablepointhigh,
+                                //battery_curstep,
+                                //battery_perc,
+                                //battery_curmid,
+                                //battery_stablepointlow,
+                                //battery_stablepointhigh,
+                                //temperature_curstep,
+                                //temperature_perc,
+                                //temperature_curmid,
+                                //temperature_stablepointlow,
+                                //temperature_stablepointhigh;
     unsigned long               save_next,
                                 save_interval,
                                 start_delay;
-    unsigned short              cpu_swalll,
-                                cpu_swallh,
-                                memory_swalll,
-                                memory_swallh,
-                                battery_swalll,
-                                battery_swallh,
-                                temperature_swalll,
-                                temperature_swallh,
-                                time_swalll,
-                                time_swallh;
-    bool                        enabled,
-                                cpu_enabled,
-                                memory_enabled,
-                                battery_enabled,
-                                temperature_enabled,
-                                time_enabled,
-                                auto_cpu,
-                                auto_memory,
-                                auto_battery,
-                                auto_temperature,
-                                auto_time,
-                                cpu_simple,
-                                mem_simple,
-                                bat_simple,
-                                temp_simple,
-                                time_simple,
-                                forcesave;
+    //unsigned short              //cpu_swalll,
+                                //cpu_swallh,
+                                //memory_swalll,
+                                //memory_swallh,
+                                //battery_swalll,
+                                //battery_swallh,
+                                //temperature_swalll,
+                                //temperature_swallh,
+                                //time_swalll,
+                                //time_swallh;
+    bool                        enabled;
+                                //cpu_enabled,
+                                //memory_enabled,
+                                //battery_enabled,
+                                //temperature_enabled,
+                                //time_enabled,
+                                //auto_cpu,
+                                //auto_memory,
+                                //auto_battery,
+                                //auto_temperature,
+                                //auto_time,
+                                //cpu_simple,
+                                //mem_simple,
+                                //bat_simple,
+                                //temp_simple,
+                                //time_simple,
+                                //forcesave;
 };
 
 struct sended_anims
@@ -426,9 +400,16 @@ public:
                                 temp_halt_enabled,
                                 suspendtohdd,
                                 screenctrl,
-                                scrnsaver_disabling,
-                                customshell;
-    string                      shellname;
+                                scrnsaver_management,
+                                customshell,
+                                scrnsav_X,
+                                scrnsav_kde,
+                                scrnsav_gnome,
+                                scrnsav_mac,
+                                scrnsav_custom;
+    string                      shellname,
+                                scrnsav_custom_on,
+                                scrnsav_custom_off;
 private:
     void                        execute(bool roottype, QString command, QStringList arguments),
                                 execute(bool roottype, QString command);

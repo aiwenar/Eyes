@@ -31,6 +31,7 @@
 
 hardware        HRDWR;
 sdate           get_time    ();
+extern int      core_step;
 
 string hardware::get_file (char* path)
 {
@@ -208,6 +209,33 @@ unsigned int hardware::sys_backlight_full (string path)
     return atoi (&back[0]);
 }
 
+unsigned short hardware::sensors_temp (string path)
+{
+    if (cores_paths.size()==0)
+    {
+        string input = get_file(&path[0]);
+        string temp = "";
+        for (int i = 0; i<input.size()-2; i++)
+                temp+=input[i];
+        return atoi (&temp[0])/1000;
+    }
+    else
+    {
+        unsigned short highest = 0;
+        for (int i = 0; i<cores_paths.size();i++)
+        {
+            string input = get_file(&(cores_paths[i])[0]);
+            string temp = "";
+            for (int i = 0; i<input.size()-2; i++)
+                    temp+=input[i];
+            unsigned short int_temp = atoi (&temp[0])/1000;
+            if (int_temp > highest)
+                highest = int_temp;
+        }
+        return highest;
+    }
+}
+
 double hardware::C_LOAD ()
 {
   glibtop_init();
@@ -362,45 +390,17 @@ unsigned short hardware::emutemp(string path)
 
 
 
-unsigned int percental::convert(unsigned short val)
+int percental::convert(unsigned short val)
 {
-    mod_prev = 0;
-    mod = 0;
-    for (unsigned short i = 0; i<=steps; i++)
+    if (val < stable-safezone)
     {
-        mod_prev = mod;
-        if (val <= stable - loseless - (i*((stable - loseless)/steps)))
-        {
-            switch (frequency)
-            {
-            case 'l':
-                mod = -i*lin_num;
-            case 'q':
-                mod = -i*i;
-            case 'f':
-                mod = -i + mod_prev;
-            }
-        }
+        return -(int)(pow((double)(stable-val-safezone), degree)*mod_correction_pos);
     }
-
-    for (unsigned short i = 0; i<=steps; i++)
+    if (val > stable+safezone)
     {
-        mod_prev = mod;
-        if (val >= stable + loseless + (i*((100-(stable + loseless))/steps)))
-        {
-            switch (frequency)
-            {
-            case 'l':
-                mod = i*lin_num;
-            case 'q':
-                mod = i*i;
-            case 'f':
-                mod = i + mod_prev;
-            }
-        }
-
+        return (int)(pow((double)(val-stable-safezone), degree)*mod_correction_neg);
     }
-    return mod;
+    return 0;
 }
 
 
@@ -426,6 +426,267 @@ unsigned int percental::calculate ()
         return EQ[curstep] + perc*(EQ[curstep+1]-EQ[curstep])/100;
     }
 }
+
+
+void percental::get_load( double function )
+{
+    if (buffered)
+    {
+        current_probe_small ++;
+
+        if (current_probe_small == buff_size)
+            current_probe_small = 0;
+
+        sector_small[current_probe_small] = function;
+        if (sector_small[current_probe_small] > 100)
+            sector_small[current_probe_small] = stable;
+        if (sector_small[current_probe_small] == 100)
+            sector_small[current_probe_small] = 99;
+
+        for (unsigned short i = 0; i< buff_size;i++)
+        {
+            probes[current_probe] += sector_small[i];
+        }
+        probes [current_probe] /= buff_size + 1;
+
+        if (core_step % 10 == 0)
+        {
+           current_probe ++;
+
+           for (unsigned short i = 0; i<buff_size;i++)
+           {
+               load += probes [i];
+           }
+
+           load /= buff_size + 1;
+
+           if (current_probe == buff_size)
+               current_probe = 0;
+        }
+
+
+    }
+    else
+        load = function;
+}
+
+
+
+bool percental::ready()
+{
+    if (!buffered)
+        return true;
+    if (core_step > buff_size*buff_size)
+        return true;
+    else
+        return false;
+}
+
+bool percental::ac_init( string name )
+{
+    if (ac.enabled)
+    {
+        ac.name = name;
+        ac.forcesave = false;
+        ac.current = stable;
+        if (EQsize > 1)
+        {
+            for (uint i = 0; i<=EQsize; i++)
+            {
+                ac.freq.push_back(0);
+                ac.curve.push_back(0);
+                ac.virtualEQ.push_back((long double)EQ[i]);
+            }
+            return 1;
+        }
+        else
+        {
+            ac.enabled = false;
+            warning << "cpu EQ smaller than 3 brands - disabling cpu autocalc\n";
+            return 0;
+        }
+    }
+}
+
+bool percental::autocalc()
+{
+    ac.curstep = 0;
+    ac.perc = 0;
+    ac.common = 0.0;
+    ac.exoticlow = 100.0;
+    ac.exotichigh = 100.0;
+    ac.curmid = 0;
+    ac.stablepointlow = 0;
+    ac.stablepointhigh = 0;
+
+    for (int i = 0; i<=EQsize; i++)
+    {
+        if (load >= (100/EQsize)*i)
+            ac.curstep = i;
+        else
+            break;
+    }
+    if (ac.curstep == EQsize)
+        ac.freq[EQsize]++;
+    else
+    {
+        ac.perc = 100*(load-(100/EQsize)*ac.curstep)/(100/EQsize);
+        ac.freq[ac.curstep]+=((long double)ac.perc)/100.0;
+        ac.freq[ac.curstep]+=(long double)(100-ac.perc)/100.0;
+    }
+    for (int i = 0; i<=EQsize; i++)
+    {
+        if (ac.freq[i] > ac.common)
+        {
+            ac.common =ac.freq[i];
+            ac.curmid = i;
+        }
+    }
+    if (ac.curmid == 0)
+        ac.curmid = 1;
+    else if (ac.curmid == EQsize)
+        ac.curmid = EQsize-1;
+
+    for (int i = 0; i<ac.curmid; i++)
+    {
+        if (ac.freq[i] < ac.exoticlow )
+            ac.exoticlow = ac.freq[i];
+    }
+    for (int i = ac.curmid+1; i<=EQsize; i++)
+    {
+        if (ac.freq[i] < ac.exotichigh )
+            ac.exotichigh = ac.freq[i];
+    }
+    bool correct = false;
+    while(!correct)
+    {
+        correct = true;
+        for (int i = 0; i<ac.curmid; i++)
+        {
+            if (ac.freq[i] > ac.freq[i+1])
+            {
+                swap(ac.freq[i], ac.freq[i+1]);
+                correct = false;
+            }
+        }
+    }
+    correct = false;
+    while(!correct)
+    {
+        correct = true;
+        for (int i = ac.curmid; i<EQsize; i++)
+        {
+            if (ac.freq[i] < ac.freq[i+1])
+            {
+                swap(ac.freq[i], ac.freq[i+1]);
+                correct = false;
+            }
+        }
+    }
+    for (int i = 0; i<ac.curmid; i++)
+    {
+        if (ac.freq[i] < ac.exoticlow+(long double)(ac.swalll*(ac.common-ac.exoticlow))/100 )
+            ac.stablepointlow = i;
+    }
+    for (int i = ac.curmid+1; i<=EQsize; i++)
+    {
+        if (ac.freq[i] > ac.exotichigh+(long double)(ac.swallh*(ac.common-ac.exotichigh))/100 )
+            ac.stablepointhigh = i;
+    }
+    if (ac.stablepointhigh == 0)
+        ac.stablepointhigh = ac.curmid+1;
+    if (ac.auto_degree)
+    {
+        ac.freq_angle_low = 1;
+        ac.freq_angle_high = 1;
+        for (int i = 0; i<ac.curmid; i++)
+        {
+            if (ac.freq[i+1]-ac.freq[i] > ac.freq_angle_low)
+                ac.freq_angle_low = ac.freq[i+1]-ac.freq[i];
+        }
+        ac.freq_angle_low*=(100.0/(ac.common));
+        ac.mult_low = (ac.mult_low_converter/ac.freq_angle_low)*100;
+        if (ac.mult_low > 6)
+            ac.mult_low = 6;
+        for (int i = ac.curmid; i<EQsize; i++)
+        {
+            if (ac.freq[i]-ac.freq[i+1] > ac.freq_angle_high)
+                ac.freq_angle_high = ac.freq[i]-ac.freq[i+1];
+        }
+        ac.freq_angle_high*=(100.0/(ac.common));
+        ac.mult_high = (ac.mult_high_converter/ac.freq_angle_high)*100;
+        if (ac.mult_high > 6)
+            ac.mult_high = 6;
+    }
+
+    for (int i = ac.stablepointlow; i >= 0 ; i--)
+    {
+        ac.curve[i] = pow((long double)(ac.stablepointlow-i), ac.mult_low);
+    }
+    if (ac.curve[0] != 0)
+        ac.curve_correct = (long double)stable/ac.curve[0];
+    else
+        ac.curve_correct = 1;
+    for (int i = 0; i <= ac.stablepointlow ; i++)
+    {
+        ac.curve[i] *= ac.curve_correct;
+        if (ac.curve[i] > (long double)stable)
+            ac.curve[i] = (long double)stable;
+        ac.curve[i] = (long double)stable - ac.curve[i];
+    }
+    for (int i = ac.stablepointlow; i <= ac.stablepointhigh ; i++)
+    {
+        ac.curve[i] = (long double)stable;
+    }
+    for (int i = 0; i <= EQsize-ac.stablepointhigh; i++)
+    {
+        ac.curve[i+ac.stablepointhigh] = pow((long double)i, ac.mult_high);
+    }
+    if (ac.curve[EQsize] != 0)
+        ac.curve_correct = (long double)(100.0-stable)/ac.curve[EQsize];
+    else
+        ac.curve_correct = 1;
+    for (int i = 0; i <= EQsize-ac.stablepointhigh; i++)
+    {
+        ac.curve[i+ac.stablepointhigh] *= ac.curve_correct;
+        if (ac.curve[i+ac.stablepointhigh] > 100.0-(long double)stable)
+            ac.curve[i+ac.stablepointhigh] = 100.0-(long double)stable;
+        ac.curve[i+ac.stablepointhigh] += (long double)stable;
+    }
+    for (int i = 0; i <= EQsize; i++)
+    {
+        ac.virtualEQ[i] = (ac.virtualEQ[i]*(100.0-ac.impact)+ac.curve[i]*ac.impact)/100.0;
+    }
+
+}
+
+bool percental::ac_save(Configuration *cfg)
+{
+    for (unsigned short i = 0; i<=EQsize; i++)
+    {
+        stringstream ss;
+        ss << i;
+        cfg->setValue ( &("core." + ac.name + ".EQ"+ss.str())[0], (int)ac.virtualEQ[i] );
+        EQ[i] = (int)ac.virtualEQ[i];
+        ac.freq[i]/=2.0;
+    }
+    ac.forcesave = false;
+}
+
+int unital::convert(unsigned short val)
+{
+    if (val < stable-safezone)
+    {
+        return -(int)(pow((double)(stable-val-safezone), degree)*mod_correction_pos);
+    }
+    if (val > stable+safezone)
+    {
+        return (int)(pow((double)(val-stable-safezone), degree)*mod_correction_neg);
+    }
+    return 0;
+}
+
+
 
 unsigned int unital::calculate()
 {
@@ -453,46 +714,266 @@ unsigned int unital::calculate()
 
 
 
-unsigned int unital::convert(unsigned short val)
+void unital::get_load( unsigned short function )
 {
-    mod = 0;
-    mod_prev = 0;
-    for (unsigned short i = 0; i<=steps; i++)
+    if (buffered)
     {
-        mod_prev = mod;
-        if (val <= stable - loseless - (i*unit))
-        {
-            switch (frequency)
-            {
-            case 'l':
-                mod = -i*lin_num;
-            case 'q':
-                mod = -i*i;
-            case 'f':
-                mod = -i + mod_prev;
-            }
-        }
-    }
+        current_probe_small ++;
 
-    for (unsigned short i = 0; i<=steps; i++)
-    {
-        mod_prev = mod;
-        if (val >= stable + loseless + (i*unit))
+        if (current_probe_small == buff_size)
+            current_probe_small = 0;
+
+        sector_small[current_probe_small] = function;
+
+        if (sector_small[current_probe_small] > 100)
+            sector_small[current_probe_small] = stable;
+        if (sector_small[current_probe_small] == 100)
+            sector_small[current_probe_small] = 99;
+
+        for (unsigned short i = 0; i< buff_size;i++)
         {
-            switch (frequency)
+            probes[current_probe] += sector_small[i];
+        }
+
+        probes [current_probe] /= buff_size + 1;
+
+        if (core_step % 10 == 0)
+        {
+            current_probe ++;
+
+            for (unsigned short i = 0; i<buff_size;i++)
             {
-            case 'l':
-                mod = i*lin_num;
-            case 'q':
-                mod = i*i;
-            case 'f':
-                mod = i + mod_prev;
+                value += probes [i];
             }
+            value /= buff_size + 1;
+
+            if (current_probe == buff_size)
+                current_probe = 0;
         }
     }
-    return mod;
+    else
+        value = function;
 }
 
+
+
+bool unital::ready()
+{
+    if (!buffered)
+        return true;
+    if (core_step > buff_size*buff_size)
+        return true;
+    else
+        return false;
+}
+
+
+bool unital::ac_init( string name )
+{
+    if (ac.enabled)
+    {
+        ac.name = name;
+        ac.forcesave = false;
+        ac.current = stable;
+        if (EQsize > 1)
+        {
+            for (uint i = 0; i<=EQsize; i++)
+            {
+                ac.freq.push_back(0);
+                ac.curve.push_back(0);
+                ac.virtualEQ.push_back((long double)EQ[i]);
+            }
+            return 1;
+        }
+        else
+        {
+            ac.enabled = false;
+            warning << "cpu EQ smaller than 3 brands - disabling cpu autocalc\n";
+            return 0;
+        }
+    }
+}
+
+
+bool unital::autocalc( Configuration * cfg )
+{
+    ac.curstep = 0;
+    ac.perc = 0;
+    ac.common = 0.0;
+    ac.exoticlow = 100.0;
+    ac.exotichigh = 100.0;
+    ac.curmid = 0;
+    ac.stablepointlow = 0;
+    ac.stablepointhigh = 0;
+
+    if (value < EQbegin)
+    {
+        ac.freq[0]++;
+        cfg->setValue("core.EQbegin", (int)value-1);
+        ac.forcesave = true;
+        info << "autocalc caught new temperature: " << (int)value << " EQbegin switched to new value";
+        warning << "it's recomended to restart Eyes as quick as it's possible!";
+    }
+    for (int i = 0; i<=EQsize; i++)
+    {
+        if (value >= EQbegin + ((EQend-EQbegin)/EQsize)*i)
+            ac.curstep = i;
+        else
+            break;
+    }
+    if (ac.curstep == EQsize)
+    {
+        ac.freq[EQsize]++;
+        cfg->setValue("core.EQend", (int)value+1);
+        ac.forcesave = true;
+        info << "autocalc caught new temperature: " << (int)value << " EQend switched to new value";
+        warning << "it's recomended to restart Eyes as quick as it's possible!";
+    }
+    else
+    {
+        ac.perc = 100*(value-(EQbegin + ((EQend-EQbegin)/EQsize)*ac.curstep))/((EQend-EQbegin)/EQsize);
+        ac.freq[ac.curstep]+=((long double)ac.perc)/100.0;
+        ac.freq[ac.curstep]+=(long double)(100-ac.perc)/100.0;
+    }
+    for (int i = 0; i<=EQsize; i++)
+    {
+        if (ac.freq[i] > ac.common)
+        {
+            ac.common =ac.freq[i];
+            ac.curmid = i;
+        }
+    }
+    if (ac.curmid == 0)
+        ac.curmid = 1;
+    else if (ac.curmid == EQsize)
+        ac.curmid = EQsize-1;
+
+    for (int i = 0; i<ac.curmid; i++)
+    {
+        if (ac.freq[i] < ac.exoticlow )
+            ac.exoticlow = ac.freq[i];
+    }
+    for (int i = ac.curmid+1; i<=EQsize; i++)
+    {
+        if (ac.freq[i] < ac.exotichigh )
+            ac.exotichigh = ac.freq[i];
+    }
+    bool correct = false;
+    while(!correct)
+    {
+        correct = true;
+        for (int i = 0; i<ac.curmid; i++)
+        {
+            if (ac.freq[i] > ac.freq[i+1])
+            {
+                swap(ac.freq[i], ac.freq[i+1]);
+                correct = false;
+            }
+        }
+    }
+    correct = false;
+    while(!correct)
+    {
+        correct = true;
+        for (int i = ac.curmid; i<EQsize; i++)
+        {
+            if (ac.freq[i] < ac.freq[i+1])
+            {
+                swap(ac.freq[i], ac.freq[i+1]);
+                correct = false;
+            }
+        }
+    }
+    for (int i = 0; i<ac.curmid; i++)
+    {
+        if (ac.freq[i] < ac.exoticlow+(long double)(ac.swalll*(ac.common-ac.exoticlow))/100 )
+            ac.stablepointlow = i;
+    }
+    for (int i = ac.curmid+1; i<=EQsize; i++)
+    {
+        if (ac.freq[i] > ac.exotichigh+(long double)(ac.swallh*(ac.common-ac.exotichigh))/100 )
+            ac.stablepointhigh = i;
+    }
+    if (ac.stablepointhigh == 0)
+        ac.stablepointhigh = ac.curmid+1;
+    if (ac.auto_degree)
+    {
+        ac.freq_angle_low = 1;
+        ac.freq_angle_high = 1;
+        for (int i = 0; i<ac.curmid; i++)
+        {
+            if (ac.freq[i+1]-ac.freq[i] > ac.freq_angle_low)
+                ac.freq_angle_low = ac.freq[i+1]-ac.freq[i];
+        }
+        ac.freq_angle_low*=(100.0/(ac.common));
+        ac.mult_low = (ac.mult_low_converter/ac.freq_angle_low)*100;
+        if (ac.mult_low > 6)
+            ac.mult_low = 6;
+        for (int i = ac.curmid; i<EQsize; i++)
+        {
+            if (ac.freq[i]-ac.freq[i+1] > ac.freq_angle_high)
+                ac.freq_angle_high = ac.freq[i]-ac.freq[i+1];
+        }
+        ac.freq_angle_high*=(100.0/(ac.common));
+        ac.mult_high = (ac.mult_high_converter/ac.freq_angle_high)*100;
+        if (ac.mult_high > 6)
+            ac.mult_high = 6;
+    }
+
+    for (int i = ac.stablepointlow; i >= 0 ; i--)
+    {
+        ac.curve[i] = pow((long double)(ac.stablepointlow-i), ac.mult_low);
+    }
+    if (ac.curve[0] != 0)
+        ac.curve_correct = (long double)stable/ac.curve[0];
+    else
+        ac.curve_correct = 1;
+    for (int i = 0; i <= ac.stablepointlow ; i++)
+    {
+        ac.curve[i] *= ac.curve_correct;
+        if (ac.curve[i] > (long double)stable)
+            ac.curve[i] = (long double)stable;
+        ac.curve[i] = (long double)stable - ac.curve[i];
+    }
+    for (int i = ac.stablepointlow; i <= ac.stablepointhigh ; i++)
+    {
+        ac.curve[i] = (long double)stable;
+    }
+    for (int i = 0; i <= EQsize-ac.stablepointhigh; i++)
+    {
+        ac.curve[i+ac.stablepointhigh] = pow((long double)i, ac.mult_high);
+    }
+    if (ac.curve[EQsize] != 0)
+        ac.curve_correct = (long double)(100.0-stable)/ac.curve[EQsize];
+    else
+        ac.curve_correct = 1;
+    for (int i = 0; i <= EQsize-ac.stablepointhigh; i++)
+    {
+        ac.curve[i+ac.stablepointhigh] *= ac.curve_correct;
+        if (ac.curve[i+ac.stablepointhigh] > 100.0-(long double)stable)
+            ac.curve[i+ac.stablepointhigh] = 100.0-(long double)stable;
+        ac.curve[i+ac.stablepointhigh] += (long double)stable;
+    }
+    for (int i = 0; i <= EQsize; i++)
+    {
+        ac.virtualEQ[i] = (ac.virtualEQ[i]*(100.0-ac.impact)+ac.curve[i]*ac.impact)/100.0;
+    }
+
+}
+
+
+bool unital::ac_save(Configuration *cfg)
+{
+    for (unsigned short i = 0; i<=EQsize; i++)
+    {
+        stringstream ss;
+        ss << i;
+        cfg->setValue ( &("core." + ac.name + ".EQ"+ss.str())[0], (int)ac.virtualEQ[i] );
+        EQ[i] = (int)ac.virtualEQ[i];
+        ac.freq[i]/=2.0;
+    }
+    ac.forcesave = false;
+}
 
 
 unsigned int timal::calculate()
@@ -826,18 +1307,91 @@ void hardware::system_check()
         {
                 string input = "";
                 string path = "/sys/class/thermal/";
-                path += cfg_battname;
+                path += cfg_thername;
                 path += "/temp";
                 input = get_file (&path[0]);
                 if (input == "");
-                        //info << "searching for custom battery path - failed\n";
+                        //info << "searching for custom thermal sensor path - failed\n";
                 else
                 {
                         final_temp_solution = 2;
                         final_path_temp = path;
-                        info << "searching for custom battery path - success\n";
+                        info << "searching for custom thermal sensor path - success\n";
                 }
         }
+
+
+
+        for (int i = 0; i < 10; i++)
+        {
+                string input = "";
+                string path = "/sys/devices/platform/coretemp.";
+                path += i+48;
+                path += "/temp1_input";
+                input = get_file (&path[0]);
+                if (input == "");
+                        //info << "sys(thermal_zone" << i << ") - failed\n";
+                else
+                {
+                        cores_paths.clear();
+                        final_temp_solution = 3;
+                        final_path_temp = "/sys/devices/platform/coretemp.";
+                        final_path_temp += i+48;
+                        info << "thermal sensor for cpu: " << i+1 << " found on: " << final_path_temp << "\n";
+                        final_path_temp += "/temp";
+                        for (int j = 2; j < 129; j++)
+                        {
+                            string corepath = final_path_temp;
+                            corepath += j+48;
+                            corepath += "_input";
+                            input = get_file (&corepath[0]);
+                            if (input == "");
+                                    //info << "sys(thermal_zone" << i << ") - failed\n";
+                            else
+                            {
+                                info << "core " << j-1 << "thermal sensor found on: " << corepath << "\n";
+                                cores_paths.push_back(corepath);
+                            }
+                        }
+                        final_path_temp += "1_input";
+                }
+        }
+        if (special_thername)
+        {
+                string input = "";
+                string path = "/sys/devices/platform/";
+                path += cfg_thername;
+                path += "/temp1_input";
+                input = get_file (&path[0]);
+                if (input == "");
+                        //info << "searching for custom thermal sensor path - failed\n";
+                else
+                {
+                        cores_paths.clear();
+                        final_temp_solution = 3;
+                        final_path_temp = "/sys/devices/platform/";
+                        final_path_temp += cfg_thername;
+                        info << "thermal sensor for custom cpu found on: " << final_path_temp << "\n";
+                        final_path_temp += "/temp";
+                        for (int j = 2; j < 129; j++)
+                        {
+                            string corepath = final_path_temp;
+                            corepath += j+48;
+                            corepath += "_input";
+                            input = get_file (&corepath[0]);
+                            if (input == "");
+                                    //info << "sys(thermal_zone" << i << ") - failed\n";
+                            else
+                            {
+                                info << "core " << j-1 << "thermal sensor found on: " << corepath << "\n";
+                                cores_paths.push_back(corepath);
+                            }
+                        }
+                        final_path_temp += "1_input";
+                }
+        }
+
+
         if (final_temp_solution == 0)
             warning << "No thermal sensors found!\n";
 
@@ -859,6 +1413,10 @@ void hardware::system_check()
         case 2:
             src_temp = &hardware::sys_temp;
             info << "thermal sensor: sys\n";
+            break;
+        case 3:
+            src_temp = &hardware::sensors_temp;
+            info << "thermal sensor: lm-sensors\n";
             break;
         }
 
@@ -889,4 +1447,10 @@ void hardware::system_check()
                 }
             }
 
+}
+
+
+double hardware::equalize(double min, double max, double input, double degree)
+{
+    return pow(input-min, degree)*((max-min)/pow((max-min), degree))+min;
 }
