@@ -50,7 +50,6 @@ extern const char *verstr;
 #include <QElapsedTimer>
 #include <QApplication>
 #include <QDesktopWidget>
-#include <libconfig.h++>
 #include <ostream>
 
 #include "defines.hxx"
@@ -73,7 +72,6 @@ extern int  eye_swL,
             eyes_h;
 extern bool images_ready;
 
-using namespace libconfig;
 using namespace std;
 
 class eyes_clapper;

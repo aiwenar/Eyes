@@ -22,11 +22,8 @@
 #include <QSystemTrayIcon>
 #include <QStringList>
 #include <QMenu>
-#include <libconfig.h++>
 #include "eyes.hxx"
 #include "eyes_menu.hh"
-
-using namespace libconfig;
 
 /**
  * Main window.

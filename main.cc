@@ -26,7 +26,6 @@
 #include "eyes.hxx"
 
 using namespace std;
-using namespace libconfig;
 
 static const char help [] = {
   "usage: eyes [ARGUMENT [OPTION]]\n\n"
