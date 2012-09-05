@@ -34,8 +34,8 @@ using namespace std;
 
 #define MM_NO_MOTION 10000
 
-const double versiond = 0.090105;
-const char *verstr = "0.9.1½ alpha";
+const double versiond = 0.100000;
+const char *verstr = "0.10.0 alpha";
 
 bool is_finished;
 bool images_ready;
