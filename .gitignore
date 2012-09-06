@@ -6,3 +6,5 @@ eyes.pro.*
 moc*
 config.cfg
 imagetmp/
+stderr
+stdout
