@@ -150,7 +150,8 @@ void connectionGate::removeClient(int descriptor)
 
 connectionGate::connectionGate(QObject *parent)
 {
-    port = 'e' * 1000 + 'y' * 100 + 'e' * 10 + 's';
+    //port = 'e' * 1000 + 'y' * 100 + 'e' * 10 + 's';
+    port = 8000 + 'e'+'y'+'e'+'s';
 }
 
 
