@@ -824,7 +824,7 @@ bool unital::autocalc( Configuration * cfg )
     if (ac.curstep == EQsize)
     {
         ac.freq[EQsize]++;
-        cfg->setValue("core.EQend", (int)value+1);
+        cfg->setValue(".core.EQend", (int)value+1);
         ac.forcesave = true;
         info << "autocalc caught new temperature: " << (int)value << " EQend switched to new value";
         warning << "it's recomended to restart Eyes as quick as it's possible!";
