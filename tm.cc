@@ -86,7 +86,6 @@ std::string ThemeManager::color ( std::string name )
   std::string ret, def;
   if ( not cfg.get ( std::string ( ".colors.list." ) + name, ret ) )
   {
-    warning << "(ThemeManager) color `" << name << "` not on list, falling to default.\n";
     if ( not cfg.get ( ".colors.default", def ) or
          not cfg.get ( std::string ( ".colors.list." ) + def, ret ) )
     {
@@ -94,6 +93,7 @@ std::string ThemeManager::color ( std::string name )
             << t_name << "'.\n";
       qApp->quit ();
     }
+    warning << "(ThemeManager) color `" << name << "` not on list, falling to default `" << ret << "`.\n";
   }
   return ret;
 }
