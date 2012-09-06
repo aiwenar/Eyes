@@ -171,9 +171,8 @@ void eyes_view::load ( QString folder, QString alt, const char * suffix, const _
         no_file = true;
         delete file;
         file = new QPixmap ( 1, 1 );
-        QPainter paint ( file );
         QColor transparent ( 0, 0, 0, 0 );
-        paint.fillRect( 0, 0, 1, 1, transparent );
+        file->fill ( transparent );
         //break;
       }
       else
