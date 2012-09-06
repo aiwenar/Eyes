@@ -666,7 +666,7 @@ bool percental::ac_save(Configuration *cfg)
     {
         stringstream ss;
         ss << i;
-        cfg->setValue ( &("core." + ac.name + ".EQ"+ss.str())[0], (int)ac.virtualEQ[i] );
+        cfg->setValue ( &(".core." + ac.name + ".EQ"+ss.str())[0], (int)ac.virtualEQ[i] );
         EQ[i] = (int)ac.virtualEQ[i];
         ac.freq[i]/=2.0;
     }
@@ -809,7 +809,7 @@ bool unital::autocalc( Configuration * cfg )
     if (value < EQbegin)
     {
         ac.freq[0]++;
-        cfg->setValue("core.EQbegin", (int)value-1);
+        cfg->setValue(".core.EQbegin", (int)value-1);
         ac.forcesave = true;
         info << "autocalc caught new temperature: " << (int)value << " EQbegin switched to new value";
         warning << "it's recomended to restart Eyes as quick as it's possible!";
@@ -968,7 +968,7 @@ bool unital::ac_save(Configuration *cfg)
     {
         stringstream ss;
         ss << i;
-        cfg->setValue ( &("core." + ac.name + ".EQ"+ss.str())[0], (int)ac.virtualEQ[i] );
+        cfg->setValue ( &(".core." + ac.name + ".EQ"+ss.str())[0], (int)ac.virtualEQ[i] );
         EQ[i] = (int)ac.virtualEQ[i];
         ac.freq[i]/=2.0;
     }
