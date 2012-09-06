@@ -19,6 +19,7 @@
 #include <QApplication>
 #include "window.hxx"
 #include "eyes.hxx"
+#include "tm.hh"
 #include <debug.hxx>
 
 using namespace std;
@@ -27,9 +28,12 @@ eyes_window::eyes_window ( QWidget * parent ) : QWidget ( parent, Qt::WindowStay
 {
     info << "(window) preparing...\n";
     Configuration * cfg = Configuration::getInstance ();
-    double size_multiplier = cfg->lookupValue ( ".ui.window.size_percentage", 100 )/100.0;
-    eyes_w = cfg->lookupValue ( ".ui.window.reference_width", 320 ) * size_multiplier;
-    eyes_h = cfg->lookupValue ( ".ui.window.reference_height", 80 ) * size_multiplier;
+    ThemeManager * tm = ThemeManager::instance ();
+    const char * theme = cfg->lookupValue ( ".ui.theme", "default" );
+    tm->load ( theme );
+    double size_multiplier = tm->lookupValue ( ".ui.window.size_percentage", 100 )/100.0;
+    eyes_w = tm->lookupValue ( ".ui.window.reference_width", 320 ) * size_multiplier;
+    eyes_h = tm->lookupValue ( ".ui.window.reference_height", 80 ) * size_multiplier;
     isicon = cfg->lookupValue ( ".ui.window.tray_icon", true );
     resize ( eyes_w, eyes_h );
     setWindowTitle ( "!eyesy!" );
