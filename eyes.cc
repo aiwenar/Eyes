@@ -74,12 +74,12 @@ eyes_view::eyes_view ( QWidget * parent,/* QString ncolor, */double size_m )
     eye_mhR = tm->lookupValue ( ".ui.eyeR.mirror_size_Y",       eye_mhL         )*size_multiplier;
     epx1    = tm->lookupValue ( ".ui.eyeL.posX",                46              )*size_multiplier; //.14375; //46;
     epx2    = tm->lookupValue ( ".ui.eyeR.posX",                223             )*size_multiplier; //.665625; //213;
-    mpx1    = tm->lookupValue ( ".ui.eyeL.mirror_posX",         83              )*size_multiplier;//.259375;
-    mpx2    = tm->lookupValue ( ".ui.eyeR.mirror_posX",         (int)(mpx1+(epx2-epx1)) )*size_multiplier;//.7875; //252;
+    mpx1    = tm->lookupValue ( ".ui.eyeL.mirror_pos_X",        83              )*size_multiplier;//.259375;
+    mpx2    = tm->lookupValue ( ".ui.eyeR.mirror_pos_X",        (int)(mpx1+(epx2-epx1)) )*size_multiplier;//.7875; //252;
     epy1    = tm->lookupValue ( ".ui.eyeL.posY",                10              )*size_multiplier;//.125; //10;
     epy2    = tm->lookupValue ( ".ui.eyeR.posY",                epy1            )*size_multiplier;//.125; //10;
-    mpy1    = tm->lookupValue ( ".ui.eyeL.mirror_posY",         (double)24      )*size_multiplier;//.3; //24;
-    mpy2    = tm->lookupValue ( ".ui.eyeR.mirror_posY",         mpy1            )*size_multiplier;//.3; //24;
+    mpy1    = tm->lookupValue ( ".ui.eyeL.mirror_pos_Y",        (double)24      )*size_multiplier;//.3; //24;
+    mpy2    = tm->lookupValue ( ".ui.eyeR.mirror_pos_Y",        mpy1            )*size_multiplier;//.3; //24;
     color   = tm->color       ( scolor.c_str () ).c_str ();
     dual_eyes = ThemeManager::instance ()->dual ();
     is_finished = false;

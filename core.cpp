@@ -800,11 +800,11 @@ void bul::critical_services( Configuration * cfg )
             if (ccap.activate_screensaver)
             {
                 if (rtctrl.scrnsav_X)
-                    rtctrl.shell("xscreensaver-command -activate > /dev/null");
+                    rtctrl.shell("xscreensaver-command -activate >/dev/null 2>/dev/null");
                 if (rtctrl.scrnsav_gnome)
-                    rtctrl.shell("gnome-screensaver-command -a > /dev/null");
+                    rtctrl.shell("gnome-screensaver-command -a >/dev/null 2>/dev/null");
                 if (rtctrl.scrnsav_kde)
-                    rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:true > /dev/null");
+                    rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:true > /dev/null 2>/dev/null");
                 if (rtctrl.scrnsav_mac);
                     rtctrl.shell("open /System/Library/Frameworks/ScreenSaver.framework/Resources/ScreenSaverEngine.app > /dev/null 2>/dev/null");
                     //defaults -currentHost write com.apple.screensaver idleTime 180

@@ -22,14 +22,12 @@
 #include <QObject>
 #include <vector>
 #include <QTimer>
-#include <libconfig.h++>
 #include <QProcess>
 #include <fstream>
 
 #include "eyes.hxx"
 
 using namespace std;
-using namespace libconfig;
 
 
 
