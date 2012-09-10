@@ -102,7 +102,6 @@ public:
     };
     QString             theme;
     double              size_multiplier;
-    connectionGate    * con;
 
     /**
      * Construct eyes_view with color \p color.
@@ -133,7 +132,7 @@ public:
     void                graphics_prepare    ();
     void                anims_reload        ();
     void                setFlag             ( eyes_flag flag, bool value );
-    void                look_at             ( int px, int py, pair<int, int> operationsarea );
+    void                look_at             ( int px, int py, pair<int, int> operationsarea, int looktime );
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
     /// @return position x of left eye.
@@ -259,7 +258,7 @@ public:
      */
             eyes_looker ( eyes_view * eyes );
     void    run       ();
-    void    interrupt ( int x, int y );
+    void    interrupt ( int x, int y, int looktime );
 public slots:
     /// Called on timer tick, ...?.
     void    look ();
@@ -300,6 +299,7 @@ public:
     bool            core_only_mode,
                     cdbg_enabled,
                     hdbg_enabled;
+    connectionGate * con;
 
     QString face_prev;
 

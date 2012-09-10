@@ -241,9 +241,6 @@ public:
                     faceImageDropDelay,
                     newFaceOverdetectSkipSamples,
                     prevNewFace,
-                    newFaceLookAtTimeMin,
-                    newFaceLookAtTimeMax,
-                    newFaceLookAtRemained,
                     maxFacesPerImg;
     int **          hungarianInput;
 
@@ -260,7 +257,12 @@ public:
                     minSizeMatch,
                     faceRecognisePrecision,
                     faceRecognizerTreshold,
-                    faceTrackMaxDist;
+                    faceTrackMaxDist,
+                    lookAtMotionTimeMin,
+                    lookAtMotionTimeMax,
+                    newFaceLookAtTimeMin,
+                    newFaceLookAtTimeMax,
+                    newFaceLookAtCurrent;
 
     pair<int, int>  motionpos,
                     operationsarea,
@@ -268,7 +270,8 @@ public:
 
     QElapsedTimer   fps_adaptation_timer,
                     deactivetimer,
-                    detectionTimer;
+                    detectionTimer,
+                    newFaceLookAtTimer;
 
     environment     env;
     funsys          fun;

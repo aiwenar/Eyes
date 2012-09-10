@@ -1140,16 +1140,16 @@ void camcapture::faceprocessing(IplImage *source)
         if (faceimg.size() != 0)
         {
             if (sleep)
-                newFaceLookAtRemained = 0;
+                newFaceLookAtTimer.invalidate();
             if (faceRectsPrev.size() == 0)
             {
-                newFaceLookAtRemained = newFaceLookAtTimeMin + (rand() % (newFaceLookAtTimeMax - newFaceLookAtTimeMin));
+                newFaceLookAtCurrent = newFaceLookAtTimeMin*1000.0 + (rand() % (int)(newFaceLookAtTimeMax*1000.0 - newFaceLookAtTimeMin*1000.0));
+                newFaceLookAtTimer.start();
                 newFace.ST = 0;
             }
-            else if (newFaceLookAtRemained > 0)
+            else if (newFaceLookAtTimer.elapsed() > newFaceLookAtCurrent)
             {
                 newFace.ST = 0;
-                newFaceLookAtRemained--;
             }
         }
 
@@ -1886,6 +1886,8 @@ camthread::camthread( eyes_view * neyes )
     ccap.minsleepdelay              = cfg->lookupValue ( ".cam.system.min_sleepfps_delay",             150 );
     ccap.operationsarea.ST          = cfg->lookupValue ( ".cam.user.view_area_percentage_X",            80 );
     ccap.operationsarea.ND          = cfg->lookupValue ( ".cam.user.view_area_percentage_Y",            60 );
+    ccap.lookAtMotionTimeMin        = cfg->lookupValue ( ".cam.user.look_at_motion_time_min",          3.0 );
+    ccap.lookAtMotionTimeMax        = cfg->lookupValue ( ".cam.user.look_at_motion_time_max",         10.0 );
     ccap.debug                      = cfg->lookupValue ( ".cam.system.showdebug",                    false );
     ccap.env.max_tolerance          = cfg->lookupValue ( ".cam.system.env_max_tolerance",               30 );
     ccap.env.min_tolerance          = cfg->lookupValue ( ".cam.system.env_min_tolerance",                5 );
@@ -1906,11 +1908,13 @@ camthread::camthread( eyes_view * neyes )
     ccap.faceDetectDelay            = cfg->lookupValue ( ".cam.system.face_detect_delay",             2500 );
     ccap.faceDetectSleepDelay       = cfg->lookupValue ( ".cam.system.face_detect_sleep_delay",      15000 );
     ccap.presenceBufferSize         = cfg->lookupValue ( ".cam.system.face_detect_presence_buffer_size",10 );
+    ccap.newFaceLookAtTimeMin       = cfg->lookupValue ( ".cam.system.new_face_look_at_time_min",      6.0 );
+    ccap.newFaceLookAtTimeMax       = cfg->lookupValue ( ".cam.system.new_face_look_at_time_max",     16.0 );
     ccap.deactivate_screensaver     = cfg->lookupValue ( ".cam.system.screensaver_deactivate",        true );
     ccap.turnoff_screen             = cfg->lookupValue ( ".cam.system.screensaver_turn_off_screen",  false );
     ccap.activate_screensaver       = cfg->lookupValue ( ".cam.system.screensaver_activate",         false );
-    ccap.newFaceLookAtTimeMin       = cfg->lookupValue ( ".cam.system.new_face_look_at_min_time",        2 );
-    ccap.newFaceLookAtTimeMax       = cfg->lookupValue ( ".cam.system.new_face_look_at_max_time",        6 );
+    ccap.newFaceLookAtTimeMin       = cfg->lookupValue ( ".cam.system.new_face_look_at_min_time",      2.0 );
+    ccap.newFaceLookAtTimeMax       = cfg->lookupValue ( ".cam.system.new_face_look_at_max_time",      6.0 );
     ccap.cascadesPath               = cfg->lookupValue ( ".cam.system.face_cascades_dir", "/usr/share/OpenCV/haarcascades/");
     int * cascadesnum = new int;
     *cascadesnum                    = cfg->lookupValue ( ".cam.system.face_cascades_number",             4 );
@@ -2057,10 +2061,10 @@ void camthread::tick()
 
             ccap.motionpos.ST = 100-(100* ccap.motionpos.ST)/(ccap.motionpicsSize.width);
             ccap.motionpos.ND = (100* ccap.motionpos.ND)/(ccap.motionpicsSize.height);
-            eyes->look_at(ccap.motionpos.ST, ccap.motionpos.ND, ccap.operationsarea);
+            eyes->look_at(ccap.motionpos.ST, ccap.motionpos.ND, ccap.operationsarea, (ccap.lookAtMotionTimeMin*1000.0 + (rand() % (int)(1000.0*(ccap.lookAtMotionTimeMax - ccap.lookAtMotionTimeMin)))));
         }
         else if (ccap.newFace.first != -1)
-            eyes->look_at(ccap.newFace.ST, ccap.newFace.ND, ccap.operationsarea);
+            eyes->look_at(ccap.newFace.ST, ccap.newFace.ND, ccap.operationsarea, ccap.faceDetectDelay*2);
         ccap.optimize(speedmeter.elapsed());
         if (!ccap.sleep)
             timer->setInterval ( ccap.delay );

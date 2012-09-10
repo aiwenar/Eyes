@@ -99,7 +99,6 @@ eyes_view::eyes_view ( QWidget * parent,/* QString ncolor, */double size_m )
     open_images ( color.toStdString ().c_str () );
     set_layer ( SLEEPY, "tired_03" );
     toggle_layer ( SLEEPY, true );
-    con = new connectionGate();
     core->load_config ();
     area = new QPixmap ( eyes_w, eyes_h );
     screensize.first = QApplication::desktop()->width();
@@ -108,7 +107,6 @@ eyes_view::eyes_view ( QWidget * parent,/* QString ncolor, */double size_m )
     looker->run ();
     camt->start(QThread::IdlePriority);
     core->run ();
-    con->startServer();
 }
 
 eyes_view::~eyes_view ()
@@ -340,7 +338,7 @@ void eyes_view::toggle_layer ( Layers layer, bool onoff )
     layers[layer].drawable = onoff;
 }
 
-void eyes_view::look_at ( int px, int py, pair<int, int> operationsarea )
+void eyes_view::look_at ( int px, int py, pair<int, int> operationsarea, int looktime )
 {
   int winx, winy, percL, percR, percU, percD, totX, totY;
   winx = mapToGlobal(pos()).x() + frameGeometry().width()/2;
@@ -358,7 +356,7 @@ void eyes_view::look_at ( int px, int py, pair<int, int> operationsarea )
   totX = 100-percL + px*(operationsarea.first)/100;
   totY = 100-percU + py*(operationsarea.second)/100;
 
-  looker->interrupt ( totX, totY );
+  looker->interrupt ( totX, totY, looktime );
 }
 
 int eyes_view::heightForWidth ( int w ) const
