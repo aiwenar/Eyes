@@ -60,8 +60,6 @@ eyes_view::eyes_view ( QWidget * parent,/* QString ncolor, */double size_m )
     info << "(eyes) loading config...\n";
     Configuration * cfg = Configuration::getInstance ();
     ThemeManager * tm = ThemeManager::instance ();
-    theme = cfg->lookupValue ( ".ui.theme", "default" );
-    tm->load ( theme.toStdString () );
     string scolor;
     scolor  =cfg->lookupValue ( ".ui.color",                    "green"         );
     eye_swL = tm->lookupValue ( ".ui.eyeL.size_X",              60              )*size_multiplier;
