@@ -1329,8 +1329,17 @@ void hardware::system_check()
                 path += i+48;
                 path += "/temp1_input";
                 input = get_file (&path[0]);
-                if (input == "");
-                        //info << "sys(thermal_zone" << i << ") - failed\n";
+                if (input == "")
+                {
+                    path = "/sys/devices/platform/coretemp.";
+                    path += i+48;
+                    path += "/temp2_input";
+                    input = get_file (&path[0]);
+                    if (input == "");
+                    else
+                        info << "no average temperature for all cores found...\n";
+                    //info << "sys(thermal_zone" << i << ") - failed\n";
+                }
                 else
                 {
                         cores_paths.clear();
