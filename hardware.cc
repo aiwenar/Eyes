@@ -1337,9 +1337,10 @@ void hardware::system_check()
                     input = get_file (&path[0]);
                     if (input == "");
                     else
-                        info << "no average temperature for all cores found...\n";
-                    //info << "sys(thermal_zone" << i << ") - failed\n";
+                        info << "no average temperature - using data for each core\n";
                 }
+                if (input == "");
+                    //info << "sys(thermal_zone" << i << ") - failed\n";
                 else
                 {
                         cores_paths.clear();
@@ -1372,6 +1373,16 @@ void hardware::system_check()
                 path += cfg_thername;
                 path += "/temp1_input";
                 input = get_file (&path[0]);
+                if (input == "")
+                {
+                    path = "/sys/devices/platform/";
+                    path += cfg_thername;
+                    path += "/temp2_input";
+                    input = get_file (&path[0]);
+                    if (input == "");
+                    else
+                        info << "no average temperature - using data for each core\n";
+                }
                 if (input == "");
                         //info << "searching for custom thermal sensor path - failed\n";
                 else
