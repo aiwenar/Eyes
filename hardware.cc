@@ -28,6 +28,7 @@
 #include "core.hxx"
 #include "hardware.hxx"
 #include "debug.hxx"
+#include <QDir>
 
 hardware        HRDWR;
 sdate           get_time    ();
@@ -211,29 +212,18 @@ unsigned int hardware::sys_backlight_full (string path)
 
 unsigned short hardware::sensors_temp (string path)
 {
-    if (cores_paths.size()==0)
+    unsigned short highest = 0;
+    for (int i = 0; i<cores_paths.size();i++)
     {
-        string input = get_file(&path[0]);
+        string input = get_file(&(cores_paths[i])[0]);
         string temp = "";
         for (int i = 0; i<input.size()-2; i++)
                 temp+=input[i];
-        return atoi (&temp[0])/1000;
+        unsigned short int_temp = atoi (&temp[0])/1000;
+        if (int_temp > highest)
+            highest = int_temp;
     }
-    else
-    {
-        unsigned short highest = 0;
-        for (int i = 0; i<cores_paths.size();i++)
-        {
-            string input = get_file(&(cores_paths[i])[0]);
-            string temp = "";
-            for (int i = 0; i<input.size()-2; i++)
-                    temp+=input[i];
-            unsigned short int_temp = atoi (&temp[0])/1000;
-            if (int_temp > highest)
-                highest = int_temp;
-        }
-        return highest;
-    }
+    return highest;
 }
 
 double hardware::C_LOAD ()
@@ -1057,11 +1047,28 @@ void hardware::system_check()
         final_temp_solution = 0;
         screen_support = 0;
 
-        for (int i = 0; i < 10; i++)
+        QDir * cDir;
+        cDir = new QDir("/proc/acpi/battery");
+        QStringList dirs = cDir->entryList();
+        delete (cDir);
+        for (int i = 0; i < dirs.size(); i++)
+        {
+            if (!dirs[i].contains("BAT"))
+            {
+                dirs.erase(dirs.begin() + i);
+                i--;
+            }
+        }
+        //for (int i = 0; i < dirs.size(); i++)
+        //{
+        //    cerr << dirs[i].toStdString() << "\n";
+        //}
+
+        for (int i = 0; i < dirs.size(); i++)
         {
                 string input = "";
-                string path = "/proc/acpi/battery/BAT";
-                path += i+48;
+                string path = "/proc/acpi/battery/";
+                path += dirs[i].toStdString();
                 path += "/state";
                 input = get_file (&path[0]);
                 if (input == "");
@@ -1071,8 +1078,8 @@ void hardware::system_check()
                         final_now_solution = 1;
                         final_state_solution = 1;
                         final_path_now = path;
-                        final_path_full = "/proc/acpi/battery/BAT";
-                        final_path_full += i+48;
+                        final_path_full = "/proc/acpi/battery/";
+                        final_path_full += dirs[i].toStdString();
                         final_path_full += "/info";
                         info << "battery found on: " << path << "\n";
                         break;
@@ -1122,11 +1129,27 @@ void hardware::system_check()
         */
 
 
-        for (int i = 0; i < 10; i++)
+        cDir = new QDir("/sys/class/power_supply");
+        dirs = cDir->entryList();
+        delete (cDir);
+        for (int i = 0; i < dirs.size(); i++)
+        {
+            if (!dirs[i].contains("BAT"))
+            {
+                dirs.erase(dirs.begin() + i);
+                i--;
+            }
+        }
+        //for (int i = 0; i < dirs.size(); i++)
+        //{
+        //    cerr << dirs[i].toStdString() << "\n";
+        //}
+
+        for (int i = 0; i < dirs.size(); i++)
         {
                 string input = "";
-                string path = "/sys/class/power_supply/BAT";
-                path += i+48;
+                string path = "/sys/class/power_supply/";
+                path += dirs[i].toStdString();
                 path += "/charge_now";
                 input = get_file (&path[0]);
                 if (input == "");
@@ -1135,11 +1158,11 @@ void hardware::system_check()
                 {
                         final_now_solution = 2;
                         final_path_now = path;
-                        final_path_full = "/sys/class/power_supply/BAT";
-                        final_path_full += i+48;
+                        final_path_full = "/sys/class/power_supply/";
+                        final_path_full += dirs[i].toStdString();
                         final_path_full += "/charge_full";
-                        final_path_state = "/sys/class/power_supply/BAT";
-                        final_path_state += i+48;
+                        final_path_state = "/sys/class/power_supply/";
+                        final_path_state += dirs[i].toStdString();
                         final_path_state += "/status";
                         info << "battery found on: " << path << "\n";
                         break;
@@ -1247,11 +1270,27 @@ void hardware::system_check()
             break;
         }
 
-        for (int i = 0; i < 10; i++)
+        cDir = new QDir("/sys/class/power_supply");
+        dirs = cDir->entryList();
+        delete (cDir);
+        for (int i = 0; i < dirs.size(); i++)
+        {
+            if (!dirs[i].contains("TZ"))
+            {
+                dirs.erase(dirs.begin() + i);
+                i--;
+            }
+        }
+        //for (int i = 0; i < dirs.size(); i++)
+        //{
+        //    cerr << dirs[i].toStdString() << "\n";
+        //}
+
+        for (int i = 0; i < dirs.size(); i++)
         {
                 string input = "";
-                string path = "/proc/acpi/thermal_zone/TZ0";
-                path += i+48;
+                string path = "/proc/acpi/thermal_zone/";
+                path += dirs[i].toStdString();
                 path += "/temperature";
                 input = get_file (&path[0]);
                 if (input == "");
@@ -1286,11 +1325,27 @@ void hardware::system_check()
                 cout << proc_temp (get_file (&final_path_temp[0])) << "\n";
         */
 
-        for (int i = 0; i < 10; i++)
+        cDir = new QDir("/sys/class/thermal");
+        dirs = cDir->entryList();
+        delete (cDir);
+        for (int i = 0; i < dirs.size(); i++)
+        {
+            if (!dirs[i].contains("thermal_zone"))
+            {
+                dirs.erase(dirs.begin() + i);
+                i--;
+            }
+        }
+        //for (int i = 0; i < dirs.size(); i++)
+        //{
+        //    cerr << dirs[i].toStdString() << "\n";
+        //}
+
+        for (int i = 0; i < dirs.size(); i++)
         {
                 string input = "";
-                string path = "/sys/class/thermal/thermal_zone";
-                path += i+48;
+                string path = "/sys/class/thermal/";
+                path += dirs[i].toStdString();
                 path += "/temp";
                 input = get_file (&path[0]);
                 if (input == "");
@@ -1321,93 +1376,119 @@ void hardware::system_check()
         }
 
 
+        cDir = new QDir("/sys/devices/platform");
+        dirs = cDir->entryList();
+        delete (cDir);
+        for (int i = 0; i < dirs.size(); i++)
+        {
+            if (!dirs[i].contains("coretemp"))
+            {
+                dirs.erase(dirs.begin() + i);
+                i--;
+            }
+        }
+        //for (int i = 0; i < dirs.size(); i++)
+        //{
+        //    cerr << dirs[i].toStdString() << "\n";
+        //}
 
-        for (int i = 0; i < 10; i++)
+
+        for (int i = 0; i < dirs.size(); i++)
         {
                 string input = "";
-                string path = "/sys/devices/platform/coretemp.";
-                path += i+48;
-                path += "/temp1_input";
-                input = get_file (&path[0]);
-                if (input == "")
+                string path = "/sys/devices/platform/";
+                path += dirs[i].toStdString();
+
+                cDir = new QDir(&path[0]);
+                QStringList sdirs = cDir->entryList();
+                delete (cDir);
+                for (int j = 0; j < sdirs.size(); j++)
                 {
-                    path = "/sys/devices/platform/coretemp.";
-                    path += i+48;
-                    path += "/temp2_input";
+                    if (!sdirs[j].contains("input"))
+                    {
+                        sdirs.erase(sdirs.begin() + j);
+                        j--;
+                    }
+                }
+                //for (int j = 0; j < sdirs.size(); j++)
+                //{
+                //    cerr << sdirs[j].toStdString() << "\n";
+                //}
+
+                if (dirs.size() > 1)
+                    cerr << "multi cpu detected\n";
+                if (sdirs.size() > 1)
+                    cerr << "multi cores detected\n";
+
+                for (int j = 0; j < sdirs.size(); j++)
+                {
+                    cores_paths.clear();
+                    string tmp = path;
+                    tmp += "/";
+                    tmp += sdirs[j].toStdString();
                     input = get_file (&path[0]);
                     if (input == "");
                     else
-                        info << "no average temperature - using data for each core\n";
-                }
-                if (input == "");
-                    //info << "sys(thermal_zone" << i << ") - failed\n";
-                else
-                {
-                        cores_paths.clear();
-                        final_temp_solution = 3;
-                        final_path_temp = "/sys/devices/platform/coretemp.";
-                        final_path_temp += i+48;
-                        info << "thermal sensor for cpu: " << i+1 << " found on: " << final_path_temp << "\n";
-                        final_path_temp += "/temp";
-                        for (int j = 2; j < 129; j++)
-                        {
-                            string corepath = final_path_temp;
-                            corepath += j+48;
-                            corepath += "_input";
-                            input = get_file (&corepath[0]);
-                            if (input == "");
-                                    //info << "sys(thermal_zone" << i << ") - failed\n";
-                            else
-                            {
-                                info << "core " << j-1 << "thermal sensor found on: " << corepath << "\n";
-                                cores_paths.push_back(corepath);
-                            }
-                        }
-                        final_path_temp += "1_input";
+                    {
+                            final_temp_solution = 3;
+                            final_path_temp = "/sys/devices/platform/";
+                            final_path_temp += sdirs[j].toStdString();
+                            info << "thermal sensor for cpu: " << i+1 << " found on: " << final_path_temp << "\n";
+                            cores_paths.push_back(tmp);
+                    }
+
                 }
         }
         if (special_thername)
         {
                 string input = "";
                 string path = "/sys/devices/platform/";
-                path += cfg_thername;
-                path += "/temp1_input";
-                input = get_file (&path[0]);
-                if (input == "")
+                QStringList cuspaths = QString (&cfg_thername[0]).split("|");
+                if (cuspaths.size() < 2 && final_temp_solution == 0)
                 {
-                    path = "/sys/devices/platform/";
-                    path += cfg_thername;
-                    path += "/temp2_input";
-                    input = get_file (&path[0]);
-                    if (input == "");
-                    else
-                        info << "no average temperature - using data for each core\n";
+                    cerr << "wrong custom path - please give \"cpu\|core\" notation: eg. \"coretemp\.0\|temp2_input\" for lm-sensors - will exit now...\n";
+                    exit(1);
                 }
-                if (input == "");
-                        //info << "searching for custom thermal sensor path - failed\n";
+                else if (cuspaths.size() < 2);
                 else
                 {
-                        cores_paths.clear();
+                    path += cuspaths[0].toStdString();
+                    cores_paths.clear();
+                    cDir = new QDir(&path[0]);
+                    dirs = cDir->entryList();
+                    delete (cDir);
+                    for (int i = 0; i < dirs.size(); i++)
+                    {
+                        if (!dirs[i].contains(&cuspaths[1].toStdString()[0]))
+                        {
+                            dirs.erase(dirs.begin() + i);
+                            i--;
+                        }
+                    }
+                    //for (int i = 0; i < dirs.size(); i++)
+                    //{
+                    //    cerr << dirs[i].toStdString() << "\n";
+                    //}
+                    if (dirs.size() > 0)
+                    {
                         final_temp_solution = 3;
                         final_path_temp = "/sys/devices/platform/";
-                        final_path_temp += cfg_thername;
+                        final_path_temp += cuspaths[0].toStdString();
                         info << "thermal sensor for custom cpu found on: " << final_path_temp << "\n";
-                        final_path_temp += "/temp";
-                        for (int j = 2; j < 129; j++)
+                    }
+                    for (int j = 0; j < dirs.size(); j++)
+                    {
+                        string corepath = final_path_temp;
+                        corepath += dirs[j].toStdString();
+                        input = get_file (&corepath[0]);
+                        if (input == "");
+                                //info << "sys(thermal_zone" << i << ") - failed\n";
+                        else
                         {
-                            string corepath = final_path_temp;
-                            corepath += j+48;
-                            corepath += "_input";
-                            input = get_file (&corepath[0]);
-                            if (input == "");
-                                    //info << "sys(thermal_zone" << i << ") - failed\n";
-                            else
-                            {
-                                info << "core " << j-1 << "thermal sensor found on: " << corepath << "\n";
-                                cores_paths.push_back(corepath);
-                            }
+                            info << "core " << j-1 << "thermal sensor found on: " << corepath << "\n";
+                            cores_paths.push_back(corepath);
                         }
-                        final_path_temp += "1_input";
+                    }
                 }
         }
 
@@ -1445,8 +1526,40 @@ void hardware::system_check()
             path += backlight_path;
             path += "/brightness";
             input = get_file (&path[0]);
+            if (input == "")
+            {
+                cDir = new QDir("/sys/class/backlight/");
+                QStringList dirs = cDir->entryList();
+                delete (cDir);
+
+                int biggest_index = -1;
+                int biggest_range = 0;
+                for (int i = 0; i < dirs.size(); i++)
+                {
+                    input = get_file (&("/sys/class/backlight/" + dirs[i].toStdString() + "/max_brightness")[0]);
+                    if (input != "")
+                    {
+                        if (atoi(&input[0]) > biggest_range)
+                        {
+                            biggest_index = i;
+                            biggest_range = atoi(&input[0]);
+                        }
+                    }
+                    //cerr << dirs[i].toStdString() << "\n";
+                }
+                if (biggest_index == -1)
+                    info << "backlight searching failed\n";
+                else
+                {
+                    backlight_path = dirs[biggest_index].toStdString();
+                    path = "/sys/class/backlight/";
+                    path += backlight_path;
+                    path += "/brightness";
+                    input = get_file (&path[0]);
+                    info << "backlight found on: " << path << "\n";
+                }
+            }
             if (input == "");
-                    //info << "searching for backlight path - failed\n";
             else
             {
                 backlight_npath = path;
