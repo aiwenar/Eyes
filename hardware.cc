@@ -1416,9 +1416,9 @@ void hardware::system_check()
                 //}
 
                 if (dirs.size() > 1)
-                    cerr << "multi cpu detected\n";
+                    info << "multi cpu detected\n";
                 if (sdirs.size() > 1)
-                    cerr << "multi cores detected\n";
+                    info << "multi cores detected\n";
 
                 for (int j = 0; j < sdirs.size(); j++)
                 {
@@ -1446,7 +1446,7 @@ void hardware::system_check()
                 QStringList cuspaths = QString (&cfg_thername[0]).split("|");
                 if (cuspaths.size() < 2 && final_temp_solution == 0)
                 {
-                    cerr << "wrong custom path - please give \"cpu\|core\" notation: eg. \"coretemp\.0\|temp2_input\" for lm-sensors - will exit now...\n";
+                    error << "wrong custom path - please give \"cpu\|core\" notation: eg. \"coretemp\.0\|temp2_input\" for lm-sensors - will exit now...\n";
                     exit(1);
                 }
                 else if (cuspaths.size() < 2);

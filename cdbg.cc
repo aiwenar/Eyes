@@ -74,6 +74,9 @@ This is concept debug layout:
 # to:   __:__ | __% (__/__) | fun: __←___ | screen: off | found __ | v | B:__ (__)  -----------| []    []   []   []   []  |
 # rest: __:__ | __fps (↑__) | reload: ___ | maxtemp:__º | ___/___  | S | P:__ (__)  2light:__% | []    []   []   []   []  |
 # saved:__:__ | delay: ____ | forget: ___ | minbatt:__% |   ___    |   | ?:__ (__)  2dark :__% | __%  ___h ___h ___h ___h |
+# ----------------------------|
+# recognition:          stat: |
+# [ 0][ 0][ 0] -> [ 0]  __/__ |
 
     _____________
   _/             \
@@ -353,8 +356,26 @@ cdbg::cdbg ( Core * c ) :
           " from:   :   \033[1C X:    Y:    \033[1C trip/fun:   \033[1C mode:       \033[2Ccasc.   \033[3Cn\033[3C\033[1;37m\033[1;42mG\033[40m\033[37m:   (  )  reload:    \n"
           " to:     :   \033[1C   % (  /  ) \033[1C fun:   ←    \033[1C screen:     \033[2Cfound   \033[3Cv\033[3C\033[1;37m\033[1;44mB\033[40m\033[37m:   (  )  \n"
           " rest:   :   \033[1C   fps (   ) \033[1C reload: ___ \033[1C maxtemp:  º \033[2C   /    \033[3CS\033[3C\033[1;37m\033[1;45mP\033[40m\033[37m:   (  )  2light:  % \n"
-          " saved:  :   \033[1C delay:      \033[1C forget: ___ \033[1C minbatt:  % \033[2C  ___   \033[4C\033[3C\033[1;37m\033[1;40m?\033[40m\033[37m:   (  )  2dark:   % \033[1A\n"
-          "\033[22A";
+          " saved:  :   \033[1C delay:      \033[1C forget: ___ \033[1C minbatt:  % \033[2C  ___   \033[4C\033[3C\033[1;37m\033[1;40m?\033[40m\033[37m:   (  )  2dark:   % \033[1A\n";
+  if (ccap.faceRecognitionEnabled)
+  {
+      cout << "\n";
+      if (ccap.maxRecognitionBufferSize < 4)
+      {
+          cout << " -------------|\n recognition:          stat: |\n\033[3A";
+      }
+      else
+      {
+          cout << " ";
+          for (int i = 0; i < ccap.maxRecognitionBufferSize*4 + 21; i++)
+              cout << "-";
+          cout << "|\n recognition:";
+          for (int i = 0; i < (ccap.maxRecognitionBufferSize-3)*4; i++)
+              cout << " ";
+          cout << "          stat: sav: |\n\033[3A";
+      }
+  }
+      cout << "\033[22A";
   if (autocalc.enabled)
   {
       cout << "\033[" << max_EQ*3 + 85 << "C autocalc  |";
@@ -2137,6 +2158,59 @@ void cdbg::on_timer_tick ()
                   cout << "\033[6B\033[1;33m\033[4C";
               }
           }
+      }
+
+      if (ccap.faceRecognitionEnabled)
+      {
+          static int blabla = 5;
+          if (blabla == 0)
+          {
+              cout << "\033[37m\n\n";
+              static int maxFaces = 0;
+              if ((&ccap.pathRecords)[1].size() > maxFaces)
+                  maxFaces = (&ccap.pathRecords)[1].size();
+              for (int i = 0; i < (&ccap.pathRecords)[1].size(); i++)
+              {
+                  cout << "\n ";
+                  for (int j = 0; j < (&ccap.pathRecords)[1][i].size(); j++)
+                  {
+                      if ((&ccap.pathRecords)[1][i].size() < ccap.maxRecognitionBufferSize)
+                          cout << "\033[1;30m";
+                      else if ((&ccap.pathRecords)[1][i][j] != ccap.avgRecognitions[i])
+                          cout << "\033[1;31m";
+                      else if ((&ccap.pathRecords)[1][i][j] == -1)
+                          cout << "\033[1;33m";
+                      else
+                          cout << "\033[1;32m";
+                      cout << "[";
+                      spacefill((&ccap.pathRecords)[1][i][j],2);
+                      cout << "]";
+                  }
+                  for (int j = 0; j < ccap.maxRecognitionBufferSize - (&ccap.pathRecords)[1][i].size(); j++)
+                      cout << "    ";
+                  cout << "\033[37m -> [\033[1;33m";
+                  spacefill(ccap.avgRecognitions[i], 2);
+                  cout << "\033[37m]  \033[1;33m";
+                  spacefill((&ccap.pathRecords)[1][i].size(),2);
+                  cout << "\033[37m/\033[33m";
+                  spacefill(ccap.maxRecognitionBufferSize, 2);
+                  cout << "  ↓";
+                  spacefill(ccap.faceImageDropDelay - ccap.faceSamples[i],2);
+                  cout << " \033[37m|";
+              }
+              for (int i = 0; i < maxFaces - (&ccap.pathRecords)[1].size(); i++)
+              {
+                  cout << "\n";
+                  for (int j = 0; j < ccap.maxRecognitionBufferSize; j++)
+                      cout << "    ";
+                  cout << "                      |";
+              }
+              for (int i = 0; i < maxFaces; i++)
+                  cout << "\033[1A";
+              cout << "\033[1A\n\033[1;33m\033[2A";
+          }
+          else
+              blabla--;
       }
 
           ////////////////////

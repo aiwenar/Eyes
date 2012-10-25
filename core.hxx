@@ -404,7 +404,8 @@ public:
                                 scrnsav_kde,
                                 scrnsav_gnome,
                                 scrnsav_mac,
-                                scrnsav_custom;
+                                scrnsav_custom,
+                                scrnsav_switched;
     string                      shellname,
                                 scrnsav_custom_on,
                                 scrnsav_custom_off;

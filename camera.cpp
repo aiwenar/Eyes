@@ -895,7 +895,7 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
     //get average recognision if there is at least minimal samplaes number
     cerr << "recognition\n";
 
-    vector <int> avgRecognitions (0);
+    avgRecognitions.clear();
     for (int i = 0; i < prevrecords[1].size(); i++)
     {
         cerr << "reco step 1...";
@@ -976,14 +976,26 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
                 facesBank.push_back(Mat (input[prevrecords[0][i][prevrecords[0][i].size()-1]]));
                 facesBankIndex.push_back(avgRecognitions[i]);
                 facesBankQuantities[avgRecognitions[i]]++;
-                stringstream ss, ss2;
+                stringstream ss, ss2, ss3, ss4;
                 ss << avgRecognitions[i];
-                ss2 << facesBankQuantities[avgRecognitions[i]];
-                HRDWR.set_file(ccap.facesBankPath + ss.str() + "/" + "size", ss2.str());
+                bool holeExists = false;
+                if (avgRecognitions[i] < ccap.freeFaceImgs.size())
+                    if (ccap.freeFaceImgs[avgRecognitions[i]].size() > 0)
+                        holeExists = true;
+
+                if (!holeExists)
+                {
+                    ss2 << facesBankQuantities[avgRecognitions[i]];
+                    ss3 << (facesBankQuantities[facesBankIndex[facesBankIndex.size()-1]] - 1);
+                    HRDWR.set_file(ccap.facesBankPath + ss.str() + "/" + "size", ss2.str());
+                }
+                else
+                {
+                    ss3 << *new int (ccap.freeFaceImgs[avgRecognitions[i]][ccap.freeFaceImgs[avgRecognitions[i]].size() - 1]);
+                    ccap.freeFaceImgs[avgRecognitions[i]].erase(ccap.freeFaceImgs[avgRecognitions[i]].begin() + ccap.freeFaceImgs[avgRecognitions[i]].size() - 1);
+                }
                 cerr << "No new face detected, face " << ss.str() << " bank size changed to " << ss2.str() << "\n";
 
-                stringstream ss3, ss4;
-                ss3 << (facesBankQuantities[facesBankIndex[facesBankIndex.size()-1]] - 1);
                 ss4 << facesBankIndex[facesBankIndex.size()-1];
                 const string path = string (ccap.facesBankPath + ss4.str() + "/" + ss3.str() + ".jpg");
                 imwrite(path, norm_0_255(ccap.facesBank[facesBank.size()-1].reshape(1, ccap.facesBank[facesBank.size()-1].rows)));
@@ -1935,6 +1947,7 @@ camthread::camthread( eyes_view * neyes )
     ccap.facesBankPath              = cfg->lookupValue ( ".cam.system.faces_bank_dir",            "./faces");
     ccap.faceRecognisePrecision     = cfg->lookupValue ( ".cam.system.face_recognition_precision",     0.0 );
     ccap.faceRecognizerTreshold     = cfg->lookupValue ( ".cam.system.face_recognition_treshold",   3500.0 );
+    ccap.minL2Diff                  = cfg->lookupValue ( ".cam.system.min_L2_difference",           1800.0 );
     ccap.faceImageDropDelay         = cfg->lookupValue ( ".cam.system.face_recognise_drop_delay",       15 );
     ccap.newFaceOverdetectSkipSamples  = cfg->lookupValue ( ".cam.system.face_recognise_new_face_record_delay",       2 );
     ccap.maxRecognitionBufferSize   = cfg->lookupValue ( ".cam.system.max_recognition_buffer_size",     10 );
@@ -1957,6 +1970,7 @@ camthread::camthread( eyes_view * neyes )
         }
     }
 
+    ccap.freeFaceImgs.clear();
     if (ccap.faceRecognitionEnabled)
     {
         ccap.facesModel = createEigenFaceRecognizer(0, ccap.faceRecognizerTreshold);
@@ -1965,15 +1979,18 @@ camthread::camthread( eyes_view * neyes )
         if (temp != "")
         {
              *faces = atoi(&temp[0]);
+             ccap.freeFaceImgs.resize(*faces);
              ccap.facesBankQuantities.resize(*faces);
              for (int i = 0; i < *faces; i++ )
              {
+                 cerr << "reading face " << i << "...\n";
+                 ccap.freeFaceImgs[i].clear();
                  stringstream ss;
                  ss << i;
                  temp = HRDWR.get_file(&(ccap.facesBankPath + ss.str() + "/" + "size")[0] );
                  if (temp != "")
                  {
-                     ccap.facesBankQuantities[i]=atoi(&temp[0]);
+                     ccap.facesBankQuantities[i]=0;
                      for (int j = 0; j < atoi(&temp[0]);j++)
                      {
                          stringstream ss2;
@@ -1981,12 +1998,27 @@ camthread::camthread( eyes_view * neyes )
                          ccap.facesBank.push_back(cv::imread(ccap.facesBankPath + ss.str() + "/" + ss2.str()+".jpg", 0));
                          if (ccap.facesBank[ccap.facesBank.size()-1].empty())
                          {
-                             cerr << "Empty image loaded... removing from data set\n";
+                             cerr << "Empty image loaded... removing from data set image number: " << ss2.str() << "\n";
                              ccap.facesBank.erase(ccap.facesBank.begin() + ccap.facesBank.size() - 1);
-                             ccap.facesBankQuantities[i]--;
+                             ccap.freeFaceImgs[i].push_back(j);
                          }
                          else
-                            ccap.facesBankIndex.push_back(i);
+                         {
+                             ccap.facesBankQuantities[i]++;
+                             for (int k = 1; k < ccap.facesBankQuantities[i]; k++)
+                             {
+                                 double diff = cvNorm( new IplImage (ccap.facesBank[ccap.facesBank.size()-ccap.facesBankQuantities[i] + k - 1]), new IplImage(ccap.facesBank[ccap.facesBank.size() - 1]) );
+                                 if (diff < ccap.minL2Diff)
+                                 {
+                                     cerr << "pic " << k << " is too simillar to pic " << j+1 << " (L2 = " << diff << ") - will be removed from base\n";
+                                     if (remove(&(ccap.facesBankPath + ss.str() + "/" + ss2.str()+".jpg")[0]) == -1)
+                                         cerr << "Error - couldn\'t remove file\n";
+                                     else
+                                         cerr << "File: " << ccap.facesBankPath << ss.str() << "/" << ss2.str() << ".jpg removed from database\n";
+                                 }
+                             }
+                             ccap.facesBankIndex.push_back(i);
+                         }
                      }
                  }
                  else
@@ -2017,7 +2049,11 @@ camthread::camthread( eyes_view * neyes )
                 " faces: " << ccap.facesBankQuantities.size() << "\n";
         for (int i = 0 ; i < ccap.facesBankQuantities.size(); i++)
         {
-            cerr << " face " << i << " contains " << ccap.facesBankQuantities[i] << " faces\n";
+            cerr << " face " << i << " contains " << ccap.facesBankQuantities[i] << " faces and "<< ccap.freeFaceImgs[i].size() << " faces deleted or corrupted\n";
+            for (int j = 0; j < ccap.freeFaceImgs[i].size(); j++)
+            {
+                cerr << "image: " << ccap.freeFaceImgs[i][j] << " is unuseable\n";
+            }
         }
 
         delete (faces);

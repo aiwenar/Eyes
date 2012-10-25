@@ -229,6 +229,16 @@ void eyes_view::open_images ( const char * color )
 
 void eyes_view::paintEvent ( QPaintEvent * event )
 {
+    if (eye.isEmpty())
+    {
+        eye = "eye_06";
+        warning << "eye variable was not set correctly!\n";
+    }
+    if (face.isEmpty())
+    {
+        face = "slp_10";
+        warning << "face variable was not set correctly!\n";
+    }
     QPainter paint ( this );
     QPainter parea ( area );
     area->fill ( QColor ( 0, 0, 0 ) );

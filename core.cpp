@@ -779,6 +779,7 @@ void bul::critical_services( Configuration * cfg )
 
         if (screensaverstate == -1 && ccap.deactivate_screensaver)
         {
+            rtctrl.scrnsav_switched = false;
             if (rtctrl.scrnsav_X)
                 rtctrl.shell("xscreensaver-command -deactivate > /dev/null");
             if (rtctrl.scrnsav_gnome)
@@ -795,8 +796,9 @@ void bul::critical_services( Configuration * cfg )
 
             rtctrl.shell("xset dpms force on > /dev/null");
         }
-        if (screensaverstate == 1)
+        if (screensaverstate == 1 && !rtctrl.scrnsav_switched)
         {
+            rtctrl.scrnsav_switched = true;
             if (ccap.activate_screensaver)
             {
                 if (rtctrl.scrnsav_X)
@@ -2237,7 +2239,7 @@ void rootcontrol::execute(bool roottype, QString command)
     {
         QStringList extendedarg;
         extendedarg << command;
-        QProcess::startDetached ("kdesu", extendedarg);
+        QProcess::execute ("kdesu", extendedarg);
     }
 }
 
@@ -2266,7 +2268,7 @@ void rootcontrol::action(string command)
 
     if (command == "battery")
     {
-        if (battery.load < batt_start_perc && screenctrl)
+        if (battery.load < batt_start_perc && screenctrl && core_step > 1)
         {
             if (battery.load < batt_suspend_perc)
                 execute(roottype, "suspend");
@@ -2296,35 +2298,9 @@ void rootcontrol::action(string command)
 
 void rootcontrol::shelldetect()
 {
-    if (customshell)
-    {
-        info << "shell set to: " << shellname << "\n";
-        return;
-    }
-    QProcess testshell;
-    testshell.start("sh -c \"echo aaa > /dev/null\"");
-    if (testshell.pid() != 0)
+    if (!customshell)
     {
         shellname = "sh -c ";
-        testshell.kill();
-    }
-    testshell.start("bash -c \"echo aaa > /dev/null\"");
-    if (testshell.pid() != 0)
-    {
-        shellname = "bash -c ";
-        testshell.kill();
-    }
-    testshell.start("tcsh -c \"echo aaa > /dev/null\"");
-    if (testshell.pid() != 0)
-    {
-        shellname = "tcsh -c ";
-        testshell.kill();
-    }
-    testshell.start("zsh -c \"echo aaa > /dev/null\"");
-    if (testshell.pid() != 0)
-    {
-        shellname = "zsh -c ";
-        testshell.kill();
     }
     info << "shell set to: " << shellname << "\n";
 }

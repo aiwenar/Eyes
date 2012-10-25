@@ -186,7 +186,8 @@ public:
                                             prevdists,
                                             facesBankIndex,
                                             facesBankQuantities,
-                                            faceSamples;
+                                            faceSamples,
+                                            avgRecognitions;
 
     vector<vector <int> >                   pathRecords;
 
@@ -205,6 +206,8 @@ public:
                                             avgRects;
 
     vector<plama>                           plamy;
+
+    vector <vector <int> >                  freeFaceImgs;
 
 
 
@@ -262,7 +265,8 @@ public:
                     lookAtMotionTimeMax,
                     newFaceLookAtTimeMin,
                     newFaceLookAtTimeMax,
-                    newFaceLookAtCurrent;
+                    newFaceLookAtCurrent,
+                    minL2Diff;
 
     pair<int, int>  motionpos,
                     operationsarea,
