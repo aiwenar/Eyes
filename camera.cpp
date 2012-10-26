@@ -1039,6 +1039,8 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
                 cerr << "File :" << path << " saved\n";
             }
             toreload = true;
+            prevrecords[0][newFacesImgs[i].ST].clear();
+            prevrecords[1][newFacesImgs[i].ST].clear();
         }
     }
 
@@ -1953,7 +1955,6 @@ camthread::camthread( eyes_view * neyes )
     ccap.maxRecognitionBufferSize   = cfg->lookupValue ( ".cam.system.max_recognition_buffer_size",     10 );
     ccap.maxFacesPerImg             = cfg->lookupValue ( ".cam.system.faces_per_frame_matrix_size",     10 );
     ccap.faceTrackMaxDist           = cfg->lookupValue ( ".cam.system.face_track_max_match_dist",     10.0 );
-    ccap.facesBankPath = "./faces/";
 
     if (!ccap.enabled)
         ccap.faceDetectEnabled = false;

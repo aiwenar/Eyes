@@ -1337,6 +1337,7 @@ void eyes_view::graphics_prepare()
        {
            face_send = "sh_01";
            anims_send (face_send, "sh_02_close", "sh_01_open", 0, 0);
+           looker->look();
        }
 
        if (bulwers.outline == 21)
@@ -1408,6 +1409,7 @@ void eyes_view::graphics_prepare()
            }
        }
     }
+    bulwers.prev_outline = bulwers.outline;
 }
 
 void friendship::save(Configuration *cfg)
@@ -2268,7 +2270,7 @@ void rootcontrol::action(string command)
 
     if (command == "battery")
     {
-        if (battery.load < batt_start_perc && screenctrl && core_step > 1)
+        if (battery.load < batt_start_perc && screenctrl && core_step > 1 && battery_state != 0)
         {
             if (battery.load < batt_suspend_perc)
                 execute(roottype, "suspend");

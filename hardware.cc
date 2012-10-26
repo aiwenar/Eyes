@@ -252,6 +252,11 @@ double hardware::C_LOAD ()
   d_idle = a_idle - p_idle;
   d_pidr = a_pidr - p_pidr;
 
+  if (d_total == 0)
+  {
+      error << "dividing by 0 during cpu load calculation! Skipping...\n";
+      return 25;
+  }
   cpu_load = (100*(d_total - d_idle)) / d_total;
   owncpu = (100* (d_pidr)) / d_total;
   p_idle = a_idle;
@@ -271,6 +276,11 @@ double hardware::M_LOAD ()
   unsigned int mem_used = memory.user;
   unsigned int mem_load = mem_used/mem_total;
   */
+  if (memory.total == 0)
+  {
+      error << "dividing by 0 during memory calculation! Skipping...\n";
+      return 25;
+  }
   return 100*( (double)memory.user / (double)memory.total );
 }
 
@@ -360,6 +370,11 @@ int hardware::bat_plugged ()
 
 int hardware::bateria ()
 {
+    if (battery_capacity == 0)
+    {
+        error << "critical - full capacity didn't set correctly! - trying to reload hardware info...";
+        system_check();
+    }
     return 100*(this->*src_batt_now)(final_path_now)/battery_capacity;
 }
 
@@ -1110,7 +1125,7 @@ void hardware::system_check()
             final_path_state = final_path_full;
             string input = "";
             input = get_file (&final_path_full[0]);
-            if (input == "")
+            if (input == "" || proc_bat_full(&final_path_state[0]) == 0)
                     warning << "battery capacity searching - failed\n";
             else
             {
