@@ -29,6 +29,59 @@ static Mat norm_0_255(InputArray _src) {
     return dst;
 }
 
+IplImage* QImage2IplImage(QImage *qimg)
+{
+    IplImage *imgHeader = cvCreateImageHeader( cvSize(qimg->width(), qimg->height()), IPL_DEPTH_8U, 4);
+    imgHeader->imageData = (char*) qimg->bits();
+
+    uchar* newdata = (uchar*) malloc(sizeof(uchar) * qimg->byteCount());
+    memcpy(newdata, qimg->bits(), qimg->byteCount());
+    imgHeader->imageData = (char*) newdata;
+
+    return imgHeader;
+}
+
+QImage*  IplImage2QImage(IplImage *iplImg)
+{
+    int h = iplImg->height;
+    int w = iplImg->width;
+    int channels = iplImg->nChannels;
+    QImage *qimg = new QImage(w, h, QImage::Format_ARGB32);
+    char *data = iplImg->imageData;
+
+    for (int y = 0; y < h; y++, data += iplImg->widthStep)
+    {
+        for (int x = 0; x < w; x++)
+        {
+            char r, g, b, a = 0;
+            if (channels == 1)
+            {
+                r = data[x * channels];
+                g = data[x * channels];
+                b = data[x * channels];
+            }
+            else if (channels == 3 || channels == 4)
+            {
+                r = data[x * channels + 2];
+                g = data[x * channels + 1];
+                b = data[x * channels];
+            }
+
+            if (channels == 4)
+            {
+                a = data[x * channels + 3];
+                qimg->setPixel(x, y, qRgba(r, g, b, a));
+            }
+            else
+            {
+                qimg->setPixel(x, y, qRgb(r, g, b));
+            }
+        }
+    }
+    return qimg;
+
+}
+
 bool camcapture::cam_init()
 {
     cam = NULL;
@@ -52,6 +105,287 @@ IplImage* camcapture::get_image()
     src = cvQueryFrame(cam);
     cvResize(src, resized);
     return resized;
+}
+void mirror::init_mirrors(IplImage * srcExample)
+{
+    prevMirror = cvCloneImage(srcExample);
+    double srcw = srcExample->width;
+    double srch = srcExample->height;
+    aspectCorrection.ST = 1;
+    aspectCorrection.ND = 1;
+    aspect.ST = 4.0;
+    aspect.ND = 3.0;
+    if (aspectCorrection.ST != aspectCorrection.ND)
+    {
+        //scale 4:3 aspect to correct aspect to fix picture distortion
+        aspect.ST *= (aspectCorrection.ND*srcw)/(aspectCorrection.ST*srch);
+    }
+
+    //px data
+    mirrorLsize.height = 300;
+    mirrorLsize.width = 160;
+    mirrorRsize.height = 300;
+    mirrorRsize.width = 160;
+    mirrorL = cvCreateImage(mirrorLsize, prevMirror->depth, prevMirror->nChannels);
+    mirrorR = cvCreateImage(mirrorRsize, prevMirror->depth, prevMirror->nChannels);
+
+    //percentage data form 4:3 rect
+    mirrorLsrc.x = 10.0;
+    mirrorLsrc.y = 5.0;
+    mirrorLsrc.width = 60.0;
+    mirrorLsrc.height = 90.0;
+    mirrorRsrc.x = 40.0;
+    mirrorRsrc.y = 5.0;
+    mirrorRsrc.width = 60.0;
+    mirrorRsrc.height = 90.0;
+
+    boxblur = true;
+    gaussian = false;
+    bloom = true;
+    distort = true;
+    mirrorL2Diff = 8500*((srcExample->width*srcExample->height)/(640*480));
+
+    gaussSizeL.ST = 3;
+    gaussSizeL.ND = 3;
+    gaussSizeR.ST = 3;
+    gaussSizeR.ND = 3;
+    distortionSize.ST = 1.4;
+    distortionSize.ND = 1.4;
+
+    if (srcw/srch < aspect.ST/aspect.ND)
+    {
+        mirrorWorkspace.width   = srcw;
+        mirrorWorkspace.height  = srcw*(aspect.ND/aspect.ST);
+        mirrorWorkspace.x       = 0;
+        mirrorWorkspace.y       = (srch-mirrorWorkspace.height)/2;
+    }
+    else
+    {
+        mirrorWorkspace.width   = srch*(aspect.ST/aspect.ND);
+        mirrorWorkspace.height  = srch;
+        mirrorWorkspace.x       = (srcw-mirrorWorkspace.width)/2;
+        mirrorWorkspace.y       = 0;
+    }
+
+    cerr << mirrorWorkspace.width << " " << mirrorWorkspace.height << " " << mirrorWorkspace.x << " " << mirrorWorkspace.y << "\n";
+    cerr << srcw << " " << srch << "\n";
+
+    mirrorLsrc.x = (mirrorLsrc.x*mirrorWorkspace.width + mirrorWorkspace.x)/100.0;
+    mirrorLsrc.width = (mirrorLsrc.width*mirrorWorkspace.width)/100.0;
+    mirrorLsrc.y = (mirrorLsrc.y*mirrorWorkspace.height + mirrorWorkspace.y)/100.0;
+    mirrorLsrc.height = (mirrorLsrc.height*mirrorWorkspace.height)/100.0;
+
+    mirrorRsrc.x = (mirrorRsrc.x*mirrorWorkspace.width + mirrorWorkspace.x)/100.0;
+    mirrorRsrc.width = (mirrorRsrc.width*mirrorWorkspace.width)/100.0;
+    mirrorRsrc.y = (mirrorRsrc.y*mirrorWorkspace.height + mirrorWorkspace.y)/100.0;
+    mirrorRsrc.height = (mirrorRsrc.height*mirrorWorkspace.height)/100.0;
+
+    gaussSizeL.ST = (gaussSizeL.ST*mirrorLsize.width)/100;
+    gaussSizeL.ND = (gaussSizeL.ND*mirrorLsize.height)/100;
+    gaussSizeR.ST = (gaussSizeR.ST*mirrorRsize.width)/100;
+    gaussSizeR.ND = (gaussSizeR.ND*mirrorRsize.height)/100;
+
+    distortionSize.ST /= (mirrorLsize.width*mirrorLsize.width);
+    distortionSize.ND /= (mirrorRsize.width*mirrorRsize.width);
+}
+
+bool mirror::processMirror(IplImage *src)
+{
+    if (cvNorm(src, prevMirror) < mirrorL2Diff)
+    {
+        //cerr << "skipping - " << cvNorm(src, prevMirror) << " (" << mirrorL2Diff << ")\n";
+        return 0;
+    }
+    //cerr << "not skipping - " << cvNorm(src, prevMirror) << " (" << mirrorL2Diff << ")\n";
+    cvReleaseImage(&prevMirror);
+    prevMirror = cvCloneImage(src);
+    IplImage * mirror = cvCreateImage(cvSize(prevMirror->width, prevMirror->height), prevMirror->depth, prevMirror->nChannels);
+    cvFlip(prevMirror, mirror, 1);
+
+    cvSetImageROI(mirror, mirrorLsrc);
+    cvResize(mirror, mirrorL);
+    cvResetImageROI(mirror);
+
+    cvSetImageROI(mirror, mirrorRsrc);
+    cvResize(mirror, mirrorR);
+    cvResetImageROI(mirror);
+
+    cvReleaseImage(&mirror);
+
+    //IplImage* srcd = cvLoadImage( "./test.png", 1 );
+    //IplImage* newd;
+    //newd = cvCloneImage(srcd);
+    //cvResize(newd, mirrorL);
+
+    //srcd = cvLoadImage( "./test.png", 1 );
+    //newd = cvCloneImage(srcd);
+    //cvResize(newd, mirrorR);
+
+    //fisheye(mirrorL, 0.00001, make_pair(50, 50));
+    //cvSaveImage("./test2.png",mirrorL,0);
+
+    if (distort)
+    {
+        fisheye(mirrorL, distortionSize.ST, make_pair(50, 50));
+        fisheye(mirrorR, distortionSize.ND, make_pair(50, 50));
+    }
+
+    //cerr << "HIER\n";
+    if (boxblur)
+    {
+        blur(Mat(mirrorL), Mat(mirrorL), cvSize(gaussSizeL.ST, gaussSizeL.ND));
+        blur(Mat(mirrorR), Mat(mirrorR), cvSize(gaussSizeR.ST, gaussSizeR.ND));
+    }
+    if (gaussian)
+    {
+        GaussianBlur(Mat(mirrorL), Mat(mirrorL), cvSize(gaussSizeL.ST*2.2 + (1 - int(gaussSizeL.ST*2.2) % 2),
+                                                        gaussSizeL.ND*2.2 + (1 - int(gaussSizeL.ND*2.2) % 2)), 0, 0);
+        GaussianBlur(Mat(mirrorR), Mat(mirrorR), cvSize(gaussSizeR.ST*2.2 + (1 - int(gaussSizeR.ST*2.2) % 2),
+                                                        gaussSizeR.ND*2.2 + (1 - int(gaussSizeR.ND*2.2) % 2)), 0, 0);
+    }
+    if (bloom)
+    {
+        Mat bloomL, bloomR;
+        if (gaussian)
+        {
+            GaussianBlur(Mat(mirrorL), bloomL, cvSize(gaussSizeL.ST*15 + (1 - int(gaussSizeL.ST*15) % 2),
+                                                      gaussSizeL.ND*15 + (1 - int(gaussSizeL.ND*15) % 2)), 0, 0);
+            GaussianBlur(Mat(mirrorR), bloomR, cvSize(gaussSizeR.ST*15 + (1 - int(gaussSizeR.ST*15) % 2),
+                                                      gaussSizeR.ND*15 + (1 - int(gaussSizeR.ND*15) % 2)), 0, 0);
+            addWeighted(Mat(mirrorL), 0.55, bloomL, 0.55, 0, Mat(mirrorL));
+            addWeighted(Mat(mirrorR), 0.55, bloomR, 0.55, 0, Mat(mirrorR));
+        }
+        if (boxblur)
+        {
+            blur(Mat(mirrorL), bloomL, cvSize(gaussSizeL.ST*7 + (1 - int(gaussSizeL.ST*7) % 2),
+                                              gaussSizeL.ND*7 + (1 - int(gaussSizeL.ND*7) % 2)));
+            blur(Mat(mirrorR), bloomR, cvSize(gaussSizeR.ST*7 + (1 - int(gaussSizeR.ST*7) % 2),
+                                              gaussSizeR.ND*7 + (1 - int(gaussSizeR.ND*7) % 2)));
+            addWeighted(Mat(mirrorL), 0.55, bloomL, 0.45, 0, Mat(mirrorL));
+            addWeighted(Mat(mirrorR), 0.55, bloomR, 0.45, 0, Mat(mirrorR));
+        }
+    }
+
+    //cvSaveImage("./testL.png",mirrorL,0);
+    //cvSaveImage("./testR.png",mirrorR,0);
+    if (ccap.debug)
+    {
+        cvNamedWindow( "Source1", 1 );
+        cvShowImage( "Source1", mirrorL);
+        cvNamedWindow( "Source2", 1 );
+        cvShowImage( "Source2", mirrorR);
+    }
+
+    return 1;
+}
+
+void mirror::sampleImage(const IplImage *arr, double idx0, double idx1, CvScalar &res)
+{
+    if(idx0<0 || idx1<0 || idx0>(cvGetSize(arr).height-1) || idx1>(cvGetSize(arr).width-1))
+    {
+        res.val[0]=0;
+        res.val[1]=0;
+        res.val[2]=0;
+        res.val[3]=0;
+        return;
+    }
+    double idx0_fl=floor(idx0);
+    double idx0_cl=ceil(idx0);
+    double idx1_fl=floor(idx1);
+    double idx1_cl=ceil(idx1);
+
+    CvScalar s1=cvGet2D(arr,(int)idx0_fl,(int)idx1_fl);
+    CvScalar s2=cvGet2D(arr,(int)idx0_fl,(int)idx1_cl);
+    CvScalar s3=cvGet2D(arr,(int)idx0_cl,(int)idx1_cl);
+    CvScalar s4=cvGet2D(arr,(int)idx0_cl,(int)idx1_fl);
+    double x = idx0 - idx0_fl;
+    double y = idx1 - idx1_fl;
+    res.val[0]= s1.val[0]*(1-x)*(1-y) + s2.val[0]*(1-x)*y + s3.val[0]*x*y + s4.val[0]*x*(1-y);
+    res.val[1]= s1.val[1]*(1-x)*(1-y) + s2.val[1]*(1-x)*y + s3.val[1]*x*y + s4.val[1]*x*(1-y);
+    res.val[2]= s1.val[2]*(1-x)*(1-y) + s2.val[2]*(1-x)*y + s3.val[2]*x*y + s4.val[2]*x*(1-y);
+    res.val[3]= s1.val[3]*(1-x)*(1-y) + s2.val[3]*(1-x)*y + s3.val[3]*x*y + s4.val[3]*x*(1-y);
+}
+
+pair <double, double> mirror::getRadial(double x, double y, double cx, double cy, double k)
+{
+    x = (x*scale.ST+shift.ST);
+    y = (y*scale.ND+shift.ND);
+    double resX = x+((x-cx)*k*((x-cx)*(x-cx)+(y-cy)*(y-cy)));
+    double resY = y+((y-cy)*k*((x-cx)*(x-cx)+(y-cy)*(y-cy)));
+    return make_pair(resX, resY);
+}
+
+double mirror::calc_shift(double x1, double x2, double cx, double k)
+{
+    double thresh = 1;
+    double x3 = x1+(x2-x1)*0.5;
+    double res1 = x1+((x1-cx)*k*((x1-cx)*(x1-cx)));
+    double res3 = x3+((x3-cx)*k*((x3-cx)*(x3-cx)));
+
+    //  std::cerr<<"x1: "<<x1<<" - "<<res1<<" x3: "<<x3<<" - "<<res3<<std::endl;
+
+    if(res1>-thresh and res1 < thresh)
+        return x1;
+    if(res3<0)
+    {
+        return calc_shift(x3,x2,cx,k);
+    }
+    else
+    {
+        return calc_shift(x1,x3,cx,k);
+    }
+}
+
+void mirror::fisheye(IplImage *src, double distortion, pair<int, int> center)
+{
+    IplImage* dis = cvCreateImage(cvSize(src->width, src->height),src->depth,src->nChannels);
+    //cerr << "step1\n";
+    double centerX=(double)(center.ST*src->width)/100.0;
+    double centerY=(double)(center.ND*src->height)/100.0;
+    int width = src->width;
+    int height = src->height;
+
+    //cerr << "step2\n";
+    shift.ST = calc_shift(0,centerX-1,centerX,distortion);
+    double newcenterX = width-centerX;
+    pair <double, double> shift_2;
+    shift_2.ST = calc_shift(0,newcenterX-1,newcenterX,distortion);
+
+    //cerr << "step3\n";
+    shift.ND = calc_shift(0,centerY-1,centerY,distortion);
+    double newcenterY = height-centerY;
+    shift_2.ND = calc_shift(0,newcenterY-1,newcenterY,distortion);
+
+    scale.ST = (width-shift.ST-shift_2.ST)/width;
+    scale.ND = (height-shift.ND-shift_2.ND)/height;
+
+    //std::cerr<<xshift<<" "<<shift.ND<<" "<<xscale<<" "<<yscale<<std::endl;
+    //std::cerr<<cvGetSize(src).height<<std::endl;
+    //std::cerr<<cvGetSize(src).width<<std::endl;
+
+    //cerr << "step3\n";
+    for(int j=0;j<cvGetSize(dis).height;j++)
+    {
+        for(int i=0;i<cvGetSize(dis).width;i++)
+        {
+            CvScalar s;
+            pair <double, double> xy;
+            xy = getRadial((double)i,(double)j,centerX,centerY,distortion);
+            sampleImage(src,xy.ND,xy.ST,s);
+            cvSet2D(dis,j,i,s);
+        }
+    }
+    //cerr << "step4\n";
+    //cvReleaseImage(&src);
+    //src = cvCloneImage(dis);
+    //cvNamedWindow( "Source3", 1 );
+    //cvShowImage( "Source3", src);
+    //cvReleaseImage(&src);
+    cvCopy(dis, src);
+    //cvNamedWindow( "Source4", 1 );
+    //cvShowImage( "Source4", dis);
+    cvReleaseImage(&dis);
+
 }
 
 void camcapture::init_motionpics()
@@ -670,19 +1004,42 @@ vector <PII> camcapture::trackFaces(vector<CvRect> inputL, vector<CvRect> inputR
         return retvec;
     }
 
-    cerr << "Beginning standard matching process:\nCounting distances...";
+    cerr << "Beginning standard matching process:\nCounting distances...\n";
 
     for (int i = 0; i < inputL.size(); i++)
     {
         for (int j = 0; j < inputR.size(); j++)
         {
+            cerr << "x A: " << (inputR[j].x+inputR[j].width/2) << " x B: " << (inputL[i].x+inputL[i].width/2) << "\n" <<
+                    "y A: " << (inputR[j].y+inputR[j].height/2) << " y B: " << (inputL[i].y+inputL[i].height/2) << "\n" <<
+                    "delta x = " << ((inputR[j].x+inputR[j].width/2)-(inputL[i].x+inputL[i].width/2))*((inputR[j].x+inputR[j].width/2)-(inputL[i].x+inputL[i].width/2)) << "\n" <<
+                    "delta y = " << ((inputR[j].y+inputR[j].height/2)-(inputL[i].y+inputL[i].height/2))*((inputR[j].y+inputR[j].height/2)-(inputL[i].y+inputL[i].height/2)) << "\n";
             hungarianInput[i][j] = sqrt( ((inputR[j].x+inputR[j].width/2)-(inputL[i].x+inputL[i].width/2))*((inputR[j].x+inputR[j].width/2)-(inputL[i].x+inputL[i].width/2)) +
                                          ((inputR[j].y+inputR[j].height/2)-(inputL[i].y+inputL[i].height/2))*((inputR[j].y+inputR[j].height/2)-(inputL[i].y+inputL[i].height/2)) );
-            if ((double)hungarianInput[j][i] < (double)maxDist*ignoreDist)
-                hungarianInput[i][j] = (int)HRDWR.equalize(0, maxDist, hungarianInput[j][i], 1.5);
+            cerr << "original: " << hungarianInput[i][j] << "\n";
+            if (hungarianInput[i][j] < maxDist*ignoreDist)
+            {
+                cerr << "equalizing...\n";
+                cerr << hungarianInput[i][j] << " < " << maxDist*ignoreDist << "\n";
+                hungarianInput[i][j] = (int)HRDWR.equalize(0, maxDist, hungarianInput[i][j], 1.5);
+            }
             else //blacklist element:
+            {
+                cerr << hungarianInput[i][j] << " < " << maxDist*ignoreDist << "\n";
                 hungarianInput[i][j] = maxDist;
+            }
+            cerr << "equalized: " << hungarianInput[i][j] << "\n";
         }
+    }
+    cerr << "dupa" << (int)HRDWR.equalize(0, maxDist, 3, 1.5) << "\n";
+
+    for (int i = 0; i < inputR.size(); i++)
+    {
+        for (int j = 0; j < inputL.size(); j++)
+        {
+            cerr << hungarianInput[j][i] << " ";
+        }
+        cerr << "\n";
     }
 
     cerr << "DUN!\nbaking hungarian vector:\n";
@@ -728,6 +1085,15 @@ vector <PII> camcapture::trackFaces(vector<CvRect> inputL, vector<CvRect> inputR
                 retvec[i].ND = -1;
         }
         cerr << "DUN!\neliminating blacklisted...\n";
+    }
+
+    for (int i = 0; i < inputR.size(); i++)
+    {
+        for (int j = 0; j < inputL.size(); j++)
+        {
+            cerr << hungarianInput[j][i] << " ";
+        }
+        cerr << "\n";
     }
 
 
@@ -796,7 +1162,9 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
     }
     //baking faces paths vectors
     cerr << "Baking faces paths:\n";
-    cerr << inputmatches.size() << "\n" << inputmatches[0].ST << " " << inputmatches[0].ND << "\n";
+    cerr << inputmatches.size() << "\n";
+    for (int i; i < inputmatches.size(); i++)
+        cerr << inputmatches[i].ST << " " << inputmatches[i].ND << "\n";
 
     cerr << "prevrec size: " << prevrecords[0].size() << "\n";
     for (int i = 0; i<prevrecords[0].size(); i++)
@@ -1039,8 +1407,10 @@ bool camcapture::addFaceData(vector<IplImage *> input, vector<PII> inputmatches,
                 cerr << "File :" << path << " saved\n";
             }
             toreload = true;
-            prevrecords[0][newFacesImgs[i].ST].clear();
-            prevrecords[1][newFacesImgs[i].ST].clear();
+            cerr << newFacesImgs[i].ST << " index\n";
+            for (int j = 0; j < prevrecords[1][newFacesImgs[i].ST].size(); j++)
+                prevrecords[1][newFacesImgs[i].ST][j]=facesBankQuantities.size()-1;
+            newFacesImgs.clear();
         }
     }
 
@@ -1855,6 +2225,9 @@ bool camcapture::main()
         }
     }
 
+    if (ccap.mir.enabled)
+        ccap.mir.processMirror(src);
+
     return retstat;
 }
 
@@ -1946,7 +2319,7 @@ camthread::camthread( eyes_view * neyes )
     }
     delete(cascadesnum);
     ccap.faceRecognitionEnabled     = cfg->lookupValue ( ".cam.system.face_recognition_enabled",     false );
-    ccap.facesBankPath              = cfg->lookupValue ( ".cam.system.faces_bank_dir",            "./faces");
+    ccap.facesBankPath              = cfg->lookupValue ( ".cam.system.faces_bank_dir",           "./faces/");
     ccap.faceRecognisePrecision     = cfg->lookupValue ( ".cam.system.face_recognition_precision",     0.0 );
     ccap.faceRecognizerTreshold     = cfg->lookupValue ( ".cam.system.face_recognition_treshold",   3500.0 );
     ccap.minL2Diff                  = cfg->lookupValue ( ".cam.system.min_L2_difference",           1800.0 );
@@ -2060,11 +2433,14 @@ camthread::camthread( eyes_view * neyes )
         delete (faces);
     }
 
+    ccap.mir.enabled = true;
     if (ccap.enabled)
     {
         if (ccap.cam_init())
         {
             ccap.init_motionpics();
+            if (ccap.mir.enabled)
+                ccap.mir.init_mirrors(ccap.src);
             if (ccap.debug)
                 ccap.init_debug();
         }

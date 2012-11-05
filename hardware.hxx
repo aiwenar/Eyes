@@ -26,6 +26,7 @@ public:
     bool                    special_batname,
                             special_thername,
                             screen_support,
+                            ignore_bat_state,
                             set_file(string path, string value),
                             set_file(string path, long double value),
                             set_backlight (unsigned short percentage);

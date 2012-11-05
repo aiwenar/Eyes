@@ -73,7 +73,7 @@ This is concept debug layout:
 # from: __:__ | X:___ Y:___ | trip/fun: X | mode: full  | casc. __ | n | G:__ (__)  reload:___ | []    []   []   []   []  |
 # to:   __:__ | __% (__/__) | fun: __←___ | screen: off | found __ | v | B:__ (__)  -----------| []    []   []   []   []  |
 # rest: __:__ | __fps (↑__) | reload: ___ | maxtemp:__º | ___/___  | S | P:__ (__)  2light:__% | []    []   []   []   []  |
-# saved:__:__ | delay: ____ | forget: ___ | minbatt:__% |   ___    |   | ?:__ (__)  2dark :__% | __%  ___h ___h ___h ___h |
+# saved:__:__ | delay: ____ | forget: ___ | minbatt:__% | ___ (  ) |   | ?:__ (__)  2dark :__% | __%  ___h ___h ___h ___h |
 # ----------------------------|
 # recognition:          stat: |
 # [ 0][ 0][ 0] -> [ 0]  __/__ |
@@ -356,7 +356,7 @@ cdbg::cdbg ( Core * c ) :
           " from:   :   \033[1C X:    Y:    \033[1C trip/fun:   \033[1C mode:       \033[2Ccasc.   \033[3Cn\033[3C\033[1;37m\033[1;42mG\033[40m\033[37m:   (  )  reload:    \n"
           " to:     :   \033[1C   % (  /  ) \033[1C fun:   ←    \033[1C screen:     \033[2Cfound   \033[3Cv\033[3C\033[1;37m\033[1;44mB\033[40m\033[37m:   (  )  \n"
           " rest:   :   \033[1C   fps (   ) \033[1C reload: ___ \033[1C maxtemp:  º \033[2C   /    \033[3CS\033[3C\033[1;37m\033[1;45mP\033[40m\033[37m:   (  )  2light:  % \n"
-          " saved:  :   \033[1C delay:      \033[1C forget: ___ \033[1C minbatt:  % \033[2C  ___   \033[4C\033[3C\033[1;37m\033[1;40m?\033[40m\033[37m:   (  )  2dark:   % \033[1A\n";
+          " saved:  :   \033[1C delay:      \033[1C forget: ___ \033[1C minbatt:  % \033[2C___ (  )\033[4C\033[3C\033[1;37m\033[1;40m?\033[40m\033[37m:   (  )  2dark:   % \033[1A\n";
   if (ccap.faceRecognitionEnabled)
   {
       cout << "\n";
@@ -1960,8 +1960,10 @@ void cdbg::on_timer_tick ()
           spacefill(ccap.faceDetectDelay/1000, 3);
           cout << "\033[1C\033[1;34m";
           spacefill(ccap.faceDetectSleepDelay/1000, 3);
-          cout << "\033[1B\033[5D\033[1;33m";
+          cout << "\033[1B\033[7D\033[1;33m";
           spacefill(ccap.detectionTimer.elapsed()/1000, 3);
+          cout << "\033[2C";
+          spacefill(ccap.presenceCounter, 2);
       }
       if (ccap.env.checked || bulwers.envs.size()>0)
       {

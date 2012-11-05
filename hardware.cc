@@ -1269,6 +1269,8 @@ void hardware::system_check()
             info << "battery full: sys\n";
             break;
         }
+        if (ignore_bat_state)
+            final_state_solution = 0;
         switch (final_state_solution)
         {
         case 0:

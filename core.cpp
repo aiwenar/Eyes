@@ -157,6 +157,8 @@ void bul::update()
     if(flue.active && total_mod > 0)
         total_mod+=(double)(total_mod)*flue.last_date.progress*flue.max_bul_booster/100.0;
 
+    //cerr << total_mod << "\n";
+
     if (!flue.active)
     {
         //cerr << "orginal mod: " << total_mod << "\n";
@@ -164,7 +166,7 @@ void bul::update()
         {
             if (total_mod > 0)
             {
-                total_mod = (total_mod-((fship.max_bul_reduction*(100*fship.value/fship.max_over))/100)*(100*fship.value/fship.max_over))/100;
+                total_mod -= ((fship.max_bul_reduction*(100*fship.value/fship.max_over))/100);
                 if (total_mod < 0)
                     total_mod = 0;
             }
@@ -177,7 +179,7 @@ void bul::update()
                 total_mod *= (100*abs(fship.value)/fship.max_below)/100;
             else
             {
-                total_mod = (total_mod+((fship.max_bul_reduction*(100*fship.value/fship.max_below))/100)*(100*fship.value/fship.max_below))/100;
+                total_mod += ((fship.max_bul_reduction*(100*fship.value/fship.max_below))/100);
                 if (total_mod > 0)
                     total_mod = 0;
             }
@@ -185,6 +187,7 @@ void bul::update()
         }
         //cerr << "modded mod: " << total_mod << "\n";
     }
+    //cerr << total_mod << "\n\n";
     //total_mod = 0;
     if ((step > -total_mod && total_mod < 0) || total_mod >= 0)
         step += total_mod;
@@ -1970,6 +1973,7 @@ void Core::load_config ()
     HRDWR.special_batname   = cfg->lookupValue ( ".core.hardware.use_batname",           false       );
     HRDWR.special_thername  = cfg->lookupValue ( ".core.hardware.use_thername",          false       );
     HRDWR.cfg_battname      = cfg->lookupValue ( ".core.hardware.battname",              "BAT0"      );
+    HRDWR.ignore_bat_state  = cfg->lookupValue ( ".core.hardware.ignore_bat_state",      false       );
     HRDWR.cfg_thername      = cfg->lookupValue ( ".core.hardware.thername",              "thermal_zone0"        );
     HRDWR.backlight_path    = cfg->lookupValue ( ".core.rootcontrol.backlight_device",   "intel_backlight"      );
 
