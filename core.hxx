@@ -22,14 +22,12 @@
 #include <QObject>
 #include <vector>
 #include <QTimer>
-#include <libconfig.h++>
 #include <QProcess>
 #include <fstream>
 
 #include "eyes.hxx"
 
 using namespace std;
-using namespace libconfig;
 
 
 
@@ -406,7 +404,8 @@ public:
                                 scrnsav_kde,
                                 scrnsav_gnome,
                                 scrnsav_mac,
-                                scrnsav_custom;
+                                scrnsav_custom,
+                                scrnsav_switched;
     string                      shellname,
                                 scrnsav_custom_on,
                                 scrnsav_custom_off;

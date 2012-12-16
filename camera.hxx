@@ -11,6 +11,7 @@
 #include <cvaux.hpp>
 #include "eyes.hxx"
 #include <QElapsedTimer>
+#include <QImage>
 
 using namespace std;
 
@@ -82,6 +83,51 @@ struct funsys
     unsigned int    funcounter,
                     funchunk,
                     totforget;
+};
+
+struct mirror
+{
+    bool            processMirror(IplImage * src);
+
+    void            init_mirrors(IplImage * srcExample),
+                    sampleImage(const IplImage* arr, double idx0, double idx1, CvScalar& res),
+                    fisheye(IplImage*src, double distortion, pair <int, int> center);
+
+    double          calc_shift(double x1,double x2,double cx,double k);
+
+    pair <double, double>
+                    getRadial(double x,double y,double cx,double cy,double k);
+
+    CvRect          mirrorLsrc,
+                    mirrorRsrc,
+                    mirrorWorkspace;
+
+    CvSize          mirrorLsize,
+                    mirrorRsize;
+
+    IplImage      * mirrorL,
+                  * mirrorR,
+                  * prevMirror;
+
+    pair <int, int> aspectCorrection,
+                    gaussSizeL,
+                    gaussSizeR;
+
+    pair<double, double>
+                    aspect,
+                    scale,
+                    shift,
+                    distortionSize;
+
+    double          mirrorL2Diff;
+
+    unsigned short  quality;
+
+    bool            distort,
+                    boxblur,
+                    gaussian,
+                    bloom,
+                    enabled;
 };
 
 class camcapture
@@ -186,7 +232,8 @@ public:
                                             prevdists,
                                             facesBankIndex,
                                             facesBankQuantities,
-                                            faceSamples;
+                                            faceSamples,
+                                            avgRecognitions;
 
     vector<vector <int> >                   pathRecords;
 
@@ -205,6 +252,8 @@ public:
                                             avgRects;
 
     vector<plama>                           plamy;
+
+    vector <vector <int> >                  freeFaceImgs;
 
 
 
@@ -241,9 +290,6 @@ public:
                     faceImageDropDelay,
                     newFaceOverdetectSkipSamples,
                     prevNewFace,
-                    newFaceLookAtTimeMin,
-                    newFaceLookAtTimeMax,
-                    newFaceLookAtRemained,
                     maxFacesPerImg;
     int **          hungarianInput;
 
@@ -260,7 +306,13 @@ public:
                     minSizeMatch,
                     faceRecognisePrecision,
                     faceRecognizerTreshold,
-                    faceTrackMaxDist;
+                    faceTrackMaxDist,
+                    lookAtMotionTimeMin,
+                    lookAtMotionTimeMax,
+                    newFaceLookAtTimeMin,
+                    newFaceLookAtTimeMax,
+                    newFaceLookAtCurrent,
+                    minL2Diff;
 
     pair<int, int>  motionpos,
                     operationsarea,
@@ -268,12 +320,16 @@ public:
 
     QElapsedTimer   fps_adaptation_timer,
                     deactivetimer,
-                    detectionTimer;
+                    detectionTimer,
+                    newFaceLookAtTimer;
 
     environment     env;
     funsys          fun;
+    mirror          mir;
     string          cascadesPath,
                     facesBankPath;
+    IplImage      * QImage2IplImage (QImage *qimg);
+    QImage        * IplImage2QImage (IplImage *iplImg);
 };
 
 #endif // CAMERA_HXX

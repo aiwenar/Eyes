@@ -72,12 +72,12 @@ eyes_view::eyes_view ( QWidget * parent,/* QString ncolor, */double size_m )
     eye_mhR = tm->lookupValue ( ".ui.eyeR.mirror_size_Y",       eye_mhL         )*size_multiplier;
     epx1    = tm->lookupValue ( ".ui.eyeL.posX",                46              )*size_multiplier; //.14375; //46;
     epx2    = tm->lookupValue ( ".ui.eyeR.posX",                223             )*size_multiplier; //.665625; //213;
-    mpx1    = tm->lookupValue ( ".ui.eyeL.mirror_posX",         83              )*size_multiplier;//.259375;
-    mpx2    = tm->lookupValue ( ".ui.eyeR.mirror_posX",         (int)(mpx1+(epx2-epx1)) )*size_multiplier;//.7875; //252;
+    mpx1    = tm->lookupValue ( ".ui.eyeL.mirror_pos_X",        83              )*size_multiplier;//.259375;
+    mpx2    = tm->lookupValue ( ".ui.eyeR.mirror_pos_X",        (int)(mpx1+(epx2-epx1)) )*size_multiplier;//.7875; //252;
     epy1    = tm->lookupValue ( ".ui.eyeL.posY",                10              )*size_multiplier;//.125; //10;
     epy2    = tm->lookupValue ( ".ui.eyeR.posY",                epy1            )*size_multiplier;//.125; //10;
-    mpy1    = tm->lookupValue ( ".ui.eyeL.mirror_posY",         (double)24      )*size_multiplier;//.3; //24;
-    mpy2    = tm->lookupValue ( ".ui.eyeR.mirror_posY",         mpy1            )*size_multiplier;//.3; //24;
+    mpy1    = tm->lookupValue ( ".ui.eyeL.mirror_pos_Y",        (double)24      )*size_multiplier;//.3; //24;
+    mpy2    = tm->lookupValue ( ".ui.eyeR.mirror_pos_Y",        mpy1            )*size_multiplier;//.3; //24;
     color   = tm->color       ( scolor.c_str () ).c_str ();
     dual_eyes = ThemeManager::instance ()->dual ();
     is_finished = false;
@@ -97,7 +97,6 @@ eyes_view::eyes_view ( QWidget * parent,/* QString ncolor, */double size_m )
     open_images ( color.toStdString ().c_str () );
     set_layer ( SLEEPY, "tired_03" );
     toggle_layer ( SLEEPY, true );
-    con = new connectionGate();
     core->load_config ();
     area = new QPixmap ( eyes_w, eyes_h );
     screensize.first = QApplication::desktop()->width();
@@ -106,7 +105,6 @@ eyes_view::eyes_view ( QWidget * parent,/* QString ncolor, */double size_m )
     looker->run ();
     camt->start(QThread::IdlePriority);
     core->run ();
-    con->startServer();
 }
 
 eyes_view::~eyes_view ()
@@ -229,6 +227,16 @@ void eyes_view::open_images ( const char * color )
 
 void eyes_view::paintEvent ( QPaintEvent * event )
 {
+    if (eye.isEmpty())
+    {
+        eye = "eye_06";
+        warning << "eye variable was not set correctly!\n";
+    }
+    if (face.isEmpty())
+    {
+        face = "slp_10";
+        warning << "face variable was not set correctly!\n";
+    }
     QPainter paint ( this );
     QPainter parea ( area );
     area->fill ( QColor ( 0, 0, 0 ) );
@@ -338,7 +346,7 @@ void eyes_view::toggle_layer ( Layers layer, bool onoff )
     layers[layer].drawable = onoff;
 }
 
-void eyes_view::look_at ( int px, int py, pair<int, int> operationsarea )
+void eyes_view::look_at ( int px, int py, pair<int, int> operationsarea, int looktime )
 {
   int winx, winy, percL, percR, percU, percD, totX, totY;
   winx = mapToGlobal(pos()).x() + frameGeometry().width()/2;
@@ -356,7 +364,7 @@ void eyes_view::look_at ( int px, int py, pair<int, int> operationsarea )
   totX = 100-percL + px*(operationsarea.first)/100;
   totY = 100-percU + py*(operationsarea.second)/100;
 
-  looker->interrupt ( totX, totY );
+  looker->interrupt ( totX, totY, looktime );
 }
 
 int eyes_view::heightForWidth ( int w ) const
