@@ -35,6 +35,7 @@ extern const char *verstr;
 #include "camera.hxx"
 
 #include <QWidget>
+#include <QMenu>
 #include <QGraphicsScene>
 #include <QImage>
 #include <QPixmap>
@@ -133,6 +134,7 @@ public:
     void                anims_reload        ();
     void                setFlag             ( eyes_flag flag, bool value );
     void                look_at             ( int px, int py, pair<int, int> operationsarea, int looktime );
+    void                add_menu_items      ( QMenu * );
     int                 heightForWidth      ( int w )                               const;
     int                 get_next_clap_delay ();
     /// @return position x of left eye.
@@ -290,6 +292,7 @@ public:
                     ~Core           ();
     void            bulwers_update  (),
                     bulwers_init    (),
+                    add_menu_items  ( QMenu * ),
                     load_config     (),
                     run             (),
                     graphics_prepare(),
