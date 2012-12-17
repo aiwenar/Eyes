@@ -20,6 +20,7 @@
 #include "debug.hxx"
 
 #include <QPainter>
+#include <QMenu>
 #include <iostream>
 #include <string>
 #include <sstream>
@@ -61,8 +62,6 @@ eyes_view::eyes_view ( QWidget * parent,/* QString ncolor, */double size_m )
     info << "(eyes) loading config...\n";
     Configuration * cfg = Configuration::getInstance ();
     ThemeManager * tm = ThemeManager::instance ();
-    theme = cfg->lookupValue ( ".ui.theme", "default" );
-    tm->load ( theme.toStdString () );
     string scolor;
     scolor  =cfg->lookupValue ( ".ui.color",                    "green"         );
     eye_swL = tm->lookupValue ( ".ui.eyeL.size_X",              60              )*size_multiplier;
@@ -420,6 +419,11 @@ void eyes_view::look_at ( int px, int py, pair<int, int> operationsarea, int loo
   totY = 100-percU + py*(operationsarea.second)/100;
 
   looker->interrupt ( totX, totY, looktime );
+}
+
+void eyes_view::add_menu_items ( QMenu * menu )
+{
+  core->add_menu_items ( menu );
 }
 
 int eyes_view::heightForWidth ( int w ) const

@@ -28,6 +28,7 @@
 #include <cstdlib>
 #include <ctime>
 #include <cmath>
+#include <QMenu>
 #include "core.hxx"
 #include "eyes.hxx"
 #include "camera.hxx"
@@ -1581,6 +1582,14 @@ void Core::autocalc_reload ( Configuration * cfg )
     }
     if (autocalc.save_next == 0)
         autocalc.save_next = autocalc.save_interval;
+}
+
+void Core::add_menu_items ( QMenu * menu )
+{
+  // menu->addSeparator (); - separate core actions from others
+
+  // QAction a = new QAction ( tr ( "z&Zz" ), this ); - create an action, char with & 'll be shortcut for action
+  // connect ( a, SIGNAL ( triggered () ), this, SLOT ( someRandomFunction() ) ); - QAction send triggered() signal when user preses the action.
 }
 
 void Core::load_config ()

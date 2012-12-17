@@ -63,6 +63,8 @@ eyes_window::eyes_window ( QWidget * parent ) : QWidget ( parent, Qt::WindowStay
         //menu
         timenu = new QMenu ( this );
         timenu->addAction ( quitA );
+        //
+        eyes->add_menu_items ( timenu );
         //iconend
         trayico->setContextMenu ( timenu );
         trayico->show ();
