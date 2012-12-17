@@ -176,6 +176,7 @@ private:
     QWidget               * win;
     QBitmap                 mask;
     QPixmap               * area;
+    QPixmap                 merge_mirrors(QPixmap mask);
     QString                 eye,
                             face,
                             face_next,

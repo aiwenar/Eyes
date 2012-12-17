@@ -48,6 +48,7 @@ OTHER_FILES += \
   README.markdown\
   color.cfg\
   .gitignore \
+  config.cfg \
   scripts/checklibs \
   scripts/libcfg \
     themes/default/theme.cfg
