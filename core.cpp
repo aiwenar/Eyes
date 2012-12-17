@@ -1586,10 +1586,16 @@ void Core::autocalc_reload ( Configuration * cfg )
 
 void Core::add_menu_items ( QMenu * menu )
 {
-  // menu->addSeparator (); - separate core actions from others
+   menu->addSeparator ();// - separate core actions from others
 
-  // QAction a = new QAction ( tr ( "z&Zz" ), this ); - create an action, char with & 'll be shortcut for action
-  // connect ( a, SIGNAL ( triggered () ), this, SLOT ( someRandomFunction() ) ); - QAction send triggered() signal when user preses the action.
+   QAction * screen_off = new QAction ( tr ( "z&Zz" ), this );// - create an action, char with & 'll be shortcut for action
+   connect ( screen_off, SIGNAL ( triggered () ), this, SLOT ( screen_off ) );// - QAction send triggered() signal when user preses the action.
+   menu->addAction(screen_off);
+}
+
+void Core::screen_off()
+{
+    rtctrl.scrnsav(1, 0, 1, 1);
 }
 
 void Core::load_config ()

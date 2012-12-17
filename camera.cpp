@@ -111,8 +111,6 @@ void mirror::init_mirrors(IplImage * srcExample)
     prevMirror = cvCloneImage(srcExample);
     double srcw = srcExample->width;
     double srch = srcExample->height;
-    //aspectCorrection.ST = 1;
-    //aspectCorrection.ND = 1;
     aspect.ST = srcw;
     aspect.ND = srch;
     if (aspectCorrection.ST != 0 && aspectCorrection.ND != 0)
@@ -2427,8 +2425,8 @@ camthread::camthread( eyes_view * neyes )
             ccap.init_motionpics();
             if (ccap.mir.enabled)
             {
-                ccap.mir.aspectCorrection.ST =      tm->lookupValue(".ui.mirrors.aspect_correction.X",      1 );
-                ccap.mir.aspectCorrection.ND =      tm->lookupValue(".ui.mirrors.aspect_correction.Y",      1 );
+                ccap.mir.aspectCorrection.ST =      tm->lookupValue(".ui.mirrors.aspect_correction.X",      0 );
+                ccap.mir.aspectCorrection.ND =      tm->lookupValue(".ui.mirrors.aspect_correction.Y",      0 );
                 ccap.mir.paintcornerL = make_pair(  tm->lookupValue(".ui.mirrors.mirror_dimensions.L_X",   22 )*eyes->size_multiplier,
                                                     tm->lookupValue(".ui.mirrors.mirror_dimensions.L_Y",    6 )*eyes->size_multiplier);
                 ccap.mir.paintcornerR = make_pair(  tm->lookupValue(".ui.mirrors.mirror_dimensions.R_X",  192 )*eyes->size_multiplier,

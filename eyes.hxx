@@ -312,6 +312,7 @@ public slots:
     void    on_timer_tick   ();
     void    handle_mouse    ( int x, int y );
     void    handle_enter    ();
+    void    screen_off      ();
 private:
     QTimer        * timer;
     eyes_view     * eyes;
