@@ -777,52 +777,7 @@ void bul::critical_services( Configuration * cfg )
     rtctrl.action("temperature");
     if (rtctrl.scrnsaver_management && ccap.enabled)
     {
-        int screensaverstate = ccap.screensaver_management();
-
-        //cerr << "Return statement of menagement: " << screensaverstate << "\noverdetect is: " << ccap.overdetect << "\n";
-
-        if (screensaverstate == -1 && ccap.deactivate_screensaver)
-        {
-            rtctrl.scrnsav_switched = false;
-            if (rtctrl.scrnsav_X)
-                rtctrl.shell("xscreensaver-command -deactivate > /dev/null");
-            if (rtctrl.scrnsav_gnome)
-            {
-                rtctrl.shell("gnome-screensaver-command -d > /dev/null");
-                rtctrl.shell("gnome-screensaver-command -p > /dev/null 2>/dev/null");
-            }
-            if (rtctrl.scrnsav_kde)
-                rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:false > /dev/null");
-            if (rtctrl.scrnsav_mac)
-                rtctrl.shell("killall ScreenSaverEngine > /dev/null 2>/dev/null");
-            if (rtctrl.scrnsav_custom)
-                rtctrl.shell(rtctrl.scrnsav_custom_off + " >/dev/null 2>/dev/null");
-
-            rtctrl.shell("xset dpms force on > /dev/null");
-        }
-        if (screensaverstate == 1 && !rtctrl.scrnsav_switched)
-        {
-            rtctrl.scrnsav_switched = true;
-            if (ccap.activate_screensaver)
-            {
-                if (rtctrl.scrnsav_X)
-                    rtctrl.shell("xscreensaver-command -activate >/dev/null 2>/dev/null");
-                if (rtctrl.scrnsav_gnome)
-                    rtctrl.shell("gnome-screensaver-command -a >/dev/null 2>/dev/null");
-                if (rtctrl.scrnsav_kde)
-                    rtctrl.shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:true > /dev/null 2>/dev/null");
-                if (rtctrl.scrnsav_mac);
-                    rtctrl.shell("open /System/Library/Frameworks/ScreenSaver.framework/Resources/ScreenSaverEngine.app > /dev/null 2>/dev/null");
-                    //defaults -currentHost write com.apple.screensaver idleTime 180
-                if (rtctrl.scrnsav_custom)
-                    rtctrl.shell(rtctrl.scrnsav_custom_on + " >/dev/null 2>/dev/null");
-            }
-
-            if (ccap.turnoff_screen)
-            {
-                rtctrl.shell("xset dpms force off > /dev/null 2>/dev/null");
-            }
-        }
+        rtctrl.scrnsav(ccap.screensaver_management(), ccap.activate_screensaver, ccap.deactivate_screensaver, ccap.turnoff_screen);
     }
 
     if (temperature.ready())
@@ -1631,10 +1586,16 @@ void Core::autocalc_reload ( Configuration * cfg )
 
 void Core::add_menu_items ( QMenu * menu )
 {
-  // menu->addSeparator (); - separate core actions from others
+   menu->addSeparator ();// - separate core actions from others
 
-  // QAction a = new QAction ( tr ( "z&Zz" ), this ); - create an action, char with & 'll be shortcut for action
-  // connect ( a, SIGNAL ( triggered () ), this, SLOT ( someRandomFunction() ) ); - QAction send triggered() signal when user preses the action.
+   QAction * screen_off = new QAction ( tr ( "z&Zz" ), this );// - create an action, char with & 'll be shortcut for action
+   connect ( screen_off, SIGNAL ( triggered () ), this, SLOT ( screen_off ) );// - QAction send triggered() signal when user preses the action.
+   menu->addAction(screen_off);
+}
+
+void Core::screen_off()
+{
+    rtctrl.scrnsav(1, 0, 1, 1);
 }
 
 void Core::load_config ()
@@ -2227,6 +2188,55 @@ void eyes_view::hpp_evoke()
 void Core::handle_enter ()
 {
     info << "(core) mouse entered\n";
+}
+
+void rootcontrol::scrnsav(signed short screensaverstate, bool activate, bool deactivate, bool turnoff)
+{
+
+    //cerr << "Return statement of menagement: " << screensaverstate << "\noverdetect is: " << ccap.overdetect << "\n";
+
+    if (screensaverstate == -1 && deactivate)
+    {
+        scrnsav_switched = false;
+        if (scrnsav_X)
+            shell("xscreensaver-command -deactivate > /dev/null");
+        if (scrnsav_gnome)
+        {
+            shell("gnome-screensaver-command -d > /dev/null");
+            shell("gnome-screensaver-command -p > /dev/null 2>/dev/null");
+        }
+        if (scrnsav_kde)
+            shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:false > /dev/null");
+        if (scrnsav_mac)
+            shell("killall ScreenSaverEngine > /dev/null 2>/dev/null");
+        if (scrnsav_custom)
+            shell(scrnsav_custom_off + " >/dev/null 2>/dev/null");
+
+        shell("xset dpms force on > /dev/null");
+    }
+    if (screensaverstate == 1 && !scrnsav_switched)
+    {
+        scrnsav_switched = true;
+        if (activate)
+        {
+            if (scrnsav_X)
+                shell("xscreensaver-command -activate >/dev/null 2>/dev/null");
+            if (scrnsav_gnome)
+                shell("gnome-screensaver-command -a >/dev/null 2>/dev/null");
+            if (scrnsav_kde)
+                shell("dbus-send --type=method_call --dest=org.freedesktop.ScreenSaver /ScreenSaver org.freedesktop.ScreenSaver.SetActive boolean:true > /dev/null 2>/dev/null");
+            if (scrnsav_mac);
+                shell("open /System/Library/Frameworks/ScreenSaver.framework/Resources/ScreenSaverEngine.app > /dev/null 2>/dev/null");
+                //defaults -currentHost write com.apple.screensaver idleTime 180
+            if (scrnsav_custom)
+                shell(scrnsav_custom_on + " >/dev/null 2>/dev/null");
+        }
+
+        if (turnoff)
+        {
+            shell("xset dpms force off > /dev/null 2>/dev/null");
+        }
+    }
 }
 
 void rootcontrol::execute(bool roottype, QString command, QStringList arguments)

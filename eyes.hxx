@@ -178,6 +178,7 @@ private:
     QWidget               * win;
     QBitmap                 mask;
     QPixmap               * area;
+    QPixmap                 merge_mirrors(QPixmap mask);
     QString                 eye,
                             face,
                             face_next,
@@ -311,6 +312,7 @@ public slots:
     void    on_timer_tick   ();
     void    handle_mouse    ( int x, int y );
     void    handle_enter    ();
+    void    screen_off      ();
 private:
     QTimer        * timer;
     eyes_view     * eyes;

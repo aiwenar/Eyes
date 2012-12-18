@@ -111,46 +111,24 @@ void mirror::init_mirrors(IplImage * srcExample)
     prevMirror = cvCloneImage(srcExample);
     double srcw = srcExample->width;
     double srch = srcExample->height;
-    aspectCorrection.ST = 1;
-    aspectCorrection.ND = 1;
-    aspect.ST = 4.0;
-    aspect.ND = 3.0;
-    if (aspectCorrection.ST != aspectCorrection.ND)
+    aspect.ST = srcw;
+    aspect.ND = srch;
+    if (aspectCorrection.ST != 0 && aspectCorrection.ND != 0)
     {
         //scale 4:3 aspect to correct aspect to fix picture distortion
         aspect.ST *= (aspectCorrection.ND*srcw)/(aspectCorrection.ST*srch);
     }
 
     //px data
-    mirrorLsize.height = 300;
-    mirrorLsize.width = 160;
-    mirrorRsize.height = 300;
-    mirrorRsize.width = 160;
+
     mirrorL = cvCreateImage(mirrorLsize, prevMirror->depth, prevMirror->nChannels);
     mirrorR = cvCreateImage(mirrorRsize, prevMirror->depth, prevMirror->nChannels);
 
     //percentage data form 4:3 rect
-    mirrorLsrc.x = 10.0;
-    mirrorLsrc.y = 5.0;
-    mirrorLsrc.width = 60.0;
-    mirrorLsrc.height = 90.0;
-    mirrorRsrc.x = 40.0;
-    mirrorRsrc.y = 5.0;
-    mirrorRsrc.width = 60.0;
-    mirrorRsrc.height = 90.0;
 
-    boxblur = true;
-    gaussian = false;
-    bloom = true;
-    distort = true;
     mirrorL2Diff = 8500*((srcExample->width*srcExample->height)/(640*480));
 
-    gaussSizeL.ST = 3;
-    gaussSizeL.ND = 3;
-    gaussSizeR.ST = 3;
-    gaussSizeR.ND = 3;
-    distortionSize.ST = 1.4;
-    distortionSize.ND = 1.4;
+
 
     if (srcw/srch < aspect.ST/aspect.ND)
     {
@@ -2094,6 +2072,10 @@ void camcapture::envread(pixel **input)
         env.colindex = 8;
         max = env.Hperc;
     }
+    if (env.Dperc > env.tooDarkMargin)
+        env.tooDark = true;
+    else
+        env.tooDark = false;
     env.checked = true;
 }
 
@@ -2155,7 +2137,7 @@ int camcapture::screensaver_management()
             presenceCounter = presenceBufferSize*2;
             return -1;
         }
-        if (!facePresent)
+        if (!facePresent && !env.tooDark)
         {
             if (presenceCounter <= 0)
             {
@@ -2242,6 +2224,7 @@ camthread::camthread( eyes_view * neyes )
     timer = new QTimer ( this );
     timer->setInterval ( 100 );
     Configuration * cfg = Configuration::getInstance ();
+    ThemeManager * tm = ThemeManager::instance();
     eyes = neyes;
 
     ccap.enabled                    = cfg->lookupValue ( ".cam.enabled",                              true );
@@ -2300,6 +2283,7 @@ camthread::camthread( eyes_view * neyes )
     ccap.deactivate_screensaver     = cfg->lookupValue ( ".cam.system.screensaver_deactivate",        true );
     ccap.turnoff_screen             = cfg->lookupValue ( ".cam.system.screensaver_turn_off_screen",  false );
     ccap.activate_screensaver       = cfg->lookupValue ( ".cam.system.screensaver_activate",         false );
+    ccap.env.tooDarkMargin          = cfg->lookupValue ( ".cam.system.max_deactivate_2dark_area",       25 );
     ccap.newFaceLookAtTimeMin       = cfg->lookupValue ( ".cam.system.new_face_look_at_min_time",      2.0 );
     ccap.newFaceLookAtTimeMax       = cfg->lookupValue ( ".cam.system.new_face_look_at_max_time",      6.0 );
     ccap.cascadesPath               = cfg->lookupValue ( ".cam.system.face_cascades_dir", "/usr/share/OpenCV/haarcascades/");
@@ -2433,14 +2417,78 @@ camthread::camthread( eyes_view * neyes )
         delete (faces);
     }
 
-    ccap.mir.enabled = true;
+    ccap.mir.enabled = tm->lookupValue(".ui.mirrors.allow_dynamic", true);
     if (ccap.enabled)
     {
         if (ccap.cam_init())
         {
             ccap.init_motionpics();
             if (ccap.mir.enabled)
+            {
+                ccap.mir.aspectCorrection.ST =      tm->lookupValue(".ui.mirrors.aspect_correction.X",      0 );
+                ccap.mir.aspectCorrection.ND =      tm->lookupValue(".ui.mirrors.aspect_correction.Y",      0 );
+                ccap.mir.paintcornerL = make_pair(  tm->lookupValue(".ui.mirrors.mirror_dimensions.L_X",   22 )*eyes->size_multiplier,
+                                                    tm->lookupValue(".ui.mirrors.mirror_dimensions.L_Y",    6 )*eyes->size_multiplier);
+                ccap.mir.paintcornerR = make_pair(  tm->lookupValue(".ui.mirrors.mirror_dimensions.R_X",  192 )*eyes->size_multiplier,
+                                                    tm->lookupValue(".ui.mirrors.mirror_dimensions.R_Y",    6 )*eyes->size_multiplier);
+                ccap.mir.mirrorLsize.height =       tm->lookupValue(".ui.mirrors.mirror_dimensions.L_H",   66 )*eyes->size_multiplier;
+                ccap.mir.mirrorLsize.width =        tm->lookupValue(".ui.mirrors.mirror_dimensions.L_W",  106 )*eyes->size_multiplier;
+                ccap.mir.mirrorRsize.height =       tm->lookupValue(".ui.mirrors.mirror_dimensions.R_H",   66 )*eyes->size_multiplier;
+                ccap.mir.mirrorRsize.width =        tm->lookupValue(".ui.mirrors.mirror_dimensions.R_W",  106 )*eyes->size_multiplier;
+
+                ccap.mir.mirrorLsrc.x =             tm->lookupValue(".ui.mirrors.mirror_source.L_X",     10.0 );
+                ccap.mir.mirrorLsrc.y =             tm->lookupValue(".ui.mirrors.mirror_source.L_Y",      5.0 );
+                ccap.mir.mirrorLsrc.width =         tm->lookupValue(".ui.mirrors.mirror_source.L_W",     60.0 );
+                ccap.mir.mirrorLsrc.height =        tm->lookupValue(".ui.mirrors.mirror_source.L_H",     90.0 );
+                ccap.mir.mirrorRsrc.x =             tm->lookupValue(".ui.mirrors.mirror_source.R_X",     40.0 );
+                ccap.mir.mirrorRsrc.y =             tm->lookupValue(".ui.mirrors.mirror_source.R_Y",      5.0 );
+                ccap.mir.mirrorRsrc.width =         tm->lookupValue(".ui.mirrors.mirror_source.R_W",     60.0 );
+                ccap.mir.mirrorRsrc.height =        tm->lookupValue(".ui.mirrors.mirror_source.R_H",     90.0 );
+
+                if (cfg->lookupValue(".ui.mirrors_graphics.use_manual", false))
+                {
+                    ccap.mir.boxblur =          cfg->lookupValue(".ui.mirrors_graphics.manual.boxblur",     true);
+                    ccap.mir.gaussian =         cfg->lookupValue(".ui.mirrors_graphics.manual.gaussblur",  false);
+                    ccap.mir.bloom =            cfg->lookupValue(".ui.mirrors_graphics.manual.bloom",       true);
+                    ccap.mir.distort =          cfg->lookupValue(".ui.mirrors_graphics.manual.fisheye",     true);
+                }
+                else
+                {
+                    int quick_settings =        cfg->lookupValue(".ui.mirrors_graphics.quick_settings_0_2",    2);
+
+                    if (quick_settings == 0)
+                    {
+                        ccap.mir.boxblur =  false;
+                        ccap.mir.gaussian = false;
+                        ccap.mir.bloom =    false;
+                        ccap.mir.distort =  false;
+                    }
+                    else if (quick_settings == 1)
+                    {
+                        ccap.mir.boxblur =  false;
+                        ccap.mir.gaussian = false;
+                        ccap.mir.bloom =    false;
+                        ccap.mir.distort =  true;
+                    }
+                    else if (quick_settings == 2)
+                    {
+                        ccap.mir.boxblur =  true;
+                        ccap.mir.gaussian = false;
+                        ccap.mir.bloom =    true;
+                        ccap.mir.distort =  true;
+                    }
+                }
+
+                ccap.mir.gaussSizeL.ST =        tm->lookupValue(".ui.mirrors.appearance.blursize.L_W",              3 );
+                ccap.mir.gaussSizeL.ND =        tm->lookupValue(".ui.mirrors.appearance.blursize.L_H",              3 );
+                ccap.mir.gaussSizeR.ST =        tm->lookupValue(".ui.mirrors.appearance.blursize.R_W",              3 );
+                ccap.mir.gaussSizeR.ND =        tm->lookupValue(".ui.mirrors.appearance.blursize.R_H",              3 );
+                ccap.mir.distortionSize.ST =    tm->lookupValue(".ui.mirrors.appearance.fisheye.W",               1.4 );
+                ccap.mir.distortionSize.ND =    tm->lookupValue(".ui.mirrors.appearance.fisheye.H",               1.4 );
+                ccap.mir.alphacorrection =      tm->lookupValue(".ui.mirrors.appearance.dynamic_alpha_correction",2.0 );
+
                 ccap.mir.init_mirrors(ccap.src);
+            }
             if (ccap.debug)
                 ccap.init_debug();
         }

@@ -37,6 +37,7 @@ using namespace std;
 
 const double versiond = 0.100000;
 const char *verstr = "0.10.0 alpha";
+extern camcapture ccap;
 
 bool is_finished;
 bool images_ready;
@@ -247,7 +248,9 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics.value ( face+"_s" ) );
     parea.drawPixmap ( int(mpx1), int(mpy1), eye_mwL, eye_mhL, *pics.value ( spec ) );
     parea.drawPixmap ( int(mpx2), int(mpy2), eye_mwR, eye_mhR, *pics.value ( spec ) );
-    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics.value ( face+"_m" ) );
+    parea.setCompositionMode(QPainter::CompositionMode_Screen);
+    parea.drawPixmap ( 0, 0, eyes_w, eyes_h, merge_mirrors(*pics.value ( face+"_m" )) );
+    parea.setCompositionMode(QPainter::CompositionMode_SourceOver);
     parea.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics.value ( face+"_o" ) );
     parea.end ();
     area->setMask ( pics[face+"_a"]->mask () );
@@ -255,6 +258,56 @@ void eyes_view::paintEvent ( QPaintEvent * event )
       if ( layers[i].drawable )
         paint.drawPixmap ( 0, 0, eyes_w, eyes_h, *pics.value ( layers[i].face ) );
     paint.drawPixmap ( 0, 0, eyes_w, eyes_h, *area );
+}
+
+QPixmap eyes_view::merge_mirrors(QPixmap mask)
+{
+    QImage workspace = mask.toImage();
+    QImage alpha = workspace.alphaChannel();
+    char *data = ccap.mir.mirrorL->imageData;
+    int h = ccap.mir.mirrorL->height;
+    int w = ccap.mir.mirrorL->width;
+
+    for (int y = 0; y < h; y++, data += ccap.mir.mirrorR->widthStep)
+    {
+        for (int x = 0; x < w; x++)
+        {
+            int a = qAlpha(workspace.pixel(x+ccap.mir.paintcornerL.ST, y+ccap.mir.paintcornerL.ND))*ccap.mir.alphacorrection;
+            if (a>255)
+                a=255;
+            unsigned char r, g, b;
+            r = data[x * 3 + 2];
+            b = data[x * 3 + 1];
+            g = data[x * 3];
+            if (a!=0)
+                workspace.setPixel(x+ccap.mir.paintcornerL.ST, y+ccap.mir.paintcornerL.ND, qRgba((r*a)/255, (g*a)/255, (b*a)/255, a));
+            else
+                workspace.setPixel(x+ccap.mir.paintcornerL.ST, y+ccap.mir.paintcornerL.ND, qRgba(0, 0, 0, a));
+        }
+    }
+
+    data = ccap.mir.mirrorR->imageData;
+    h = ccap.mir.mirrorR->height;
+    w = ccap.mir.mirrorR->width;
+
+    for (int y = 0; y < h; y++, data += ccap.mir.mirrorR->widthStep)
+    {
+        for (int x = 0; x < w; x++)
+        {
+            int a = qAlpha(workspace.pixel(x+ccap.mir.paintcornerR.ST, y+ccap.mir.paintcornerR.ND))*ccap.mir.alphacorrection;
+            if (a>255)
+                a=255;
+            unsigned char r, g, b;
+            r = data[x * 3 + 2];
+            b = data[x * 3 + 1];
+            g = data[x * 3];
+            if (a!=0)
+                workspace.setPixel(x+ccap.mir.paintcornerR.ST, y+ccap.mir.paintcornerR.ND, qRgba((r*a)/255, (g*a)/255, (b*a)/255, a));
+            else
+                workspace.setPixel(x+ccap.mir.paintcornerR.ST, y+ccap.mir.paintcornerR.ND, qRgba(0, 0, 0, a));
+        }
+    }
+    return QPixmap::fromImage(workspace);
 }
 
 void eyes_view::mousePressEvent ( QMouseEvent * ev )

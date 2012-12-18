@@ -389,7 +389,8 @@ class rootcontrol
 public:
     void                        action (string command),
                                 shelldetect(),
-                                shell(string command);
+                                shell(string command),
+                                scrnsav(signed short screensaverstate, bool activate, bool deactivate, bool turnoff);
     unsigned short              batt_min_backl,
                                 batt_start_perc,
                                 batt_suspend_perc,

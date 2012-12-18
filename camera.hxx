@@ -10,6 +10,7 @@
 #include <opencv2/contrib/contrib.hpp>
 #include <cvaux.hpp>
 #include "eyes.hxx"
+#include "tm.hh"
 #include <QElapsedTimer>
 #include <QImage>
 
@@ -24,6 +25,8 @@ using namespace std;
 
 typedef pair<int,int> PII;
 typedef vector<PII> VPII;
+
+class eyes_view;
 
 struct plama
 {
@@ -42,7 +45,8 @@ struct environment
     unsigned short* input;
     unsigned short  max_tolerance,
                     min_tolerance,
-                    colindex;
+                    colindex,
+                    tooDarkMargin;
     unsigned int    greencounter,
                     bluecounter,
                     redcounter,
@@ -67,7 +71,8 @@ struct environment
                     global_avg;
     pixel**         envmap;
     QElapsedTimer   timer;
-    bool            checked;
+    bool            checked,
+                    tooDark;
 };
 
 struct funsys
@@ -111,7 +116,9 @@ struct mirror
 
     pair <int, int> aspectCorrection,
                     gaussSizeL,
-                    gaussSizeR;
+                    gaussSizeR,
+                    paintcornerR,
+                    paintcornerL;
 
     pair<double, double>
                     aspect,
@@ -119,7 +126,8 @@ struct mirror
                     shift,
                     distortionSize;
 
-    double          mirrorL2Diff;
+    double          mirrorL2Diff,
+                    alphacorrection;
 
     unsigned short  quality;
 
@@ -330,6 +338,7 @@ public:
                     facesBankPath;
     IplImage      * QImage2IplImage (QImage *qimg);
     QImage        * IplImage2QImage (IplImage *iplImg);
+    eyes_view     * eyes;
 };
 
 #endif // CAMERA_HXX

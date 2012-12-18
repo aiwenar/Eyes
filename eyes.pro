@@ -15,7 +15,6 @@ SOURCES += \
   window.cc\
   core.cpp\
   configuration.cc \
-  memory.cc \
   hardware.cc \
   cdbg.cc \
   ostream.cc \
@@ -33,7 +32,6 @@ HEADERS += \
   eyes.hxx\
   core.hxx\
   configuration.hxx \
-  memory.hxx \
   cdbg.hxx \
   hardware.hxx \
   ostream.hh \
@@ -48,6 +46,7 @@ OTHER_FILES += \
   README.markdown\
   color.cfg\
   .gitignore \
+  config.cfg \
   scripts/checklibs \
   scripts/libcfg \
     themes/default/theme.cfg
