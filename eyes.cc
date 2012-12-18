@@ -260,8 +260,13 @@ void eyes_view::paintEvent ( QPaintEvent * event )
     paint.drawPixmap ( 0, 0, eyes_w, eyes_h, *area );
 }
 
-QPixmap eyes_view::merge_mirrors(QPixmap mask)
+QPixmap eyes_view::merge_mirrors ( QPixmap mask )
 {
+  if ( 0 == ccap.mir.mirrorL )
+  {
+    error << "assertion failed: 0 == ccap.mir.mirrorL.\n";
+    return 0;
+  }
     QImage workspace = mask.toImage();
     QImage alpha = workspace.alphaChannel();
     char *data = ccap.mir.mirrorL->imageData;
@@ -426,12 +431,12 @@ void eyes_view::add_menu_items ( QMenu * menu )
   core->add_menu_items ( menu );
 }
 
-int eyes_view::heightForWidth ( int w ) const
+int eyes_view::heightForWidth ( int ) const
 {
     return ( eyes_h );
 }
 
-QVariant eyes_view::inputMethodQuery ( Qt::InputMethodQuery query ) const
+QVariant eyes_view::inputMethodQuery ( Qt::InputMethodQuery ) const
 {
     return ( nil );
 }
