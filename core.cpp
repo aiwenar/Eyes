@@ -1589,7 +1589,7 @@ void Core::add_menu_items ( QMenu * menu )
    menu->addSeparator ();// - separate core actions from others
 
    QAction * screen_off = new QAction ( tr ( "z&Zz" ), this );// - create an action, char with & 'll be shortcut for action
-   connect ( screen_off, SIGNAL ( triggered () ), this, SLOT ( screen_off ) );// - QAction send triggered() signal when user preses the action.
+   connect ( screen_off, SIGNAL ( triggered () ), this, SLOT ( screen_off () ) );// - QAction send triggered() signal when user preses the action.
    menu->addAction(screen_off);
 }
 
