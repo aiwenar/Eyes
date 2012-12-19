@@ -1,0 +1,947 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>devHelper</class>
+ <widget class="QWidget" name="devHelper">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>549</width>
+    <height>226</height>
+   </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>549</width>
+    <height>226</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>549</width>
+    <height>226</height>
+   </size>
+  </property>
+  <property name="windowTitle">
+   <string>DevHelper</string>
+  </property>
+  <property name="windowIcon">
+   <iconset>
+    <normaloff>dir_icon.png</normaloff>dir_icon.png</iconset>
+  </property>
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <widget class="QDialogButtonBox" name="close_dev_helper">
+   <property name="geometry">
+    <rect>
+     <x>472</x>
+     <y>196</y>
+     <width>69</width>
+     <height>32</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>close window</string>
+   </property>
+   <property name="orientation">
+    <enum>Qt::Horizontal</enum>
+   </property>
+   <property name="standardButtons">
+    <set>QDialogButtonBox::Ok</set>
+   </property>
+   <property name="centerButtons">
+    <bool>false</bool>
+   </property>
+  </widget>
+  <widget class="QLCDNumber" name="lcd_temp">
+   <property name="geometry">
+    <rect>
+     <x>220</x>
+     <y>200</y>
+     <width>41</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>hardware temperature</string>
+   </property>
+   <property name="numDigits">
+    <number>3</number>
+   </property>
+  </widget>
+  <widget class="QLCDNumber" name="lcd_batt">
+   <property name="geometry">
+    <rect>
+     <x>300</x>
+     <y>200</y>
+     <width>41</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>battery charge</string>
+   </property>
+   <property name="numDigits">
+    <number>3</number>
+   </property>
+  </widget>
+  <widget class="QLCDNumber" name="lcd_cpu">
+   <property name="geometry">
+    <rect>
+     <x>40</x>
+     <y>200</y>
+     <width>41</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>cpu load</string>
+   </property>
+   <property name="numDigits">
+    <number>3</number>
+   </property>
+  </widget>
+  <widget class="QLCDNumber" name="lcd_mem">
+   <property name="geometry">
+    <rect>
+     <x>130</x>
+     <y>200</y>
+     <width>41</width>
+     <height>23</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>memory load</string>
+   </property>
+   <property name="smallDecimalPoint">
+    <bool>false</bool>
+   </property>
+   <property name="numDigits">
+    <number>3</number>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label">
+   <property name="geometry">
+    <rect>
+     <x>9</x>
+     <y>203</y>
+     <width>21</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>cpu load</string>
+   </property>
+   <property name="text">
+    <string>cpu</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_2">
+   <property name="geometry">
+    <rect>
+     <x>92</x>
+     <y>204</y>
+     <width>31</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>memory load</string>
+   </property>
+   <property name="text">
+    <string>mem</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_3">
+   <property name="geometry">
+    <rect>
+     <x>180</x>
+     <y>204</y>
+     <width>31</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>hardware temperature</string>
+   </property>
+   <property name="text">
+    <string>temp</string>
+   </property>
+  </widget>
+  <widget class="QLabel" name="label_4">
+   <property name="geometry">
+    <rect>
+     <x>270</x>
+     <y>205</y>
+     <width>31</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>battery charge</string>
+   </property>
+   <property name="text">
+    <string>batt</string>
+   </property>
+  </widget>
+  <widget class="QGroupBox" name="groupBox">
+   <property name="geometry">
+    <rect>
+     <x>10</x>
+     <y>10</y>
+     <width>111</width>
+     <height>181</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Mirrors</string>
+   </property>
+   <widget class="QRadioButton" name="mir_fisheye">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>70</y>
+      <width>100</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>enables fisheye distortion effect to mirrors texture</string>
+    </property>
+    <property name="text">
+     <string>fisheye</string>
+    </property>
+    <property name="autoExclusive">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="mir_blurtype">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>120</y>
+      <width>85</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>blur type</string>
+    </property>
+    <item>
+     <property name="text">
+      <string>no blur</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>gauss blur</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>boxblur</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QRadioButton" name="mir_bloom">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>90</y>
+      <width>100</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>adds coloid bloom effect (requires blur)</string>
+    </property>
+    <property name="text">
+     <string>bloom</string>
+    </property>
+   </widget>
+   <widget class="QDoubleSpinBox" name="mir_alpha_correction">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>150</y>
+      <width>62</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>mirrors alpha correction</string>
+    </property>
+    <property name="minimum">
+     <double>0.000000000000000</double>
+    </property>
+    <property name="singleStep">
+     <double>0.100000000000000</double>
+    </property>
+    <property name="value">
+     <double>1.000000000000000</double>
+    </property>
+   </widget>
+   <widget class="QRadioButton" name="mir_enabled">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>81</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>toggles dynamic mirrors from camera</string>
+    </property>
+    <property name="text">
+     <string>camera</string>
+    </property>
+    <property name="autoExclusive">
+     <bool>false</bool>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_2">
+   <property name="geometry">
+    <rect>
+     <x>120</x>
+     <y>10</y>
+     <width>111</width>
+     <height>181</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>Eyes size</string>
+   </property>
+   <widget class="QRadioButton" name="eye_enabled">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>30</y>
+      <width>101</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>toggles computing eyes size based on camera</string>
+    </property>
+    <property name="text">
+     <string>camera</string>
+    </property>
+    <property name="autoExclusive">
+     <bool>false</bool>
+    </property>
+   </widget>
+   <widget class="QDial" name="eye_minbright">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>60</y>
+      <width>41</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>BlankCursor</cursorShape>
+    </property>
+    <property name="toolTip">
+     <string>brightness where eyes starting to grow</string>
+    </property>
+   </widget>
+   <widget class="QDial" name="eye_maxbright">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>100</y>
+      <width>41</width>
+      <height>51</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>BlankCursor</cursorShape>
+    </property>
+    <property name="toolTip">
+     <string>brightness where eyes starting to squeeze</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_5">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>70</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>brightness where eyes starting to grow</string>
+    </property>
+    <property name="text">
+     <string>low
+bright.</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_6">
+    <property name="geometry">
+     <rect>
+      <x>60</x>
+      <y>110</y>
+      <width>71</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>brightness where eyes starting to squeeze</string>
+    </property>
+    <property name="text">
+     <string>high
+bright.</string>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="checkBox">
+    <property name="geometry">
+     <rect>
+      <x>20</x>
+      <y>150</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>enable fixed eyes size</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="spinBox">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>150</y>
+      <width>41</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>eye size (1-10)</string>
+    </property>
+    <property name="minimum">
+     <number>1</number>
+    </property>
+    <property name="maximum">
+     <number>10</number>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QGroupBox" name="groupBox_3">
+   <property name="geometry">
+    <rect>
+     <x>230</x>
+     <y>10</y>
+     <width>311</width>
+     <height>181</height>
+    </rect>
+   </property>
+   <property name="title">
+    <string>eMu system</string>
+   </property>
+   <widget class="QLabel" name="label_7">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>70</y>
+      <width>31</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>cpu</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_8">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>70</y>
+      <width>31</width>
+      <height>20</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>mem</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_10">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>70</y>
+      <width>31</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>batt</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_11">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>130</y>
+      <width>51</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>battery
+status</string>
+    </property>
+   </widget>
+   <widget class="QDial" name="eMu_cpu_v">
+    <property name="geometry">
+     <rect>
+      <x>30</x>
+      <y>30</y>
+      <width>41</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>BlankCursor</cursorShape>
+    </property>
+    <property name="toolTip">
+     <string>cpu load</string>
+    </property>
+   </widget>
+   <widget class="QDial" name="eMu_mem_v">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>30</y>
+      <width>41</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>BlankCursor</cursorShape>
+    </property>
+    <property name="toolTip">
+     <string>memory load</string>
+    </property>
+   </widget>
+   <widget class="QDial" name="eMu_batt_v">
+    <property name="geometry">
+     <rect>
+      <x>170</x>
+      <y>30</y>
+      <width>41</width>
+      <height>41</height>
+     </rect>
+    </property>
+    <property name="cursor">
+     <cursorShape>BlankCursor</cursorShape>
+    </property>
+    <property name="toolTip">
+     <string>battery charge</string>
+    </property>
+   </widget>
+   <widget class="QLineEdit" name="eMu_temp_v">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>100</y>
+      <width>61</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>type temperature in Celcius degrees</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_9">
+    <property name="geometry">
+     <rect>
+      <x>40</x>
+      <y>100</y>
+      <width>39</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>temp.</string>
+    </property>
+   </widget>
+   <widget class="QComboBox" name="eMu_batts_v">
+    <property name="geometry">
+     <rect>
+      <x>100</x>
+      <y>130</y>
+      <width>111</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>change battery status</string>
+    </property>
+    <item>
+     <property name="text">
+      <string>present</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>not present</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>just plugged in</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>just unplugged</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>not supported</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QCheckBox" name="eMu_batts">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>130</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>enable battery status emulation</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="eMu_temp">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>100</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>enable hardware temperature emulation</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="eMu_cpu">
+    <property name="geometry">
+     <rect>
+      <x>10</x>
+      <y>40</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>enable cpu load emulation</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="eMu_mem">
+    <property name="geometry">
+     <rect>
+      <x>80</x>
+      <y>40</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>enable memory load emulation</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="eMu_batt">
+    <property name="geometry">
+     <rect>
+      <x>150</x>
+      <y>40</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>enable battery charge emulation</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="eMu_bulwers_flush">
+    <property name="geometry">
+     <rect>
+      <x>270</x>
+      <y>50</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>apply new anger</string>
+    </property>
+    <property name="text">
+     <string>ok</string>
+    </property>
+   </widget>
+   <widget class="QSpinBox" name="eMu_bulwers_v">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>50</y>
+      <width>41</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>anger level (1-16)</string>
+    </property>
+    <property name="maximum">
+     <number>16</number>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_12">
+    <property name="geometry">
+     <rect>
+      <x>231</x>
+      <y>33</y>
+      <width>41</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>anger</string>
+    </property>
+   </widget>
+   <widget class="QTimeEdit" name="eMu_time_v">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>100</y>
+      <width>71</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>fake time</string>
+    </property>
+    <property name="currentSection">
+     <enum>QDateTimeEdit::HourSection</enum>
+    </property>
+    <property name="displayFormat">
+     <string>HH:mm</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_13">
+    <property name="geometry">
+     <rect>
+      <x>231</x>
+      <y>83</y>
+      <width>31</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>time</string>
+    </property>
+   </widget>
+   <widget class="QTimeEdit" name="eMu_energy_v">
+    <property name="geometry">
+     <rect>
+      <x>230</x>
+      <y>150</y>
+      <width>71</width>
+      <height>22</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>energy</string>
+    </property>
+    <property name="displayFormat">
+     <string>HH:mm</string>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_14">
+    <property name="geometry">
+     <rect>
+      <x>231</x>
+      <y>133</y>
+      <width>51</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>energy</string>
+    </property>
+   </widget>
+   <widget class="Line" name="line">
+    <property name="geometry">
+     <rect>
+      <x>210</x>
+      <y>20</y>
+      <width>20</width>
+      <height>141</height>
+     </rect>
+    </property>
+    <property name="orientation">
+     <enum>Qt::Vertical</enum>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="eMu_energy">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>130</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>enable energy emulation</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="eMu_time">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>80</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>enable clock emulation</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QCheckBox" name="eMu_bulwers">
+    <property name="geometry">
+     <rect>
+      <x>280</x>
+      <y>30</y>
+      <width>21</width>
+      <height>21</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>enable final anger level emulation</string>
+    </property>
+    <property name="text">
+     <string/>
+    </property>
+   </widget>
+   <widget class="QLabel" name="label_16">
+    <property name="geometry">
+     <rect>
+      <x>160</x>
+      <y>100</y>
+      <width>21</width>
+      <height>16</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>ºC</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="eMu_temp_flush">
+    <property name="geometry">
+     <rect>
+      <x>180</x>
+      <y>100</y>
+      <width>31</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="toolTip">
+     <string>apply new temperature</string>
+    </property>
+    <property name="text">
+     <string>ok</string>
+    </property>
+   </widget>
+  </widget>
+  <widget class="QLabel" name="label_15">
+   <property name="geometry">
+    <rect>
+     <x>346</x>
+     <y>204</y>
+     <width>42</width>
+     <height>16</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>energy left</string>
+   </property>
+   <property name="text">
+    <string>energ</string>
+   </property>
+  </widget>
+  <widget class="QProgressBar" name="lcd_energy">
+   <property name="geometry">
+    <rect>
+     <x>386</x>
+     <y>202</y>
+     <width>81</width>
+     <height>20</height>
+    </rect>
+   </property>
+   <property name="toolTip">
+    <string>energy left</string>
+   </property>
+   <property name="value">
+    <number>24</number>
+   </property>
+   <property name="format">
+    <string>%vmin</string>
+   </property>
+  </widget>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>close_dev_helper</sender>
+   <signal>accepted()</signal>
+   <receiver>devHelper</receiver>
+   <slot>accept()</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>248</x>
+     <y>254</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>157</x>
+     <y>274</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
+</ui>

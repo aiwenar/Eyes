@@ -22,7 +22,8 @@ SOURCES += \
   camera.cpp \
   tm.cc \
   hungarian.cpp \
-  connection.cc
+  connection.cc \
+    devhelper.cpp
 
 HEADERS += \ 
   defines.hxx\
@@ -40,7 +41,8 @@ HEADERS += \
   tm.hh \
   img_fileinfo.hh \
   hungarian.h \
-  connection.hxx
+  connection.hxx \
+    devhelper.h
 
 OTHER_FILES += \ 
   README.markdown\
@@ -50,6 +52,9 @@ OTHER_FILES += \
   scripts/checklibs \
   scripts/libcfg \
     themes/default/theme.cfg
+
+FORMS += \
+    devhelper.ui
 
 QT += network
 

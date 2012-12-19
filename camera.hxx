@@ -56,7 +56,10 @@ struct environment
                     greycounter,
                     lightcounter,
                     tabsize,
-                    delay;
+                    delay,
+                    minbright,
+                    maxbright,
+                    eyesize;
     double          B_correct,
                     G_correct,
                     R_correct,
@@ -72,7 +75,8 @@ struct environment
     pixel**         envmap;
     QElapsedTimer   timer;
     bool            checked,
-                    tooDark;
+                    tooDark,
+                    eyemanagement;
 };
 
 struct funsys

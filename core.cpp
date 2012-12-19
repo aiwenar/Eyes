@@ -36,6 +36,7 @@
 #include "cdbg.hxx"
 #include "hardware.hxx"
 #include "defines.hxx"
+#include "devhelper.h"
 
 using namespace std;
 
@@ -564,6 +565,9 @@ void bul::critical_services( Configuration * cfg )
         cerr << "eye sieze recognize failed!: setting emergency value (6)\n";
         eye = 6;
     }
+
+    if (ccap.env.eyemanagement && ccap.env.checked)
+        eye = ccap.env.eyesize;
 
     if (value != 0 && outline != 20 && wake_up)
         outline = value + 3;
@@ -2058,6 +2062,8 @@ void Core::run ()
     sigaction(SIGTERM, &sa, 0);
     sigaction(SIGQUIT, &sa, 0);
     sigaction(SIGABRT, &sa, 0);
+    devHelper * dev = new devHelper();
+    dev->show();
 }
 
 void Core::on_timer_tick ()

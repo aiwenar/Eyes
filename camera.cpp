@@ -2030,6 +2030,12 @@ void camcapture::envread(pixel **input)
     env.Dperc = 100*env.darkcounter/env.tabsize;
     env.Hperc = 100*env.greycounter/env.tabsize;
     env.global_avg=nextgavg/env.tabsize;
+    if (env.global_avg < env.minbright)
+        env.eyesize = 1;
+    else if (env.global_avg > env.maxbright)
+        env.eyesize = 10;
+    else
+        env.eyesize = (9*(env.global_avg-env.minbright))/(env.maxbright-env.minbright) + 1;
     env.colindex = 0;
     double max = 0.0;
     if (env.Rperc > max)
@@ -2264,7 +2270,10 @@ camthread::camthread( eyes_view * neyes )
     ccap.env.B_correct              = cfg->lookupValue ( ".cam.system.env_B_correction",              90.0 );
     ccap.env.G_correct              = cfg->lookupValue ( ".cam.system.env_G_correction",             100.0 );
     ccap.env.R_correct              = cfg->lookupValue ( ".cam.system.env_R_correction",             100.0 );
-    ccap.env.delay                  = cfg->lookupValue ( ".cam.system.env_reload_delay",                30 );
+    ccap.env.delay                  = cfg->lookupValue ( ".cam.system.env_reload_delay",                10 );
+    ccap.env.eyemanagement          = cfg->lookupValue ( ".cam.system.env_eye_management",            true );
+    ccap.env.minbright              = cfg->lookupValue ( ".cam.system.env_min_eye_brightness",          70 );
+    ccap.env.maxbright              = cfg->lookupValue ( ".cam.system.env_max_eye_brightness",         200 );
     ccap.fun.forgetcalm             = cfg->lookupValue ( ".cam.system.fun_calm_percentage",           50.0 );
     ccap.fun.funchunk               = cfg->lookupValue ( ".cam.system.fun_chunk_size",                 300 );
     ccap.fun.totforget              = cfg->lookupValue ( ".cam.system.fun_total_forget_time",          900 );
