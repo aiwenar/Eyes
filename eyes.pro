@@ -1,12 +1,12 @@
-DEPENDENCY_LIBRARIES += \ 
+DEPENDENCY_LIBRARIES += \
   glib-2.0 \
   gtop-2.0
 
-DEPENDENCY_INCLUDES += \ 
+DEPENDENCY_INCLUDES += \
   glib-2.0 \
   libgtop-2.0
 
-SOURCES += \ 
+SOURCES += \
   main.cc \
   eyes.cc \
   clapper.cc\
@@ -25,7 +25,7 @@ SOURCES += \
   connection.cc \
     devhelper.cpp
 
-HEADERS += \ 
+HEADERS += \
   defines.hxx\
   animation.hxx\
   window.hxx\
@@ -44,7 +44,7 @@ HEADERS += \
   connection.hxx \
     devhelper.h
 
-OTHER_FILES += \ 
+OTHER_FILES += \
   README.markdown\
   color.cfg\
   .gitignore \
@@ -77,16 +77,3 @@ LIBS += \
 
 system ( echo "Eyes configured." )
 system ( echo "  type 'make' to build Eyes." )
-
-
-
-
-
-
-
-
-
-
-
-
-
