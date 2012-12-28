@@ -31,7 +31,7 @@ eyes_window::eyes_window ( QWidget * parent ) : QWidget ( parent, Qt::WindowStay
     ThemeManager * tm = ThemeManager::instance ();
     const char * theme = cfg->lookupValue ( ".ui.theme", "default" );
     tm->load ( theme );
-    double size_multiplier = tm->lookupValue ( ".ui.window.size_percentage", 100 )/100.0;
+    double size_multiplier = cfg->lookupValue ( ".ui.window.size_percentage", 100 )/100.0;
     eyes_w = tm->lookupValue ( ".ui.window.reference_width", 320 ) * size_multiplier;
     eyes_h = tm->lookupValue ( ".ui.window.reference_height", 80 ) * size_multiplier;
     isicon = cfg->lookupValue ( ".ui.window.tray_icon", true );
