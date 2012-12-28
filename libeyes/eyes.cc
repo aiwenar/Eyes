@@ -35,8 +35,7 @@ using namespace std;
 
 #define MM_NO_MOTION 10000
 
-const double versiond = 0.100000;
-const char *verstr = "0.10.0 alpha";
+const char * libeyes_version = "0.10.1";
 extern camcapture ccap;
 
 bool is_finished;
