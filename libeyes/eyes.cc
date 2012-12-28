@@ -42,6 +42,17 @@ extern camcapture ccap;
 bool is_finished;
 bool images_ready;
 
+int eye_swL,
+    eye_shL,
+    eye_swR,
+    eye_shR,
+    eye_mwL,
+    eye_mhL,
+    eye_mwR,
+    eye_mhR,
+    eyes_w,
+    eyes_h;
+
 eyes_view::eyes_view ( QWidget * parent,/* QString ncolor, */double size_m )
 : QWidget ( parent )
 , pics    ()

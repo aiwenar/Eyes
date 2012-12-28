@@ -43,17 +43,6 @@ static const char about [] = {
   "under certain conditions.\n"
 };
 
-int eye_swL,
-    eye_shL,
-    eye_swR,
-    eye_shR,
-    eye_mwL,
-    eye_mhL,
-    eye_mwR,
-    eye_mhR,
-    eyes_w,
-    eyes_h;
-
 void on_destroy ();
 
 int main ( int argc, char ** argv )
