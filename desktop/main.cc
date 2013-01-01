@@ -43,16 +43,7 @@ static const char about [] = {
   "under certain conditions.\n"
 };
 
-int eye_swL,
-    eye_shL,
-    eye_swR,
-    eye_shR,
-    eye_mwL,
-    eye_mhL,
-    eye_mwR,
-    eye_mhR,
-    eyes_w,
-    eyes_h;
+static const char appver [] = "0.10.1";
 
 void on_destroy ();
 
@@ -86,7 +77,8 @@ int main ( int argc, char ** argv )
       }
     else if ( arg.at ( i ) == "-v" or arg.at ( i ) == "--version" )
     {
-      cout << "eyes " << verstr << '\n';
+      cout << "libeyes " << libeyes_version << '\n'
+           << "client  " << appver << '\n';
       exit ( 0 );
     }
     else if ( arg.at ( i ) == "--about" )

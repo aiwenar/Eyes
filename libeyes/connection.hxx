@@ -2,9 +2,9 @@
 #define CONNECTION_HXX
 
 #include "eyes.hxx"
-#include <QTcpServer>
-#include <QTcpSocket>
-#include <QNetworkInterface>
+#include <QtNetwork/QTcpServer>
+#include <QtNetwork/QTcpSocket>
+#include <QtNetwork/QNetworkInterface>
 #include <QProcess>
 #include <vector>
 #include <map>

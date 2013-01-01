@@ -72,6 +72,7 @@ extern int  eye_swL,
             eyes_w,
             eyes_h;
 extern bool images_ready;
+extern const char * libeyes_version;
 
 using namespace std;
 
