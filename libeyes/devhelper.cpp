@@ -135,7 +135,6 @@ void devHelper::refresh()
         ui->lcd_energy->setValue((energy.wide - (energy.value - energy.start))/60);
     else
         ui->lcd_energy->setValue((energy.wide)/60);
-    cerr << energy.value << " " << energy.start << " " << energy.wide << "\n";
 }
 
 void devHelper::on_mir_enabled_toggled(bool checked)
@@ -216,7 +215,6 @@ void devHelper::on_eye_minbright_dialMoved(int value)
 void devHelper::on_eye_maxbright_dialMoved(int value)
 {
     ccap.env.maxbright = value;
-    cerr << value << "\n";
 }
 
 void devHelper::on_eye_fixed_toggled(bool checked)

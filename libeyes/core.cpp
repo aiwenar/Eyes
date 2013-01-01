@@ -727,10 +727,10 @@ void bul::critical_services( Configuration * cfg )
         lastnap_atime = atime;
         lastnap_saved = remembered_nrg;
         lastnap_dtime = dtime;
-        cerr << "nap log:\ndelta time was " << dtime << "min - it means: from " << (remembered_time%(24*60))/60 << ":" << remembered_time%60 << " to " << (atime%(24*60))/60 << ":" << atime%60 << "\n"
-             << "what is " << 100*dtime/(rest_time_std*60) << "% of daily rest time (" << rest_time_std << "h)\n"
-             << "bonus energy is: " << remembered_nrg/3600 << ":" << (remembered_nrg%3600)/60 << ":" << remembered_nrg%60 << " from unused energy and " << lastnap_rest/60 << " minutes from nap\n"
-             << "mainimum nap time was set to: " << max_mem_lag << "min.\n\n";
+        //cerr << "nap log:\ndelta time was " << dtime << "min - it means: from " << (remembered_time%(24*60))/60 << ":" << remembered_time%60 << " to " << (atime%(24*60))/60 << ":" << atime%60 << "\n"
+        //     << "what is " << 100*dtime/(rest_time_std*60) << "% of daily rest time (" << rest_time_std << "h)\n"
+        //     << "bonus energy is: " << remembered_nrg/3600 << ":" << (remembered_nrg%3600)/60 << ":" << remembered_nrg%60 << " from unused energy and " << lastnap_rest/60 << " minutes from nap\n"
+        //     << "mainimum nap time was set to: " << max_mem_lag << "min.\n\n";
     }
     remembered_time = atime;
     remembered_nrg = energy.start - energy.value;
@@ -782,8 +782,9 @@ int bul::eyecalc()
     {
         if (seasons[i].date_begin.ST < date.ST)
             continue;
-        if (seasons[i].date_begin.ND > date.ND)
+        if (seasons[i].date_begin.ST == date.ST && seasons[i].date_begin.ND < date.ND)
             continue;
+        i = (seasons.size()+i-1)%seasons.size();
         if (times.value < seasons[i].hour_begin || times.value > seasons[i].hour_end)
         {
             current = seasons[i].size_lowest;
@@ -1793,7 +1794,7 @@ void Core::load_config ()
     bulwers.wkup_time       = cfg->lookupValue (".core.bulwers.wkup_time",               7           );
     bulwers.wkup_timew      = cfg->lookupValue (".core.bulwers.wkup_time_weekend",       10          );
     bulwers.wake_up_delay   = cfg->lookupValue (".core.bulwers.wkup_delay",              120         );
-    int counter             = cfg->lookupValue (".core.bulwers.seasons_quantity",        1           );
+    int counter             = cfg->lookupValue (".core.bulwers.seasons_quantity",        0           );
     for (int i = 0; i < counter; i++)
     {
         stringstream ss;
@@ -1812,29 +1813,9 @@ void Core::load_config ()
         bulwers.seasons[i].hour_end         = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".hour_end")[0],         18      );
         bulwers.seasons[i].func_morning     = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".func_morning")[0],    1.1      );
         bulwers.seasons[i].func_afternoon   = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".func_afternoon")[0],  1.1      );
-
-        cerr << "DEBUG for " << i << "\n";
-        cerr << bulwers.seasons[i].date_begin.ST << "\n" <<
-                bulwers.seasons[i].date_begin.ND << "\n" <<
-                bulwers.seasons[i].size_lowest << "\n" <<
-                bulwers.seasons[i].size_highest << "\n" <<
-                bulwers.seasons[i].zenith << "\n" <<
-                bulwers.seasons[i].hour_begin << "\n" <<
-                bulwers.seasons[i].hour_end << "\n" <<
-                bulwers.seasons[i].func_morning << "\n" <<
-                bulwers.seasons[i].func_afternoon << "\n\n";
-        /*
-        bulwers.seasons[i].
-                unsigned short              size_lowest,
-                                            size_highest,
-                                            zenith,
-                                            hour_begin,
-                                            hour_end;
-                pair <int, int>             date_begin;
-                double                      func_morning,
-                                            func_afternoon;
-                                            */
     }
+    if (counter == 0)
+        bulwers.seasons_setup();
     counter                 = cfg->lookupValue (".core.bulwers.envs_quantity",           0           );
     for (int i = 0; i < counter; i++)
     {
@@ -2071,6 +2052,38 @@ void Core::load_config ()
     flue.step_perc_3        = cfg->lookupValue (".core.flue.step_perc.lvl_3",            80          );
     flue.step_perc_4        = cfg->lookupValue (".core.flue.step_perc.lvl_4",            90          );
     flue.step_perc_5        = cfg->lookupValue (".core.flue.step_perc.lvl_5",            100         );
+}
+
+void bul::seasons_setup()
+{
+    Configuration * cfg = Configuration::getInstance();
+    for (int i = 0; i < 6; i++)
+    {
+        stringstream ss, date;
+        ss << i;
+        date << i*2+2 << ".01";
+        season_data* tmpse = new season_data;
+        bulwers.seasons.push_back(*tmpse);
+        delete(tmpse);
+        cfg->setValue(&(".core.bulwers.season"+ss.str()+".begin_date")[0],       &date.str()[0]      );
+        bulwers.seasons[i].date_begin.ST = i*2+2;
+        bulwers.seasons[i].date_begin.ND = 1;
+        bulwers.seasons[i].size_lowest      =                                       1;
+        cfg->setValue (&(".core.bulwers.season"+ss.str()+".size_lowest")[0],        1);
+        bulwers.seasons[i].size_highest     =                                       10-abs((int)((i-2)*1.5));
+        cfg->setValue (&(".core.bulwers.season"+ss.str()+".size_highest")[0],       10-abs((int)((i-2)*1.5)));
+        bulwers.seasons[i].zenith           =                                       12;
+        cfg->setValue (&(".core.bulwers.season"+ss.str()+".zenith")[0],             12);
+        bulwers.seasons[i].hour_begin       =                                       4+abs(i-2);
+        cfg->setValue (&(".core.bulwers.season"+ss.str()+".hour_begin")[0],         4+abs(i-2));
+        bulwers.seasons[i].hour_end         =                                       20-abs(i-2);
+        cfg->setValue (&(".core.bulwers.season"+ss.str()+".hour_end")[0],           20-abs(i-2));
+        bulwers.seasons[i].func_morning     =                                       1.1;
+        cfg->setValue (&(".core.bulwers.season"+ss.str()+".func_morning")[0],       1.1);
+        bulwers.seasons[i].func_afternoon   =                                       1.1;
+        cfg->setValue (&(".core.bulwers.season"+ss.str()+".func_afternoon")[0],     1.1);
+    }
+    cfg->setValue(".core.bulwers.seasons_quantity",        6           );
 }
 
 void handler (int signal)

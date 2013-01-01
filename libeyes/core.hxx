@@ -142,6 +142,7 @@ public:
                                 critical_services( Configuration * cfg ),
                                 wake_up_chk(),
                                 fun_check(),
+                                seasons_setup(),
                                 autosave ( Configuration * cfg );
     int                         eyecalc();
     vector <environment_data>   envs;

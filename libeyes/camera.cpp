@@ -592,7 +592,7 @@ vector<CvRect> camcapture::detectFaceInImage(IplImage *inputImg, CvHaarClassifie
         ms = cvRound( t / ((double)cvGetTickFrequency() * 1000.0) );
         nFaces = facerects->total;
         //printf("Face Detection took %d ms and found %d objects\n", ms, nFaces);
-        cerr << "Detected " << nFaces << " faces witch method: " << currentcascade+1 << "\n";
+        //cerr << "Detected " << nFaces << " faces witch method: " << currentcascade+1 << "\n";
 
         // Get the first detected face (the biggest).
         if (nFaces > 0)
@@ -1545,7 +1545,7 @@ void camcapture::faceprocessing(IplImage *source)
     }
     else
         currentcascade++;
-    cerr << currentcascade << " cascade\n";
+    //cerr << currentcascade << " cascade\n";
 }
 
 vector <plama> camcapture::splash_detect(bool **input, int min_splash_size)
@@ -2131,7 +2131,6 @@ void camcapture::funcalc()
 
 int camcapture::screensaver_management()
 {
-    cerr << presenceCounter << " : presence counter\n";
     if (!sleep)
     {
         presenceCounter = presenceBufferSize*2;
@@ -2540,10 +2539,8 @@ void camthread::tick()
             eyes->look_at(ccap.motionpos.ST, ccap.motionpos.ND, ccap.operationsarea, (ccap.lookAtMotionTimeMin*1000.0 + (rand() % (int)(1000.0*(ccap.lookAtMotionTimeMax - ccap.lookAtMotionTimeMin)))));
         }
         else if (ccap.newFace.first != -1)
-        {
-            cerr << "LOLOLOL\n";
             eyes->look_at(ccap.newFace.ST, ccap.newFace.ND, ccap.operationsarea, ccap.faceDetectDelay*2);
-        }
+
         ccap.optimize(speedmeter.elapsed());
         if (!ccap.sleep)
             timer->setInterval ( ccap.delay );
