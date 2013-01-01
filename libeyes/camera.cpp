@@ -1497,7 +1497,6 @@ void camcapture::faceprocessing(IplImage *source)
         {
             faceAreas[i].clear();
         }
-
         newFace = make_pair(-1, -1);
         if (faceimg.size() != 0)
         {
@@ -1509,7 +1508,7 @@ void camcapture::faceprocessing(IplImage *source)
                 newFaceLookAtTimer.start();
                 newFace.ST = 0;
             }
-            else if (newFaceLookAtTimer.elapsed() > newFaceLookAtCurrent)
+            else if (newFaceLookAtTimer.elapsed() < newFaceLookAtCurrent)
             {
                 newFace.ST = 0;
             }
@@ -1519,7 +1518,10 @@ void camcapture::faceprocessing(IplImage *source)
             newFace = make_pair(100-(100*(avgRects[newFace.ST].x+avgRects[newFace.ST].width/2))/facegrey->width, (100*(avgRects[newFace.ST].y+avgRects[newFace.ST].height/2))/facegrey->height);
 
         if (!faceRecognitionEnabled)
+        {
             currentcascade = 0;
+            faceRectsPrev = avgRects;
+        }
         else
             currentcascade++;
 
@@ -2538,7 +2540,10 @@ void camthread::tick()
             eyes->look_at(ccap.motionpos.ST, ccap.motionpos.ND, ccap.operationsarea, (ccap.lookAtMotionTimeMin*1000.0 + (rand() % (int)(1000.0*(ccap.lookAtMotionTimeMax - ccap.lookAtMotionTimeMin)))));
         }
         else if (ccap.newFace.first != -1)
+        {
+            cerr << "LOLOLOL\n";
             eyes->look_at(ccap.newFace.ST, ccap.newFace.ND, ccap.operationsarea, ccap.faceDetectDelay*2);
+        }
         ccap.optimize(speedmeter.elapsed());
         if (!ccap.sleep)
             timer->setInterval ( ccap.delay );
