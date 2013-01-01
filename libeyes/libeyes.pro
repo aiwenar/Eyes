@@ -25,7 +25,8 @@ SOURCES += \
   camera.cpp \
   tm.cc \
   hungarian.cpp \
-  connection.cc
+  connection.cc \
+    devhelper.cpp
 
 HEADERS += \
   defines.hxx\
@@ -42,7 +43,8 @@ HEADERS += \
   tm.hh \
   img_fileinfo.hh \
   hungarian.h \
-  connection.hxx
+  connection.hxx \
+    devhelper.h
 
 VERSION = 0.10.1
 
@@ -65,3 +67,6 @@ LIBS += \
 
 system ( echo "libEyes configured." )
 system ( echo "  type 'make' to build libEyes." )
+
+FORMS += \
+    devhelper.ui
