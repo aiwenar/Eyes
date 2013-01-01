@@ -80,6 +80,7 @@ class eyes_looker;
 class Core;
 class camthread;
 class connectionGate;
+class devHelper;
 
 QString get_face_suffix ( QString face );
 
@@ -304,6 +305,7 @@ public:
                     cdbg_enabled,
                     hdbg_enabled;
     connectionGate * con;
+    devHelper * dev;
 
     QString face_prev;
 
@@ -313,6 +315,8 @@ public slots:
     void    handle_mouse    ( int x, int y );
     void    handle_enter    ();
     void    screen_off      ();
+    void    dev_helper      ();
+    void    lock_scrnsav    ();
 private:
     QTimer        * timer;
     eyes_view     * eyes;

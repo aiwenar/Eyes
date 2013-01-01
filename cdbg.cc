@@ -991,13 +991,17 @@ void cdbg::on_timer_tick ()
   {
       cout << "\033[1;31m";
       cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << times.mod;
-      cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << times.value << "h";
+      cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D";
+      spacefill(times.value, 2);
+      cout << "h";
   }
   else
   {
       cout << "\033[1;33m";
       cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << times.mod;
-      cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << times.value << "h";
+      cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D";
+      spacefill(times.value, 2);
+      cout << "h";
   }
 
   ////
@@ -1006,13 +1010,17 @@ void cdbg::on_timer_tick ()
   {
       cout << "\033[1;31m";
       cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << energy.mod;
-      cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (energy.start + energy.wide - energy.value)/3600 << "h";
+      cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D";
+      spacefill((energy.start + energy.wide - energy.value)/3600, 2);
+      cout << "h";
   }
   else
   {
       cout << "\033[1;33m";
       cout << "\n\n" << "\033[38C" << "      " << "\033[6D" << energy.mod;
-      cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D" << (energy.start + energy.wide - energy.value)/3600 << "h";
+      cout << "\033[1A" << "\n" << "\033[44C" << "      " << "\033[6D";
+      spacefill((energy.start + energy.wide - energy.value)/3600, 2);
+      cout << "h";
   }
 
   ////
@@ -1963,7 +1971,13 @@ void cdbg::on_timer_tick ()
           cout << "\033[1B\033[7D\033[1;33m";
           spacefill(ccap.detectionTimer.elapsed()/1000, 3);
           cout << "\033[2C";
-          spacefill(ccap.presenceCounter, 2);
+          if (!ccap.activate_screensaver)
+              cout << "\033[1;30m";
+          if (!rtctrl.scrnsav_locked)
+            spacefill(ccap.presenceCounter, 2);
+          else
+              cout << "\033[1;31m××";
+          cout << "\033[1;33m";
       }
       if (ccap.env.checked || bulwers.envs.size()>0)
       {

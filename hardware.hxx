@@ -73,6 +73,7 @@ public:
                             get_file            (char* path);
     vector <string>         cores_paths;
     double                  equalize(double min, double max, double input, double degree);
+    int                     rough(double var);
 };
 
 
@@ -181,8 +182,8 @@ class timal
 {
 public:
     short                       mod;
-    unsigned int                value,
-                                start,
+    double                      value;
+    unsigned int                start,
                                 steps,
                                 lin_num,
                                 wide,

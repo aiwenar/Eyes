@@ -262,6 +262,8 @@ void eyes_view::paintEvent ( QPaintEvent * event )
 
 QPixmap eyes_view::merge_mirrors ( QPixmap mask )
 {
+    if (!ccap.mir.enabled)
+        return mask;
   if ( 0 == ccap.mir.mirrorL )
   {
     error << "assertion failed: 0 == ccap.mir.mirrorL.\n";

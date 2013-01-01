@@ -29,9 +29,6 @@
    <iconset>
     <normaloff>dir_icon.png</normaloff>dir_icon.png</iconset>
   </property>
-  <property name="modal">
-   <bool>true</bool>
-  </property>
   <widget class="QDialogButtonBox" name="close_dev_helper">
    <property name="geometry">
     <rect>
@@ -348,6 +345,9 @@
     <property name="toolTip">
      <string>brightness where eyes starting to grow</string>
     </property>
+    <property name="maximum">
+     <number>255</number>
+    </property>
    </widget>
    <widget class="QDial" name="eye_maxbright">
     <property name="geometry">
@@ -363,6 +363,9 @@
     </property>
     <property name="toolTip">
      <string>brightness where eyes starting to squeeze</string>
+    </property>
+    <property name="maximum">
+     <number>255</number>
     </property>
    </widget>
    <widget class="QLabel" name="label_5">
@@ -399,7 +402,7 @@ bright.</string>
 bright.</string>
     </property>
    </widget>
-   <widget class="QCheckBox" name="checkBox">
+   <widget class="QCheckBox" name="eye_fixed">
     <property name="geometry">
      <rect>
       <x>20</x>
@@ -415,7 +418,7 @@ bright.</string>
      <string/>
     </property>
    </widget>
-   <widget class="QSpinBox" name="spinBox">
+   <widget class="QSpinBox" name="eye_fixedsize">
     <property name="geometry">
      <rect>
       <x>40</x>
@@ -560,6 +563,9 @@ status</string>
     <property name="toolTip">
      <string>type temperature in Celcius degrees</string>
     </property>
+    <property name="maxLength">
+     <number>3</number>
+    </property>
    </widget>
    <widget class="QLabel" name="label_9">
     <property name="geometry">
@@ -588,11 +594,6 @@ status</string>
     </property>
     <item>
      <property name="text">
-      <string>present</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
       <string>not present</string>
      </property>
     </item>
@@ -604,6 +605,16 @@ status</string>
     <item>
      <property name="text">
       <string>just unplugged</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>plugged</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>unplugged</string>
      </property>
     </item>
     <item>

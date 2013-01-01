@@ -43,6 +43,18 @@ struct environment_data
     unsigned short              timer;
 };
 
+struct season_data
+{
+    unsigned short              size_lowest,
+                                size_highest,
+                                zenith,
+                                hour_begin,
+                                hour_end;
+    pair <int, int>             date_begin;
+    double                      func_morning,
+                                func_afternoon;
+};
+
 class bul
 {
 public:
@@ -51,6 +63,7 @@ public:
     bool                        wake_up,
                                 no_update,
                                 force_autosave,
+                                fixed_eyes,
                                 check_env(bool enabled, Configuration * cfg );
     int                         total_mod,
                                 envindex;
@@ -130,7 +143,9 @@ public:
                                 wake_up_chk(),
                                 fun_check(),
                                 autosave ( Configuration * cfg );
+    int                         eyecalc();
     vector <environment_data>   envs;
+    vector <season_data>        seasons;
     environment_data            curenv;
 };
 
@@ -369,11 +384,11 @@ struct eMu_zone
     unsigned short              cpu_val,
                                 mem_val,
                                 temp_val,
-                                time_val,
                                 batt_s_val;
-    unsigned int                energy_val,
-                                batt_val,
+    unsigned int                batt_val,
                                 bulwers_val;
+    double                      time_val,
+                                energy_val;
 };
 
 struct data_source
@@ -390,7 +405,7 @@ public:
     void                        action (string command),
                                 shelldetect(),
                                 shell(string command),
-                                scrnsav(signed short screensaverstate, bool activate, bool deactivate, bool turnoff);
+                                scrnsav(signed short screensaverstate, bool activate, bool deactivate, bool turnoff, bool locked);
     unsigned short              batt_min_backl,
                                 batt_start_perc,
                                 batt_suspend_perc,
@@ -406,7 +421,8 @@ public:
                                 scrnsav_gnome,
                                 scrnsav_mac,
                                 scrnsav_custom,
-                                scrnsav_switched;
+                                scrnsav_switched,
+                                scrnsav_locked;
     string                      shellname,
                                 scrnsav_custom_on,
                                 scrnsav_custom_off;

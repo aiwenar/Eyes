@@ -2426,9 +2426,10 @@ camthread::camthread( eyes_view * neyes )
         delete (faces);
     }
 
-    ccap.mir.enabled = tm->lookupValue(".ui.mirrors.allow_dynamic", true);
+    ccap.mir.enabled = false;
     if (ccap.enabled)
     {
+        ccap.mir.enabled = tm->lookupValue(".ui.mirrors.allow_dynamic", true);
         if (ccap.cam_init())
         {
             ccap.init_motionpics();
@@ -2502,7 +2503,10 @@ camthread::camthread( eyes_view * neyes )
                 ccap.init_debug();
         }
         else
+        {
             ccap.enabled = false;
+            ccap.mir.enabled = false;
+        }
     }
 }
 

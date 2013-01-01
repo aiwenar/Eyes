@@ -13,6 +13,56 @@
  *
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ *
+ * Trololo blahblahblah, It sounds just too serious :P
+ *
+                                           _...--.
+                                       ,-'`      |         /-,
+                                     ,`          \        /   `.
+                                   ,'             `,___,-`      `.
+                                  /      _,,,,,,,,,,_             \
+                                 /   ,-``            `'-.,         \
+                                /   /           ,         '.        \
+                            -,_     ' _,.      -    _,.-    `.       |
+                             \ ``'''``      ,-`   .`          '   ., |
+                              \         _.-`    ,'              ,'  \ |
+                               `.    -'`      ,'               /     ||
+                              |  `-,         -               .-    . ||
+                             |   \ \`'.,_        ,./      _-`  )   | ||
+                             |    `-/  / ;`''\''` /__..-',--../ /  | ||
+   DO U LIEK PONIZ?          |    /|  |  |  ||         ,'.,.  \/_ ' / |
+       - MEE 2               |    ||  |  `--'|        / .'  |  |   /  |
+                             |    ||  \,,,_  /       |  |   |  | .'  |
+                             |    | ``     `'  __   |    -,.'  ;'    |
+                              |   |              `   --.. /   //    |
+                              |   |      .    `  '       `-  //     |
+                               \   \     |'-..____,.,      '`/     /
+                                \   \    '-.     __/       -'   ,'
+                                 `,  `',  `.     _/     ,-` \ -'
+                                   '-.  `-. `---' .---``    \
+                                 .--. .  | ',___,'  ,       \
+                               ,'   ,'   |         /         \
+                              ;    /    /         ;           \
+                             ;    |               ( .----._.   \
+                            ;    |    ,-,         ,`       \)   \
+                            ;   |   ,'   \       /          \   )
+                            ;   |  /      \     /_.          )  /
+                           ;    \ /        |     /            -`
+                           ;     /         |     (   .       '_
+                           ;    |           | !   ,  |\       /
+                           ;    |           | |    '-' `-...-'
+                          ;    |            | |      ,
+                         ;   / |            | |      |
+                  ,--,  .   /  |            | |      |
+               , /    '-'  /   |            | |      |
+              /|/         /     |           | |      |
+             |       ,   /      |          ,  |       |
+             |       (| ;        -,      ,-   |       |
+              \_      ' |          `''''`     |       |
+               (      . |          |   |      |        \
+                '-..-`  .          /   '.   _.|         \
+                         `'-.,,.--`      ```  |          |
+                                              '-..,,,,,.-
  */
 
 #include <iostream>
@@ -478,96 +528,15 @@ void bul::critical_services( Configuration * cfg )
         fship.to_save = 1;
     }
 
-    if (get_time ().month == 12 || get_time ().month == 1 )
-    if (outline != 20)
+    if (!fixed_eyes)
     {
-        if (times.value < 7 || times.value >= 17)
-            eye = 1;
-        if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
-            eye = 2;
-        if ((times.value >= 8 && times.value < 9) || (times.value >= 15 && times.value < 16))
-            eye = 3;
-        if ((times.value >= 9 && times.value < 10) || (times.value >= 14 && times.value < 15))
-            eye = 4;
-        if ((times.value >= 10 && times.value < 11) || (times.value >= 13 && times.value < 14))
-            eye = 5;
-        if ((times.value >= 11 && times.value < 13))
-            eye = 6;
-    }
-
-    if (get_time ().month == 2 || get_time ().month == 3 || get_time ().month == 10 || get_time ().month == 11 )
-    if (outline != 20)
-    {
-        if (times.value < 6 || times.value >= 18)
-            eye = 1;
-        if ((times.value >= 6 && times.value < 7) || (times.value >= 17 && times.value < 18))
-            eye = 2;
-        if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
-            eye = 3;
-        if ((times.value >= 8 && times.value < 9) || (times.value >= 15 && times.value < 16))
-            eye = 4;
-        if ((times.value >= 9 && times.value < 10) || (times.value >= 14 && times.value < 15))
-            eye = 5;
-        if ((times.value >= 10 && times.value < 11) || (times.value >= 13 && times.value < 14))
-            eye = 6;
-        if ((times.value >= 11 && times.value < 13))
-            eye = 7;
-    }
-
-    if (get_time ().month == 4 || get_time ().month == 5 || get_time ().month == 8 || get_time ().month == 9 )
-    if (outline != 20)
+        eye = eyecalc();
+        if (eye == 0)
         {
-            if (times.value < 5 || times.value >= 19)
-                eye = 1;
-            if ((times.value >= 5 && times.value < 6) || (times.value >= 18 && times.value < 19))
-                eye = 2;
-            if ((times.value >= 6 && times.value < 7) || (times.value >= 17 && times.value < 18))
-                eye = 3;
-            if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
-                eye = 4;
-            if ((times.value >= 8 && times.value < 9) || (times.value >= 15 && times.value < 16))
-                eye = 5;
-            if ((times.value >= 9 && times.value < 10) || (times.value >= 14 && times.value < 15))
-                eye = 6;
-            if ((times.value >= 10 && times.value < 11) || (times.value >= 13 && times.value < 14))
-                eye = 7;
-            if ((times.value >= 11 && times.value < 13))
-                eye = 8;
-        }
-
-    if (get_time ().month == 6 || get_time ().month == 7 )
-    if (outline != 20)
-    {
-        if (times.value < 3 || times.value >= 21)
-            eye = 1;
-        if ((times.value >= 3 && times.value < 4) || (times.value >= 20 && times.value < 21))
-            eye = 2;
-        if ((times.value >= 4 && times.value < 5) || (times.value >= 19 && times.value < 20))
-            eye = 3;
-        if ((times.value >= 5 && times.value < 6) || (times.value >= 18 && times.value < 19))
-            eye = 4;
-        if ((times.value >= 6 && times.value < 7) || (times.value >= 17 && times.value < 18))
-            eye = 5;
-        if ((times.value >= 7 && times.value < 8) || (times.value >= 16 && times.value < 17))
+            cerr << "eye sieze recognize failed!: setting emergency value (6)\n";
             eye = 6;
-        if ((times.value >= 8 && times.value < 9) || (times.value >= 15 && times.value < 16))
-            eye = 7;
-        if ((times.value >= 9 && times.value < 10) || (times.value >= 14 && times.value < 15))
-            eye = 8;
-        if ((times.value >= 10 && times.value < 11) || (times.value >= 13 && times.value < 14))
-            eye = 9;
-        if ((times.value >= 11 && times.value < 13))
-            eye = 10;
+        }
     }
-
-    if (eye == 0)
-    {
-        cerr << "eye sieze recognize failed!: setting emergency value (6)\n";
-        eye = 6;
-    }
-
-    if (ccap.env.eyemanagement && ccap.env.checked)
-        eye = ccap.env.eyesize;
 
     if (value != 0 && outline != 20 && wake_up)
         outline = value + 3;
@@ -579,7 +548,7 @@ void bul::critical_services( Configuration * cfg )
     wkup_active = 0;
     if (get_time ().day != 7)
     {
-        if (times.value < timelow_1 || times.value > timehigh_1 || energy.value > energy.start + energy.wide - 5)
+        if (times.value < timelow_1 || times.value > timehigh_1 || energy.value > energy.start + (double)energy.wide*0.2)
         {
             wkup_active = 1;
             tired = 1;
@@ -593,7 +562,7 @@ void bul::critical_services( Configuration * cfg )
                     outline = 1;
             }
         }
-        if (times.value < timelow_2 || times.value > timehigh_2 || energy.value > energy.start + energy.wide - 3)
+        if (times.value < timelow_2 || times.value > timehigh_2 || energy.value > energy.start + (double)energy.wide*0.3)
         {
             wkup_active = 1;
             tired = 2;
@@ -606,7 +575,7 @@ void bul::critical_services( Configuration * cfg )
                     outline = 2;
             }
         }
-        if (times.value < timelow_3 || times.value > timehigh_3 || energy.value > energy.start + energy.wide - 1)
+        if (times.value < timelow_3 || times.value > timehigh_3 || energy.value > energy.start + (double)energy.wide*0.5)
         {
             wkup_active = 1;
             tired = 3;
@@ -627,7 +596,7 @@ void bul::critical_services( Configuration * cfg )
     }
     else
     {
-        if (times.value < timelow_1w || times.value > timehigh_1w ||  energy.value > energy.start + energy.wide - 5*3600)
+        if (times.value < timelow_1w || times.value > timehigh_1w ||  energy.value > energy.start + (double)energy.wide*0.2)
         {
             wkup_active = 1;
             tired = 1;
@@ -640,7 +609,7 @@ void bul::critical_services( Configuration * cfg )
                     outline = 1;
             }
         }
-        if (times.value < timelow_2w || times.value > timehigh_2w ||  energy.value > energy.start + energy.wide - 4*3600)
+        if (times.value < timelow_2w || times.value > timehigh_2w ||  energy.value > energy.start + (double)energy.wide*0.25)
         {
             wkup_active = 1;
             tired = 2;
@@ -653,7 +622,7 @@ void bul::critical_services( Configuration * cfg )
                     outline = 2;
             }
         }
-        if (times.value < timelow_3w || times.value > timehigh_3w ||  energy.value > energy.start + energy.wide - 3*3600)
+        if (times.value < timelow_3w || times.value > timehigh_3w ||  energy.value > energy.start + (double)energy.wide*0.3)
         {
             wkup_active = 1;
             tired = 3;
@@ -781,7 +750,7 @@ void bul::critical_services( Configuration * cfg )
     rtctrl.action("temperature");
     if (rtctrl.scrnsaver_management && ccap.enabled)
     {
-        rtctrl.scrnsav(ccap.screensaver_management(), ccap.activate_screensaver, ccap.deactivate_screensaver, ccap.turnoff_screen);
+        rtctrl.scrnsav(ccap.screensaver_management(), ccap.activate_screensaver, ccap.deactivate_screensaver, ccap.turnoff_screen, rtctrl.scrnsav_locked);
     }
 
     if (temperature.ready())
@@ -802,6 +771,46 @@ void bul::critical_services( Configuration * cfg )
             bulwers.hot=1;
         }
     }
+}
+
+
+int bul::eyecalc()
+{
+    int current = 0;
+    pair <int, int> date = make_pair(get_time().month, get_time().day_num);
+    for (int i = 0; i < seasons.size(); i++)
+    {
+        if (seasons[i].date_begin.ST < date.ST)
+            continue;
+        if (seasons[i].date_begin.ND > date.ND)
+            continue;
+        if (times.value < seasons[i].hour_begin || times.value > seasons[i].hour_end)
+        {
+            current = seasons[i].size_lowest;
+            break;
+        }
+        if (times.value > seasons[i].zenith)
+        {
+            current = HRDWR.rough((double)(seasons[i].size_highest - seasons[i].size_lowest)*(double)((HRDWR.equalize(seasons[i].zenith,
+                                                 seasons[i].hour_end,
+                                                 ((double)(seasons[i].hour_end*3600-(times.value*3600.0 - seasons[i].zenith*3600)))/3600.0,
+                                                            seasons[i].func_afternoon)-(double)seasons[i].zenith)
+                                  /((double)(seasons[i].hour_end-seasons[i].zenith))))+seasons[i].size_lowest;
+            break;
+        }
+        current = HRDWR.rough((double)(seasons[i].size_highest - seasons[i].size_lowest)*(double)((HRDWR.equalize(seasons[i].hour_begin,
+                                             seasons[i].zenith,
+                                             times.value,
+                                             seasons[i].func_morning) - seasons[i].hour_begin)
+                              /((double)(seasons[i].zenith-seasons[i].hour_begin))))+seasons[i].size_lowest;
+        break;
+    }
+    if (ccap.env.checked)
+        if (ccap.env.eyemanagement)
+            if (current == 0 || ccap.env.eyesize < current)
+                current = ccap.env.eyesize;
+
+    return current;
 }
 
 void Core::bulwers_init ()
@@ -1465,7 +1474,7 @@ void Core::bulwers_update ()
     if (eMu.time)
         times.value = eMu.time_val;
     else
-        times.value = get_time ().hour/3600;
+        times.value = get_time ().hour/3600.0;
 
     if (eMu.energy)
         energy.value = eMu.energy_val;
@@ -1592,14 +1601,32 @@ void Core::add_menu_items ( QMenu * menu )
 {
    menu->addSeparator ();// - separate core actions from others
 
-   QAction * screen_off = new QAction ( tr ( "z&Zz" ), this );// - create an action, char with & 'll be shortcut for action
+   QAction * screen_off = new QAction ( tr ( "Turn off screen" ), this );// - create an action, char with & 'll be shortcut for action
    connect ( screen_off, SIGNAL ( triggered () ), this, SLOT ( screen_off () ) );// - QAction send triggered() signal when user preses the action.
    menu->addAction(screen_off);
+
+   QAction * lock_scrnsav = new QAction ( tr ( "(un)lock screensaver" ), this );// - create an action, char with & 'll be shortcut for action
+   connect ( lock_scrnsav, SIGNAL ( triggered () ), this, SLOT ( lock_scrnsav () ) );// - QAction send triggered() signal when user preses the action.
+   menu->addAction(lock_scrnsav);
+
+   QAction * dev_helper = new QAction ( tr ( "devHelper" ), this );// - create an action, char with & 'll be shortcut for action
+   connect ( dev_helper, SIGNAL ( triggered () ), this, SLOT ( dev_helper () ) );// - QAction send triggered() signal when user preses the action.
+   menu->addAction(dev_helper);
 }
 
 void Core::screen_off()
 {
-    rtctrl.scrnsav(1, 0, 1, 1);
+    rtctrl.scrnsav(1, 0, 1, 1, 0);
+}
+
+void Core::dev_helper()
+{
+    dev->show();
+}
+
+void Core::lock_scrnsav()
+{
+    rtctrl.scrnsav_locked = !rtctrl.scrnsav_locked;
 }
 
 void Core::load_config ()
@@ -1766,13 +1793,56 @@ void Core::load_config ()
     bulwers.wkup_time       = cfg->lookupValue (".core.bulwers.wkup_time",               7           );
     bulwers.wkup_timew      = cfg->lookupValue (".core.bulwers.wkup_time_weekend",       10          );
     bulwers.wake_up_delay   = cfg->lookupValue (".core.bulwers.wkup_delay",              120         );
-    int counter             = cfg->lookupValue (".core.bulwers.envs_number",             0           );
+    int counter             = cfg->lookupValue (".core.bulwers.seasons_quantity",        1           );
+    for (int i = 0; i < counter; i++)
+    {
+        stringstream ss;
+        ss << i;
+        season_data* tmpse = new season_data;
+        bulwers.seasons.push_back(*tmpse);
+        delete(tmpse);
+        QString tmp_date_input              = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".begin_date")[0],       "12.24"      );
+        QStringList tmp_date = tmp_date_input.split(".");
+        bulwers.seasons[i].date_begin.ST = tmp_date[0].toInt();
+        bulwers.seasons[i].date_begin.ND = tmp_date[1].toInt();
+        bulwers.seasons[i].size_lowest      = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".size_lowest")[0],       1      );
+        bulwers.seasons[i].size_highest     = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".size_highest")[0],     10      );
+        bulwers.seasons[i].zenith           = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".zenith")[0],           12      );
+        bulwers.seasons[i].hour_begin       = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".hour_begin")[0],        7      );
+        bulwers.seasons[i].hour_end         = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".hour_end")[0],         18      );
+        bulwers.seasons[i].func_morning     = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".func_morning")[0],    1.1      );
+        bulwers.seasons[i].func_afternoon   = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".func_afternoon")[0],  1.1      );
+
+        cerr << "DEBUG for " << i << "\n";
+        cerr << bulwers.seasons[i].date_begin.ST << "\n" <<
+                bulwers.seasons[i].date_begin.ND << "\n" <<
+                bulwers.seasons[i].size_lowest << "\n" <<
+                bulwers.seasons[i].size_highest << "\n" <<
+                bulwers.seasons[i].zenith << "\n" <<
+                bulwers.seasons[i].hour_begin << "\n" <<
+                bulwers.seasons[i].hour_end << "\n" <<
+                bulwers.seasons[i].func_morning << "\n" <<
+                bulwers.seasons[i].func_afternoon << "\n\n";
+        /*
+        bulwers.seasons[i].
+                unsigned short              size_lowest,
+                                            size_highest,
+                                            zenith,
+                                            hour_begin,
+                                            hour_end;
+                pair <int, int>             date_begin;
+                double                      func_morning,
+                                            func_afternoon;
+                                            */
+    }
+    counter                 = cfg->lookupValue (".core.bulwers.envs_quantity",           0           );
     for (int i = 0; i < counter; i++)
     {
         stringstream ss;
         ss << i;
         environment_data* tmpenv = new environment_data;
         bulwers.envs.push_back(*tmpenv);
+        delete (tmpenv);
         bulwers.envs[i].Rperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Rperc")[0],0 ));
         bulwers.envs[i].Yperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Yperc")[0],0 ));
         bulwers.envs[i].Gperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Gperc")[0],0 ));
@@ -1781,7 +1851,6 @@ void Core::load_config ()
         bulwers.envs[i].Hperc = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".Hperc")[0],0 ));
         bulwers.envs[i].spenttime = (cfg->lookupValue ( &(".core.environment.env"+ss.str()+".spenttime")[0],0 ));
         bulwers.envs[i].timer = 0;
-        delete (tmpenv);
     }
     bulwers.env_min_compability         = cfg->lookupValue (".core.bulwers.env_min_compability",         60.0        );
     bulwers.env_update_impact           = cfg->lookupValue (".core.bulwers.env_update_impact",           5.0         );
@@ -1906,9 +1975,9 @@ void Core::load_config ()
     eMu.batt_s              = cfg->lookupValue (".core.eMu_zone.batt_s",                 false       );
     eMu.batt_s_val          = cfg->lookupValue (".core.eMu_zone.batt_s_val",             0           );
     eMu.time                = cfg->lookupValue (".core.eMu_zone.time",                   false       );
-    eMu.time_val            = cfg->lookupValue (".core.eMu_zone.time_val",               0           );
+    eMu.time_val            = cfg->lookupValue (".core.eMu_zone.time_val",               0.0         );
     eMu.energy              = cfg->lookupValue (".core.eMu_zone.energy",                 false       );
-    eMu.energy_val          = cfg->lookupValue (".core.eMu_zone.energy_val",             0           );
+    eMu.energy_val          = cfg->lookupValue (".core.eMu_zone.energy_val",             0.0         );
     eMu.bulwers             = cfg->lookupValue (".core.eMu_zone.bulwers",                false       );
     eMu.bulwers_val         = cfg->lookupValue (".core.eMu_zone.bulwers_val",            0           );
 
@@ -2062,8 +2131,7 @@ void Core::run ()
     sigaction(SIGTERM, &sa, 0);
     sigaction(SIGQUIT, &sa, 0);
     sigaction(SIGABRT, &sa, 0);
-    devHelper * dev = new devHelper();
-    dev->show();
+    dev = new devHelper();
 }
 
 void Core::on_timer_tick ()
@@ -2072,6 +2140,7 @@ void Core::on_timer_tick ()
     bulwers_update ();
     if (!core_only_mode)
         eyes->graphics_prepare();
+    dev->refresh();
 }
 
 void Core::handle_mouse ( int x, int y )
@@ -2196,12 +2265,12 @@ void Core::handle_enter ()
     info << "(core) mouse entered\n";
 }
 
-void rootcontrol::scrnsav(signed short screensaverstate, bool activate, bool deactivate, bool turnoff)
+void rootcontrol::scrnsav(signed short screensaverstate, bool activate, bool deactivate, bool turnoff, bool locked)
 {
 
     //cerr << "Return statement of menagement: " << screensaverstate << "\noverdetect is: " << ccap.overdetect << "\n";
 
-    if (screensaverstate == -1 && deactivate)
+    if ((screensaverstate == -1 && deactivate) || locked)
     {
         scrnsav_switched = false;
         if (scrnsav_X)
@@ -2220,7 +2289,7 @@ void rootcontrol::scrnsav(signed short screensaverstate, bool activate, bool dea
 
         shell("xset dpms force on > /dev/null");
     }
-    if (screensaverstate == 1 && !scrnsav_switched)
+    if (screensaverstate == 1 && !scrnsav_switched && !locked)
     {
         scrnsav_switched = true;
         if (activate)

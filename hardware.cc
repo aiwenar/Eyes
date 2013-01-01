@@ -1604,3 +1604,11 @@ double hardware::equalize(double min, double max, double input, double degree)
 {
     return pow(input-min, degree)*((max-min)/pow((max-min), degree))+min;
 }
+
+int hardware::rough(double var)
+{
+    double tmp = (int)var;
+    if (var < tmp + 0.5)
+        return (int)var;
+    return (int)var + 1;
+}
