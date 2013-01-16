@@ -520,7 +520,7 @@ void camcapture::rescue_cascades()
                 "   \\___'_________/  \n" <<
                 "\n" <<
                 "               LIKE A BOSS...\n\n";
-        Configuration::getInstance()->setValue("cam.system.face_cascades_dir", &possible_dir[0]);
+        Configuration::getInstance()->setValue(".cam.system.face_cascades_dir", &possible_dir[0]);
     }
 }
 
@@ -2164,7 +2164,7 @@ int camcapture::screensaver_management()
     return 0;
 }
 
-bool camcapture::main()
+bool camcapture::mane()
 {
 
     bool retstat = false;
@@ -2531,7 +2531,7 @@ void camthread::tick()
 {
     if (!ccap.halted)
     {
-        if(ccap.main())
+        if(ccap.mane())
         {
 
             ccap.motionpos.ST = 100-(100* ccap.motionpos.ST)/(ccap.motionpicsSize.width);
