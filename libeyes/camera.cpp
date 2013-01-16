@@ -2164,7 +2164,7 @@ int camcapture::screensaver_management()
     return 0;
 }
 
-bool camcapture::mane()
+bool camcapture::main()
 {
 
     bool retstat = false;
@@ -2531,7 +2531,7 @@ void camthread::tick()
 {
     if (!ccap.halted)
     {
-        if(ccap.mane())
+        if(ccap.main())
         {
 
             ccap.motionpos.ST = 100-(100* ccap.motionpos.ST)/(ccap.motionpicsSize.width);
