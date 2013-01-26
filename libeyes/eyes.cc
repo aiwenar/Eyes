@@ -18,6 +18,7 @@
 #include "eyes.hxx"
 #include "tm.hh"
 #include "debug.hxx"
+#include "environment.hh"
 
 #include <QPainter>
 #include <QMenu>
@@ -30,6 +31,7 @@
 #include <string.h>
 #include <iostream>
 #include <sstream>
+#include <stdlib.h>
 
 using namespace std;
 
@@ -57,6 +59,7 @@ eyes_view::eyes_view ( QWidget * parent,/* QString ncolor, */double size_m )
 , pics    ()
 , eyes    ()
 {
+    Environment::instance ()->setup ();
     info << "(eyes) preparing...\n";
     layers = new _layer[NUM_LAYERS];
     for ( int i=0 ; i<NUM_LAYERS ; ++i ) layers[i].drawable = false;
@@ -142,23 +145,12 @@ void _som ( int i, int max ) // I have no idea why i've named it like that.
 
 #include "img_fileinfo.hh"
 
-void eyes_view::load ( QString folder, QString alt, const char * suffix, const _img_loadinfo files[], int num )
+void eyes_view::load ( QString theme, const char * suffix, const _img_loadinfo files[], int num )
 {
-  QStringList qsl = alt.split ( '/' );
-  QString dir = "./";
-
-  for ( int i=0 ; i<qsl.size () and qsl.at ( i ) != "" ; ++i )
-  {
-    dir += '/';
-    dir += qsl.at ( i );
-    if ( -1 == mkdir ( dir.toStdString ().c_str (), S_IRUSR | S_IWUSR | S_IXUSR ) and errno != EEXIST  )
-    {
-      int errno_orig = errno;
-      error << "(eyes) imagetmp folder creation failed with errno: (" << errno_orig << ") " << strerror ( errno_orig ) << ".\n";
-      info << i << ' ' << dir << '\n';
-      exit ( 2 );
-    }
-  }
+  QString cache = Environment::instance ()->setup_imgcache ( theme.toStdString ().c_str (), eyes_w, eyes_h ).c_str ();
+  cache += '/' + theme + '/' + eyes_w + 'x' + eyes_h + '/';
+  QString folder= Environment::instance ()->eyeshome ().c_str ();
+  folder += "themes/" + theme + '/';
 
   QPixmap * file;
   int numrescaled = 0;
@@ -167,15 +159,15 @@ void eyes_view::load ( QString folder, QString alt, const char * suffix, const _
   {
     _som ( i, num );
     file = new QPixmap ();
-    int rescaled = access ( ( alt+files[i].file+suffix+".png" ).toStdString ().c_str (), F_OK|R_OK );
+    int rescaled = access ( ( cache+files[i].file+suffix+".png" ).toStdString ().c_str (), F_OK|R_OK );
     if ( rescaled == 0 )
-      file->load ( alt+files[i].file+suffix+".png" );
+      file->load ( cache+files[i].file+suffix+".png" );
     else
     {
       if ( -1 == access ( ( folder + files[i].file + suffix + ".png" ).toStdString ().c_str (), F_OK | R_OK ) )
       {
         cerr << "\r\e[K";
-        info << "(eyes) file " << ( theme + files[i].file + suffix + ".png" ).toStdString () << " missing.\n";
+        info << "(eyes) file " << ( folder + files[i].file + suffix + ".png" ).toStdString () << " missing.\n";
         no_file = true;
         delete file;
         file = new QPixmap ( 1, 1 );
@@ -190,7 +182,7 @@ void eyes_view::load ( QString folder, QString alt, const char * suffix, const _
         QPixmap * filetmp = new QPixmap ( file->scaled ( eyes_w, eyes_h, Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation ) );
         delete file;
         file = filetmp;
-        file->save ( alt + files[i].file + suffix + ".png" );
+        file->save ( cache + files[i].file + suffix + ".png" );
       }
     }
     if ( file == 0 )
@@ -214,25 +206,18 @@ void eyes_view::load ( QString folder, QString alt, const char * suffix, const _
 void eyes_view::open_images ( const char * color )
 {
   _s = "(eyes) loading images...  ";
-  const char * ctheme = Configuration::getInstance ()->lookupValue ( ".ui.theme", "default" );
-  std::ostringstream oss1, oss2;
-  oss1 << "./themes/" << ctheme << '/';
-  theme = oss1.str ().c_str ();
-  // don't know why, ctheme is modified
-  ctheme = Configuration::getInstance ()->lookupValue ( ".ui.theme", "default" );
-  if ( access ( theme.toStdString().c_str(), R_OK | X_OK ) == -1 )
+  const char * theme = Configuration::getInstance ()->lookupValue ( ".ui.theme", "default" );
+  /*if ( access ( theme.toStdString().c_str(), R_OK | X_OK ) == -1 )
   {
     error << "(eyes) theme `" << ctheme << "` does not exists. Trying default one...\n";
     theme = "./themes/default/";
     ctheme = "default";
-  }
-  oss2 << "./imagetmp/" << ctheme << '/' << eyes_w << 'x' << eyes_h << '/';
-  QString alt = oss2.str ().c_str ();
+  }*/
 
   const _img_loadinfo * eyefls = ( dual_eyes ? eyefiles_dual : eyefiles );
   int numeyes = 10; if ( dual_eyes ) numeyes *= 2;  // KEEP THESE
-  load ( theme, alt, "", files, 278 );              //   NUMBERS
-  load ( theme, alt, color, eyefls, numeyes );      // = CORRECT =
+  load ( theme, "", files, 278 );              //   NUMBERS
+  load ( theme, color, eyefls, numeyes );      // = CORRECT =
 
   images_ready = true;
 }

@@ -25,7 +25,8 @@ SOURCES += \
   camera.cpp \
   tm.cc \
   hungarian.cpp \
-  connection.cc
+  connection.cc \
+    environment.cc
 
 HEADERS += \
   defines.hxx\
@@ -42,13 +43,15 @@ HEADERS += \
   tm.hh \
   img_fileinfo.hh \
   hungarian.h \
-  connection.hxx
+  connection.hxx \
+    environment.hh
 
 VERSION = 0.10.1
 
 system(../scripts/checklibs)
 
 QMAKE_CXXFLAGS += -std=c++0x
+unix:QMAKE_CXXFLAGS += -DOS_LINUX
 
 INCLUDEPATH += \
   $$system(../scripts/libcfg --cflags glib-2.0) \

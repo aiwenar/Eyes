@@ -172,7 +172,7 @@ private:
     };
 
     void  open_images ( const char * color );
-    void  load        ( QString folder, QString alt, const char * suffix, const struct _img_loadinfo[], int num );
+    void  load        ( QString theme, const char * suffix, const struct _img_loadinfo[], int num );
     _layer                * layers;
     QTimer                * timer;
     QTime                   time;
