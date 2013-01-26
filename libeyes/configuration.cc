@@ -16,14 +16,34 @@
  */
 
 #include "configuration.hxx"
+#include "environment.hh"
+
 #include <debug.hxx>
 #include <QStringList>
 #include <QString>
 #include <iostream>
+#include <unistd.h>
+#include <stdlib.h>
+#include <sys/stat.h>
 
 using namespace std;
 
 QMap <const char*,Configuration*> Configuration::instances;
+
+Configuration * Configuration::getInstance ()
+{
+  Configuration * cfg = instances["eyes.cfg"];
+  if ( cfg == 0 )
+  {
+    Environment * env = Environment::instance ();
+    env->setup ();
+    std::string eyescfg = env->gethome ();
+    eyescfg += "/.eyes/eyes.cfg";
+    cfg = new Configuration ( eyescfg.c_str () );
+    instances["eyes.cfg"] = cfg;
+  }
+  return cfg;
+}
 
 Configuration * Configuration::getInstance ( const char * file )
 {
@@ -38,10 +58,16 @@ Configuration * Configuration::getInstance ( const char * file )
 
 Configuration::Configuration ( const char * file )
 : cfg   ()
-, file  ( file )
 {
+  this->file = new char[strlen ( file )];
+  strcpy ( this->file, file );
   cfg.read ( file );
   needsave = false;
+}
+
+Configuration::~Configuration ()
+{
+  delete file;
 }
 
 double Configuration::lookupValue ( const char * path, const double def )
@@ -164,7 +190,8 @@ void Configuration::save ()
 {
   if ( needsave )
   {
-    info << "(Configuration) configuration changed, saving.\n";
+    info << "(Configuration) configuration changed, saving to "
+         << file << ".\n";
     cfg.save ( file );
     needsave = false;
   }

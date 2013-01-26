@@ -26,8 +26,8 @@
 class Configuration
 {
 public:
-  inline static Configuration * getInstance () { return getInstance ( "config.cfg" ); }
-  static        Configuration * getInstance ( const char * file );
+  static  Configuration * getInstance ();
+  static  Configuration * getInstance ( const char * file );
 
   /**
    * @return value from \p path if exists, otherwise \p def.
@@ -103,9 +103,10 @@ private:
   sc::Value& lookup ( const char * path, sc::Value::Type );
 
   Configuration ( const char * file );
+  ~Configuration();
   sc::Config  cfg;
   bool        needsave;
-  const char *file;
+  char      * file;
 };
 
 #endif //eyes_econfig_hxx
