@@ -165,6 +165,7 @@ class disease
 {
 public:
     bool                        active,
+                                enabled,
                                 expired(disease_time disease_data);
     unsigned short              amplitude,
                                 step_perc_1,

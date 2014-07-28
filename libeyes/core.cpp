@@ -338,7 +338,7 @@ void bul::autosave(Configuration *cfg)
 
 void disease::check(Configuration *cfg)
 {
-    if (temperature.ready())
+    if (flue.enabled&&temperature.ready())
     {
         if ((double)temperature.value < lowval)
             lowval=temperature.value;
@@ -2024,6 +2024,7 @@ void Core::load_config ()
 
     //flue
 
+    flue.enabled            = cfg->lookupValue (".core.flue.enabled",                    true        );
     flue.active             = cfg->lookupValue (".core.flue.active",                     false       );
     flue.last_date.day      = cfg->lookupValue (".core.flue.last_date.day",              0           );
     flue.last_date.month    = cfg->lookupValue (".core.flue.last_date.month",            0           );
