@@ -24,6 +24,7 @@
 #include <QTimer>
 #include <QProcess>
 #include <fstream>
+#include <signal.h>
 
 #include "eyes.hxx"
 

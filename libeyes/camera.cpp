@@ -520,7 +520,7 @@ void camcapture::rescue_cascades()
                 "   \\___'_________/  \n" <<
                 "\n" <<
                 "               LIKE A BOSS...\n\n";
-        Configuration::getInstance()->setValue("cam.system.face_cascades_dir", &possible_dir[0]);
+        Configuration::getInstance()->setValue(".cam.system.face_cascades_dir", &possible_dir[0]);
     }
 }
 
