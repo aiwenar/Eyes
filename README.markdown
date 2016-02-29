@@ -7,7 +7,7 @@ Eyes are visual pet-like system monitor. Their mood indicate current (or recent)
 
 ![Eyes screenshot](https://dl.dropboxusercontent.com/u/44131220/undeletable/z152.png "Eyes")
 
-If you totally won't care about them and just leave them running, occasionally slap with mouse accidentally, plus relatively often push your machine to the limits they will hate you. But at least they won't die, is't some improvement comparing to hamster right? Also they're free and don't eat so you can save money for I dunno new *mouse* or something HA HA ._.
+If you totally won't care about them and just leave them running, occasionally slap with mouse accidentally, plus relatively often push your machine to the limits they will hate you. But at least they won't die, it's some improvement comparing to hamster right? Also they're free and don't eat so you can save money for I dunno new *mouse* or something HA HA ._.
 
 Feautures
 ---------
