@@ -75,3 +75,6 @@ FAQ
 **Q:** My Eyes are permanently tired and sweating, what to do?
 
 **A:** They're probably ill. Just pet them and be nice, they'll be fine in few days
+
+**Q:** Why Qt4/OpenCV 2.4.2/this code looks so lame
+**A:** Well... we were coding it in secondary school it's like... MANY years ago. OpenCV 2.4.2 was then bleeding edge compiled from source, KDE4 was still unstable (just kidding, it still is) and we didn't have much experience back then.
