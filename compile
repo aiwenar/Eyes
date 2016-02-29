@@ -1,0 +1,1 @@
+ g++ -o configurator configurator.cc -lSDL -lSDL_image
