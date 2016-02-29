@@ -3,7 +3,7 @@ The Eyes Project
 
 Ever wanted to have a hamster, but all of them died because you were too busy maintaining your Gentoo to feed them for a week? We just got something for you! 
 
-Eyes are visual pet-like system monitor. Their mood indicate current (or recent) system status which can be somehow interpreted as mood of your PC right? So every time your CPU is bloated with tons of computing, running out of memory or battery - eyes are sad :c or even mad at you! Perfect pet-replacement if you feel a little itty bitty lonely in your server room surrounded by tons of racks and networking hardware 24/7 with no friends. As eyes are relatively interactive - they react to your mouse gestures and support camera for real world interaction, you won't be alone ever again.
+Eyes are visual pet-like system monitor. Their mood indicate current (or recent) system status which can be somehow interpreted as mood of your PC right? So every time your CPU is bloated with tons of computing, running out of memory or battery - eyes are sad :c or even mad at you! Perfect pet-replacement if you feel a little itty bitty lonely in your server room surrounded by tons of racks and networking hardware 24/7 with no friends. Eyes are relatively interactive - they react to your mouse gestures and support camera for real world interaction. You won't be alone ever again.
 
 ![Eyes screenshot](https://dl.dropboxusercontent.com/u/44131220/undeletable/z152.png "Eyes")
 
