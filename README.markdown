@@ -55,7 +55,7 @@ This mode is also suitable for headless mode (eg. for various servers or other h
 Installation on Microsoft™ Windows®
 -----------------------------------
 
-¯\_(ツ)_/¯
+¯\\_(ツ)_/¯
 
 FAQ
 ---
