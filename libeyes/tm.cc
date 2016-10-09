@@ -73,7 +73,7 @@ double ThemeManager::lookupValue ( const char * path, double def )
   return ret;
 }
 
-char * ThemeManager::lookupValue ( const char * path, const char * def )
+std::string ThemeManager::lookupValue ( const char * path, const char * def )
 {
   std::string ret;
   if ( not cfg.get ( path, ret ) )

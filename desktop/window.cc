@@ -29,7 +29,7 @@ eyes_window::eyes_window ( QWidget * parent ) : QWidget ( parent, Qt::WindowStay
     info << "(window) preparing...\n";
     Configuration * cfg = Configuration::getInstance ();
     ThemeManager * tm = ThemeManager::instance ();
-    const char * theme = cfg->lookupValue ( ".ui.theme", "default" );
+    std::string theme = cfg->lookupValue ( ".ui.theme", "default" );
     tm->load ( theme );
     double size_multiplier = cfg->lookupValue ( ".ui.window.size_percentage", 100 )/100.0;
     eyes_w = tm->lookupValue ( ".ui.window.reference_width", 320 ) * size_multiplier;

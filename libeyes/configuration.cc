@@ -76,7 +76,7 @@ bool Configuration::lookupValue ( const char * path, bool def )
     return tmp;
 }
 
-char * Configuration::lookupValue ( const char * path, const char * def )
+std::string Configuration::lookupValue ( const char * path, const char * def )
 {
     std::string tmp;
     if ( not cfg.get ( &(*path), tmp ) )
@@ -89,7 +89,7 @@ char * Configuration::lookupValue ( const char * path, const char * def )
         setValue ( path, def );
         return const_cast<char*>(def);
     }
-    return const_cast<char*>(tmp.c_str ());
+    return tmp;
 }
 
 char Configuration::lookupValue ( const char * path, char def )

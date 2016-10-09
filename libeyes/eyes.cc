@@ -214,7 +214,7 @@ void eyes_view::load ( QString folder, QString alt, const char * suffix, const _
 void eyes_view::open_images ( const char * color )
 {
   _s = "(eyes) loading images...  ";
-  const char * ctheme = Configuration::getInstance ()->lookupValue ( ".ui.theme", "default" );
+  std::string ctheme = Configuration::getInstance ()->lookupValue ( ".ui.theme", "default" );
   std::ostringstream oss1, oss2;
   oss1 << "./themes/" << ctheme << '/';
   theme = oss1.str ().c_str ();

@@ -52,7 +52,7 @@ public:
    * @param path path to configuration item.
    * @param def default value, returned if path doesn't exist.
    */
-  char      * lookupValue         ( const char * path, const char * def="" );
+  std::string lookupValue         ( const char * path, const char * def="" );
   /**
    * @return value from \p path if exists, otherwise \p def
    * @param path path to configuration item.

@@ -1802,7 +1802,7 @@ void Core::load_config ()
         season_data* tmpse = new season_data;
         bulwers.seasons.push_back(*tmpse);
         delete(tmpse);
-        QString tmp_date_input              = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".begin_date")[0],       "12.24"      );
+        QString tmp_date_input              = cfg->lookupValue (&(".core.bulwers.season"+ss.str()+".begin_date")[0],       "12.24"      ).c_str();
         QStringList tmp_date = tmp_date_input.split(".");
         bulwers.seasons[i].date_begin.ST = tmp_date[0].toInt();
         bulwers.seasons[i].date_begin.ND = tmp_date[1].toInt();
